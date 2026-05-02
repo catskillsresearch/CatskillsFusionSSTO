@@ -1,0 +1,219 @@
+<?xml version="1.0" ?>
+
+<PropertyList>
+
+<limit-simulation-mode type="int">1</limit-simulation-mode>
+
+<srb1-condition type="double">1.0</srb1-condition>
+<srb2-condition type="double">1.0</srb2-condition>
+<airfoils-pitch-condition type="double">1.0</airfoils-pitch-condition>
+<airfoils-yaw-condition type="double">1.0</airfoils-yaw-condition>
+<airfoils-roll-condition type="double">1.0</airfoils-roll-condition>
+<aero-structure-condition type="double">1.0</aero-structure-condition>
+<controls-condition type="double">1.0</controls-condition>
+<speedbrake-condition type="double">1.0</speedbrake-condition>
+<speedbrake-control type="int">1</speedbrake-control>
+<drag-chute-condition type="double">1.0</drag-chute-condition>
+<gear-hydraulics-condition type="double">1.0</gear-hydraulics-condition>
+
+<tps-condition type="double">1.0</tps-condition>
+<rhc-cdr-condition type="double">1.0</rhc-cdr-condition>
+<rhc-plt-condition type="double">1.0</rhc-plt-condition>
+<eclss>
+	<avbay1-fan-A-condition type="double">1.0</avbay1-fan-A-condition>
+	<avbay1-fan-B-condition type="double">1.0</avbay1-fan-B-condition>
+	<avbay2-fan-A-condition type="double">1.0</avbay2-fan-A-condition>
+	<avbay2-fan-B-condition type="double">1.0</avbay2-fan-B-condition>
+	<avbay3-fan-A-condition type="double">1.0</avbay3-fan-A-condition>
+	<avbay3-fan-B-condition type="double">1.0</avbay3-fan-B-condition>
+</eclss>
+<electrical>
+	<main-A-condition type="double">1.0</main-A-condition>
+	<main-B-condition type="double">1.0</main-B-condition>
+	<main-C-condition type="double">1.0</main-C-condition>
+	<ac1-condition type="double">1.0</ac1-condition>
+	<ac2-condition type="double">1.0</ac2-condition>
+	<ac3-condition type="double">1.0</ac3-condition>
+	<fc1-condition type="double">1.0</fc1-condition>
+	<fc2-condition type="double">1.0</fc2-condition>
+	<fc3-condition type="double">1.0</fc3-condition>
+</electrical>
+<gear>
+	<tire-nose-left-condition type="double">1.0</tire-nose-left-condition>
+	<tire-nose-right-condition type="double">1.0</tire-nose-right-condition>
+	<tire-left-ib-condition type="double">1.0</tire-left-ib-condition>
+	<tire-left-ob-condition type="double">1.0</tire-left-ob-condition>
+	<tire-right-ib-condition type="double">1.0</tire-right-ib-condition>
+	<tire-right-ob-condition type="double">1.0</tire-right-ob-condition>
+	<gearstrut-nose-condition type="double">1.0</gearstrut-nose-condition>
+	<gearstrut-left-condition type="double">1.0</gearstrut-left-condition>
+	<gearstrut-right-condition type="double">1.0</gearstrut-right-condition>
+</gear>
+<mps>
+	<ssme1-condition type="double">1.0</ssme1-condition>
+	<ssme2-condition type="double">1.0</ssme2-condition>
+	<ssme3-condition type="double">1.0</ssme3-condition>
+	<mps-he-left-condition type="double">1.0</mps-he-left-condition>
+	<mps-he-right-condition type="double">1.0</mps-he-right-condition>
+	<mps-he-center-condition type="double">1.0</mps-he-center-condition>
+	<mps-he-pneu-condition type="double">1.0</mps-he-pneu-condition>
+</mps>
+<oms>
+	<oms1-condition type="double">1.0</oms1-condition>
+	<oms2-condition type="double">1.0</oms2-condition>
+	<oms-left-pri-gimbal-condition type="double">1.0</oms-left-pri-gimbal-condition>
+	<oms-left-sec-gimbal-condition type="double">1.0</oms-left-sec-gimbal-condition>
+	<oms-right-pri-gimbal-condition type="double">1.0</oms-right-pri-gimbal-condition>
+	<oms-right-sec-gimbal-condition type="double">1.0</oms-right-sec-gimbal-condition>
+	<oms1-n2-condition type="double">1.0</oms1-n2-condition>
+	<oms2-n2-condition type="double">1.0</oms2-n2-condition>
+	<oms-he-left-condition type="double">1.0</oms-he-left-condition>
+	<oms-he-right-condition type="double">1.0</oms-he-right-condition>
+	<oms-he-kit-condition type="double">1.0</oms-he-kit-condition>
+	<oms-left-fuel-line-condition type="double">1.0</oms-left-fuel-line-condition>
+	<oms-right-fuel-line-condition type="double">1.0</oms-right-fuel-line-condition>
+</oms>
+<rcs>
+	<rcs-F2F-condition type="double">1.0</rcs-F2F-condition>
+	<rcs-F3F-condition type="double">1.0</rcs-F3F-condition>
+	<rcs-F1F-condition type="double">1.0</rcs-F1F-condition>
+	<rcs-F1L-condition type="double">1.0</rcs-F1L-condition>
+	<rcs-F3L-condition type="double">1.0</rcs-F3L-condition>
+	<rcs-F2R-condition type="double">1.0</rcs-F2R-condition>
+	<rcs-F4R-condition type="double">1.0</rcs-F4R-condition>
+      	<rcs-F2U-condition type="double">1.0</rcs-F2U-condition>
+	<rcs-F3U-condition type="double">1.0</rcs-F3U-condition>
+	<rcs-F1U-condition type="double">1.0</rcs-F1U-condition>
+	<rcs-F2D-condition type="double">1.0</rcs-F2D-condition>
+	<rcs-F1D-condition type="double">1.0</rcs-F1D-condition>
+	<rcs-F4D-condition type="double">1.0</rcs-F4D-condition>
+	<rcs-F3D-condition type="double">1.0</rcs-F3D-condition>
+	<rcs-F5R-condition type="double">1.0</rcs-F5R-condition>
+	<rcs-F5L-condition type="double">1.0</rcs-F5L-condition>
+	<rcs-R3A-condition type="double">1.0</rcs-R3A-condition>
+     	<rcs-R1A-condition type="double">1.0</rcs-R1A-condition>
+      	<rcs-L3A-condition type="double">1.0</rcs-L3A-condition>
+	<rcs-L1A-condition type="double">1.0</rcs-L1A-condition>
+	<rcs-L4L-condition type="double">1.0</rcs-L4L-condition>
+	<rcs-L2L-condition type="double">1.0</rcs-L2L-condition>
+	<rcs-L3L-condition type="double">1.0</rcs-L3L-condition>
+ 	<rcs-L1L-condition type="double">1.0</rcs-L1L-condition>
+     	<rcs-R4R-condition type="double">1.0</rcs-R4R-condition>
+      	<rcs-R2R-condition type="double">1.0</rcs-R2R-condition>
+      	<rcs-R3R-condition type="double">1.0</rcs-R3R-condition>
+      	<rcs-R1R-condition type="double">1.0</rcs-R1R-condition>
+	<rcs-L4U-condition type="double">1.0</rcs-L4U-condition>
+	<rcs-L2U-condition type="double">1.0</rcs-L2U-condition>
+	<rcs-L1U-condition type="double">1.0</rcs-L1U-condition>
+	<rcs-R4U-condition type="double">1.0</rcs-R4U-condition>
+	<rcs-R2U-condition type="double">1.0</rcs-R2U-condition>
+	<rcs-R1U-condition type="double">1.0</rcs-R1U-condition>
+	<rcs-L4D-condition type="double">1.0</rcs-L4D-condition>
+	<rcs-L2D-condition type="double">1.0</rcs-L2D-condition>
+	<rcs-L3D-condition type="double">1.0</rcs-L3D-condition>
+	<rcs-R4D-condition type="double">1.0</rcs-R4D-condition>
+	<rcs-R2D-condition type="double">1.0</rcs-R2D-condition>
+	<rcs-R3D-condition type="double">1.0</rcs-R3D-condition>
+	<rcs-L5D-condition type="double">1.0</rcs-L5D-condition>
+	<rcs-R5D-condition type="double">1.0</rcs-R5D-condition>
+	<rcs-L5L-condition type="double">1.0</rcs-L5L-condition>
+	<rcs-R5R-condition type="double">1.0</rcs-R5R-condition>
+	<rcs-he-left-1-condition type="double">1.0</rcs-he-left-1-condition>
+	<rcs-he-left-2-condition type="double">1.0</rcs-he-left-2-condition>
+	<rcs-he-right-1-condition type="double">1.0</rcs-he-right-1-condition>
+	<rcs-he-right-2-condition type="double">1.0</rcs-he-right-2-condition>
+	<rcs-he-fwd-1-condition type="double">1.0</rcs-he-fwd-1-condition>
+	<rcs-he-fwd-2-condition type="double">1.0</rcs-he-fwd-2-condition>
+	<rcs-fwd-fuel-line-condition type="double">1.0</rcs-fwd-fuel-line-condition>
+	<rcs-left-fuel-line-condition type="double">1.0</rcs-left-fuel-line-condition>
+	<rcs-right-fuel-line-condition type="double">1.0</rcs-right-fuel-line-condition>
+</rcs>
+<leakage>
+	<oms-left-oxidizer-leak-flow type="double">0.0</oms-left-oxidizer-leak-flow>
+	<oms-left-fuel-leak-flow type="double">0.0</oms-left-fuel-leak-flow>
+	<oms-right-oxidizer-leak-flow type="double">0.0</oms-right-oxidizer-leak-flow>
+	<oms-right-fuel-leak-flow type="double">0.0</oms-right-fuel-leak-flow>
+	<oms-kit-oxidizer-leak-flow type="double">0.0</oms-kit-oxidizer-leak-flow>
+	<oms-kit-fuel-leak-flow type="double">0.0</oms-kit-fuel-leak-flow>
+	<rcs-left-oxidizer-leak-flow type="double">0.0</rcs-left-oxidizer-leak-flow>
+	<rcs-left-fuel-leak-flow type="double">0.0</rcs-left-fuel-leak-flow>
+	<rcs-right-oxidizer-leak-flow type="double">0.0</rcs-right-oxidizer-leak-flow>
+	<rcs-right-fuel-leak-flow type="double">0.0</rcs-right-fuel-leak-flow>
+	<rcs-fwd-oxidizer-leak-flow type="double">0.0</rcs-fwd-oxidizer-leak-flow>
+	<rcs-fwd-fuel-leak-flow type="double">0.0</rcs-fwd-fuel-leak-flow>
+	<mps-left-helium-leak-flow type="double">0.0</mps-left-helium-leak-flow>
+	<mps-right-helium-leak-flow type="double">0.0</mps-right-helium-leak-flow>
+	<mps-center-helium-leak-flow type="double">0.0</mps-center-helium-leak-flow>
+	<mps-pneu-helium-leak-flow type="double">0.0</mps-pneu-helium-leak-flow>
+	<mps-inct-helium-leak-flow type="double">0.0</mps-inct-helium-leak-flow>
+</leakage>
+<apu1-condition type="double">1.0</apu1-condition>
+<apu2-condition type="double">1.0</apu2-condition>
+<apu3-condition type="double">1.0</apu3-condition>
+<boiler1-condition type="double">1.0</boiler1-condition>
+<boiler2-condition type="double">1.0</boiler2-condition>
+<boiler3-condition type="double">1.0</boiler3-condition>
+<hyd1-pump-condition type="double">1.0</hyd1-pump-condition>
+<hyd2-pump-condition type="double">1.0</hyd2-pump-condition>
+<hyd3-pump-condition type="double">1.0</hyd3-pump-condition>
+<fc1-coolant-pump-condition type="double">1.0</fc1-coolant-pump-condition>
+<fc2-coolant-pump-condition type="double">1.0</fc2-coolant-pump-condition>
+<fc3-coolant-pump-condition type="double">1.0</fc3-coolant-pump-condition>
+<radiator-condition type="double">1.0</radiator-condition>
+<fes-topping-condition type="double">1.0</fes-topping-condition>
+<fes-hiload-condition type="double">1.0</fes-hiload-condition>
+<freon-pump-1-condition type="double">1.0</freon-pump-1-condition>
+<freon-pump-2-condition type="double">1.0</freon-pump-2-condition>
+<water-pump-1-condition type="double">1.0</water-pump-1-condition>
+<water-pump-2-condition type="double">1.0</water-pump-2-condition>
+<spray-boiler-1-condition type="double">1.0</spray-boiler-1-condition>
+<spray-boiler-2-condition type="double">1.0</spray-boiler-2-condition>
+<spray-boiler-3-condition type="double">1.0</spray-boiler-3-condition>
+<ku-band-antenna-condition type="double">1.0</ku-band-antenna-condition>
+<ku-band-antenna-stow-condition type="double">1.0</ku-band-antenna-stow-condition>
+<rms-shoulder-yaw-condition type="double">1.0</rms-shoulder-yaw-condition>
+<rms-shoulder-pitch-condition type="double">1.0</rms-shoulder-pitch-condition>
+<rms-elbow-pitch-condition type="double">1.0</rms-elbow-pitch-condition>
+<rms-wrist-pitch-condition type="double">1.0</rms-wrist-pitch-condition>
+<rms-wrist-yaw-condition type="double">1.0</rms-wrist-yaw-condition>
+<rms-wrist-roll-condition type="double">1.0</rms-wrist-roll-condition>
+<floodlight-aft-condition type="double">1.0</floodlight-aft-condition>
+<floodlight-mid-condition type="double">1.0</floodlight-mid-condition>
+<floodlight-fwd-condition type="double">1.0</floodlight-fwd-condition>
+<payload-bay-switch-condition type="double">1.0</payload-bay-switch-condition> 
+<navigation>
+	<star-tracker-Y-condition type="double">1.0</star-tracker-Y-condition>
+	<star-tracker-Z-condition type="double">1.0</star-tracker-Z-condition>
+	<tacan-1-condition type="double">1.0</tacan-1-condition>
+	<tacan-2-condition type="double">1.0</tacan-2-condition>
+	<tacan-3-condition type="double">1.0</tacan-3-condition>
+	<mls-1-condition type="double">1.0</mls-1-condition>
+	<mls-2-condition type="double">1.0</mls-2-condition>
+	<mls-3-condition type="double">1.0</mls-3-condition>
+	<radar-alt-1-condition type="double">1.0</radar-alt-1-condition>
+	<radar-alt-2-condition type="double">1.0</radar-alt-2-condition>
+	<air-data-probe-left-condition type="double">1.0</air-data-probe-left-condition>
+	<air-data-probe-right-condition type="double">1.0</air-data-probe-right-condition>
+	<air-data-pressure-left-condition type="double">1.0</air-data-pressure-left-condition>
+	<air-data-pressure-right-condition type="double">1.0</air-data-pressure-right-condition>
+	<adta-1-condition type="double">1.0</adta-1-condition>
+	<adta-2-condition type="double">1.0</adta-2-condition>
+	<adta-3-condition type="double">1.0</adta-3-condition>
+	<adta-4-condition type="double">1.0</adta-4-condition>
+	<gps-condition type="double">1.0</gps-condition>
+	<imu-1-condition type="double">1.0</imu-1-condition>
+	<imu-2-condition type="double">1.0</imu-2-condition>
+	<imu-3-condition type="double">1.0</imu-3-condition>
+</navigation>
+<dps>
+	<gpc-1-condition type="double">1.0</gpc-1-condition>
+	<gpc-2-condition type="double">1.0</gpc-2-condition>
+	<gpc-3-condition type="double">1.0</gpc-3-condition>
+	<gpc-4-condition type="double">1.0</gpc-4-condition>
+	<gpc-5-condition type="double">1.0</gpc-5-condition>
+</dps>
+<shuttle-destroyed type="bool">false</shuttle-destroyed>
+<shuttle-damaged type="bool">false</shuttle-damaged>
+<window-cdr type="double">1.0</window-cdr>
+
+</PropertyList>

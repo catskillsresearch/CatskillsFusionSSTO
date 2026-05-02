@@ -1,0 +1,97 @@
+<?xml version="1.0"?>
+
+<system>
+
+	<channel name="Throttle mapping">
+
+
+		<!-- use either manual throttle or AP command -->
+
+		<switch name="fcs/throttle-merge-norm[0]">
+			<default value="fcs/throttle-cmd-norm[0]"/>
+			<test value="/controls/engines/engine[0]/ap-throttle-cmd">
+				systems/ap/automatic-throttle-control == 1	
+			</test>
+		</switch>
+
+		<switch name="fcs/throttle-merge-norm[1]">
+			<default value="fcs/throttle-cmd-norm[1]"/>
+			<test value="/controls/engines/engine[1]/ap-throttle-cmd">
+				systems/ap/automatic-throttle-control == 1	
+			</test>
+		</switch>
+
+		<switch name="fcs/throttle-merge-norm[2]">
+			<default value="fcs/throttle-cmd-norm[2]"/>
+			<test value="/controls/engines/engine[2]/ap-throttle-cmd">
+				systems/ap/automatic-throttle-control == 1	
+			</test>
+		</switch>
+
+
+		<!-- main engine throttle is mapped from 65% to (up to) 109% of rated power -->
+
+		<switch name="systems/throttle/throttle-factor">
+			<default value="1.0"/>
+			<test value="1.09">
+				systems/throttle/throttle-mode == 1	
+			</test>
+			<test value="1.06">
+				systems/throttle/throttle-mode == 2	
+			</test>
+			<test  value="/fdm/jsbsim/systems/throttle/throttle-nominal">
+				systems/throttle/throttle-mode == 3	
+			</test>
+		</switch>
+
+		<fcs_function name="systems/throttle/ssme1-throttle-norm">
+		<function>
+			<product>
+				<sum>
+					<value>0.65</value>
+					<product>
+						<property>fcs/throttle-merge-norm[0]</property>
+						<value>0.35</value>
+					</product>
+				</sum>				
+				<property>systems/throttle/throttle-factor</property>
+			</product>
+		</function>
+		<output>fcs/throttle-pos-norm[0]</output>
+		</fcs_function>
+
+		<fcs_function name="systems/throttle/ssme2-throttle-norm">
+		<function>
+			<product>
+				<sum>
+					<value>0.65</value>
+					<product>
+						<property>fcs/throttle-merge-norm[1]</property>
+						<value>0.35</value>
+					</product>
+				</sum>	
+				<property>systems/throttle/throttle-factor</property>
+			</product>
+		</function>
+		<output>fcs/throttle-pos-norm[1]</output>
+		</fcs_function>
+
+		<fcs_function name="systems/throttle/ssme3-throttle-norm">
+		<function>
+			<product>
+				<sum>
+					<value>0.65</value>
+					<product>
+						<property>fcs/throttle-merge-norm[2]</property>
+						<value>0.35</value>
+					</product>
+				</sum>	
+				<property>systems/throttle/throttle-factor</property>
+			</product>
+		</function>
+		<output>fcs/throttle-pos-norm[2]</output>
+		</fcs_function>
+
+
+	</channel>
+</system>

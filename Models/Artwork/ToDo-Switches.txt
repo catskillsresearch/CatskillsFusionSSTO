@@ -1,0 +1,105 @@
+
+
+##################
+# Switch requests
+##################
+
+
+R2
+
+* Helium Interconnect Switch Left
+
+property:
+	/fdm/jsbsim/systems/mps/engine[0]/helium-interconnect-valve-status
+mapping:
+	-1: OUT OPEN (up)
+	0: GPC	(center)
+	1: IN OPEN (down)
+
+* Helium Interconnect Switch Center
+
+property:
+	/fdm/jsbsim/systems/mps/engine[2]/helium-interconnect-valve-status
+mapping:
+	-1: OUT OPEN (up)
+	0: GPC	(center)
+	1: IN OPEN (down)
+
+* Helium Interconnect Switch Right
+
+property:
+	/fdm/jsbsim/systems/mps/engine[1]/helium-interconnect-valve-status
+mapping:
+	-1: OUT OPEN (up)
+	0: GPC	(center)
+	1: IN OPEN (down)
+
+
+##################
+# Canvas spaces
+##################
+
+##################
+# Analogue gauges
+##################
+
+######################################
+QUESTIONS
+#######################
+
+
+
+
+######################################
+DUMMY SWITCHES and NOT CODED
+(search "CODED" in xml file)
+#######################
+
+R13 - 
+object-name 
+  pb-door-pwr-sys1
+  pb-door-pwr-sys2
+property
+  /fdm/jsbsim/systems/mechanical/pb-door-sys1-pwr
+  /fdm/jsbsim/systems/mechanical/pb-door-sys2-pwr
+mapping
+     0: Off
+     1: On
+
+F6 - HSI Mode switch
+F8 - HSI Mode switch
+property
+    /fdm/jsbsim/systems/adi/hsi-mode-select
+mapping
+     0: TAEM
+     1: ENTRY
+    -1: APPROACH
+
+L1 - "many" switches
+R1 - "many" switches
+
+A1 - Encription Power "Cover"
+switch cover animation example
+
+O14 Breakers
+* Star Tracker Z Breaker
+- property
+	/fdm/jsbsim/systems/circuit-breakers/star-trkr-z-brk
+-mapping 
+	0: OFF
+	1: ON
+
+O15 Breakers
+* Star Tracker Y Breaker
+- property
+	/fdm/jsbsim/systems/circuit-breakers/star-trkr-y-brk
+-mapping 
+	0: OFF
+	1: ON
+
+######################################
+FINISHED
+########################
+
+
+#######################################

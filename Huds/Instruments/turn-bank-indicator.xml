@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+
+<PropertyList>
+	<turn-bank-indicator>
+		<name>Turn Bank Indicator</name>
+		<condition>
+			<and>
+			<not>
+				<equals>
+				<property>/sim/current-view/view-number</property>
+				<value>0</value>
+				</equals>
+			</not>
+			<not>
+				<equals>
+				<property>/sim/current-view/view-number</property>
+				<value>12</value>
+				</equals>
+			</not>
+			</and>
+		</condition>
+		<x>-30</x>
+		<width>60</width>
+		<height>10</height>
+		<bank-input>
+			<property>/orientation/roll-deg</property>
+		</bank-input>
+
+		<sideslip-input>
+			<property>/orientation/side-slip-deg</property>
+		</sideslip-input>
+
+		<gap-width>5</gap-width>
+		<bank-scale>false</bank-scale>
+		<bank-scale-radius>250</bank-scale-radius>
+	</turn-bank-indicator>
+</PropertyList>

@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+
+<PropertyList>
+	<label>
+		<name>Latitude</name>
+		<condition>
+			<and>
+			<not>
+				<equals>
+				<property>/sim/current-view/view-number</property>
+				<value>0</value>
+				</equals>
+			</not>
+			<not>
+				<equals>
+				<property>/sim/current-view/view-number</property>
+				<value>12</value>
+				</equals>
+			</not>
+			</and>
+		</condition>
+		<width>1</width>
+		<height>1</height>
+
+		<halign>center</halign>
+		<input>
+			<property>/position/latitude-string</property>
+		</input>
+	</label>
+</PropertyList>

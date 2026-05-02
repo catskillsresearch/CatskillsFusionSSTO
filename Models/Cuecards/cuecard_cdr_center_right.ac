@@ -1,0 +1,25 @@
+AC3Db
+MATERIAL "DefaultWhite" rgb 1.0000 1.0000 1.0000  amb 1.0000 1.0000 1.0000  emis 0.0000 0.0000 0.0000  spec 0.5000 0.5000 0.5000  shi 10 trans 0.0000
+MATERIAL "DefaultWhite" rgb 1.0000 1.0000 1.0000  amb 1.0000 1.0000 1.0000  emis 0.0000 0.0000 0.0000  spec 0.9500 0.9500 0.9500  shi 50 trans 0.0000
+OBJECT world
+name "Blender_export__cuecard_cdr_center_left.ac"
+texture "white.png"
+texrep 1 1
+kids 1
+OBJECT poly
+name "Cuecard-CDR-center-right"
+loc -12.4399996 -0.1900000 0.1250000
+numvert 4
+0.0000000 -0.1000000 0.0600000
+0.0000006 0.1000000 0.0600000
+0.0000000 -0.1000000 -0.0600000
+0.0000000 0.1000000 -0.0600000
+numsurf 1
+SURF 0X20
+mat 1
+refs 4
+1 0.198077 0.997923
+0 0.198077 -0.001923
+2 0.797984 -0.001923
+3 0.797984 0.997923
+kids 0

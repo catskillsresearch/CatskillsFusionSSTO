@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<rocket_engine name="SSME">
+  <isp>                   451.7  </isp>
+  <maxthrottle>           1.09  </maxthrottle>
+  <minthrottle>           0.60  </minthrottle>
+<!-- three engines-->
+ <!--<slfuelflowmax unit="LBS/SEC">  444.9  </slfuelflowmax>
+  <sloxiflowmax unit="LBS/SEC">   2681.4  </sloxiflowmax>-->
+  <slfuelflowmax unit="LBS/SEC">  148.3  </slfuelflowmax>
+  <sloxiflowmax unit="LBS/SEC">   893.8  </sloxiflowmax>
+</rocket_engine>
+
+

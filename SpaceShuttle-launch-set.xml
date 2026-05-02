@@ -1,0 +1,103 @@
+<?xml version="1.0"?>
+
+<!-- this puts the Shuttle onto the launch pad -->
+
+<PropertyList include="SpaceShuttle-common.xml">
+<sim>
+  <description>NASA Space Shuttle Atlantis in launch position</description>
+  <long-description>
+     The Space Shuttle was a partially re-usable low orbit spacecraft operated by NASA from 1981 to 2011. In this mission phase, the Shuttle is on the pad, about five minutes to launch, ready to go into space.
+  </long-description>
+  <presets>
+	<altitude-ft>10000.0</altitude-ft>	
+	<pitch-deg>90.0</pitch-deg>
+	<stage type="int">0</stage>
+  </presets>
+  <startup>
+    <splash-texture>Aircraft/SpaceShuttle/SpaceShuttle-launch-splash.png</splash-texture>
+  </startup>
+  <previews>
+      <preview>
+        <type>exterior</type>
+        <splash type="bool">true</splash>
+        <path>Pics/launch-splash01.png</path>
+      </preview>
+      <preview>
+        <type>exterior</type>
+        <splash type="bool">true</splash>
+        <path>Pics/launch-splash02.png</path>
+      </preview>
+      <preview>
+        <type>exterior</type>
+        <splash type="bool">true</splash>
+        <path>Pics/launch-splash03.png</path>
+      </preview>
+  </previews>
+  <config>
+    <shuttle>
+      <prelaunch-flag type="int">1</prelaunch-flag>
+    </shuttle>
+  </config>
+  <menubar>
+     <default>
+	<menu n="51">
+	      <label>Payload Operations</label>
+
+	      <item>
+	       <label>Payload bay floodlights</label>
+	       <binding>
+		<command>nasal</command>
+		<script>SpaceShuttle.pb_floodlight_dlg.open()</script>
+	       </binding>
+	      </item>
+
+	      <item>
+	       <label>RMS arm deployment</label>
+	       <binding>
+		<command>nasal</command>
+		<script>SpaceShuttle.rms_deploy_dlg.open()</script>
+	       </binding>
+	      </item>
+
+	      <item>
+	       <label>RMS arm operation</label>
+	       <binding>
+		<command>nasal</command>
+		<script>SpaceShuttle.rms_operation_dlg.open()</script>
+	       </binding>
+	      </item>
+
+	      <item>
+	       <label>Payload retention</label>
+	       <binding>
+		<command>nasal</command>
+		<script>SpaceShuttle.pl_retention_dlg.open()</script>
+	       </binding>
+	      </item>
+
+	      <item>
+	       <label>RMS Pyro</label>
+	       <binding>
+		<command>nasal</command>
+		<script>SpaceShuttle.rms_pyro_dlg.open()</script>
+	       </binding>
+	      </item>
+	     </menu>
+     </default>
+  </menubar>
+</sim>
+
+<fdm>
+   <jsbsim>
+	<systems>
+	   <dps>
+		<ops type="int">1</ops>
+		<major-mode type="int">101</major-mode>
+		<ops-bfs type="int">1</ops-bfs>
+		<major-mode-bfs type="int">101</major-mode-bfs>
+	   </dps>
+	</systems>
+   </jsbsim>
+</fdm>
+
+</PropertyList>

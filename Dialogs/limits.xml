@@ -1,0 +1,169 @@
+<?xml version="1.0"?>
+
+<PropertyList>
+	<name>limits</name>
+	<layout>vbox</layout>
+	<default-padding>1</default-padding>
+	<modal>false</modal>
+	<width>500</width>
+
+	<empty>
+		<pref-height>6</pref-height>
+	</empty>
+
+	<text>
+		<label>Limits and failures</label>
+	</text>
+
+	<empty>
+		<pref-height>4</pref-height>
+	</empty>
+
+	<hrule/>
+
+ <group>
+ <layout>table</layout>
+
+	<text>
+      		<label>Limit simulation</label>
+      		<halign>left</halign>
+      		<row>2</row>
+     	 	<col>0</col>
+    	</text>
+
+
+   	<combo>
+       		 <row>2</row>
+        	 <col>1</col>
+        	 <name>limit-selection</name>
+        	 <halign>left</halign>
+        	 <stretch>true</stretch>
+        	 <pref-width>200</pref-width>
+        	 <property>/sim/gui/dialogs/SpaceShuttle/limits/limit-mode</property>
+		 <value>soft</value>
+		 <value>realistic</value>
+		 <value>hard</value>
+        	 <binding>
+             	 	<command>dialog-apply</command>
+          	 	<object-name>limit-selection</object-name>
+        	 </binding>
+      	</combo>
+
+</group>
+
+<group> 
+<layout>table</layout>
+
+    <textbox>
+      <name>basic description</name>
+      <halign>fill</halign>
+      <stretch>true</stretch>
+      <pref-width>250</pref-width>
+      <pref-height>100</pref-height>
+      <slider>0</slider>
+      <editable>false</editable>
+      <wrap>true</wrap>
+      <live>true</live>
+      <property>/sim/gui/dialogs/SpaceShuttle/limits/limit-mode-description</property>
+    </textbox>
+
+
+</group>
+
+
+<group>
+ <layout>table</layout>
+
+	<text>
+      		<label>Failure scenario</label>
+      		<halign>left</halign>
+      		<row>2</row>
+     	 	<col>0</col>
+    	</text>
+
+
+   	<combo>
+       		 <row>2</row>
+        	 <col>1</col>
+        	 <name>failure-scenario</name>
+        	 <halign>left</halign>
+        	 <stretch>true</stretch>
+        	 <pref-width>200</pref-width>
+          	 <live>true</live>
+        	 <property>/sim/gui/dialogs/SpaceShuttle/limits/failure-scenario</property>
+		 <value>none</value>
+		 <value>ascent single engine failure</value>
+		 <value>ascent single engine lockup</value>
+		 <value>PASS failure</value>
+		 <value>off attitude</value>
+		 <value>RCS failure</value>
+		 <value>hydraulic failure</value>
+		 <value>electric failure</value>
+		 <value>propellant leak</value>	
+		 <value>avionics bay fire</value>
+		 <value>GPC sync failure</value>
+		 <value>bad state vector at TAEM</value>
+		 <value>navigation problems</value>
+		 <value>stuck speedbrake</value>
+		 <value>burst tire</value>
+        	 <binding>
+             	 	<command>dialog-apply</command>
+          	 	<object-name>failure-scenario</object-name>
+        	 </binding>
+		 <binding>
+		<command>nasal</command>
+			<script>
+				SpaceShuttle.update_scenario();
+			</script>
+		 </binding>
+      	</combo>
+
+</group>
+
+<group> 
+<layout>table</layout>
+
+    <textbox>
+      <name>scenario description</name>
+      <halign>fill</halign>
+      <stretch>true</stretch>
+      <pref-width>250</pref-width>
+      <pref-height>100</pref-height>
+      <slider>0</slider>
+      <editable>false</editable>
+      <wrap>true</wrap>
+      <live>true</live>
+      <property>/sim/gui/dialogs/SpaceShuttle/limits/failure-scenario-description</property>
+    </textbox>
+
+
+</group>
+
+
+
+
+
+	<empty>
+		<pref-height>12</pref-height>
+	</empty>
+
+	<hrule/>
+
+	<empty>
+		<pref-height>20</pref-height>
+	</empty>
+
+	<button>
+		<legend>Okay</legend>
+		<default>true</default>
+		<key>Esc</key>
+		<binding>
+			<command>nasal</command>
+                    	<script>SpaceShuttle.apply_failure_scenario()</script>
+		</binding>
+		<binding>
+			<command>dialog-close</command>
+		</binding>
+	</button>
+
+</PropertyList>

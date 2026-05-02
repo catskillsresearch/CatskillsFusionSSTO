@@ -1,0 +1,414 @@
+<?xml version="1.0"?>
+
+<system>
+
+	<channel name="CWS flag generation" execrate="8">
+
+		<switch name="systems/cws/internal/left-oms-firing-fail">
+			<default value="0.0"/>
+			<test logic="AND" value="1.0">
+				propulsion/engine[5]/thrust-lbs GT 0.0
+				systems/failures/oms/oms1-condition LT 0.8
+			</test>
+		</switch>
+
+
+		<switch name="systems/cws/left-oms">
+			<default value="0.0"/>
+			<test logic="OR" value="1.0">
+				systems/oms-hardware/tanks-left-oms-pressure-psia GT 288
+				systems/oms-hardware/tanks-left-oms-pressure-psia LT 232
+				systems/cws/internal/left-oms-firing-fail == 1
+			</test>
+		</switch>
+
+		<switch name="systems/cws/internal/right-oms-firing-fail">
+			<default value="0.0"/>
+			<test logic="AND" value="1.0">
+				propulsion/engine[6]/thrust-lbs GT 0.0
+				systems/failures/oms/oms2-condition LT 0.8
+			</test>
+		</switch>
+
+
+		<switch name="systems/cws/right-oms">
+			<default value="0.0"/>
+			<test logic="OR" value="1.0">				
+				systems/oms-hardware/tanks-right-oms-pressure-psia GT 288
+				systems/oms-hardware/tanks-right-oms-pressure-psia LT 232
+				systems/cws/internal/right-oms-firing-fail == 1
+			</test>
+		</switch>
+
+		<switch name="systems/cws/kit-oms">
+			<default value="0.0"/>
+			<test logic="AND" value="1.0">				
+				systems/oms-hardware/tanks-kit-oms-pressure-psia GT 288
+				systems/oms-hardware/oms-kit-installed == 1
+			</test>
+			<test logic="AND" value="1.0">				
+				systems/oms-hardware/tanks-kit-oms-pressure-psia LT 232
+				systems/oms-hardware/oms-kit-installed == 1
+			</test>
+		</switch>
+
+		<switch name="systems/cws/oms-tvc">
+			<default value="0.0"/>
+			<test logic="OR" value="1.0">
+				systems/failures/oms/oms-left-pri-gimbal-condition LT 0.8
+				systems/failures/oms/oms-left-sec-gimbal-condition LT 0.8
+				systems/failures/oms/oms-right-pri-gimbal-condition LT 0.8
+				systems/failures/oms/oms-right-sec-gimbal-condition LT 0.8
+			</test>
+		</switch>
+
+		<switch name="systems/cws/rcs-jet">
+			<default value="0.0"/>
+			<test logic="OR" value="1.0">
+				systems/cws/jet-fail-f1 GT 0.0
+				systems/cws/jet-fail-f2 GT 0.0
+				systems/cws/jet-fail-f3 GT 0.0
+				systems/cws/jet-fail-f4 GT 0.0
+				systems/cws/jet-fail-f5 GT 0.0
+				systems/cws/jet-fail-l1 GT 0.0
+				systems/cws/jet-fail-l2 GT 0.0
+				systems/cws/jet-fail-l3 GT 0.0
+				systems/cws/jet-fail-l4 GT 0.0
+				systems/cws/jet-fail-l5 GT 0.0
+				systems/cws/jet-fail-r1 GT 0.0
+				systems/cws/jet-fail-r2 GT 0.0
+				systems/cws/jet-fail-r3 GT 0.0
+				systems/cws/jet-fail-r4 GT 0.0
+				systems/cws/jet-fail-r5 GT 0.0
+			</test>
+		</switch>
+
+		<switch name="systems/cws/fwd-rcs">
+			<default value="0.0"/>
+			<test logic="OR" value="1.0">
+				systems/rcs-hardware/tanks-fwd-rcs-pressure-psia LT 200
+				systems/rcs-hardware/tanks-fwd-rcs-pressure-psia GT 312
+				systems/cws/forward-leak EQ 1.0
+			</test>
+		</switch>
+
+		<switch name="systems/cws/left-rcs">
+			<default value="0.0"/>
+			<test logic="OR" value="1.0">
+				systems/rcs-hardware/tanks-left-rcs-pressure-psia LT 200
+				systems/rcs-hardware/tanks-left-rcs-pressure-psia GT 312
+				systems/cws/aft-left-leak EQ 1.0
+			</test>
+		</switch>
+
+		<switch name="systems/cws/right-rcs">
+			<default value="0.0"/>
+			<test logic="OR" value="1.0">
+				systems/rcs-hardware/tanks-right-rcs-pressure-psia LT 200
+				systems/rcs-hardware/tanks-right-rcs-pressure-psia GT 312
+				systems/cws/aft-right-leak EQ 1.0
+			</test>
+		</switch>
+
+		<switch name="systems/cws/gpc-hardware-fault">
+			<default value="0.0"/>
+			<test logic="OR" value="1.0">
+				systems/failures/dps/gpc-1-condition EQ 0.0
+				systems/failures/dps/gpc-2-condition EQ 0.0
+				systems/failures/dps/gpc-3-condition EQ 0.0
+				systems/failures/dps/gpc-4-condition EQ 0.0
+				systems/failures/dps/gpc-5-condition EQ 0.0
+			</test>
+		</switch>
+
+		<switch name="systems/cws/fuel-cell-stack-temp">
+			<default value="0.0"/>
+			<test logic="OR" value="1.0">
+				systems/electrical/fc/stack-temperature-K GT 389.7
+				systems/electrical/fc[1]/stack-temperature-K GT 389.7
+				systems/electrical/fc[2]/stack-temperature-K GT 389.7
+				systems/electrical/fc/stack-temperature-K LT 350
+				systems/electrical/fc[1]/stack-temperature-K LT 350
+				systems/electrical/fc[2]/stack-temperature-K LT 350
+			</test>
+		</switch>
+
+		<switch name="systems/cws/fuel-cell-pump">
+			<default value="0.0"/>
+			<test logic="OR" value="1.0">
+				systems/failures/fc1-coolant-pump-condition LT 0.8
+				systems/failures/fc2-coolant-pump-condition LT 0.8
+				systems/failures/fc3-coolant-pump-condition LT 0.8
+				systems/electrical/fc/fc-running LT 1.0
+				systems/electrical/fc[1]/fc-running LT 1.0
+				systems/electrical/fc[2]/fc-running LT 1.0
+			</test>
+		</switch>
+
+		<switch name="systems/cws/fuel-cell-reac">
+			<default value="0.0"/>
+			<test logic="OR" value="1.0">
+				systems/electrical/fc/reactant-valve-status LT 1.0
+				systems/electrical/fc[1]/reactant-valve-status LT 1.0
+				systems/electrical/fc[2]/reactant-valve-status LT 1.0
+			</test>
+		</switch>
+
+		<switch name="systems/cws/main-bus-undervolt">
+			<default value="0.0"/>
+			<test logic="OR" value="1.0">
+				systems/electrical/bus/voltage LT 26.4
+				systems/electrical/bus[1]/voltage LT 26.4
+				systems/electrical/bus[2]/voltage LT 26.4
+			</test>
+		</switch>
+
+		<switch name="systems/cws/ac-voltage">
+			<default value="0.0"/>
+			<test logic="AND" value="1.0">
+				systems/electrical/ac/voltage LT 108.0
+				systems/electrical/ac/ac-bus-snsr NE 0
+			</test>
+			<test logic="AND" value="1.0">
+				systems/electrical/ac[1]/voltage LT 108.0
+				systems/electrical/ac[1]/ac-bus-snsr NE 0
+			</test>
+			<test logic="AND" value="1.0">
+				systems/electrical/ac[2]/voltage LT 108.0
+				systems/electrical/ac[2]/ac-bus-snsr NE 0
+			</test>
+
+		</switch>
+
+		<switch name="systems/cws/ac-overload">
+			<default value="0.0"/>
+			<test logic="AND" value="1.0">
+				systems/electrical/ac/power-demand-kW GT 7.0
+				systems/electrical/ac/ac-bus-snsr NE 0
+			</test>
+			<test logic="AND" value="1.0">
+				systems/electrical/ac[1]/power-demand-kW GT 7.0
+				systems/electrical/ac[1]/ac-bus-snsr NE 0
+			</test>
+			<test logic="AND" value="1.0">
+				systems/electrical/ac[2]/power-demand-kW GT 7.0
+				systems/electrical/ac[2]/ac-bus-snsr NE 0
+			</test>
+
+		</switch>
+
+		<switch name="systems/cws/h2o-loop">
+			<default value="0.0"/>
+			<test logic="AND" value="1.0">
+				systems/atcs/water-pump-1-active == 0
+				systems/failures/water-pump-1-condition LT 0.4
+			</test>
+			<test logic="AND" value="1.0">
+				systems/atcs/water-pump-2-active == 0
+				systems/failures/water-pump-2-condition LT 0.4
+			</test>
+		</switch>
+
+		<switch name="systems/cws/freon-loop">
+			<default value="0.0"/>
+			<test logic="AND" value="1.0">
+				systems/dps/ops NE 1
+				systems/dps/ops NE 6
+				systems/thermal-distribution/freon-out-temperature-K GT 291.37
+			</test>
+			<test logic="AND" value="1.0">
+				systems/dps/ops == 1
+				systems/thermal-distribution/freon-out-temperature-K GT 319.0
+			</test>
+			<test logic="AND" value="1.0">
+				systems/dps/ops == 6
+				systems/thermal-distribution/freon-out-temperature-K GT 319.0
+			</test>
+			<test logic="AND" value="1.0">
+				systems/thermal-distribution/freon-out-temperature-K LT 266
+			</test>
+			<test value="1.0">
+				systems/atcs/freon-flow-active LT 1.0
+			</test>
+
+		</switch>
+
+		<switch name="systems/cws/cabin-atm">
+			<default value="0.0"/>
+			<test logic="OR" value="1.0">
+				systems/eclss/cabin/air-pressure-psi LT 13.74
+				systems/eclss/cabin/air-pressure-psi GT 15.53
+				systems/eclss/cabin/ppo2-psi LT 2.7
+				systems/eclss/cabin/ppo2-psi GT 3.6
+			</test>
+		</switch>
+
+		<switch name="systems/cws/avbay-cabin-air">
+			<default value="0.0"/>
+			<test logic="OR" value="1.0">
+				systems/eclss/cabin/co2-accumulation-target == 1
+				systems/eclss/avbay/temperature-K GT 328
+				systems/eclss/avbay[1]/temperature-K GT 328
+				systems/eclss/avbay[2]/temperature-K GT 328
+			</test>
+			<test logic="AND" value="1.0">
+				systems/eclss/cabin/fan-A-operational EQ 0.0
+				systems/eclss/cabin/fan-B-operational EQ 0.0
+			</test>
+		</switch>
+
+		<switch name="systems/cws/hyd-press">
+			<default value="0.0"/>
+			<test logic="OR" value="1.0">
+				systems/apu/apu/hyd-pressure-psia LT 2400
+				systems/apu/apu[1]/hyd-pressure-psia LT 2400
+				systems/apu/apu[2]/hyd-pressure-psia LT 2400
+			</test>
+		</switch>
+
+		<switch name="systems/cws/apu-overspeed">
+			<default value="0.0"/>
+			<test logic="AND" value="1.0">
+				systems/apu/apu/apu-operate == 1
+				systems/apu/apu/apu-rpm GT 92880.0
+			</test>
+			<test logic="AND" value="1.0">
+				systems/apu/apu[1]/apu-operate == 1
+				systems/apu/apu[1]/apu-rpm GT 92880.0
+			</test>
+			<test logic="AND" value="1.0">
+				systems/apu/apu[2]/apu-operate == 1
+				systems/apu/apu[2]/apu-rpm GT 92880.0
+			</test>
+		</switch>
+
+		<switch name="systems/cws/apu-underspeed">
+			<default value="0.0"/>
+			<test logic="AND" value="1.0">
+				systems/apu/apu/apu-operate == 1
+				systems/apu/apu/apu-startup == 0
+				systems/apu/apu/apu-rpm LT 57600.0
+			</test>
+			<test logic="AND" value="1.0">
+				systems/apu/apu[1]/apu-operate == 1
+				systems/apu/apu[1]/apu-startup == 0
+				systems/apu/apu[1]/apu-rpm LT 57600.0
+			</test>
+			<test logic="AND" value="1.0">
+				systems/apu/apu[2]/apu-operate == 1
+				systems/apu/apu[2]/apu-startup == 0
+				systems/apu/apu[2]/apu-rpm LT 57600.0
+			</test>
+		</switch>
+
+		<switch name="systems/cws/apu-temp">
+			<default value="0.0"/>
+			<test logic="OR" value="1.0">
+				systems/thermal-distribution/apu1-temperature-K GT 416.5
+				systems/thermal-distribution/apu2-temperature-K GT 416.5
+				systems/thermal-distribution/apu3-temperature-K GT 416.5
+			</test>
+		</switch>
+
+		<switch name="systems/cws/mps-hw">
+			<default value="0.0"/>
+			<test logic="OR" value="1.0">
+				systems/mps/helium/reg-pressure-psia LT 680.0
+				systems/mps/helium[1]/reg-pressure-psia LT 680.0
+				systems/mps/helium[2]/reg-pressure-psia LT 680.0
+				systems/mps/helium/reg-pressure-psia GT 810.0
+				systems/mps/helium[1]/reg-pressure-psia GT 810.0
+				systems/mps/helium[2]/reg-pressure-psia GT 810.0
+				systems/mps/helium/pressure-psia LT 1150.0
+				systems/mps/helium[1]/pressure-psia LT 1150.0
+				systems/mps/helium[2]/pressure-psia LT 1150.0
+				systems/mps/helium[3]/pressure-psia LT 1150.0
+			</test>
+			<test logic="AND" value="1.0">
+				<test logic="OR">
+					systems/mps/lh2-manifold-pressure-psia GT 65.0
+					systems/mps/lo2-manifold-pressure-psia GT 249.0
+				</test>
+				accelerations/a-pilot-y-ft_sec2 LT 16.0
+			</test>
+		</switch>
+
+		<switch name="systems/cws/mps-mm">
+			<default value="0.0"/>
+			<test logic="OR" value="1.0">
+				systems/dps/major-mode == 102
+				systems/dps/major-mode == 103
+			</test>
+		</switch>
+
+		<switch name="systems/cws/mps">
+			<default value="0.0"/>
+			<test logic="AND" value="1.0">
+				systems/cws/mps-hw == 1
+				systems/cws/mps-mm == 1
+			</test>
+		</switch>
+
+		<switch name="systems/cws/backup-cw-conditions">
+			<default value="0.0"/>
+			<test logic="OR" value="1.0">
+				systems/cws/rcs-jet EQ 1.0
+				systems/cws/fwd-rcs EQ 1.0
+				systems/cws/left-rcs EQ 1.0
+				systems/cws/right-rcs EQ 1.0
+				systems/cws/ac-voltage EQ 1.0
+				systems/cws/air-data EQ 1.0
+				systems/cws/imu-dlma EQ 1.0
+				systems/mps/number-engines-operational LT 3.0
+				systems/electrical/fc/reactant-valve-status LT 1.0
+				systems/electrical/fc[1]/reactant-valve-status LT 1.0
+				systems/electrical/fc[2]/reactant-valve-status LT 1.0
+				systems/failures/fc1-coolant-pump-condition EQ 0.0
+				systems/failures/fc2-coolant-pump-condition EQ 0.0
+				systems/failures/fc3-coolant-pump-condition EQ 0.0
+				systems/electrical/bus/voltage LT 26.4
+				systems/electrical/bus[1]/voltage LT 26.4
+				systems/electrical/bus[2]/voltage LT 26.4
+				systems/mps/helium/pressure-psia LT 1150.0
+				systems/mps/helium[1]/pressure-psia LT 1150.0
+				systems/mps/helium[2]/pressure-psia LT 1150.0
+				systems/mps/helium[3]/pressure-psia LT 1150.0
+				systems/mps/lh2-manifold-pressure-psia GT 65
+				systems/mps/lo2-manifold-pressure-psia GT 249		
+			</test>
+		</switch>
+
+		<switch name="systems/cws/backup-cw">
+			<default value="0.0"/>
+			<test logic="AND" value="1.0">
+				systems/cws/backup-alarm-on EQ 1.0
+				systems/cws/backup-cw-conditions EQ 1.0
+			</test>
+		</switch>
+
+		<switch name="systems/cws/emergency-depressurization">
+			<default value="0.0"/>
+			<test value="1.0">
+				systems/eclss/cabin/air-pressure-change LT -0.0013333
+			</test>
+		</switch>
+
+		<switch name="systems/cws/cw-test">
+			<default value="0.0"/>
+			<test logic="AND" value="1.0">
+				/controls/shuttle/button_master-alarm_pbs-ss == 1
+				systems/cws/cw-mode == 1
+			</test>
+			<test logic="AND" value="1.0">
+				/controls/shuttle/button_master-alarm_cmd-ss == 1
+				systems/cws/cw-mode == 1
+			</test>
+			<test logic="AND" value="1.0">
+				/controls/shuttle/button_master-alarm_plt-ss == 1
+				systems/cws/cw-mode == 1
+			</test>
+		</switch>
+
+	</channel>
+	
+</system>

@@ -1,0 +1,5424 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--###################################################################################
+    This file is licenced under the terms of the GNU General Public Licence V3 or later
+    ###################################################################################
+-->
+
+<?xml-stylesheet type="text/xsl" href="http://jsbsim.sourceforge.net/JSBSim.xsl"?>
+<fdm_config name="shuttle" version="2.0" release="ALPHA"
+   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+   xsi:noNamespaceSchemaLocation="http://jsbsim.sourceforge.net/JSBSim.xsd">
+
+ <fileheader>
+  <author>Thorsten Renk</author>
+  <filecreationdate>04-2015</filecreationdate>
+  <version>$Revision: 4$</version>
+  <description>Space Shuttle Model JSBSim</description>
+ </fileheader>
+
+
+
+ <metrics>
+   <wingarea  unit="FT2"> 2691.25 </wingarea>
+   <wingspan  unit="FT" >   78.06 </wingspan>
+   <wing_incidence>          2.00 </wing_incidence>
+   <chord     unit="FT" >   34.48 </chord>
+   <htailarea unit="FT2">  672.81 </htailarea>
+   <htailarm  unit="FT" >   54.98 </htailarm>
+   <vtailarea unit="FT2">  538.25 </vtailarea>
+   <vtailarm  unit="FT" >   54.98 </vtailarm>
+   <location name="AERORP" unit="M">
+     <x>   2.70 </x>
+     <y>   0.00 </y>
+     <z>  -2.70 </z>
+   </location>
+   <location name="EYEPOINT" unit="M">
+     <x> 102.62 </x>
+     <y> -30.00 </y>
+     <z>  75.00 </z>
+   </location>
+   <location name="VRP" unit="M">
+     <x>0</x>
+     <y>0</y>
+     <z>0</z>
+   </location>
+ </metrics>
+
+ <!--changing some values: ixx from  425779 to 2025779
+                           izz from 2475373 to 4575373
+                        emtywt from  172000 to  180000
+                    location z from     1.0 to     5.0-->
+ <mass_balance>
+   <ixx unit="SLUG*FT2">   3025779 </ixx>
+   <iyy unit="SLUG*FT2">   5162623 </iyy>
+   <izz unit="SLUG*FT2">   5575373 </izz>
+   <emptywt unit="LBS" >    180000 </emptywt>
+   <location name="CG" unit="M">
+     <x>   2.70 </x>
+     <y>   0.00 </y>
+     <z>  -2.70 </z>
+   </location>
+        <pointmass name="Equipment">
+            <weight unit="LBS"> 5000 </weight>
+            <location name="POINTMASS" unit="M">
+                <x>  2.7 </x>
+                <y>  0.0 </y>
+                <z> -2.7 </z>
+            </location>
+        </pointmass>
+	<!-- add the external tank as two masses to get roll inertia-->
+	<pointmass name="External_tank1_dry">
+            <weight unit="LBS"> 29250.0 </weight>
+		<location  unit="M">
+		<x> -16.00 </x>
+       		<y> -2.50 </y>
+       		<z>-10.6 </z>
+     		</location>
+	</pointmass>
+	<pointmass name="External_tank2_dry">
+            <weight unit="LBS"> 29250.0 </weight>
+		<location unit="M">
+		<x> -16.00 </x>
+       		<y> 2.50 </y>
+       		<z>-10.6 </z>
+     		</location>
+	</pointmass>
+	<pointmass name="SRB-1_dry">
+        	<weight unit="LBS"> 181881.0</weight>
+		<location unit="M">
+			<x> 1.00 </x>
+       			<y> -6.10 </y>
+       			<z>-10.6 </z>
+     		</location>
+	</pointmass>
+	<pointmass name="SRB-2_dry">
+        	<weight unit="LBS"> 181881.0</weight>
+		<location unit="M">
+			<x> 1.00 </x>
+       			<y> 6.10 </y>
+       			<z>-10.6 </z>
+     		</location>
+	</pointmass>
+	<pointmass name="Payload">
+		<weight unit="LBS"> 0.0</weight>
+	 	<location name="POINTMASS" unit="M">
+                	<x>  1.0 </x>
+                	<y>  0.0 </y>
+                	<z> -2.7 </z>
+            	</location>
+	</pointmass>
+	<pointmass name="Docked object">
+		<weight unit="LBS"> 0.0</weight>
+	 	<location name="POINTMASS" unit="M">
+                	<x> -2.7 </x>
+                	<y>  0.0 </y>
+                	<z> 20.0 </z>
+            	</location>
+	</pointmass>
+	<pointmass name="OMS kit dry">
+		<weight unit="LBS"> 0.0</weight>
+	 	<location name="POINTMASS" unit="M">
+                	<x> 11.0 </x>
+                	<y>  0.0 </y>
+                	<z> -1.5 </z>
+            	</location>
+	</pointmass>
+
+ </mass_balance>
+
+
+
+
+ <ground_reactions>
+
+	<contact type="BOGEY" name="NOSE">
+		<location unit="M">
+			<x> -15.00 </x>
+			<y> 0.00 </y>
+			<z> -6.87 </z>
+		</location>
+		<static_friction> 0.40 </static_friction>
+		<dynamic_friction> 0.10 </dynamic_friction>
+		<rolling_friction> 0.02 </rolling_friction>
+		<spring_coeff unit="LBS/FT"> 90000.00 </spring_coeff>
+		<damping_coeff unit="LBS/FT/SEC"> 30000.00 </damping_coeff>
+		<max_steer unit="DEG"> 15.00 </max_steer>
+		<brake_group>NONE</brake_group>
+		<retractable>1</retractable>
+	</contact>
+
+<contact type="BOGEY" name="LEFT_MAIN">
+		<location unit="M">
+		<x> 3.60 </x>
+		<y> -4.2 </y>
+		<z>-7.97 </z>
+		</location>
+		<static_friction> 0.40 </static_friction>
+		<dynamic_friction> 0.10 </dynamic_friction>
+		<rolling_friction> 0.02 </rolling_friction>
+		<spring_coeff unit="LBS/FT"> 550000.00 </spring_coeff>
+		<damping_coeff unit="LBS/FT/SEC"> 110000.00 </damping_coeff>
+		<max_steer unit="DEG">0</max_steer>
+		<brake_group>LEFT</brake_group>
+		<retractable>1</retractable>
+	</contact>
+
+	<contact type="BOGEY" name="RIGHT_MAIN">
+		<location unit="M">
+		<x> 3.60 </x>
+		<y> 4.2 </y>
+		<z>-7.97 </z>
+		</location>
+		<static_friction> 0.40 </static_friction>
+		<dynamic_friction> 0.10 </dynamic_friction>
+		<rolling_friction> 0.02 </rolling_friction>
+		<spring_coeff unit="LBS/FT"> 550000.00 </spring_coeff>
+		<damping_coeff unit="LBS/FT/SEC"> 210000.00 </damping_coeff>
+		<max_steer unit="DEG">0</max_steer>
+		<brake_group>RIGHT</brake_group>
+		<retractable>1</retractable>
+	</contact>
+
+	<contact type="STRUCTURE" name="LEFT_SRB">
+		<location unit="M">
+		<x> 18.28 </x>
+		<y> -4.2 </y>
+		<z>-14.6 </z>
+		</location>
+		<static_friction> 0.90 </static_friction>
+		<dynamic_friction> 0.60 </dynamic_friction>
+		<rolling_friction> 0.02 </rolling_friction>
+		<spring_coeff unit="LBS/FT"> 3550000.00 </spring_coeff>
+		<damping_coeff unit="LBS/FT/SEC"> 1100000.00 </damping_coeff>
+	</contact>
+
+	<contact type="STRUCTURE" name="RIGHT_SRB">
+		<location unit="M">
+		<x> 18.28 </x>
+		<y> 4.2 </y>
+		<z>-14.6 </z>
+		</location>
+		<static_friction> 0.90 </static_friction>
+		<dynamic_friction> 0.60 </dynamic_friction>
+		<rolling_friction> 0.02 </rolling_friction>
+		<spring_coeff unit="LBS/FT"> 3550000.00 </spring_coeff>
+		<damping_coeff unit="LBS/FT/SEC"> 1100000.00 </damping_coeff>
+	</contact>
+
+	<contact type="STRUCTURE" name="FICTIONAL CENTER">
+		<location unit="M">
+		<x> 18.48 </x>
+		<y> 0.0 </y>
+		<z> 4.0 </z>
+		</location>
+		<static_friction> 0.80 </static_friction>
+		<dynamic_friction> 0.20 </dynamic_friction>
+		<rolling_friction> 0.02 </rolling_friction>
+		<spring_coeff unit="LBS/FT"> 1100000.00 </spring_coeff>
+		<damping_coeff unit="LBS/FT/SEC"> 1100000.00 </damping_coeff>
+	</contact>
+
+	<!-- contact points 6, 7-->
+	<contact type="STRUCTURE" name="LEFT_BODY_FLAP">
+		<location unit="M">
+		<x> 15.45 </x>
+		<y> -2.27 </y>
+		<z> -4.80 </z>
+		</location>
+		<static_friction> 0.90 </static_friction>
+		<dynamic_friction> 0.60 </dynamic_friction>
+		<rolling_friction> 0.00 </rolling_friction>
+		<spring_coeff unit="LBS/FT"> 550000.00 </spring_coeff>
+		<damping_coeff unit="LBS/FT/SEC"> 110000.00 </damping_coeff>
+	</contact>
+
+	<contact type="STRUCTURE" name="RIGHT_BODY_FLAP">
+		<location unit="M">
+		<x> 15.45 </x>
+		<y> 2.27 </y>
+		<z> -4.80 </z>
+		</location>
+		<static_friction> 0.90 </static_friction>
+		<dynamic_friction> 0.60 </dynamic_friction>
+		<rolling_friction> 0.00 </rolling_friction>
+		<spring_coeff unit="LBS/FT"> 550000.00 </spring_coeff>
+		<damping_coeff unit="LBS/FT/SEC"> 110000.00 </damping_coeff>
+	</contact>
+
+	<!-- contact points 8, 9, 10-->
+	<contact type="STRUCTURE" name="LEFT_WING_TIP">
+		<location unit="M">
+		<x> 11.35 </x>
+		<y> -11.99 </y>
+		<z> -4.81 </z>
+		</location>
+		<static_friction> 0.90 </static_friction>
+		<dynamic_friction> 0.60 </dynamic_friction>
+		<rolling_friction> 0.00 </rolling_friction>
+		<spring_coeff unit="LBS/FT"> 550000.00 </spring_coeff>
+		<damping_coeff unit="LBS/FT/SEC"> 110000.00 </damping_coeff>
+	</contact>
+
+	<contact type="STRUCTURE" name="RIGHT_WING_TIP">
+		<location unit="M">
+		<x> 11.35 </x>
+		<y> 11.99 </y>
+		<z> -4.81 </z>
+		</location>
+		<static_friction> 0.90 </static_friction>
+		<dynamic_friction> 0.60 </dynamic_friction>
+		<rolling_friction> 0.00 </rolling_friction>
+		<spring_coeff unit="LBS/FT"> 550000.00 </spring_coeff>
+		<damping_coeff unit="LBS/FT/SEC"> 110000.00 </damping_coeff>
+	</contact>
+
+	<contact type="STRUCTURE" name="NOSE_CONE">
+		<location unit="M">
+		<x> -18.92 </x>
+		<y> 0.0 </y>
+		<z> -4.90 </z>
+		</location>
+		<static_friction> 0.90 </static_friction>
+		<dynamic_friction> 0.60 </dynamic_friction>
+		<rolling_friction> 0.00 </rolling_friction>
+		<spring_coeff unit="LBS/FT"> 550000.00 </spring_coeff>
+		<damping_coeff unit="LBS/FT/SEC"> 110000.00 </damping_coeff>
+	</contact>
+
+	<!-- <contact type="STRUCTURE" name="FRONT_LEG">
+		<location unit="IN">
+		 <x> 300.00 </x>
+		 <y> 300.00 </y>
+		 <z> 400.00 </z>
+		</location>
+		<static_friction>  0.80 </static_friction>
+		<dynamic_friction> 0.50 </dynamic_friction>
+		<spring_coeff unit="LBS/FT">      412500.00 </spring_coeff>
+		<damping_coeff unit="LBS/FT/SEC"> 82500.00 </damping_coeff>
+	</contact>-->
+
+ 
+
+ </ground_reactions>
+
+ <propulsion>
+
+
+   <!--SSME  -->
+
+   <engine file="SSME">
+    <location unit="M">
+      <x> 17.00 </x>
+      <y>   -1.35 </y>
+      <z>   -3.45 </z>
+    </location>
+    <orient unit="DEG">
+      <pitch> -16.00 </pitch>
+      <roll>  0.00 </roll>
+      <yaw>   0.00 </yaw>
+    </orient>
+    <feed>0</feed>    
+    <feed>3</feed>    
+    <thruster file="SSME_nozzle">
+     <location unit="M">
+      <x> 17.00 </x>
+      <y>   -1.35 </y>
+      <z>   -3.45 </z>
+     </location>
+     <orient unit="DEG">
+       <pitch> -16.00 </pitch>
+       <roll>  0.00 </roll>
+       <yaw>   0.00 </yaw>
+     </orient>
+    </thruster>
+  </engine>   
+
+  <engine file="SSME">
+    <location unit="M">
+      <x> 17.00 </x>
+      <y>   1.35 </y>
+      <z>   -3.45 </z>
+    </location>
+    <orient unit="DEG">
+      <pitch> -16.00 </pitch>
+      <roll>  0.00 </roll>
+      <yaw>   0.00 </yaw>
+    </orient>
+    <feed>0</feed> 
+    <feed>3</feed>    
+    <thruster file="SSME_nozzle">
+     <location unit="M">
+      <x> 17.00 </x>
+      <y>   1.35 </y>
+      <z>   -3.45 </z>
+     </location>
+     <orient unit="DEG">
+       <pitch> -16.00 </pitch>
+       <roll>  0.00 </roll>
+       <yaw>   0.00 </yaw>
+     </orient>
+    </thruster>
+  </engine>   
+
+  <engine file="SSME">
+    <location unit="M">
+      <x> 17.00 </x>
+      <y>   0.00 </y>
+      <z>   -1.0 </z>
+    </location>
+    <orient unit="DEG">
+      <pitch> -16.00 </pitch>
+      <roll>  0.00 </roll>
+      <yaw>   0.00 </yaw>
+    </orient>
+    <feed>0</feed>
+    <feed>3</feed>    
+    <thruster file="SSME_nozzle">
+     <location unit="M">
+      <x> 17.00 </x>
+      <y>   0.00 </y>
+      <z>   -1.0 </z>
+     </location>
+     <orient unit="DEG">
+       <pitch> -16.00 </pitch>
+       <roll>  0.00 </roll>
+       <yaw>   0.00 </yaw>
+     </orient>
+    </thruster>
+  </engine>   
+
+
+
+<!-- external tank -->
+  <tank type="FUEL" number="0">
+     <location unit="M">
+       <x> -16.00 </x>
+       <y> 0.00 </y>
+       <z>-10.6 </z>
+     </location>
+     <capacity unit="LBS"> 228571.5 </capacity>
+     <contents unit="LBS"> 228571.5 </contents>
+     <priority>1</priority>
+  </tank>
+ 
+ 
+
+
+<!-- SRB -->
+
+
+   <engine file="SRB">
+    <location unit="M">
+      <x> 18.28 </x>
+      <y>  -6.10 </y>
+      <z>-10.6 </z>
+    </location>
+    <orient unit="DEG">
+      <pitch> 0.00 </pitch>
+      <roll>  0.00 </roll>
+      <yaw>   0.00 </yaw>
+    </orient>    
+    <feed>1</feed>
+    <thruster file="SRB_nozzle">
+     <location unit="M">
+      <x> 18.28 </x>
+      <y>  -6.10 </y>
+      <z>-10.6 </z>
+     </location>
+     <orient unit="DEG">
+       <pitch> 0.00 </pitch>
+       <roll>  0.00 </roll>
+       <yaw>   0.00 </yaw>
+     </orient>
+    </thruster>
+  </engine>
+
+  <tank type="FUEL" number="1">
+     <location unit="M">
+       <x> 1.00 </x>
+       <y> -6.10 </y>
+       <z>-10.6 </z>
+     </location>
+      <capacity unit="LBS">1114092.6</capacity>
+      <contents unit="LBS">1114092.6</contents>
+  </tank>
+
+ <engine file="SRB">
+    <location unit="M">
+      <x> 18.28 </x>
+      <y>  6.10 </y>
+      <z>-10.6 </z>
+    </location>
+    <orient unit="DEG">
+      <pitch> 0.00 </pitch>
+      <roll>  0.00 </roll>
+      <yaw>   0.00 </yaw>
+    </orient>    
+    <feed>2</feed>  
+    <thruster file="SRB_nozzle">
+     <location unit="M">
+      <x> 18.28 </x>
+      <y>  6.10 </y>
+      <z>-10.6 </z>
+     </location>
+     <orient unit="DEG">
+       <pitch> 0.00 </pitch>
+       <roll>  0.00 </roll>
+       <yaw>   0.00 </yaw>
+     </orient>
+    </thruster>
+  </engine>
+
+  <tank type="FUEL" number="2">
+     <location unit="M">
+       <x> 1.00 </x>
+       <y> 6.10 </y>
+       <z>-10.6 </z>
+     </location>
+      <capacity unit="LBS">1114092.6</capacity>
+      <contents unit="LBS">1114092.6</contents>
+  </tank>
+
+<!-- this is the ET oxidizer -->
+
+  
+  <tank type="OXIDIZER" number="3">
+     <location unit="M">
+       <x> -15.999 </x>
+       <y> 0.00 </y>
+       <z>-10.6 </z>
+     </location>
+     <capacity unit="LBS"> 1371428.6 </capacity>
+     <contents unit="LBS"> 1371428.6 </contents>
+  </tank>  
+
+<!-- OMS -->
+
+   <!-- left OMS thruster -->
+
+   <engine file="OMS">
+    <location unit="M">
+      <x> 17.0 </x>
+       <y> -2.2 </y>
+       <z> 0.27 </z>
+    </location>
+    <orient unit="DEG">
+      <pitch> 4.0 </pitch>
+      <roll>  0.00 </roll>
+      <yaw>   0.00 </yaw>
+    </orient>    
+    <feed>4</feed>   
+    <feed>5</feed>     
+    <thruster file="OMS_nozzle">
+     <location unit="M">
+      <x> 17.0 </x>
+       <y> -2.2 </y>
+       <z> 0.27 </z>
+    </location>
+     <orient unit="DEG">
+       <pitch> 4.0 </pitch>
+       <roll>  0.00 </roll>
+       <yaw>   0.00 </yaw>
+     </orient>
+    </thruster>
+    </engine>
+
+   <!-- right OMS thruster -->
+
+   <engine file="OMS">
+    <location unit="M">
+      <x> 17.0 </x>
+       <y> 2.2 </y>
+       <z> 0.27 </z>
+    </location>
+    <orient unit="DEG">
+      <pitch> 4.0 </pitch>
+      <roll>  0.00 </roll>
+      <yaw>   0.00 </yaw>
+    </orient>    
+     <feed>6</feed>   
+     <feed>7</feed>     
+    <thruster file="OMS_nozzle">
+     <location unit="M">
+      <x> 17.0 </x>
+       <y> 2.2 </y>
+       <z> 0.27 </z>
+    </location>
+     <orient unit="DEG">
+       <pitch> 4.0 </pitch>
+       <roll>  0.00 </roll>
+       <yaw>   0.00 </yaw>
+     </orient>
+    </thruster>
+    </engine>
+
+
+ <!-- left OMS pod tank -->
+ 
+  <tank type="OXIDIZER" number="4">
+     <location unit="M">
+       <x>  14.00 </x>
+       <y> -2.20 </y>
+       <z>  0.27 </z>
+     </location>
+     <capacity unit="LBS"> 7773.00 </capacity>
+     <contents unit="LBS"> 7773.00 </contents>
+     <priority>2</priority>
+  </tank>
+
+  <tank type="FUEL" number="5">
+     <location unit="M">
+       <x> 14.00 </x>
+       <y> -2.20 </y>
+       <z> 0.27 </z>
+     </location>
+     <capacity unit="LBS"> 4718.00 </capacity>
+     <contents unit="LBS"> 4718.00 </contents>
+     <priority>2</priority>
+  </tank>
+
+ <!-- right OMS pod tank-->
+
+  <tank type="OXIDIZER" number="6">
+     <location unit="M">
+       <x> 14.00 </x>
+       <y> 2.20 </y>
+       <z> 0.27 </z>
+     </location>
+     <capacity unit="LBS"> 7773.00 </capacity>
+     <contents unit="LBS"> 7773.00 </contents>
+     <priority>2</priority>
+  </tank>
+
+  <tank type="FUEL" number="7">
+     <location unit="M">
+       <x> 14.00 </x>
+       <y> 2.20 </y>
+       <z> 0.27 </z>
+     </location>
+     <capacity unit="LBS"> 4718.00 </capacity>
+     <contents unit="LBS"> 4718.00 </contents>
+     <priority>2</priority>
+  </tank>
+
+
+
+
+ 
+<!-- RCS thrusters -->
+
+<!-- the normal thrusters - ISP 289 s, nominal thrust about 870 lb each -->
+
+
+<!-- F2F - rightmost forward-pointing thruster of nose module -->
+
+  <engine file="RCS-887.9lb">
+    <location unit="M">
+      <x>-15.0</x>
+      <y>0.4</y>
+      <z>-3.2</z>
+    </location>
+    <orient unit="DEG">
+      <pitch>-7.80 </pitch>
+      <roll>   0.00 </roll>
+      <yaw> 181.70    </yaw>
+    </orient>
+    <feed>12</feed>
+    <feed>13</feed>    
+    <thruster file="RCS_nozzle">     
+      <location unit="M">
+      <x>-15.0</x>
+      <y>0.4</y>
+      <z>-3.2</z>
+      </location>
+     <orient unit="DEG">
+       <pitch>-7.80 </pitch>
+       <roll>   0.00 </roll>
+       <yaw> 181.7 </yaw>
+     </orient>
+    </thruster>
+  </engine>
+
+
+
+<!-- F3F - middle forward-pointing thuster of nose module-->
+
+  <engine file="RCS-887.9lb">
+    <location unit="M">
+      <x>-15.0</x>
+      <y>0.0</y>
+      <z>-3.2</z>
+    </location>
+    <orient unit="DEG">
+      <pitch>-8.0 </pitch>
+      <roll>   0.00 </roll>
+      <yaw>  180 </yaw>
+    </orient>
+    <feed>12</feed>
+    <feed>13</feed>    
+    <thruster file="RCS_nozzle">     
+      <location unit="M">
+      <x>-15.0</x>
+      <y>0.0</y>
+      <z>-3.2</z>
+      </location>
+     <orient unit="DEG">
+       <pitch>-8.0 </pitch>
+       <roll>   0.00 </roll>
+       <yaw>  180.00 </yaw>
+     </orient>
+    </thruster>
+  </engine>
+
+<!-- F1F - leftmost forward-pointing thruster of nose module-->
+
+  <engine file="RCS-887.9lb">
+    <location unit="M">
+      <x>-15.0</x>
+      <y>-0.4</y>
+      <z>-3.2</z>
+    </location>
+    <orient unit="DEG">
+      <pitch> -7.80</pitch>
+      <roll>   0.00 </roll>
+      <yaw>   178.30 </yaw>
+    </orient>
+    <feed>12</feed>
+    <feed>13</feed>    
+    <thruster file="RCS_nozzle">     
+      <location unit="M">
+      <x>-15.0</x>
+      <y>-0.4</y>
+      <z>-3.2</z>
+      </location>
+     <orient unit="DEG">
+       <pitch>-7.80 </pitch>
+       <roll>   0.00 </roll>
+       <yaw>  178.30 </yaw>
+     </orient>
+    </thruster>
+
+  </engine>
+
+<!-- F1L - upper left-pointing thruster of nose module -->
+
+
+   <engine file="RCS-874.2lb">
+    <location unit="M">
+      <x>-15.0</x>
+      <y>-0.8</y>
+      <z>-3.4</z>
+    </location>
+    <orient unit="DEG">
+      <pitch>-1.20 </pitch>
+      <roll>   0.00 </roll>
+      <yaw>   91.7 </yaw>
+    </orient>
+    <feed>12</feed>
+    <feed>13</feed>    
+    <thruster file="RCS_nozzle">     
+      <location unit="M">
+      <x>-15.0</x>
+      <y>-0.8</y>
+      <z>-3.4</z>
+      </location>
+     <orient unit="DEG">
+       <pitch>-1.20 </pitch>
+       <roll>   0.00 </roll>
+       <yaw>    91.7 </yaw>
+     </orient>
+    </thruster>
+  </engine>
+
+<!-- F3L - lower left-pointing thruster of nose module -->
+ 
+
+  <engine file="RCS-870.6lb">
+    <location unit="M">
+      <x>-15.0</x>
+      <y>-0.8</y>
+      <z>-3.8</z>
+    </location>
+    <orient unit="DEG">
+      <pitch>  0.0 </pitch>
+      <roll>   0.00 </roll>
+      <yaw>   91.4 </yaw>
+    </orient>
+    <feed>12</feed>
+    <feed>13</feed>    
+    <thruster file="RCS_nozzle">     
+      <location unit="M">
+      <x>-15.0</x>
+      <y>-0.8</y>
+      <z>-3.8</z>
+      </location>
+     <orient unit="DEG">
+       <pitch>  0.0 </pitch>
+       <roll>   0.00 </roll>
+       <yaw>    91.4 </yaw>
+     </orient>
+    </thruster>
+  </engine>
+
+<!-- F2R - upper right-pointing thruster of nose module -->
+
+
+<engine file="RCS-874.2lb">
+    <location unit="M">
+      <x>-15.0</x>
+      <y>0.8</y>
+      <z>-3.4</z>
+    </location>
+    <orient unit="DEG">
+      <pitch>-1.20 </pitch>
+      <roll>   0.00 </roll>
+      <yaw>   -91.7 </yaw>
+    </orient>
+    <feed>12</feed>
+    <feed>13</feed>    
+    <thruster file="RCS_nozzle">     
+      <location unit="M">
+      <x>-15.0</x>
+      <y>0.8</y>
+      <z>-3.4</z>
+      </location>
+     <orient unit="DEG">
+       <pitch>-1.20 </pitch>
+       <roll>   0.00 </roll>
+       <yaw>    -91.7 </yaw>
+     </orient>
+    </thruster>
+  </engine>
+
+<!-- F4R - forward right-pointing thruster of nose module -->
+
+ <engine file="RCS-870.6lb">
+    <location unit="M">
+      <x>-15.0</x>
+      <y>0.8</y>
+      <z>-3.8</z>
+    </location>
+    <orient unit="DEG">
+      <pitch>  0.0 </pitch>
+      <roll>   0.00 </roll>
+      <yaw>   -91.4 </yaw>
+    </orient>
+    <feed>12</feed>
+    <feed>13</feed>    
+    <thruster file="RCS_nozzle">     
+      <location unit="M">
+      <x>-15.0</x>
+      <y>0.8</y>
+      <z>-3.8</z>
+      </location>
+     <orient unit="DEG">
+       <pitch>  0.0 </pitch>
+       <roll>   0.00 </roll>
+       <yaw>    -91.4 </yaw>
+     </orient>
+    </thruster>
+  </engine>
+
+<!-- F2U - rightmost upward-pointing thruster of nose module -->
+
+ <engine file="RCS-875.1lb">
+    <location unit="M">
+      <x>-15.0</x>
+      <y>0.4</y>
+      <z>-3.2</z>
+    </location>
+    <orient unit="DEG">
+      <pitch> -87.76 </pitch>
+      <roll>   0.00 </roll>
+      <yaw>   199.91 </yaw>
+    </orient>
+    <feed>12</feed>
+    <feed>13</feed>    
+    <thruster file="RCS_nozzle">     
+      <location unit="M">
+      <x>-15.0</x>
+      <y>0.4</y>
+      <z>-3.2</z>
+      </location>
+     <orient unit="DEG">
+       <pitch> -87.76 </pitch>
+       <roll>   0.00 </roll>
+      <yaw>   199.91 </yaw>
+     </orient>
+    </thruster>
+  </engine>
+
+<!-- F3U - middle upward-pointing thruster of nose module -->
+
+ <engine file="RCS-874.2lb">
+    <location unit="M">
+      <x>-15.0</x>
+      <y>0.0</y>
+      <z>-3.2</z>
+    </location>
+    <orient unit="DEG">
+      <pitch> -87.91 </pitch>
+      <roll>   0.00 </roll>
+      <yaw>   180.00 </yaw>
+    </orient>
+    <feed>12</feed>
+    <feed>13</feed>    
+    <thruster file="RCS_nozzle">     
+      <location unit="M">
+      <x>-15.0</x>
+      <y>0.0</y>
+      <z>-3.2</z>
+      </location>
+     <orient unit="DEG">
+       <pitch> -87.91 </pitch>
+       <roll>   0.00 </roll>
+       <yaw>   180.00 </yaw>
+     </orient>
+    </thruster>
+  </engine>
+
+<!-- F1U -leftmost upward-pointing thruster of nose module -->
+
+ <engine file="RCS-875.1lb">
+    <location unit="M">
+      <x>-15.0</x>
+      <y>-0.4</y>
+      <z>-3.2</z>
+    </location>
+    <orient unit="DEG">
+      <pitch> -87.76 </pitch>
+      <roll>   0.00 </roll>
+      <yaw>   160.09 </yaw>
+    </orient>
+    <feed>12</feed>
+    <feed>13</feed>    
+    <thruster file="RCS_nozzle">     
+      <location unit="M">
+      <x>-15.0</x>
+      <y>-0.4</y>
+      <z>-3.2</z>
+      </location>
+     <orient unit="DEG">
+       <pitch> -87.76 </pitch>
+       <roll>   0.00 </roll>
+      <yaw>   160.09 </yaw>
+     </orient>
+    </thruster>
+  </engine>
+
+<!-- F2D - front right-downward-pointing thruster of nose module -->
+
+<engine file="RCS-896.6lb">
+    <location unit="M">
+      <x>-15.2</x>
+      <y>0.8</y>
+      <z>-3.4</z>
+    </location>
+    <orient unit="DEG">
+      <pitch> 46.6 </pitch>
+      <roll>   0.00 </roll>
+      <yaw>   -91.8 </yaw>
+    </orient>
+    <feed>12</feed>
+    <feed>13</feed>    
+    <thruster file="RCS_nozzle">     
+      <location unit="M">
+      <x>-15.2</x>
+      <y>0.8</y>
+      <z>-3.4</z>
+      </location>
+     <orient unit="DEG">
+       <pitch> 46.6 </pitch>
+       <roll>   0.00 </roll>
+       <yaw>   -91.8 </yaw>
+     </orient>
+    </thruster>
+  </engine>
+
+<!-- F1D - front left-downward-pointing thruster of nose module -->
+
+
+<engine file="RCS-896.6lb">
+    <location unit="M">
+      <x>-15.2</x>
+      <y>-0.8</y>
+      <z>-3.4</z>
+    </location>
+    <orient unit="DEG">
+      <pitch> 46.6 </pitch>
+      <roll>   0.00 </roll>
+      <yaw>   91.8 </yaw>
+    </orient>
+    <feed>12</feed>
+    <feed>13</feed>    
+    <thruster file="RCS_nozzle">     
+      <location unit="M">
+      <x>-15.2</x>
+      <y>-0.8</y>
+      <z>-3.4</z>
+      </location>
+     <orient unit="DEG">
+       <pitch> 46.6 </pitch>
+       <roll>   0.00 </roll>
+       <yaw>   91.8 </yaw>
+     </orient>
+    </thruster>
+  </engine>
+
+<!-- F4D - rear right-downward pointing thruster of nose module -->
+
+<engine file="RCS-885.9lb">
+    <location unit="M">
+      <x>-14.8</x>
+      <y>0.8</y>
+      <z>-3.4</z>
+    </location>
+    <orient unit="DEG">
+      <pitch> 46.9 </pitch>
+      <roll>   0.00 </roll>
+      <yaw>   -91.6 </yaw>
+    </orient>
+    <feed>12</feed>
+    <feed>13</feed>    
+    <thruster file="RCS_nozzle">     
+      <location unit="M">
+      <x>-14.8</x>
+      <y>0.8</y>
+      <z>-3.4</z>
+      </location>
+     <orient unit="DEG">
+       <pitch> 46.9 </pitch>
+       <roll>   0.00 </roll>
+       <yaw>   -91.6 </yaw>
+     </orient>
+    </thruster>
+  </engine>
+
+<!-- F3D - rear left-downward pointing thruster of nose module -->
+
+<engine file="RCS-885.9lb">
+    <location unit="M">
+      <x>-14.8</x>
+      <y>-0.8</y>
+      <z>-3.4</z>
+    </location>
+    <orient unit="DEG">
+      <pitch> 46.9 </pitch>
+      <roll>   0.00 </roll>
+      <yaw>   91.6 </yaw>
+    </orient>
+    <feed>12</feed>
+    <feed>13</feed>    
+    <thruster file="RCS_nozzle">     
+      <location unit="M">
+      <x>-14.8</x>
+      <y>-0.8</y>
+      <z>-3.4</z>
+      </location>
+     <orient unit="DEG">
+       <pitch> 46.9 </pitch>
+       <roll>   0.00 </roll>
+       <yaw>   91.6 </yaw>
+     </orient>
+    </thruster>
+  </engine>
+
+<!-- the thrusters of the pod modules are somewhat closer together, we give them 30 cm spacing -->
+
+<!-- R3A - rightmost backward-pointing thruster of right OMS pod module -->
+
+
+ <engine file="RCS-870.0lb">
+    <location unit="M">
+      <x>17.45</x>
+      <y>3.35</y>
+      <z>-0.5</z>
+    </location>
+    <orient unit="DEG">
+      <pitch>  -10.00 </pitch>
+      <roll>   0.00 </roll>
+      <yaw>    0.00 </yaw>
+    </orient>
+    <feed>10</feed>
+    <feed>11</feed>    
+    <thruster file="RCS_nozzle">     
+      <location unit="M">
+      <x>17.45</x>
+      <y>3.35</y>
+      <z>-0.5</z>
+      </location>
+     <orient unit="DEG">
+       <pitch>-10.00 </pitch>
+       <roll> 0.00 </roll>
+       <yaw>  0.00 </yaw>
+     </orient>
+    </thruster>
+  </engine>
+
+<!-- R1A - left backward-pointing thruster of right OMS pod module -->
+
+ <engine file="RCS-870.0lb">
+    <location unit="M">
+      <x>17.45</x>
+      <y>3.05</y>
+      <z>-0.5</z>
+    </location>
+    <orient unit="DEG">
+      <pitch>  -10.00 </pitch>
+      <roll>   0.00 </roll>
+      <yaw>    0.00 </yaw>
+    </orient>
+    <feed>10</feed>
+    <feed>11</feed>    
+    <thruster file="RCS_nozzle">     
+      <location unit="M">
+      <x>17.45</x>
+      <y>3.05</y>
+      <z>-0.5</z>
+      </location>
+     <orient unit="DEG">
+       <pitch>-10.00 </pitch>
+       <roll> 0.00 </roll>
+       <yaw>  0.00 </yaw>
+     </orient>
+    </thruster>
+  </engine>
+
+<!-- L3A - left backward-pointing thruster of left OMS pod module -->
+
+
+ <engine file="RCS-870.0lb">
+    <location unit="M">
+      <x>17.45</x>
+      <y>-3.35</y>
+      <z>-0.5</z>
+    </location>
+    <orient unit="DEG">
+      <pitch>  -10.00 </pitch>
+      <roll>   0.00 </roll>
+      <yaw>    0.00 </yaw>
+    </orient>
+    <feed>8</feed>
+    <feed>9</feed>    
+    <thruster file="RCS_nozzle">     
+      <location unit="M">
+      <x>17.45</x>
+      <y>-3.35</y>
+      <z>-0.5</z>
+      </location>
+     <orient unit="DEG">
+       <pitch>-10.00 </pitch>
+       <roll> 0.00 </roll>
+       <yaw>  0.00 </yaw>
+     </orient>
+    </thruster>
+  </engine>
+
+<!-- L1A - right backward-pointing thruster of left OMS pod module -->
+
+ <engine file="RCS-870.0lb">
+    <location unit="M">
+      <x>17.45</x>
+      <y>-3.05</y>
+      <z>-0.5</z>
+    </location>
+    <orient unit="DEG">
+      <pitch>  -10.00 </pitch>
+      <roll>   0.00 </roll>
+      <yaw>    0.00 </yaw>
+    </orient>
+    <feed>8</feed>
+    <feed>9</feed>    
+    <thruster file="RCS_nozzle">     
+      <location unit="M">
+      <x>17.45</x>
+      <y>-3.05</y>
+      <z>-0.5</z>
+      </location>
+     <orient unit="DEG">
+       <pitch>-10.00 </pitch>
+       <roll> 0.00 </roll>
+       <yaw>  0.00 </yaw>
+     </orient>
+    </thruster>
+  </engine>
+
+<!-- L4L - foremost left-pointing thruster of left OMS pod module -->
+
+<engine file="RCS-870.0lb">
+    <location unit="M">
+      <x>16.55</x>
+      <y>-3.2</y>
+      <z>-0.5</z>
+    </location>
+    <orient unit="DEG">
+      <pitch>  1.47 </pitch>
+      <roll>   0.00 </roll>
+      <yaw>    90.00 </yaw>
+    </orient>
+    <feed>8</feed>
+    <feed>9</feed>    
+    <thruster file="RCS_nozzle">     
+      <location unit="M">
+      <x>16.55</x>
+      <y>-3.2</y>
+      <z>-0.5</z>
+      </location>
+     <orient unit="DEG">
+       <pitch>1.47 </pitch>
+       <roll> 0.00 </roll>
+       <yaw>  90.00 </yaw>
+     </orient>
+    </thruster>
+  </engine>
+
+<!-- L2L - second foremost left-pointing thruster of left OMS pod module -->
+
+<engine file="RCS-870.0lb">
+    <location unit="M">
+      <x>16.85</x>
+      <y>-3.2</y>
+      <z>-0.5</z>
+    </location>
+    <orient unit="DEG">
+      <pitch>  1.47 </pitch>
+      <roll>   0.00 </roll>
+      <yaw>    90.00 </yaw>
+    </orient>
+    <feed>8</feed>
+    <feed>9</feed>    
+    <thruster file="RCS_nozzle">     
+      <location unit="M">
+      <x>16.85</x>
+      <y>-3.2</y>
+      <z>-0.5</z>
+      </location>
+     <orient unit="DEG">
+       <pitch>1.47 </pitch>
+       <roll> 0.00 </roll>
+       <yaw>  90.00 </yaw>
+     </orient>
+    </thruster>
+  </engine>
+
+<!-- L3L - second-to-last left-pointing thruster of left OMS pod module -->
+
+<engine file="RCS-870.0lb">
+    <location unit="M">
+      <x>17.15</x>
+      <y>-3.2</y>
+      <z>-0.5</z>
+    </location>
+    <orient unit="DEG">
+      <pitch>  1.47 </pitch>
+      <roll>   0.00 </roll>
+      <yaw>    90.00 </yaw>
+    </orient>
+    <feed>8</feed>
+    <feed>9</feed>    
+    <thruster file="RCS_nozzle">     
+      <location unit="M">
+      <x>17.15</x>
+      <y>-3.2</y>
+      <z>-0.5</z>
+      </location>
+     <orient unit="DEG">
+       <pitch>1.47 </pitch>
+       <roll> 0.00 </roll>
+       <yaw>  90.00 </yaw>
+     </orient>
+    </thruster>
+  </engine>
+
+<!-- L1L - rearmost left-pointing thruster of left OMS pod module -->
+
+<engine file="RCS-870.0lb">
+    <location unit="M">
+      <x>17.45</x>
+      <y>-3.2</y>
+      <z>-0.5</z>
+    </location>
+    <orient unit="DEG">
+      <pitch>  1.47 </pitch>
+      <roll>   0.00 </roll>
+      <yaw>    90.00 </yaw>
+    </orient>
+    <feed>8</feed>
+    <feed>9</feed>    
+    <thruster file="RCS_nozzle">     
+      <location unit="M">
+      <x>17.45</x>
+      <y>-3.2</y>
+      <z>-0.5</z>
+      </location>
+     <orient unit="DEG">
+       <pitch>1.47 </pitch>
+       <roll> 0.00 </roll>
+       <yaw>  90.00 </yaw>
+     </orient>
+    </thruster>
+  </engine>
+
+
+<!-- R4R - foremost right-pointing thruster of right OMS pod module -->
+
+<engine file="RCS-870.0lb">
+    <location unit="M">
+      <x>16.55</x>
+      <y>3.2</y>
+      <z>-0.5</z>
+    </location>
+    <orient unit="DEG">
+      <pitch>  1.47 </pitch>
+      <roll>   0.00 </roll>
+      <yaw>    -90.00 </yaw>
+    </orient>
+    <feed>10</feed>
+    <feed>11</feed>    
+    <thruster file="RCS_nozzle">     
+      <location unit="M">
+      <x>16.55</x>
+      <y>3.2</y>
+      <z>-0.5</z>
+      </location>
+     <orient unit="DEG">
+       <pitch>1.47 </pitch>
+       <roll> 0.00 </roll>
+       <yaw>  -90.00 </yaw>
+     </orient>
+    </thruster>
+  </engine>
+
+<!-- R2R - second foremost right-pointing thruster of right OMS pod module -->
+
+<engine file="RCS-870.0lb">
+    <location unit="M">
+      <x>16.85</x>
+      <y>3.2</y>
+      <z>-0.5</z>
+    </location>
+    <orient unit="DEG">
+      <pitch>  1.47 </pitch>
+      <roll>   0.00 </roll>
+      <yaw>    -90.00 </yaw>
+    </orient>
+    <feed>10</feed>
+    <feed>11</feed>    
+    <thruster file="RCS_nozzle">     
+      <location unit="M">
+      <x>16.85</x>
+      <y>3.2</y>
+      <z>-0.5</z>
+      </location>
+     <orient unit="DEG">
+       <pitch>1.47 </pitch>
+       <roll> 0.00 </roll>
+       <yaw>  -90.00 </yaw>
+     </orient>
+    </thruster>
+  </engine>
+
+<!-- R3R - second-to-last right-pointing thruster of right OMS pod module -->
+
+<engine file="RCS-870.0lb">
+    <location unit="M">
+      <x>17.15</x>
+      <y>3.2</y>
+      <z>-0.5</z>
+    </location>
+    <orient unit="DEG">
+      <pitch>  1.47 </pitch>
+      <roll>   0.00 </roll>
+      <yaw>    -90.00 </yaw>
+    </orient>
+    <feed>10</feed>
+    <feed>11</feed>    
+    <thruster file="RCS_nozzle">     
+      <location unit="M">
+      <x>17.15</x>
+      <y>3.2</y>
+      <z>-0.5</z>
+      </location>
+     <orient unit="DEG">
+       <pitch>1.47 </pitch>
+       <roll> 0.00 </roll>
+       <yaw>  -90.00 </yaw>
+     </orient>
+    </thruster>
+  </engine>
+
+<!-- R1R - rearmost right-pointing thruster of right OMS pod module -->
+
+<engine file="RCS-870.0lb">
+    <location unit="M">
+      <x>17.45</x>
+      <y>3.2</y>
+      <z>-0.5</z>
+    </location>
+    <orient unit="DEG">
+      <pitch>  1.47 </pitch>
+      <roll>   0.00 </roll>
+      <yaw>    -90.00 </yaw>
+    </orient>
+    <feed>10</feed>
+    <feed>11</feed>    
+    <thruster file="RCS_nozzle">     
+      <location unit="M">
+      <x>17.45</x>
+      <y>3.2</y>
+      <z>-0.5</z>
+      </location>
+     <orient unit="DEG">
+       <pitch>1.47 </pitch>
+       <roll> 0.00 </roll>
+       <yaw>  -90.00 </yaw>
+     </orient>
+    </thruster>
+  </engine>
+
+<!-- L4U - foremost upward-pointing thruster of left OMS pod module -->
+
+<engine file="RCS-870.0lb">
+    <location unit="M">
+      <x>16.85</x>
+      <y>-3.2</y>
+      <z>-0.5</z>
+    </location>
+    <orient unit="DEG">
+      <pitch>  -90.00 </pitch>
+      <roll>   0.00 </roll>
+      <yaw>    0.00 </yaw>
+    </orient>
+    <feed>8</feed>
+    <feed>9</feed>    
+    <thruster file="RCS_nozzle">     
+      <location unit="M">
+      <x>16.85</x>
+      <y>-3.2</y>
+      <z>-0.5</z>
+      </location>
+     <orient unit="DEG">
+       <pitch> -90.00 </pitch>
+       <roll> 0.00 </roll>
+       <yaw>  0.00 </yaw>
+     </orient>
+    </thruster>
+  </engine>
+
+<!-- L2U - middle upward-pointing thruster of left OMS pod module -->
+
+<engine file="RCS-870.0lb">
+    <location unit="M">
+      <x>17.15</x>
+      <y>-3.2</y>
+      <z>-0.5</z>
+    </location>
+    <orient unit="DEG">
+      <pitch>  -90.00 </pitch>
+      <roll>   0.00 </roll>
+      <yaw>    0.00 </yaw>
+    </orient>
+    <feed>8</feed>
+    <feed>9</feed>    
+    <thruster file="RCS_nozzle">     
+      <location unit="M">
+      <x>17.15</x>
+      <y>-3.2</y>
+      <z>-0.5</z>
+      </location>
+     <orient unit="DEG">
+       <pitch> -90.00 </pitch>
+       <roll> 0.00 </roll>
+       <yaw>  0.00 </yaw>
+     </orient>
+    </thruster>
+  </engine>
+
+<!-- L1U - rearmost upward-pointing thruster of left OMS pod module -->
+
+<engine file="RCS-870.0lb">
+    <location unit="M">
+      <x>17.45</x>
+      <y>-3.2</y>
+      <z>-0.5</z>
+    </location>
+    <orient unit="DEG">
+      <pitch>  -90.00 </pitch>
+      <roll>   0.00 </roll>
+      <yaw>    0.00 </yaw>
+    </orient>
+    <feed>8</feed>
+    <feed>9</feed>    
+    <thruster file="RCS_nozzle">     
+      <location unit="M">
+      <x>17.45</x>
+      <y>-3.2</y>
+      <z>-0.5</z>
+      </location>
+     <orient unit="DEG">
+       <pitch> -90.00 </pitch>
+       <roll> 0.00 </roll>
+       <yaw>  0.00 </yaw>
+     </orient>
+    </thruster>
+  </engine>
+
+<!-- R4U - foremost upward-pointing thruster of right OMS pod module -->
+
+<engine file="RCS-870.0lb">
+    <location unit="M">
+      <x>16.85</x>
+      <y>3.2</y>
+      <z>-0.5</z>
+    </location>
+    <orient unit="DEG">
+      <pitch>  -90.00 </pitch>
+      <roll>   0.00 </roll>
+      <yaw>    0.00 </yaw>
+    </orient>
+    <feed>10</feed>
+    <feed>11</feed>    
+    <thruster file="RCS_nozzle">     
+      <location unit="M">
+      <x>16.85</x>
+      <y>3.2</y>
+      <z>-0.5</z>
+      </location>
+     <orient unit="DEG">
+       <pitch> -90.00 </pitch>
+       <roll> 0.00 </roll>
+       <yaw>  0.00 </yaw>
+     </orient>
+    </thruster>
+  </engine>
+
+<!-- R2U - middle upward-pointing thruster of right OMS pod module -->
+
+<engine file="RCS-870.0lb">
+    <location unit="M">
+      <x>17.15</x>
+      <y>3.2</y>
+      <z>-0.5</z>
+    </location>
+    <orient unit="DEG">
+      <pitch>  -90.00 </pitch>
+      <roll>   0.00 </roll>
+      <yaw>    0.00 </yaw>
+    </orient>
+    <feed>10</feed>
+    <feed>11</feed>    
+    <thruster file="RCS_nozzle">     
+      <location unit="M">
+      <x>17.15</x>
+      <y>3.2</y>
+      <z>-0.5</z>
+      </location>
+     <orient unit="DEG">
+       <pitch> -90.00 </pitch>
+       <roll> 0.00 </roll>
+       <yaw>  0.00 </yaw>
+     </orient>
+    </thruster>
+  </engine>
+
+<!-- R1U - rearmost upward-pointing thruster of right OMS pod module -->
+
+<engine file="RCS-870.0lb">
+    <location unit="M">
+      <x>17.45</x>
+      <y>3.2</y>
+      <z>-0.5</z>
+    </location>
+    <orient unit="DEG">
+      <pitch>  -90.00 </pitch>
+      <roll>   0.00 </roll>
+      <yaw>    0.00 </yaw>
+    </orient>
+    <feed>10</feed>
+    <feed>11</feed>    
+    <thruster file="RCS_nozzle">     
+      <location unit="M">
+      <x>17.45</x>
+      <y>3.2</y>
+      <z>-0.5</z>
+      </location>
+     <orient unit="DEG">
+       <pitch> -90.00 </pitch>
+       <roll> 0.00 </roll>
+       <yaw>  0.00 </yaw>
+     </orient>
+    </thruster>
+  </engine>
+
+<!-- L4D -foremost downward pointing thruster of left OMS pod module -->
+
+  <engine file="RCS-870.0lb">
+    <location unit="M">
+      <x>16.85</x>
+      <y>-3.2</y>
+      <z>-0.5</z>
+    </location>
+    <orient unit="DEG">
+      <pitch>  67.15 </pitch>
+      <roll>   0.00 </roll>
+      <yaw>    50.80 </yaw>
+    </orient>
+    <feed>8</feed>
+    <feed>9</feed>    
+    <thruster file="RCS_nozzle">     
+      <location unit="M">
+      <x>16.85</x>
+      <y>-3.2</y>
+      <z>-0.5</z>
+      </location>
+     <orient unit="DEG">
+       <pitch> 67.15 </pitch>
+       <roll> 0.00 </roll>
+       <yaw>  50.80 </yaw>
+     </orient>
+    </thruster>
+  </engine>
+
+<!-- L2D - middle downward pointing thruster of left OMS pod module -->
+
+  <engine file="RCS-870.0lb">
+    <location unit="M">
+      <x>17.15</x>
+      <y>-3.2</y>
+      <z>-0.5</z>
+    </location>
+    <orient unit="DEG">
+      <pitch>  67.15 </pitch>
+      <roll>   0.00 </roll>
+      <yaw>    50.80 </yaw>
+    </orient>
+    <feed>8</feed>
+    <feed>9</feed>    
+    <thruster file="RCS_nozzle">     
+      <location unit="M">
+      <x>17.15</x>
+      <y>-3.2</y>
+      <z>-0.5</z>
+      </location>
+     <orient unit="DEG">
+       <pitch> 67.15 </pitch>
+       <roll> 0.00 </roll>
+       <yaw>  50.80 </yaw>
+     </orient>
+    </thruster>
+  </engine>
+
+<!-- L3D - rear downward pointing thruster of left OMS pod module -->
+
+  <engine file="RCS-870.0lb">
+    <location unit="M">
+      <x>17.45</x>
+      <y>-3.2</y>
+      <z>-0.5</z>
+    </location>
+    <orient unit="DEG">
+      <pitch>  67.15 </pitch>
+      <roll>   0.00 </roll>
+      <yaw>    50.80 </yaw>
+    </orient>
+    <feed>8</feed>
+    <feed>9</feed>    
+    <thruster file="RCS_nozzle">     
+      <location unit="M">
+      <x>17.45</x>
+      <y>-3.2</y>
+      <z>-0.5</z>
+      </location>
+     <orient unit="DEG">
+       <pitch> 67.15 </pitch>
+       <roll> 0.00 </roll>
+       <yaw>  50.80 </yaw>
+     </orient>
+    </thruster>
+  </engine>
+
+<!-- R4D -foremost downward pointing thruster of right OMS pod module -->
+
+  <engine file="RCS-870.0lb">
+    <location unit="M">
+      <x>16.85</x>
+      <y>3.2</y>
+      <z>-0.5</z>
+    </location>
+    <orient unit="DEG">
+      <pitch>  67.15 </pitch>
+      <roll>   0.00 </roll>
+      <yaw>    -50.80 </yaw>
+    </orient>
+    <feed>10</feed>
+    <feed>11</feed>    
+    <thruster file="RCS_nozzle">     
+      <location unit="M">
+      <x>16.85</x>
+      <y>3.2</y>
+      <z>-0.5</z>
+      </location>
+     <orient unit="DEG">
+       <pitch> 67.15 </pitch>
+       <roll> 0.00 </roll>
+       <yaw>  -50.80 </yaw>
+     </orient>
+    </thruster>
+  </engine>
+
+<!-- R2D - middle downward pointing thruster of right OMS pod module -->
+
+  <engine file="RCS-870.0lb">
+    <location unit="M">
+      <x>17.15</x>
+      <y>3.2</y>
+      <z>-0.5</z>
+    </location>
+    <orient unit="DEG">
+      <pitch>  67.15 </pitch>
+      <roll>   0.00 </roll>
+      <yaw>    -50.80 </yaw>
+    </orient>
+    <feed>10</feed>
+    <feed>11</feed>    
+    <thruster file="RCS_nozzle">     
+      <location unit="M">
+      <x>17.15</x>
+      <y>3.2</y>
+      <z>-0.5</z>
+      </location>
+     <orient unit="DEG">
+       <pitch> 67.15 </pitch>
+       <roll> 0.00 </roll>
+       <yaw>  -50.80 </yaw>
+     </orient>
+    </thruster>
+  </engine>
+
+<!-- R3D - rear downward pointing thruster of right OMS pod module -->
+
+  <engine file="RCS-870.0lb">
+    <location unit="M">
+      <x>17.45</x>
+      <y>3.2</y>
+      <z>-0.5</z>
+    </location>
+    <orient unit="DEG">
+      <pitch>  67.15 </pitch>
+      <roll>   0.00 </roll>
+      <yaw>    -50.80 </yaw>
+    </orient>
+    <feed>10</feed>
+    <feed>11</feed>    
+    <thruster file="RCS_nozzle">     
+      <location unit="M">
+      <x>17.45</x>
+      <y>3.2</y>
+      <z>-0.5</z>
+      </location>
+     <orient unit="DEG">
+       <pitch> 67.15 </pitch>
+       <roll> 0.00 </roll>
+       <yaw>  -50.80 </yaw>
+     </orient>
+    </thruster>
+  </engine>
+
+<!-- the Vernier thrusters - ISP 228 s, nominal thrust about 24 lb each -->
+
+<!-- F5R - right-downward pointing Vernier of nose module -->
+
+ <engine file="RCS-24.5lb">
+    <location unit="M">
+      <x>-15.4</x>
+      <y>0.8</y>
+      <z>-3.8</z>
+    </location>
+    <orient unit="DEG">
+      <pitch> 46.0 </pitch>
+      <roll>  0.00 </roll>
+      <yaw>  -91.8    </yaw>
+    </orient>
+    <feed>12</feed>
+    <feed>13</feed>    
+    <thruster file="RCS_nozzle">     
+      <location unit="M">
+      <x>-15.4</x>
+      <y>0.8</y>
+      <z>-3.8</z>
+      </location>
+     <orient unit="DEG">
+       <pitch>46.0 </pitch>
+       <roll> 0.0 </roll>
+       <yaw>  -91.8 </yaw>
+     </orient>
+    </thruster>
+  </engine>
+
+<!-- F5L - left-downward pointing Vernier of nose module -->
+
+ <engine file="RCS-24.5lb">
+    <location unit="M">
+      <x>-15.4</x>
+      <y>-0.8</y>
+      <z>-3.8</z>
+    </location>
+    <orient unit="DEG">
+      <pitch> 46.0 </pitch>
+      <roll>  0.00 </roll>
+      <yaw>  91.8    </yaw>
+    </orient>
+    <feed>12</feed>
+    <feed>13</feed>    
+    <thruster file="RCS_nozzle">     
+      <location unit="M">
+      <x>-15.4</x>
+      <y>-0.8</y>
+      <z>-3.8</z>
+      </location>
+     <orient unit="DEG">
+       <pitch>46.0 </pitch>
+       <roll> 0.0 </roll>
+       <yaw>  91.8 </yaw>
+     </orient>
+    </thruster>
+  </engine>
+
+<!-- L5D - downward pointing Vernier of left OMS pod module -->
+
+ <engine file="RCS-24.0lb">
+    <location unit="M">
+      <x>17.45</x>
+      <y>-3.2</y>
+      <z>-0.5</z>
+    </location>
+    <orient unit="DEG">
+      <pitch>  90.0 </pitch>
+      <roll>   0.00 </roll>
+      <yaw>    0.0 </yaw>
+    </orient>
+    <feed>8</feed>
+    <feed>9</feed>    
+    <thruster file="RCS_nozzle">     
+      <location unit="M">
+      <x>17.45</x>
+      <y>-3.2</y>
+      <z>-0.5</z>
+      </location>
+     <orient unit="DEG">
+       <pitch> 90.0 </pitch>
+       <roll> 0.00 </roll>
+       <yaw>  0.0 </yaw>
+     </orient>
+    </thruster>
+  </engine>
+
+<!-- R5D - downward pointing Vernier of right OMS pod module -->
+
+ <engine file="RCS-24.0lb">
+    <location unit="M">
+      <x>17.45</x>
+      <y>3.2</y>
+      <z>-0.5</z>
+    </location>
+    <orient unit="DEG">
+      <pitch>  90.0 </pitch>
+      <roll>   0.00 </roll>
+      <yaw>    0.0 </yaw>
+    </orient>
+    <feed>10</feed>
+    <feed>11</feed>    
+    <thruster file="RCS_nozzle">     
+      <location unit="M">
+      <x>17.45</x>
+      <y>3.2</y>
+      <z>-0.5</z>
+      </location>
+     <orient unit="DEG">
+       <pitch> 90.0 </pitch>
+       <roll> 0.00 </roll>
+       <yaw>  0.0 </yaw>
+     </orient>
+    </thruster>
+  </engine>
+
+<!-- L5L - left pointing Vernier of left OMS pod module -->
+
+ <engine file="RCS-24.0lb">
+    <location unit="M">
+      <x>17.45</x>
+      <y>-3.2</y>
+      <z>-0.5</z>
+    </location>
+    <orient unit="DEG">
+      <pitch>  1.4 </pitch>
+      <roll>   0.00 </roll>
+      <yaw>    90.0 </yaw>
+    </orient>
+    <feed>8</feed>
+    <feed>9</feed>    
+    <thruster file="RCS_nozzle">     
+      <location unit="M">
+      <x>17.45</x>
+      <y>-3.2</y>
+      <z>-0.5</z>
+      </location>
+     <orient unit="DEG">
+       <pitch>1.4 </pitch>
+       <roll> 0.00 </roll>
+       <yaw>  90.0 </yaw>
+     </orient>
+    </thruster>
+  </engine>
+
+<!-- R5R - right pointing Vernier of right OMS pod module -->
+
+ <engine file="RCS-24.0lb">
+    <location unit="M">
+      <x>17.45</x>
+      <y>3.2</y>
+      <z>-0.5</z>
+    </location>
+    <orient unit="DEG">
+      <pitch>  1.4 </pitch>
+      <roll>   0.00 </roll>
+      <yaw>    -90.0 </yaw>
+    </orient>
+    <feed>10</feed>
+    <feed>11</feed>    
+    <thruster file="RCS_nozzle">     
+      <location unit="M">
+      <x>17.45</x>
+      <y>3.2</y>
+      <z>-0.5</z>
+      </location>
+     <orient unit="DEG">
+       <pitch>1.4 </pitch>
+       <roll> 0.00 </roll>
+       <yaw>  -90.0 </yaw>
+     </orient>
+    </thruster>
+  </engine>
+
+
+
+
+
+
+ 
+ <!-- RCS tanks - -->
+ 
+ <!-- left OMS pod -->
+
+    <tank type="OXIDIZER" number="8">
+     <location unit="M">
+       <x> 12.00 </x>
+       <y> -2.20 </y>
+       <z> 0.27 </z>
+     </location>
+     <capacity unit="LBS"> 1477.00 </capacity>
+     <contents unit="LBS"> 1477.00 </contents>
+     <priority>2</priority>
+  </tank>
+
+  <tank type="FUEL" number="9">
+     <location unit="M">
+       <x> 12.00 </x>
+       <y> -2.20 </y>
+       <z> 0.27 </z>
+     </location>
+     <capacity unit="LBS"> 928.00 </capacity>
+     <contents unit="LBS"> 928.00 </contents>
+     <priority>2</priority>
+  </tank>
+
+ <!-- right OMS pod -->
+
+   <tank type="OXIDIZER" number="10">
+     <location unit="M">
+       <x> 12.00 </x>
+       <y> 2.20 </y>
+       <z> 0.27 </z>
+     </location>
+     <capacity unit="LBS"> 1477.00 </capacity>
+     <contents unit="LBS"> 1477.00 </contents>
+     <priority>2</priority>
+  </tank>
+
+  <tank type="FUEL" number="11">
+     <location unit="M">
+       <x> 12.00 </x>
+       <y> 2.20 </y>
+       <z> 0.27 </z>
+     </location>
+     <capacity unit="LBS"> 928.00 </capacity>
+     <contents unit="LBS"> 928.00 </contents>
+     <priority>2</priority>
+  </tank>
+
+ <!-- nose module pod -->
+
+   <tank type="OXIDIZER" number="12">
+     <location unit="M">
+       <x> -15.50 </x>
+       <y> 0.00 </y>
+       <z> -3.60 </z>
+     </location>
+     <capacity unit="LBS"> 1477.00 </capacity>
+     <contents unit="LBS"> 1477.00 </contents>
+     <priority>2</priority>
+  </tank>
+
+  <tank type="FUEL" number="13">
+     <location unit="M">
+       <x> -15.50 </x>
+       <y> 0.00 </y>
+       <z> -3.60 </z>
+     </location>
+     <capacity unit="LBS"> 928.00 </capacity>
+     <contents unit="LBS"> 928.00 </contents>
+     <priority>2</priority>
+   </tank>
+
+<!-- Hydrazine tanks for the three APUs -->
+ 
+<tank type="FUEL" number="14">
+     <location unit="M">
+       <x> -8.50 </x>
+       <y> 0.00 </y>
+       <z> -3.60 </z>
+     </location>
+     <capacity unit="LBS"> 350.00 </capacity>
+     <contents unit="LBS"> 350.00 </contents>
+     <priority>2</priority>
+   </tank>
+
+<tank type="FUEL" number="15">
+     <location unit="M">
+       <x> -8.50 </x>
+       <y> 0.00 </y>
+       <z> -3.60 </z>
+     </location>
+     <capacity unit="LBS"> 350.00 </capacity>
+     <contents unit="LBS"> 350.00 </contents>
+     <priority>2</priority>
+   </tank>
+
+<tank type="FUEL" number="16">
+     <location unit="M">
+       <x> -8.50 </x>
+       <y> 0.00 </y>
+       <z> -3.60 </z>
+     </location>
+     <capacity unit="LBS"> 350.00 </capacity>
+     <contents unit="LBS"> 350.00 </contents>
+     <priority>2</priority>
+   </tank>
+
+<!-- virtual tanks to simulate fuel trapped in the feed lines, to be dumped after MECO --> 
+
+  <tank type="FUEL" number="17">
+     <location unit="M">
+       <x> 14.00 </x>
+       <y>  0.00 </y>
+       <z> -2.50 </z>
+     </location>
+     <capacity unit="LBS"> 600.00 </capacity>
+     <contents unit="LBS"> 0.00 </contents>
+     <priority>2</priority>
+  </tank>
+
+  <tank type="OXIDIZER" number="18">
+     <location unit="M">
+       <x> 14.00 </x>
+       <y>  0.00 </y>
+       <z> -2.50 </z>
+     </location>
+     <capacity unit="LBS"> 4800.00 </capacity>
+     <contents unit="LBS"> 0.00 </contents>
+     <priority>2</priority>
+  </tank>
+
+
+<!-- four water tanks with 165 lb capacity each for flash evaporator system --> 
+
+  <tank type="FUEL" number="19">
+     <location unit="M">
+       <x> 0.00 </x>
+       <y> 0.00 </y>
+       <z> -3.60 </z>
+     </location>
+     <capacity unit="LBS"> 660.00 </capacity>
+     <contents unit="LBS"> 660.00 </contents>
+     <priority>2</priority>
+   </tank>
+
+<!-- water tanks for the three APU water spray boilers -->
+
+
+  <tank type="FUEL" number="20">
+     <location unit="M">
+       <x> 0.00 </x>
+       <y> 0.00 </y>
+       <z> -3.60 </z>
+     </location>
+     <capacity unit="LBS"> 142.00 </capacity>
+     <contents unit="LBS"> 142.00 </contents>
+     <priority>2</priority>
+   </tank>
+
+  <tank type="FUEL" number="21">
+     <location unit="M">
+       <x> 0.00 </x>
+       <y> 0.00 </y>
+       <z> -3.60 </z>
+     </location>
+     <capacity unit="LBS"> 142.00 </capacity>
+     <contents unit="LBS"> 142.00 </contents>
+     <priority>2</priority>
+   </tank>
+
+  <tank type="FUEL" number="22">
+     <location unit="M">
+       <x> 0.00 </x>
+       <y> 0.00 </y>
+       <z> -3.60 </z>
+     </location>
+     <capacity unit="LBS"> 142.00 </capacity>
+     <contents unit="LBS"> 142.00 </contents>
+     <priority>2</priority>
+   </tank>
+
+<!-- virtual fuel tank modeling for cabin air pressure -->
+
+  <!-- oxygen content -->
+  <tank type="FUEL" number="23">
+     <location unit="M">
+       <x> 0.00 </x>
+       <y> 0.00 </y>
+       <z> -3.60 </z>
+     </location>
+     <capacity unit="LBS"> 45.00 </capacity>
+     <contents unit="LBS"> 40.00 </contents>
+     <priority>2</priority>
+   </tank>
+
+  <!-- nitrogen content -->
+  <tank type="FUEL" number="24">
+     <location unit="M">
+       <x> 0.00 </x>
+       <y> 0.00 </y>
+       <z> -3.60 </z>
+     </location>
+     <capacity unit="LBS"> 147.00 </capacity>
+     <contents unit="LBS"> 130.00 </contents>
+     <priority>2</priority>
+   </tank>
+
+<!-- 2 NH3 tanks for the ammonia boiler system --> 
+
+  <tank type="FUEL" number="25">
+     <location unit="M">
+       <x> 0.00 </x>
+       <y> 0.00 </y>
+       <z> -3.60 </z>
+     </location>
+     <capacity unit="LBS"> 98.00 </capacity>
+     <contents unit="LBS"> 98.00 </contents>
+     <priority>2</priority>
+   </tank>
+
+
+ <!-- OMS kit tanks-->
+
+  <tank type="OXIDIZER" number="26">
+     <location unit="M">
+       <x> 11.00 </x>
+       <y> 0.0 </y>
+       <z> -1.5 </z>
+     </location>
+     <capacity unit="LBS"> 23319.00 </capacity>
+     <contents unit="LBS"> 0.00 </contents>
+     <priority>2</priority>
+  </tank>
+
+  <tank type="FUEL" number="27">
+     <location unit="M">
+       <x> 11.00 </x>
+       <y> 0.00 </y>
+       <z> -1.5 </z>
+     </location>
+     <capacity unit="LBS"> 14154.00 </capacity>
+     <contents unit="LBS"> 0.00 </contents>
+     <priority>2</priority>
+  </tank>
+
+
+<!-- virtual fuel tanks for the MPS helium system -->
+
+  <!-- left engine content -->
+  <tank type="FUEL" number="28">
+     <location unit="M">
+       <x> 0.00 </x>
+       <y> 0.00 </y>
+       <z> -3.60 </z>
+     </location>
+     <capacity unit="LBS"> 1.00 </capacity>
+     <contents unit="LBS"> 1.00 </contents>
+     <priority>2</priority>
+   </tank>
+
+  <!-- right engine content -->
+  <tank type="FUEL" number="29">
+     <location unit="M">
+       <x> 0.00 </x>
+       <y> 0.00 </y>
+       <z> -3.60 </z>
+     </location>
+     <capacity unit="LBS"> 1.00 </capacity>
+     <contents unit="LBS"> 1.00 </contents>
+     <priority>2</priority>
+   </tank>
+
+  <!-- center engine content -->
+  <tank type="FUEL" number="30">
+     <location unit="M">
+       <x> 0.00 </x>
+       <y> 0.00 </y>
+       <z> -3.60 </z>
+     </location>
+     <capacity unit="LBS"> 1.00 </capacity>
+     <contents unit="LBS"> 1.00 </contents>
+     <priority>2</priority>
+   </tank>
+
+  <!-- pneumatic system  content -->
+  <tank type="FUEL" number="31">
+     <location unit="M">
+       <x> 0.00 </x>
+       <y> 0.00 </y>
+       <z> -3.60 </z>
+     </location>
+     <capacity unit="LBS"> 1.00 </capacity>
+     <contents unit="LBS"> 1.00 </contents>
+     <priority>2</priority>
+   </tank>
+
+
+ </propulsion>
+
+<!-- Flight Control routines - this block has airfoils -->
+<!--  thrust vectoring and the RCS are defined under Systems -->
+
+
+ <flight_control name="FCS: shuttle">
+
+  <channel name="Launch Config">
+  <switch name="Aerodynamics for launch vehicle">
+			<default value="0.0"/>
+			<test value="1.0">
+			inertia/pointmass-weight-lbs[1] GT 0.0
+			</test>
+	<output>aero/launch-config</output>
+  </switch>
+
+  <switch name="Aerodynamics for full stack">
+			<default value="0.0"/>
+			<test value="1.0">
+			inertia/pointmass-weight-lbs[3] GT 0.0
+			</test>
+	<output>aero/srb-config</output>
+  </switch>
+
+  <switch name="Aerodynamics for orbiter">
+			<default value="0.0"/>
+			<test value="1.0">
+			inertia/pointmass-weight-lbs[1] == 0.0
+			</test>
+	<output>aero/orbiter-config</output>
+  </switch>
+
+  </channel>
+  
+  <channel name="Control Config">
+
+  <switch name="systems/fcs/airfoil-rate-control">
+			<default value="0.0"/>
+			<test value="1.0">
+				systems/fcs/control-mode == 29
+			</test>
+   </switch>
+
+  </channel>
+
+  <channel name="Actuator stall">
+  
+  <fcs_function name="systems/fcs/actuator-stall-factor">
+  <function>
+	<max>
+	<difference>
+	<value>1.0</value>
+	<quotient>
+		<max>
+		<difference>
+			<property>aero/qbar-psf</property>
+			<property>systems/various/qbar-limit-entry</property>
+		</difference>
+		<value>0.0</value>
+		</max>
+		<value>200.0</value>
+	</quotient>
+	</difference>
+	<value>0.0</value>
+	<property>systems/ap/grtls/Nz-hold-active</property>
+	</max>
+  </function>
+  </fcs_function>
+
+  </channel>
+
+ <channel name="Flight controller power">
+ 
+ <!-- check view number and assume we're using PLT stick when in pilot view -->
+
+ <switch name="fcs/controller-power">
+	<default value="0.0"/>
+	<test logic="AND" value="1.0">
+		fcs/controller-power-plt == 1
+		/sim/current-view/view-number == 12
+		systems/failures/rhc-plt-condition == 1
+	</test>
+	<test logic="AND" value="1.0">
+		fcs/controller-power-cdr == 1
+		/sim/current-view/view-number NE 12
+		systems/failures/rhc-cdr-condition == 1
+	</test>
+ </switch>
+ 
+
+ <fcs_function name="fcs/elevator-cmd-norm-css">
+ <function>
+ 	<product>
+		<property>fcs/elevator-cmd-norm</property>
+		<property>fcs/controller-power</property>
+	</product>
+ </function>
+ </fcs_function>
+
+ <fcs_function name="fcs/rudder-cmd-norm-css">
+ <function>
+ 	<product>
+		<property>fcs/rudder-cmd-norm</property>
+		<property>fcs/controller-power</property>
+	</product>
+ </function>
+ </fcs_function>
+
+ <fcs_function name="fcs/aileron-cmd-norm-css">
+ <function>
+ 	<product>
+		<property>fcs/aileron-cmd-norm</property>
+		<property>fcs/controller-power</property>
+	</product>
+ </function>
+ </fcs_function>
+
+ </channel>
+
+
+  <channel name="Pitch">
+
+  <switch name="Disable airfoil pitch if thrust vectoring is used">
+			<default value="1.0"/>
+			<test logic="OR" value="0.0">
+				systems/fcs/control-mode == 0
+				systems/fcs/control-mode == 10
+				systems/fcs/control-mode == 11
+				systems/fcs/control-mode == 13
+				systems/fcs/control-mode == 1
+				systems/fcs/control-mode == 2
+				systems/fcs/control-mode == 3
+				systems/fcs/control-mode == 20
+				systems/fcs/control-mode == 21
+				systems/fcs/control-mode == 22
+				systems/fcs/control-mode == 23
+				systems/fcs/control-mode == 25
+				systems/fcs/control-mode == 26
+				systems/fcs/control-mode == 27
+				systems/fcs/control-mode == 28
+				systems/carrier/connected == 1
+			</test>
+		<output>fcs/airfoil-factor-pitch-base</output>
+   </switch>
+
+   <fcs_function name="fcs/airfoil-factor-pitch">
+   <function>
+	<product>
+		<property>fcs/airfoil-factor-pitch-base</property>
+		<property>systems/fcs/actuator-stall-factor</property>
+	</product>
+   </function>
+   </fcs_function>
+
+
+   <fcs_function name="Pitch Auto Trim">
+	<function>
+	<product>
+	<table>
+        	<independentVar lookup="row">velocities/mach</independentVar>
+        	<tableData>
+          	 0.0     0.00
+          	 5.0     0.00
+	 	  10.0	   -0.1
+		   20.0	   -0.2
+        	</tableData>
+      	</table>
+	<property>aero/orbiter-config</property>
+	</product>
+	</function>
+   </fcs_function>
+
+  <fcs_function name="Launch Auto Trim">
+	<function>
+	<product>
+	<table>
+        	<independentVar lookup="row">velocities/mach</independentVar>
+        	<tableData>
+          	0.0	0.2
+		1.5	0.2
+		2.5	0.0
+        	</tableData>
+      	</table>
+	<property>aero/launch-config</property>
+	</product>
+	</function>
+   </fcs_function>
+
+   <switch name="fcs/ap/auto-elevator-cmd-norm">
+	<default value="0.0"/>
+	<test  value="systems/ap/alpha-controller-elevator-cmd-norm">
+		systems/ap/auto-entry-active == 1
+	</test>
+	<test  value="systems/ap/taem/taem-controller-elevator-cmd-norm">
+		systems/ap/auto-taem-active == 1
+	</test>
+	<test  value="systems/ap/grtls/pitch-cmd">
+		systems/ap/auto-grtls-active == 1
+	</test>
+   </switch>
+
+   <switch name="fcs/ap/auto-pitch-active">
+	<default value="0.0"/>
+	<test logic="AND" value="1.0">
+		systems/ap/auto-entry-active == 1
+		systems/ap/automatic-pitch-control == 1
+	</test>
+	<test logic="AND" value="1.0">
+		systems/ap/auto-taem-active == 1
+		systems/ap/automatic-pitch-control == 1
+	</test>
+	<test logic="AND" value="1.0">
+		systems/ap/auto-grtls-active == 1
+		systems/ap/automatic-pitch-control == 1
+	</test>
+   </switch>
+
+   <fcs_function name="fcs/elevator-ap-cmd-merge">
+   <function>
+	<sum>
+		<product>
+			<difference>
+				<value>1</value>
+				<property>fcs/ap/auto-pitch-active</property>
+			</difference>
+			<property>fcs/elevator-cmd-norm-css</property>
+		</product>
+		<product>
+			<property>fcs/ap/auto-pitch-active</property>
+			<property>fcs/ap/auto-elevator-cmd-norm</property>
+		</product>
+	</sum>
+   </function>
+   </fcs_function>
+
+   <fcs_function name="fcs/pitch-error">
+	 <function>
+	 	<difference>
+			<property>velocities/q-rad_sec</property>
+			<product>
+				<property>fcs/elevator-ap-cmd-merge</property>
+				<value>-0.3</value>
+			</product>
+		</difference>
+	</function>
+  </fcs_function>
+
+  <deadband name="fcs/pitch-PID-trigger-raw">
+	<input>fcs/pitch-error</input>
+	<width>0.2</width>
+  </deadband>
+
+  <fcs_function name="fcs/pitch-PID-trigger">
+  <function>
+	<max>
+	<property>/fdm/jsbsim/systems/fcs/rcs-pitch-mode</property>
+	<property>fcs/pitch-PID-trigger-raw</property>
+	<difference>
+		<value>1.0</value>
+		<property>systems/fcs/airfoil-rate-control</property>
+	</difference>
+	<property>systems/ap/grtls/Nz-hold-active</property>
+	</max>
+  </function>
+  </fcs_function>
+
+  <pid name="fcs/pitch-controller">
+	<input>fcs/pitch-error</input>
+	<kp> 30.0 </kp>
+	<ki> 5.0 </ki>
+	<kd> 15.0</kd>
+	<trigger>fcs/pitch-PID-trigger</trigger>
+	<clipto>
+		<min> -1.0 </min>
+        	<max>  1.0 </max>
+	</clipto>
+  </pid>
+
+  <fcs_function name="fcs/pitch-command">
+  <function>
+	<sum>
+	<product>
+		<property>systems/fcs/airfoil-rate-control</property>
+		<property>fcs/pitch-controller</property>
+	</product>
+	<product>
+		<difference>
+			<value>1.0</value>
+			<property>systems/fcs/airfoil-rate-control</property>	
+		</difference>
+		<property>fcs/elevator-cmd-norm-css</property>
+	</product>
+	</sum>
+  </function>
+  </fcs_function>
+
+   <summer name="Pitch Trim Sum">
+      <input>fcs/pitch-command</input>
+      <input>fcs/pitch-trim-cmd-norm</input>
+      <input>fcs/pitch-auto-trim</input>
+      <clipto>
+        <min> -1 </min>
+        <max>  1 </max>
+      </clipto>
+   </summer>
+
+   <aerosurface_scale name="Elevator Control">
+      <input>fcs/pitch-trim-sum</input>
+      <range>
+        <min> -0.70 </min>
+        <max>  0.44 </max>
+      </range>
+      <output>fcs/elevator-pos-rad-trim</output>
+   </aerosurface_scale>
+
+   <!--<pure_gain name="Actual Elevator Motion">
+	<input>fcs/elevator-pos-rad-command</input>
+	<gain>fcs/airfoil-factor-pitch</gain>
+	<output>fcs/elevator-pos-rad</output>
+   </pure_gain>-->
+
+   <fcs_function name="Actual Elevator Motion">
+	<function>
+	<product>
+	<sum>
+		<product>
+			<property>fcs/elevator-pos-rad-trim</property>
+			<property>fcs/airfoil-factor-pitch</property>
+		</product>
+		<property>fcs/launch-auto-trim</property>
+	</sum>
+	<property>systems/failures/airfoils-pitch-condition</property>
+	<property>systems/apu/hyd-pressure-available</property>
+	</product>
+	</function>
+	<output>fcs/elevator-pos-rad-command</output>
+   </fcs_function>
+
+   <!-- Priority rate limiting dependent on number of available hydraulics systems -->
+
+   <kinematic name="Elevator Movement PRL 3 and 2">
+	<input>fcs/elevator-pos-rad-command</input>
+	<traverse>
+		<setting>
+			<position>-1.0</position>
+			<time>0</time>
+		</setting>
+		<setting>
+			<position>1.0</position>
+			<time>2.85</time>
+		</setting>
+		</traverse>
+	<output>fcs/elevator-pos-prl32-rad</output>
+   </kinematic>
+
+   <kinematic name="Elevator Movement PRL 1">
+	<input>fcs/elevator-pos-rad-command</input>
+	<traverse>
+		<setting>
+			<position>-1.0</position>
+			<time>0</time>
+		</setting>
+		<setting>
+			<position>1.0</position>
+			<time>4.10</time>
+		</setting>
+		</traverse>
+	<output>fcs/elevator-pos-prl1-rad</output>
+   </kinematic>
+
+   <switch name="Priority rate limiting elevator">
+			<default value="0.0"/>
+			<test logic="OR" value="fcs/elevator-pos-prl32-rad">
+				systems/apu/number-systems-pressurized == 3
+				systems/apu/number-systems-pressurized == 2
+			</test>
+			<test value="fcs/elevator-pos-prl1-rad">
+				systems/apu/number-systems-pressurized == 1
+			</test>
+	<output>fcs/elevator-pos-rad</output>
+   </switch>
+
+
+   <aerosurface_scale name="Elevator Normalization">
+      <input>fcs/elevator-pos-rad-command</input>
+      <domain>
+        <min> -0.70 </min>
+        <max>  0.44 </max>
+      </domain>
+      <range>
+        <min> -1 </min>
+        <max>  1 </max>
+      </range>
+      <output>fcs/elevator-pos-norm</output>
+   </aerosurface_scale>
+
+  </channel>
+
+
+
+  <channel name="Roll">
+
+  <switch name="Disable airfoil roll if thrust vectoring is used">
+			<default value="1.0"/>
+			<test logic="OR" value="0.0">
+				systems/fcs/control-mode == 0
+				systems/fcs/control-mode == 10
+				systems/fcs/control-mode == 11
+				systems/fcs/control-mode == 1
+				systems/fcs/control-mode == 2
+				systems/fcs/control-mode == 3
+				systems/fcs/control-mode == 20
+				systems/fcs/control-mode == 21
+				systems/fcs/control-mode == 22
+				systems/fcs/control-mode == 23
+				systems/fcs/control-mode == 25
+				systems/fcs/control-mode == 26
+				systems/fcs/control-mode == 27
+				systems/fcs/control-mode == 28
+				systems/carrier/connected == 1
+			</test>
+		<output>fcs/airfoil-factor-roll-base</output>
+		</switch>
+
+    <fcs_function name="fcs/airfoil-factor-roll">
+    <function>
+	<product>
+		<property>fcs/airfoil-factor-roll-base</property>
+		<property>systems/fcs/actuator-stall-factor</property>
+	</product>
+    </function>
+    </fcs_function>
+
+    <pure_gain name="Roll damper">
+	<input>velocities/p-rad_sec</input>
+	<gain>-1.0</gain>
+	<output>fcs/roll-damper-cmd-norm</output>
+   </pure_gain>
+  
+   <fcs_function name="Beta dot damper">
+	<function>
+		<max>
+		<min>
+		<product>
+			<property>aero/beta-rad</property>
+			<value>-250.0</value>
+			<table>
+        			<independentVar lookup="row">velocities/mach</independentVar>
+        			<tableData>
+          			 0.0        0.00
+          	 		 5.0        0.00
+	 	  		10.0	    1.00
+		   		20.0	    1.00
+        			</tableData>
+      			</table>
+			<difference>
+				<value>1.0</value>
+				<property>systems/fcs/no-y-jet</property>
+			</difference>
+		</product>
+		<value>1.0</value>
+		</min>
+		<value>-1.0</value>
+		</max>
+	</function>
+	<output>fcs/beta-dot-damper-cmd-norm</output>
+   </fcs_function>
+
+   <switch name="fcs/ap/auto-aileron-cmd-norm">
+	<default value="0.0"/>
+	<test  value="systems/ap/taem/taem-controller-aileron-cmd-norm">
+		systems/ap/auto-taem-active == 1
+	</test>
+	<test  value="systems/ap/entry/entry-controller-aileron-cmd-norm">
+		systems/ap/auto-entry-active == 1
+	</test>
+	<test  value="systems/ap/grtls/roll-cmd">
+		systems/ap/auto-grtls-active == 1
+	</test>
+   </switch>
+
+   <switch name="fcs/ap/auto-roll-active">
+	<default value="0.0"/>
+	<test logic="AND" value="1.0">
+		systems/ap/auto-taem-active == 1
+		systems/ap/automatic-roll-control == 1
+	</test>
+	<test logic="AND" value="1.0">
+		systems/ap/auto-entry-active == 1
+		systems/ap/automatic-roll-control == 1
+	</test>
+	<test logic="AND" value="1.0">
+		systems/ap/auto-grtls-active == 1
+		systems/ap/automatic-roll-control == 1
+	</test>
+   </switch>
+
+   <fcs_function name="fcs/aileron-ap-cmd-merge">
+   <function>
+	<sum>
+		<product>
+			<difference>
+				<value>1</value>
+				<property>fcs/ap/auto-roll-active</property>
+			</difference>
+			<property>fcs/aileron-cmd-norm-css</property>
+		</product>
+		<product>
+			<property>fcs/ap/auto-roll-active</property>
+			<property>fcs/ap/auto-aileron-cmd-norm</property>
+		</product>
+	</sum>
+   </function>
+   </fcs_function>
+
+  <!-- LO GAIN roll assisted by yaw jets -->
+
+   <fcs_function name="fcs/roll-error-std">
+	 <function>
+	 	<difference>
+			<product>
+				<property>fcs/aileron-ap-cmd-merge</property>
+				<value>0.5</value>
+			</product>
+			<property>velocities/p-rad_sec</property>
+		</difference>
+	</function>
+  </fcs_function>
+
+  <deadband name="fcs/roll-PID-trigger">
+	<input>fcs/roll-error-std</input>
+	<width>0.2</width>
+  </deadband>
+
+  <pid name="fcs/roll-controller-std">
+	<input>fcs/roll-error-std</input>
+	<kp> 20.0 </kp>
+	<ki> 3.0 </ki>
+	<kd> 15.0</kd>
+	<trigger>fcs/roll-PID-trigger</trigger>
+	<clipto>
+		<min> -1.0 </min>
+        	<max>  1.0 </max>
+	</clipto>
+	<output>fcs/roll-controller-out</output>
+  </pid>
+
+  <!-- NO Y JET roll via adverse yaw -->
+
+
+  <fcs_function name="fcs/no-y-jet-roll-rate-error-raw">
+  <function>
+	<difference>
+	<product>
+		<property>fcs/aileron-ap-cmd-merge</property>
+		<value>0.02</value>
+	</product>
+	<property>velocities/p-rad_sec</property>
+	</difference>
+  </function>
+  </fcs_function>
+
+  <deadband name="fcs/no-y-jet-roll-rate-error">
+	<input>fcs/no-y-jet-roll-rate-error-raw</input>
+	<width>0.001</width>
+  </deadband>
+
+   <switch name="fcs/no-y-jet-beta-tgt-raw">
+	<default value="0.0"/>
+	<test value="-0.4">
+		fcs/no-y-jet-roll-rate-error GT 0.003
+	</test>
+	<test value="0.4">
+		fcs/no-y-jet-roll-rate-error LT -0.003
+	</test>
+	<test value="-0.1">
+		fcs/no-y-jet-roll-rate-error GT 0
+	</test>
+	<test value="0.1">
+		fcs/no-y-jet-roll-rate-error LT 0
+	</test>
+   </switch>
+   
+   
+   <!-- sample-hold the commanded rate while beta is in transition -->
+   
+   <switch name="fcs/no-y-jet-beta-tgt">
+    <default value="fcs/no-y-jet-beta-tgt-raw"/>
+    <test logic="OR" value="fcs/no-y-jet-beta-tgt">
+		fcs/no-y-jet-beta-error LT -0.05
+		fcs/no-y-jet-beta-error GT 0.05
+	</test>
+   </switch>
+   
+
+
+  <fcs_function name="fcs/no-y-jet-beta-error">
+  <function>
+	<difference>
+		<property>fcs/no-y-jet-beta-tgt</property>
+		<property>aero/beta-deg</property>
+	</difference>
+  </function>
+  </fcs_function>
+  
+
+
+  <fcs_function name="fcs/no-y-jet-beta-rate-cmd">
+  <function>
+	<min>
+	<max>
+ 	<product>
+		<value>1.0</value>
+		<property>fcs/no-y-jet-beta-error</property>
+	</product>
+	<value>-0.5</value>
+	</max>
+	<value>0.5</value>
+	</min>
+  </function>
+  </fcs_function>
+  
+  <fcs_function name="fcs/no-y-jet-betadot-error">
+	 <function>
+		<product>
+	 	<difference>
+			<property>fcs/no-y-jet-beta-rate-cmd</property>
+			<property>aero/betadot-deg_sec</property>
+		</difference>
+		<property>systems/fcs/no-y-jet</property>
+		</product>
+	</function>
+  </fcs_function>
+
+
+
+  <pid name="fcs/no-y-jet-roll-controller">
+	<input>fcs/no-y-jet-betadot-error</input>
+	<kp> 20.0 </kp>
+	<ki> 0.5 </ki>
+	<kd> 5.0</kd>
+	<clipto>
+		<min> -1.0 </min>
+        	<max>  1.0 </max>
+	</clipto>
+	<output>fcs/no-y-jet-roll-controller-out</output>
+  </pid>
+
+  <!-- merging the roll control modes -->
+
+   <switch name="fcs/roll-controller">
+	<default value="fcs/roll-controller-std"/>
+	<test value="fcs/no-y-jet-roll-controller">
+		systems/fcs/no-y-jet == 1
+	</test>
+   </switch>
+
+  <fcs_function name="fcs/roll-command">
+  <function>
+	<sum>
+	<product>
+		<property>systems/fcs/airfoil-rate-control</property>
+		<property>fcs/roll-controller</property>
+	</product>
+	<product>
+		<difference>
+			<value>1.0</value>
+			<property>systems/fcs/airfoil-rate-control</property>	
+		</difference>
+		<sum>
+		<property>fcs/aileron-ap-cmd-merge</property>
+		<!--<property>fcs/aileron-cmd-norm-css</property>-->
+		<property>fcs/roll-damper-cmd-norm</property>
+		</sum>
+	</product>
+	</sum>
+  </function>
+  </fcs_function>
+  
+
+   <summer name="Roll Trim Sum">
+      <input>fcs/roll-command</input>
+      <input>fcs/roll-trim-cmd-norm</input>
+      <input>fcs/beta-dot-damper-cmd-norm</input>
+      <clipto>
+        <min> -1 </min>
+        <max>  1 </max>
+      </clipto>
+   </summer>
+
+   <aerosurface_scale name="Left Aileron Control">
+      <input>fcs/roll-trim-sum</input>
+      <range>
+        <min> -0.35 </min>
+        <max>  0.35 </max>
+      </range>
+      <output>fcs/left-aileron-pos-rad-command</output>
+   </aerosurface_scale>
+
+   <aerosurface_scale name="Right Aileron Control">
+      <input>-fcs/roll-trim-sum</input>
+      <range>
+        <min> -0.35 </min>
+        <max>  0.35 </max>
+      </range>
+      <output>fcs/right-aileron-pos-rad-command</output>
+   </aerosurface_scale>
+
+   <!-- Priority rate limiting dependent on number of available hydraulics systems -->
+
+   <kinematic name="Left Aileron Movement PRL 3 and 2">
+	<input>fcs/left-aileron-pos-rad-command</input>
+	<traverse>
+		<setting>
+			<position>-1.0</position>
+			<time>0</time>
+		</setting>
+		<setting>
+			<position>1.0</position>
+			<time>2.86</time>
+		</setting>
+		</traverse>
+	<output>fcs/left-aileron-pos-prl32-rad</output>
+   </kinematic>
+
+   <kinematic name="Left Aileron Movement PRL 1">
+	<input>fcs/left-aileron-pos-rad-command</input>
+	<traverse>
+		<setting>
+			<position>-1.0</position>
+			<time>0</time>
+		</setting>
+		<setting>
+			<position>1.0</position>
+			<time>4.11</time>
+		</setting>
+		</traverse>
+	<output>fcs/left-aileron-pos-prl1-rad</output>
+   </kinematic>
+
+   <switch name="Priority rate limiting left aileron">
+			<default value="0.0"/>
+			<test logic="OR" value="fcs/left-aileron-pos-prl32-rad">
+				systems/apu/number-systems-pressurized == 3
+				systems/apu/number-systems-pressurized == 2
+			</test>
+			<test value="fcs/left-aileron-pos-prl1-rad">
+				systems/apu/number-systems-pressurized == 1
+			</test>
+	<output>fcs/left-aileron-pos-prl-rad</output>
+   </switch>
+
+   <kinematic name="Right Aileron Movement PRL 3 and 2">
+	<input>fcs/right-aileron-pos-rad-command</input>
+	<traverse>
+		<setting>
+			<position>-1.0</position>
+			<time>0</time>
+		</setting>
+		<setting>
+			<position>1.0</position>
+			<time>2.86</time>
+		</setting>
+		</traverse>
+	<output>fcs/right-aileron-pos-prl32-rad</output>
+   </kinematic>
+
+   <kinematic name="Right Aileron Movement PRL 1">
+	<input>fcs/right-aileron-pos-rad-command</input>
+	<traverse>
+		<setting>
+			<position>-1.0</position>
+			<time>0</time>
+		</setting>
+		<setting>
+			<position>1.0</position>
+			<time>4.11</time>
+		</setting>
+		</traverse>
+	<output>fcs/right-aileron-pos-prl1-rad</output>
+   </kinematic>
+
+   <switch name="Priority rate limiting right aileron">
+			<default value="0.0"/>
+			<test logic="OR" value="fcs/right-aileron-pos-prl32-rad">
+				systems/apu/number-systems-pressurized == 3
+				systems/apu/number-systems-pressurized == 2
+			</test>
+			<test value="fcs/right-aileron-pos-prl1-rad">
+				systems/apu/number-systems-pressurized == 1
+			</test>
+	<output>fcs/right-aileron-pos-prl-rad</output>
+   </switch>
+
+  <pure_gain name="Actual Left Aileron Motion">
+	<!--<input>fcs/left-aileron-pos-rad-command</input>-->
+	<input>fcs/left-aileron-pos-prl-rad</input>
+	<gain>fcs/airfoil-factor-roll</gain>
+	<output>fcs/left-aileron-pos-rad</output>
+   </pure_gain>
+
+  <pure_gain name="Actual Right Aileron Motion">
+	<!--<input>fcs/right-aileron-pos-rad-command</input>-->
+	<input>fcs/right-aileron-pos-prl-rad</input>
+	<gain>fcs/airfoil-factor-roll</gain>
+	<output>fcs/right-aileron-pos-rad</output>
+   </pure_gain>
+
+   <aerosurface_scale name="left aileron normalization">
+      <input>fcs/left-aileron-pos-rad</input>
+      <domain>
+        <min> -0.35 </min>
+        <max>  0.35 </max>
+      </domain>
+      <range>
+        <min> -1 </min>
+        <max>  1 </max>
+      </range>
+      <output>fcs/left-aileron-pos-norm</output>
+   </aerosurface_scale>
+
+   <aerosurface_scale name="right aileron normalization">
+      <input>fcs/right-aileron-pos-rad</input>
+      <domain>
+        <min> -0.35 </min>
+        <max>  0.35 </max>
+      </domain>
+      <range>
+        <min> -1 </min>
+        <max>  1 </max>
+      </range>
+      <output>fcs/right-aileron-pos-norm</output>
+   </aerosurface_scale>
+
+  </channel>
+
+
+
+
+  <channel name="Yaw">
+
+  <switch name="Disable airfoil yaw if thrust vectoring is used">
+			<default value="1.0"/>
+			<test logic="OR" value="0.0">
+				systems/fcs/control-mode == 0
+				systems/fcs/control-mode == 10
+				systems/fcs/control-mode == 11
+				systems/fcs/control-mode == 1
+				systems/fcs/control-mode == 2
+				systems/fcs/control-mode == 3
+				systems/fcs/control-mode == 20
+				systems/fcs/control-mode == 21
+				systems/fcs/control-mode == 22
+				systems/fcs/control-mode == 23
+				systems/fcs/control-mode == 25
+				systems/fcs/control-mode == 26
+				systems/fcs/control-mode == 27
+				systems/fcs/control-mode == 28
+				systems/carrier/connected == 1
+			</test>
+		<output>fcs/airfoil-factor-yaw-base</output>
+    </switch>
+
+   <fcs_function name="fcs/airfoil-factor-yaw">
+   <function>
+	<product>
+		<property>fcs/airfoil-factor-yaw-base</property>
+		<property>systems/fcs/actuator-stall-factor</property>
+	</product>
+   </function>
+   </fcs_function>
+
+   <switch name="Disable automatic rudder in orbit">
+			<default value="1.0"/>
+			<test  logic="OR" value="0.0">
+				velocities/mach GT 10.0
+			</test>
+		<output>fcs/automatic-rudder</output>
+   </switch>
+
+   <summer name="Rudder Command Sum">
+      <input>fcs/rudder-cmd-norm-css</input>
+      <input>fcs/yaw-trim-cmd-norm</input>
+      <clipto>
+        <min> -0.35 </min>
+        <max>  0.35 </max>
+      </clipto>
+   </summer>
+
+   
+
+   <!-- ultimately rudder input is supposed to be a bias of the error - not in yet -->
+   <fcs_function name="fcs/beta-error-rad">
+	 <function>
+	 	<difference>
+			<product>
+				<property>aero/beta-rad</property>
+				<value>-1.0</value>
+			</product>
+			<value>0.0</value>
+		</difference>
+	</function>
+  </fcs_function>
+
+  <pid name="fcs/beta-controller">
+	<input>fcs/beta-error-rad</input>
+	<kp> 10.0 </kp>
+	<ki> 0.0 </ki>
+	<kd> 10.0</kd>
+	<clipto>
+		<min> -0.35 </min>
+        	<max>  0.35 </max>
+	</clipto>
+  </pid>
+
+  <fcs_function name="fcs/beta-controller-corrected">
+      <function>
+      <product>
+      <property>fcs/beta-controller</property>
+      <table>
+        <independentVar lookup="row">velocities/mach</independentVar>
+        <tableData>
+           1.0    1.0
+           2.0	  2.0
+	   4.0	  3.0	     
+        </tableData>
+      </table>
+      <property>fcs/automatic-rudder</property>
+      </product>
+      </function>
+   </fcs_function>
+
+
+
+   <summer name="Rudder Sum">
+      <input>fcs/rudder-command-sum</input>
+      <input>fcs/beta-controller-corrected</input>
+      <!--<input>fcs/yaw-damper-final</input>-->
+      <clipto>
+        <min> -0.35 </min>
+        <max>  0.35 </max>
+      </clipto>
+      <output>fcs/rudder-pos-rad-command</output>
+   </summer>
+
+   <!--<aerosurface_scale name="Rudder Control">
+      <input>fcs/rudder-sum</input>
+      <range>
+        <min> -0.35 </min>
+        <max>  0.35 </max>
+      </range>
+      <output>fcs/rudder-pos-rad-command</output>
+   </aerosurface_scale>-->
+
+  <kinematic name="Rudder Movement">
+	<input>fcs/rudder-pos-rad-command</input>
+	<traverse>
+		<setting>
+			<position>-1.0</position>
+			<time>0</time>
+		</setting>
+		<setting>
+			<position>1.0</position>
+			<time>1.0</time>
+		</setting>
+		</traverse>
+	<output>fcs/rudder-pos-rad-motion</output>
+   </kinematic>
+
+   <!-- Priority rate limiting dependent on number of available hydraulics systems -->
+
+   <kinematic name="Rudder Movement PRL 3">
+	<input>fcs/rudder-pos-rad-command</input>
+	<traverse>
+		<setting>
+			<position>-1.0</position>
+			<time>0</time>
+		</setting>
+		<setting>
+			<position>1.0</position>
+			<time>4.08</time>
+		</setting>
+		</traverse>
+	<output>fcs/rudder-pos-prl3-rad</output>
+   </kinematic>
+
+   <kinematic name="Rudder Movement PRL 2">
+	<input>fcs/rudder-pos-rad-command</input>
+	<traverse>
+		<setting>
+			<position>-1.0</position>
+			<time>0</time>
+		</setting>
+		<setting>
+			<position>1.0</position>
+			<time>4.76</time>
+		</setting>
+		</traverse>
+	<output>fcs/rudder-pos-prl2-rad</output>
+   </kinematic>
+
+   <kinematic name="Rudder Movement PRL 1">
+	<input>fcs/rudder-pos-rad-command</input>
+	<traverse>
+		<setting>
+			<position>-1.0</position>
+			<time>0</time>
+		</setting>
+		<setting>
+			<position>1.0</position>
+			<time>8.16</time>
+		</setting>
+		</traverse>
+	<output>fcs/rudder-pos-prl1-rad</output>
+   </kinematic>
+
+   <switch name="Rudder Priority Rate Limiting">
+			<default value="0.0"/>
+			<test value="fcs/rudder-pos-prl3-rad">
+				systems/apu/number-systems-pressurized == 3
+			</test>
+			<test value="fcs/rudder-pos-prl2-rad">
+				systems/apu/number-systems-pressurized == 2
+			</test>
+			<test value="fcs/rudder-pos-prl1-rad">
+				systems/apu/number-systems-pressurized == 1
+			</test>
+	<output>fcs/rudder-pos-prl-rad</output>
+   </switch>
+
+   <!-- this is a bit hacky - priority limiting doesn't deal correctly with init yaw deviation -->
+   <!-- so we allow on init a faster airfoil movement to handle a stable state to the controls -->
+   <!-- once the actual PRL simulation starts -->
+
+   <switch name="Rudder Init">
+			<default value="fcs/rudder-pos-prl-rad"/>
+			<test value="fcs/rudder-pos-rad-motion">
+				systems/apu/init-hydraulics-on == 1
+			</test>
+   <output>fcs/rudder-pos-prl-rad</output>
+   </switch>
+
+
+   <pure_gain name="Actual Rudder Motion">
+	<!--<input>fcs/rudder-pos-rad-command</input>-->
+ 	<input>fcs/rudder-pos-prl-rad</input>
+	<gain>fcs/airfoil-factor-yaw</gain>
+	<output>fcs/rudder-pos-rad</output>
+   </pure_gain>
+
+   <aerosurface_scale name="rudder normalization">
+      <input>fcs/rudder-pos-rad-command</input>
+      <domain>
+        <min> -0.35 </min>
+        <max>  0.35 </max>
+      </domain>
+      <range>
+        <min> -1.0 </min>
+        <max>  1.0 </max>
+      </range>
+      <output>fcs/rudder-pos-norm</output>
+   </aerosurface_scale>
+  </channel>
+
+  <channel name="Inboard elevon left">
+ 	<summer name="Inboard elevon left sum">
+      		<input>fcs/elevator-pos-deg</input>
+      		<input>fcs/left-aileron-pos-deg</input>
+      		<clipto>
+        		<min> -40.0 </min>
+        		<max>  25.0 </max>
+      		</clipto>
+      		<output>fcs/inboard-elevon-left-pos-deg</output>
+   	</summer>
+  </channel>
+
+  <channel name="Outboard elevon left">
+ 	<summer name="Outboard elevon left sum">
+      		<input>fcs/elevator-pos-deg</input>
+      		<input>fcs/left-aileron-pos-deg</input>
+      		<clipto>
+        		<min> -40.0 </min>
+        		<max>  25.0 </max>
+      		</clipto>
+      		<output>fcs/outboard-elevon-left-pos-deg</output>
+   	</summer>
+  </channel>
+
+  <channel name="Inboard elevon right">
+ 	<summer name="Inboard elevon right sum">
+      		<input>fcs/elevator-pos-deg</input>
+      		<input>fcs/right-aileron-pos-deg</input>
+      		<clipto>
+        		<min> -40.0 </min>
+        		<max>  25.0 </max>
+      		</clipto>
+      		<output>fcs/inboard-elevon-right-pos-deg</output>
+   	</summer>
+  </channel>
+
+  <channel name="Outboard elevon right">
+ 	<summer name="Outboard elevon right sum">
+      		<input>fcs/elevator-pos-deg</input>
+      		<input>fcs/right-aileron-pos-deg</input>
+      		<clipto>
+        		<min> -40.0 </min>
+        		<max>  25.0 </max>
+      		</clipto>
+      		<output>fcs/outboard-elevon-right-pos-deg</output>
+   	</summer>
+  </channel>
+
+
+  <channel name="Landing Gear">
+
+   <fcs_function name="gear/gear-filtered-cmd-norm">
+	<function>
+	<product>	
+		<property>gear/gear-cmd-norm</property>
+		<property>systems/landing/landing-gear-arm-cmd</property>
+	</product>
+	</function>
+   </fcs_function>	
+
+   <kinematic name="Gear Control">
+     <input>gear/gear-filtered-cmd-norm</input>
+     <traverse>
+       <setting>
+          <position> 0 </position>
+          <time>     0 </time>
+       </setting>
+       <setting>
+          <position> 1 </position>
+          <time>     1.5 </time>
+       </setting>
+     </traverse>
+     <output>gear/gear-pos-norm</output>
+   </kinematic>
+
+  </channel>
+
+  <channel name="Speedbrake">
+
+   <fcs_function name="fcs/throttle-cmd-inverted-norm[0]">
+      <function>
+          <difference>
+             <value>1.0</value>
+             <property>fcs/throttle-cmd-norm[0]</property>
+          </difference>
+      </function>
+   </fcs_function>
+
+
+   <switch name="Speedbrake Auto Throttle Switchover">
+	<default value="fcs/throttle-cmd-inverted-norm[0]"/>
+	<test logic="OR" value="0.0">
+		systems/dps/ops == 1
+		systems/dps/major-mode == 601
+	</test>
+	<test value="systems/fcs/speedbrake-cmd-norm">
+		systems/ap/automatic-sb-control == 1
+	</test>
+	<output>fcs/speedbrake-merged-cmd-norm</output>
+   </switch>
+
+
+   <kinematic name="Speedbrake Control PRL 2 and 3">
+     <input>fcs/speedbrake-merged-cmd-norm</input>
+     <traverse>
+       <setting>
+          <position> 0 </position>
+          <time>     0 </time>
+       </setting>
+       <setting>
+          <position> 1 </position>
+          <time>     8.08 </time>
+       </setting>
+     </traverse>
+     <output>fcs/speedbrake-pos-prl23-norm</output>
+   </kinematic>
+
+   <kinematic name="Speedbrake Control PRL 1">
+     <input>fcs/speedbrake-merged-cmd-norm</input>
+     <traverse>
+       <setting>
+          <position> 0 </position>
+          <time>     0 </time>
+       </setting>
+       <setting>
+          <position> 1 </position>
+          <time>     9.01 </time>
+       </setting>
+     </traverse>
+     <output>fcs/speedbrake-pos-prl1-norm</output>
+   </kinematic>
+
+   <switch name="Speedbrake Priority Rate Limiting">
+	<default value="0.0"/>
+	<test logic="OR" value="fcs/speedbrake-pos-prl23-norm">
+		systems/apu/number-systems-pressurized == 3
+		systems/apu/number-systems-pressurized == 2
+	</test>
+	<test value="fcs/speedbrake-pos-prl1-norm">
+		systems/apu/number-systems-pressurized == 1
+	</test>
+	<output>fcs/speedbrake-pos-norm</output>
+   </switch>
+
+  </channel>
+ 
+
+  <channel name="Bodyflap">
+   <kinematic name="Bodyflap Control">
+     <input>/controls/shuttle/bodyflap-pos-rad</input>
+     <traverse>
+	<setting>
+          <position> -1.0 </position>
+          <time>     0 </time>
+       </setting>
+       <setting>
+          <position> 1.0 </position>
+          <time>     9 </time>
+       </setting>
+     </traverse>
+     <output>fcs/bodyflap-pos-rad</output>
+   </kinematic>
+
+  </channel>
+ 
+ <!-- Parachute -->
+  <channel name="chute">
+   <fcs_function name="fcs/parachute_reef_pos_norm">
+    <function>
+     <product>
+      <value>0.5</value>
+      <property>/controls/shuttle/parachute</property>      
+     </product>
+    </function>
+    <clipto>
+     <min>0.0</min>
+     <max>1.0</max>
+    </clipto>
+   </fcs_function>
+
+  <pure_gain name="metrics/chute-sqft">
+    <input>fcs/parachute_reef_pos_norm</input>
+    <gain> 600.0 </gain> <!-- Area of braking chute = ca 650-->
+   </pure_gain>
+  </channel>
+<!-- Parachute -->
+  
+  
+<!--  <channel name="Accelerometer">
+
+<accelerometer name="accelerations/translational-acc-1">
+  <location unit="M">
+    <x> 2.7 </x>
+    <y> 0.0 </y>
+    <z>-2.7 </z>
+  </location>
+  <axis>X</axis>
+  <drift_rate> 0.0</drift_rate>
+  <output>accelerations/ax-trans-ft_sec2</output>
+</accelerometer>
+
+<accelerometer name="accelerations/translational-acc-2">
+  <location unit="M">
+    <x> 2.7 </x>
+    <y> 0.0 </y>
+    <z>-2.7 </z>
+  </location>
+  <axis>Y</axis>
+  <drift_rate> 0.0</drift_rate>
+  <output>accelerations/ay-trans-ft_sec2</output>
+</accelerometer>
+
+<accelerometer name="accelerations/translational-acc-3">
+  <location unit="M">
+    <x> 2.7 </x>
+    <y> 0.0 </y>
+    <z>-2.7 </z>
+  </location>
+  <axis>Z</axis>
+  <drift_rate> 0.0</drift_rate>
+  <output>accelerations/az-trans-ft_sec2</output>
+</accelerometer>
+
+  </channel>-->
+
+
+ </flight_control>
+
+<!-- aerodynamical data is taken from 'Aerodynamical design of the Space Shuttle Orbiter', Bornemann and Surber -->
+<!-- Rockwell International Space Systems Group -->
+<!-- and 'Entry Dynamics of Space Shuttle Orbiter With Longitudinal Stability and Control -->
+<!-- Uncertainties at Supersonic and Hypersonic Speeds', Stone and Powell, NASA -->
+<!-- except for lift and drag which is a 2-dim parametrization of wind tunnel data by Dilao and Fonsecq // CL-basic-parametrization below Mach 5 -->
+<!-- Lift and Drag above Mach 5 throug tables from Aerodynamic Design Data Book Volume 1 - Orbiter Vehicule STS 1 - Rockwell International Space Systems Group // CL-basic-interpolated above Mach 5 -->
+
+<!-- aero data used for launch stack is from 'Space shuttle: Determination of the aerodynamic -->
+<!-- interference between the space shuttle orbiter, external tank, and solid rocket booster on -->
+<!-- a 0.004 scale ascent configuration', Ramsey, Buchholz, Allen, Dehart, NASA -->
+
+
+ <aerodynamics>
+  
+
+
+  <!-- Longitudinal Stability coefficient ( Drag Cd,Lift Cl,Pitch moment Cm)-->
+
+  <function name="aero/coefficient/K">
+	<product>
+		<value>0.5</value>
+		<sum>	
+		<value>1.0</value>
+			<pow>
+			<abs>
+				<difference>	
+				<value>1.0</value>
+				<pow>
+					<quotient>	
+					<property>velocities/mach</property>
+					<value>1.25</value>
+					</quotient>
+					<value>2.0</value>
+				</pow>
+				</difference>
+			</abs>
+			<value>0.5</value>
+			</pow>
+		</sum>
+	</product>
+  </function>
+
+  <function name="aero/coefficient/CL-basic-parametrization">
+	<product>
+		<sum>
+			<value>-0.053</value>
+			<product>
+				<value>2.73</value>
+				<property>aero/alpha-rad</property>			
+			</product>
+			<product>
+				<value>-1.55</value>
+				<pow>
+					<property>aero/alpha-rad</property>
+					<value>2.0</value>
+				</pow>
+			</product>
+		</sum>
+		<pow>
+		<property>aero/coefficient/K</property>
+		<sum>
+			<value>-1.01</value>
+			<product>
+				<property>aero/alpha-rad</property>
+				<value>1.1</value>
+			</product>
+		</sum>
+		</pow>
+	</product> 
+  </function>
+
+  <function name="aero/coefficient/CL-basic-interpolated-mach">
+    <description>Basic Lift Coefficient above mach 4</description>
+    <table>
+        <independentVar lookup="row">aero/alpha-deg</independentVar>
+		    <independentVar lookup="column">velocities/mach</independentVar>
+        <tableData>
+               4.0    5.0      8.0     10.0    15.0    20.0  22.0     24.0     25.0       27.0
+			-10.0   -0.228 -0.198  -0.186  -0.186  -0.186  -0.186  -0.182  -0.177   -0.168    -0.150  
+			-5.0	  -0.139 -0.124  -0.124  -0.124  -0.124  -0.124  -0.120  -0.115   -0.106    -0.088
+			-2.5	  -0.100  -0.090  -0.089  -0.089  -0.089  -0.089  -0.086 -0.081   -0.072   -0.054
+			0.00    -0.044  -0.047  -0.055  -0.055  -0.055  -0.055  -0.052 -0.047   -0.036   -0.018
+			2.50	   0.011  0.006  -0.020  -0.020  -0.020  -0.020  -0.017  -0.012   -0.005  -0.005
+      5.00     0.062  0.040   0.017   0.017    0.017   0.017  0.014   0.009    0.005   0.005  
+      7.50     0.119  0.096  0.059   0.055   0.055   0.055    0.051   0.046    0.037   0.019
+      10.0     0.182  0.152  0.106   0.100   0.100   0.100    0.097   0.092    0.083   0.065
+      12.5     0.247  0.213  0.161   0.153   0.153   0.153    0.150   0.145    0.136   0.118
+      15.0     0.319  0.278  0.226   0.217   0.217   0.217    0.214   0.209    0.200   0.182
+      17.5     0.392  0.350  0.299   0.290   0.290   0.290    0.287   0.282    0.272   0.254
+      20.0     0.466  0.423  0.364   0.355   0.355   0.355    0.354   0.349    0.340   0.322
+      22.5     0.532  0.496  0.443   0.434   0.434   0.434    0.430   0.425    0.415   0.390
+      25.0     0.619  0.570  0.518   0.509   0.509   0.509    0.506   0.501    0.489   0.465
+      30.0     0.769  0.720  0.668   0.644   0.644   0.644    0.641   0.633    0.618   0.588
+      35.0     0.896  0.846  0.798   0.783   0.783   0.783    0.779   0.771    0.753   0.718
+      40.0     1.003  0.961  0.910   0.884   0.884   0.884    0.879   0.860    0.850   0.810
+      45.0     1.079  1.036   0.987  0.968   0.968   0.968    0.963   0.954    0.935   0.896
+      50.0     2.300  1.086   1.036  1.020   1.020   1.020    1.016   1.007    0.990   0.954
+	      </tableData>
+	  </table>
+  </function>
+
+  <function name="aero/coefficient/CL-basic-interpolated-density">
+    <description>Basic Lift Coefficient above 300kft // below 5.13e-9 rho slugs_ft3</description>
+    <table>
+        <independentVar lookup="row">aero/alpha-deg</independentVar>
+		    <independentVar lookup="column">atmosphere/rho-slugs_ft3</independentVar>
+        <tableData>
+               5e-16      7.47e-15     1.12e-13       1.57e-12      2.29e-11      3.3e-10     5.13e-9
+      20.0        0.057        0.058     0.064           0.084         0.135         0.230         0.322 
+      25.0        0.068       0.068     0.077           0.106         0.183         0.327         0.465
+      30.0       0.074       0.076     0.088           0.125         0.224         0.410         0.588
+      35.0        0.079       0.081     0.096           0.143         0.266         0.497         0.718
+      40.0        0.081       0.083     0.100           0.154         0.294         0.558         0.810
+      45.0        0.080       0.083     0.102           0.162         0.319         0.613         0.896 
+      50.0        0.078       0.081     0.102           0.166         0.335         0.651         0.954
+	      </tableData>
+	  </table>
+  </function>
+
+
+ 
+  <function name="aero/coefficient/CD-basic-parametrization">
+  	<product> 	
+    		<sum>
+			<value>0.01</value>
+			<product>
+				<value>0.028</value>
+				<pow>
+					<property>velocities/mach</property>
+					<value>1.4</value>
+				</pow>			
+			</product>
+			<product>
+				<value>1.79</value>
+				<pow>
+					<property>aero/alpha-rad</property>
+					<value>2.0</value>
+				</pow>
+			</product>
+		</sum>
+		<pow>
+		<property>aero/coefficient/K</property>
+		<sum>
+			<value>-1.4</value>
+			<product>
+				<property>aero/alpha-rad</property>
+				<value>1.5</value>
+			</product>
+		</sum>
+		</pow>
+		<difference>
+			<value>1.0</value>
+			<product>
+				<value>0.28</value>
+				<property>/sim/config/shuttle/approach-and-landing-test-config</property>
+			</product>
+		</difference>
+	</product> 
+</function>
+
+<function name="aero/coefficient/CD-basic-interpolated-mach">
+    <description>Basic Drag Coefficient above mach 4</description>
+    <table>
+        <independentVar lookup="row">aero/alpha-deg</independentVar>
+		    <independentVar lookup="column">velocities/mach</independentVar>
+        <tableData>
+                 4.0    5.0      8.0     10.0    15.0    20.0   22.0   24.0    25.0     27.0
+			-10.0    0.158  0.148    0.141   0.141   0.141   0.141   0.147   0.159   0.183    0.232
+			-5.0	   0.119  0.112    0.105   0.105   0.105   0.105   0.111   0.123   0.147    0.196
+			-2.5	   0.105  0.098    0.090   0.090   0.090   0.090   0.096   0.108   0.132    0.181
+			0.00     0.094  0.087    0.080   0.080   0.080   0.080   0.086   0.098   0.122    0.171
+			2.50	   0.089  0.082    0.074   0.074   0.074   0.074   0.080   0.092   0.116    0.165
+      5.00     0.091  0.081    0.071   0.071   0.071   0.071   0.077   0.089   0.113    0.162
+      7.50     0.098  0.086    0.074   0.073   0.073   0.073   0.079   0.091   0.115    0.164
+      10.0     0.112  0.098    0.082   0.081   0.081   0.081   0.087   0.099   0.123    0.172
+      12.5     0.134  0.118    0.098   0.096   0.096   0.096   0.102   0.114   0.138    0.187
+      15.0     0.163  0.145    0.122   0.119   0.119   0.119   0.125   0.137   0.161    0.210
+      17.5     0.201  0.181    0.157   0.153   0.153   0.153   0.159   0.171   0.195    0.244
+      20.0     0.247  0.225    0.196   0.192   0.192   0.192   0.198   0.210   0.234    0.283
+      22.5     0.298  0.278    0.249   0.244   0.244   0.244   0.250   0.262   0.286    0.390
+      25.0     0.366  0.339    0.309   0.304   0.304   0.304   0.310   0.323   0.348    0.398
+      30.0     0.523  0.492    0.458   0.443   0.443   0.443   0.450   0.463   0.489    0.542
+      35.0     0.710  0.672    0.636   0.624   0.624   0.624   0.630   0.643   0.667    0.717
+      40.0     0.928  0.890    0.844   0.821   0.821   0.821   0.826   0.839   0.862    0.909
+      45.0     1.169  1.125    1.074   1.054   1.054   1.054   1.059   1.069   1.088    1.126 
+      50.0     1.433  1.389    1.330   1.311   1.311   1.311   1.315   1.322   1.337    1.366
+	      </tableData>
+	  </table>
+  </function>
+
+<function name="aero/coefficient/CD-basic-interpolated-density">
+    <description>Basic Drag Coefficient above 300kft / below 5.13e-9 rho slugs_ft3</description>
+    <table>
+        <independentVar lookup="row">aero/alpha-deg</independentVar>
+		    <independentVar lookup="column">atmosphere/rho-slugs_ft3</independentVar>
+        <tableData>
+                5e-16        7.47e-15   1.12e-13    1.57e-12    2.29e-11     3.3e-10     5.13e-9
+      20.0          1.334       1.330     1.306       1.229       1.026       0.647         0.283
+      25.0          1.545       1.541     1.514       1.431       1.209       0.795         0.398
+      30.0           1.755       1.751     1.723       1.634       1.400       0.962         0.542
+      35.0           1.964       1.960     1.931       1.840       1.599       1.149         0.717
+      40.0          2.169       2.165     2.136       2.044       1.800       1.345         0.909
+      45.0          2.358       2.354     2.325       2.235       1.997       1.553         1.126
+      50.0         2.534       2.530     2.503       2.418       2.199       1.771         1.366
+	      </tableData>
+	  </table>
+</function>
+
+<!-- CL basic coefficient  -->
+<function name="aero/coefficient/CL-basic">
+<description>CL basic switch function for CL lift basic force</description>
+  <sum>
+    <product>
+      <property>aero/coefficient/CL-basic-parametrization</property>
+      <lt>
+        <property>velocities/mach</property>
+        <value> 4.0 </value>
+      </lt>
+    </product>
+    <product>
+      <property>aero/coefficient/CL-basic-interpolated-mach</property>
+      <gt>
+        <property>velocities/mach</property>
+        <value> 4.0 </value>
+      </gt>
+      <gt>
+        <property>atmosphere/rho-slugs_ft3</property>
+        <value> 5.13e-9 </value>
+      </gt>
+    </product>
+    <product>
+      <property>aero/coefficient/CL-basic-interpolated-density</property>
+      <lt>
+        <property>atmosphere/rho-slugs_ft3</property>
+        <value> 5.13e-9 </value>
+      </lt>
+    </product>
+  </sum>
+ </function>
+
+
+<!-- CD basic coefficient -->
+ <function name="aero/coefficient/CD-basic">
+<description>CD basic switch function for CD drag basic force</description>
+  <sum>
+    <product>
+      <property>aero/coefficient/CD-basic-parametrization</property>
+      <lt>
+        <property>velocities/mach</property>
+        <value> 4.0 </value>
+      </lt>
+    </product>
+    <product>
+      <property>aero/coefficient/CD-basic-interpolated-mach</property>
+      <gt>
+        <property>velocities/mach</property>
+        <value> 4.0 </value>
+      </gt>
+      <gt>
+        <property>atmosphere/rho-slugs_ft3</property>
+        <value> 5.13e-9 </value>
+      </gt>
+    </product>
+    <product>
+      <property>aero/coefficient/CD-basic-interpolated-density</property>
+      <lt>
+        <property>atmosphere/rho-slugs_ft3</property>
+        <value> 5.13e-9 </value>
+      </lt>
+    </product>
+  </sum>
+ </function>
+
+<!-- CL Gear coefficient DCLLG  -->
+
+<function name="aero/coefficient/CLgear_coefficient">
+	<description>Lift coefficient of landing gear</description>
+    <table>
+      <independentVar lookup="row">aero/alpha-deg</independentVar>
+		  <independentVar lookup="column">gear/gear-pos-norm</independentVar>
+      <tableData>
+              0        1
+      -10.0   0.0   0.017    
+      -5.0    0.0   0.011
+       0.0    0.0   0.0058
+       5.0    0.0   0.0019
+      10.0    0.0   -0.0013
+      15.0    0.0   -0.0045            		
+      20.0    0.0   -0.0074
+      25.0    0.0   -0.0084
+
+		  </tableData>
+	  </table>
+	</function>    
+
+<!-- CD Gear coefficient DCDLG  -->
+
+<function name="aero/coefficient/CDgear_coefficient">
+  <description>Drag coefficient of landing gear</description>
+      <table>
+        <independentVar lookup="row">aero/alpha-deg</independentVar>
+        <independentVar lookup="column">gear/gear-pos-norm</independentVar>
+        <tableData>
+                           0     1
+                -10.0   0.0   0.0273    
+                -5.0    0.0   0.0260
+                0.0     0.0   0.0230
+                5.0     0.0   0.0210
+                10.0    0.0   0.0200
+                15.0    0.0   0.0200            		
+                20.0    0.0   0.0190
+                25.0    0.0   0.0183
+
+        </tableData>
+      </table>
+  </function>
+
+<!-- CL Speebrake coefficient DCLSB  -->
+
+<function name ="aero/coefficient/Cl_SB_coefficient_low_mach">
+   <description>Lift_coeff_for_Speedbrakes_low_mach</description>
+	<table>
+		<independentVar lookup="row">fcs/speedbrake-pos-norm</independentVar>
+		<independentVar lookup="column">aero/alpha-deg</independentVar>
+		<independentVar lookup="table">velocities/mach</independentVar>
+		<tableData breakPoint="0.25">
+            -10.0   -5.0    0.0     5.0     10.0     15.0    20.0    25.0
+    0       0.006   0.0085  0.0097  0.0088  0.0080   0.008   0.008   0.0075
+    0.15    0.004   0.004   0.004   0.004   0.004    0.004   0.004   0.004
+    0.25    0.0     0.0     0.0     0.0     0.0      0.0     0.0     0.0
+    0.35    -0.004  -0.0045 -0.005  -0.0055 -0.006   -0.006  -0.006  -0.007  
+    0.45    -0.0078 -0.0089 -0.01   -0.011  -0.012   -0.013  -0.013  -0.014
+    0.55    -0.0115 -0.0133 -0.0150 -0.016  -0.0177  -0.019  -0.021  -0.023
+    0.70    -0.0147 -0.0196 -0.0235 -0.026  -0.0295  -0.032  -0.035  -0.039
+    0.90    -0.0169 -0.0237 -0.0302 -0.036  -0.042   -0.047  -0.052  -0.057
+		</tableData>
+    <tableData breakPoint="0.6">
+            -10.0   -5.0    0.0     5.0     10.0      15.0   20.0     25.0
+    0       0.0085  0.0093  0.01    0.01    0.0095    0.009   0.0085  0.008
+    0.15    0.0059  0.0054  0.005   0.0045  0.0045    0.005   0.0055  0.006
+    0.25    0.0     0.0     0.0     0.0     0.0       0.0     0.0     0.0
+    0.35    -0.0035 -0.0035 -0.0064 -0.0057 -0.0059   -0.0043 -0.005  -0.004
+    0.45    -0.007  -0.0086 -0.013 -0.012 -0.0121   -0.0099 -0.0095 -0.01
+    0.55    -0.012   -0.015 -0.0188 -0.018  -0.0185   -0.0174 -0.0163 -0.015
+    0.70    -0.017  -0.022 -0.027  -0.029  -0.03     -0.029  -0.028  -0.027
+    0.90    -0.023   -0.030 -0.037  -0.041  -0.044    -0.048  -0.0526 -0.0569
+		</tableData>
+    <tableData breakPoint="0.950">
+            -10.0   -5.0    0.0     5.0     10.0     15.0    20.0      25.0
+    0       0.01    0.01    0.01    0.01    0.0125    0.011   0.009     0.008
+    0.15    0.0063  0.0063  0.0063  0.005   0.006     0.005   0.004     0.003
+    0.25    0.0     0.0     0.0     0.0     0.0       0.0     0.0       0.0
+    0.35    -0.0089 -0.0089 -0.0089 -0.0052 -0.0068   -0.0055 -0.0041   -0.0028
+    0.45    -0.0181 -0.0181 -0.0181 -0.0120 -0.0144   -0.0120 -0.0095   -0.00706
+    0.55    -0.0275 -0.0275 -0.0275 -0.021  -0.023    -0.0195 -0.016    -0.0125
+    0.70    -0.040  -0.040  -0.040  -0.0365 -0.0375   -0.0315 -0.0255   -0.0195
+    0.90    -0.0565 -0.0565 -0.0565 -0.0565 -0.0565   -0.0465 -0.0365   -0.0265
+		</tableData>
+    <tableData breakPoint="1.5">
+            -10.0   -5.0    0.0     5.0     10.0     15.0       20.0    25.0
+    0       0.0092  0.0095  0.0096  0.0086  0.0093   0.0105   0.0116   0.0127
+    0.15    0.0031  0.0034  0.0038  0.0048  0.0047   0.0048   0.0048    0.0048
+    0.25    0.0     0.0     0.0     0.0     0.0      0.0      0.0       0.0
+    0.35    -0.0062 -0.0056 -0.0048 -0.0043 -0.0042 -0.0048   -0.0053   -0.0055
+    0.45    -0.0118 -0.0113 -0.0103 -0.0089 -0.0087 -0.0097   -0.010    -0.010
+    0.55    -0.017  -0.0166 -0.0163 -0.0144 -0.0144 -0.0146   -0.0143   -0.0143
+    0.70    -0.0236 -0.0238 -0.0240 -0.0240 -0.0235 -0.0230   -0.0229   -0.0233
+    0.90    -0.0342 -0.0343 -0.0346 -0.0357 -0.0346 -0.0325   -0.0307   -0.0289
+		</tableData>
+    <tableData breakPoint="3.0">
+             -10.0   -5.0    0.0     5.0     10.0     15.0    20.0     25.0     
+    0       0.0081  0.0078  0.0076  0.0073  0.0072   0.0071   0.0065  0.0053  
+    0.15    0.0032  0.0031  0.0030  0.0029  0.0029   0.0029   0.0026  0.0021  
+    0.25    0.0     0.0     0.0     0.0     0.0      0.0      0.0      0.0   
+    0.35    -0.0036 -0.0034 -0.0032 -0.003  -0.003   -0.0030  -0.0028 -0.0022 
+    0.45    -0.0056 -0.0056 -0.0056 -0.0056 -0.0055  -0.0053  -0.0048 -0.0040 
+    0.55    -0.0069 -0.0072 -0.0076 -0.0080 -0.0077  -0.0070  -0.0064 -0.0056 
+    0.70    -0.01   -0.011  -0.013  -0.013  -0.013   -0.0130  -0.011  -0.0095 
+    0.90    -0.015  -0.017  -0.019  -0.021  -0.022   -0.022   -0.019  -0.016  
+		</tableData>
+	</table>
+</function>
+
+<function name ="aero/coefficient/Cl_SB_coefficient_high_mach">
+   <description>Lift_coeff_for_Speedbrakes_high_mach</description>
+	<table>
+		<independentVar lookup="row">fcs/speedbrake-pos-norm</independentVar>
+		<independentVar lookup="column">aero/alpha-deg</independentVar>
+		<independentVar lookup="table">velocities/mach</independentVar>
+		<tableData breakPoint="3.0">
+            -10.0   -5.0    0.0     5.0     10.0     15.0    20.0     25.0     30.0    35.0     40.0     45.0
+    0       0.0081  0.0078  0.0076  0.0073  0.0072   0.0071   0.0065  0.0053  0.0042   0.0030   0.0019  0.0007 
+    0.15    0.0032  0.0031  0.0030  0.0029  0.0029   0.0029   0.0026  0.0021  0.0017   0.0012   0.0008  0.0003
+    0.25    0.0     0.0     0.0     0.0     0.0      0.0      0.0      0.0    0.0       0.0     0.0     0.0
+    0.35    -0.0036 -0.0034 -0.0032 -0.003  -0.003   -0.0030  -0.0028 -0.0022 -0.0017  -0.0012  -0.0007 -0.00015
+    0.45    -0.0056 -0.0056 -0.0056 -0.0056 -0.0055  -0.0053  -0.0048 -0.0040 -0.0033  -0.0025  -0.0017 -0.00096
+    0.55    -0.0069 -0.0072 -0.0076 -0.0080 -0.0077  -0.0070  -0.0064 -0.0056 -0.0047  -0.0039  -0.003  -0.0022 
+    0.70    -0.01   -0.011  -0.013  -0.013  -0.013   -0.0130  -0.011  -0.0095 -0.0079  -0.0063  -0.0046 -0.0030
+    0.90    -0.015  -0.017  -0.019  -0.021  -0.022   -0.022   -0.019  -0.016  -0.012   -0.0091  -0.0060 -0.0029
+		</tableData>
+    <tableData breakPoint="5.0">
+            -10.0   -5.0    0.0     5.0     10.0     15.0    20.0    25.0      30.0    35.0      40.0     45.0
+    0       0.0022  0.0025  0.0022  0.0011  0.0     0.0       0.0     0.0       0.0     0.0       0.0       0.0 
+    0.15    0.0009  0.0010  0.0009  0.0045  0.0     0.0       0.0     0.0       0.0     0.0       0.0       0.0
+    0.25     0.0     0.0     0.0     0.0     0.0      0.0     0.0     0.0       0.0     0.0      0.0       0.0
+    0.35    -0.0008 -0.0008 -0.0008 -0.0007 -0.0006 -0.0005 -0.0004 -0.0003   -0.0002   -0.0001   0.0       0.0
+    0.45    -0.0016 -0.0017 -0.0016 -0.0014 -0.0012 -0.0012 -0.001  -0.0006   -0.0003   -0.0001   0.0     0.0
+    0.55    -0.0026 -0.0026 -0.0026 -0.0023 -0.0019 -0.0018 -0.0016 -0.0010   -0.0003   0.0       0.0     0.0
+    0.70    -0.005  -0.0051 -0.005  -0.0046 -0.004  -0.0034 -0.0027 -0.0015   -0.001    -0.0005   0.0     0.0
+    0.90    -0.012  -0.012  -0.012  -0.010  -0.0089 -0.0073 -0.0057 -0.0041   -0.003    -0.0015   0.0     0.0  
+		</tableData>
+    <tableData breakPoint="10.0">
+            -10.0   -5.0    0.0     5.0     10.0     15.0    20.0    25.0     30.0    35.0    40.0      45.0
+    0       0.0     0.0016  0.0021  0.0011  0.0     0.0       0.0     0.0     0.0     0.0     0.0       0.0
+    0.15    0.0     0.0006  0.0008  0.0004  0.0     0.0       0.0     0.0     0.0     0.0     0.0       0.0
+    0.25     0.0     0.0     0.0     0.0     0.0      0.0     0.0     0.0     0.0     0.0     0.0       0.0
+    0.35    -0.0005 -0.0005 -0.0005 -0.00045 -0.0004 -0.0004  -0.0003 -0.0002 0.0     0.0     0.0       0.0   
+    0.45    -0.0015 -0.0016 -0.0015 -0.0013  -0.0011 -0.0009  -0.0007 -0.0004 0.0     0.0     0.0       0.0
+    0.55    -0.0024 -0.0025 -0.0024 -0.0021  -0.0018 -0.0015  -0.0012 -0.0006 -0.0002 0.0     0.0       0.0
+    0.70    -0.0042 -0.0044 -0.0042 -0.0036  -0.0029 -0.0024  -0.0018 -0.0011 -0.0004 -0.0001 0.0       0.0
+    0.90    -0.0083 -0.0086 -0.0083 -0.0075  -0.0062 -0.0046  -0.0029 -0.0024 -0.0019 -0.0009 0.0       0.0
+		</tableData>
+
+  </table>
+</function>
+
+<function name="aero/coefficient/Cl_SB_coefficient_new">
+  <description>Cl SB switch function for SB lift coefficient</description>
+    <sum>
+      <product>
+        <property>aero/coefficient/Cl_SB_coefficient_low_mach</property>
+        <lt>
+          <property>velocities/mach</property>
+          <value> 3.0 </value>
+        </lt>
+      </product>
+      <product>
+        <property>aero/coefficient/Cl_SB_coefficient_high_mach</property>
+        <gt>
+          <property>velocities/mach</property>
+          <value> 3.0 </value>
+        </gt>
+      </product>
+    </sum>
+  </function>
+    
+	
+<!-- CD Speebrake coefficient DCDSB new -->
+
+<function name ="aero/coefficient/Cd_SB_coefficient_low_mach">
+   <description>Drag_coeff_for_Speedbrakes_low_mach</description>
+	<table>
+		<independentVar lookup="row">fcs/speedbrake-pos-norm</independentVar>
+		<independentVar lookup="column">aero/alpha-deg</independentVar>
+		<independentVar lookup="table">velocities/mach</independentVar>
+		<tableData breakPoint="0.25">
+            -10.0   -5.0    0.0     5.0     10.0     15.0    20.0    25.0
+    0      -0.011   -0.010  -0.0087 -0.0074 -0.006  -0.0047 -0.0034 -0.0035 
+    0.15   -0.007   -0.0059 -0.005  -0.0045 -0.004  -0.0035 -0.003  -0.0014  
+    0.25    0.0     0.0     0.0     0.0     0.0      0.0     0.0     0.0
+    0.35    0.008   0.0076  0.007   0.006   0.005    0.0045  0.004   0.003 
+    0.45    0.016   0.0147  0.013   0.011   0.0089   0.0080  0.007   0.0056
+    0.55    0.024   0.023   0.021   0.018   0.015    0.013   0.011   0.0088 
+    0.70    0.038   0.036   0.033   0.030   0.026    0.022   0.018   0.015
+    0.90    0.055   0.053   0.050   0.045   0.040    0.035   0.030   0.024
+		</tableData>
+    <tableData breakPoint="0.60">
+            -10.0   -5.0    0.0     5.0     10.0     15.0    20.0    25.0
+    0      -0.0082  -0.0081 -0.0081 -0.0074 -0.0052 -0.004  -0.0028 -0.0016
+    0.15   -0.0047  -0.0044 -0.0040 -0.0037 -0.0029 -0.0025 -0.0022 -0.0018 
+    0.25    0.0     0.0     0.0     0.0     0.0      0.0     0.0     0.0
+    0.35    0.0067  0.0074  0.0081  0.0074  0.0068   0.0067  0.0067  0.0068   
+    0.45    0.016    0.016  0.016   0.015   0.013    0.0126  0.0118  0.0109
+    0.55    0.0277  0.0259  0.024   0.0217  0.0198   0.0178  0.0157  0.0137 
+    0.70    0.0407  0.0380  0.0353  0.0323  0.030    0.0259  0.0217  0.0176 
+    0.90    0.0531  0.0486  0.0442  0.0401  0.0377   0.0315  0.0253  0.0191
+		</tableData>
+    <tableData breakPoint="0.95">
+            -10.0   -5.0    0.0     5.0     10.0     15.0    20.0    25.0
+    0      -0.0065  -0.006  -0.0053 -0.0049 -0.0045 -0.0043  -0.004  -0.0035
+    0.15   -0.005   -0.005  -0.004  -0.0027 -0.0027 -0.0027  -0.0025 -0.002
+    0.25    0.0     0.0     0.0     0.0     0.0      0.0     0.0     0.0
+    0.35   0.0086   0.0087  0.0088  0.0079  0.0072   0.0057  0.0042  0.0025  
+    0.45   0.018    0.017   0.016   0.014   0.014    0.011   0.0078  0.0048 
+    0.55   0.029    0.025   0.021   0.019   0.020    0.016   0.011   0.0063
+    0.70   0.042    0.037   0.032   0.029   0.028    0.022   0.016   0.010  
+    0.90   0.061    0.053   0.045   0.041   0.034    0.026   0.019   0.012 
+		</tableData>
+    <tableData breakPoint="1.5">
+            -10.0   -5.0    0.0     5.0     10.0     15.0    20.0    25.0
+    0      -0.0044  -0.0055 -0.0065 -0.0052 -0.0034 -0.0023 -0.0012 -0.00014
+    0.15   -0.0071  -0.0058 -0.0045 -0.0040 -0.0025 -0.0019 -0.0012 -0.0006 
+    0.25    0.0     0.0     0.0     0.0     0.0      0.0     0.0     0.0
+    0.35    0.0078  0.0070  0.0061  0.0054  0.0046  0.0042   0.0044  0.0041 
+    0.45    0.016   0.015  0.014   0.012   0.0099  0.0097   0.0098  0.0096
+    0.55    0.026   0.024   0.023   0.020   0.016   0.016    0.015   0.015
+    0.70    0.038   0.037   0.036   0.032   0.026   0.024    0.022   0.019
+    0.90    0.052   0.050   0.048   0.044   0.034   0.030    0.026   0.021
+		</tableData>
+    <tableData breakPoint="3.0">
+            -10.0   -5.0    0.0     5.0     10.0     15.0    20.0     25.0      
+    0       -0.0076 -0.0066 -0.0057 -0.0047 -0.0039  -0.0031  -0.0021 -0.0017     
+    0.15    -0.0031 -0.0027 -0.0023 -0.0019 -0.0016  -0.0012  -0.0008 -0.0007   
+    0.25     0.0     0.0     0.0     0.0     0.0      0.0     0.0     0.0       
+    0.35    0.0023  0.0021  0.0018  0.0015  0.0013    0.0010  0.0006  0.0005    
+    0.45    0.0084  0.0071  0.0059  0.0046  0.0038    0.0031  0.0025  0.0017    
+    0.55    0.016   0.013   0.011   0.0087  0.0072    0.0061  0.0050  0.0035    
+    0.70    0.023   0.020   0.018   0.015   0.013     0.011   0.0089  0.0075    
+    0.90    0.035   0.031   0.028   0.024   0.020     0.017   0.014   0.012     
+		</tableData>
+	</table>
+</function>
+
+<function name ="aero/coefficient/Cd_SB_coefficient_high_mach">
+   <description>Drag_coeff_for_Speedbrakes_high_mach</description>
+	<table>
+		<independentVar lookup="row">fcs/speedbrake-pos-norm</independentVar>
+		<independentVar lookup="column">aero/alpha-deg</independentVar>
+		<independentVar lookup="table">velocities/mach</independentVar>
+		<tableData breakPoint="3.0">
+            -10.0   -5.0    0.0     5.0     10.0     15.0    20.0     25.0      30.0    35.0      40.0    45.0
+    0       -0.0076 -0.0066 -0.0057 -0.0047 -0.0039  -0.0031  -0.0021 -0.0017   -0.0013 -0.00083  -0.00042 0.0   
+    0.15    -0.0031 -0.0027 -0.0023 -0.0019 -0.0016  -0.0012  -0.0008 -0.0007   -0.0005 -0.0003   -0.0002 0.0
+    0.25     0.0     0.0     0.0     0.0     0.0      0.0     0.0     0.0       0.0     0.0       0.0     0.0
+    0.35    0.0023  0.0021  0.0018  0.0015  0.0013    0.0010  0.0006  0.0005    0.0005  0.0004    0.0003  0.0003
+    0.45    0.0084  0.0071  0.0059  0.0046  0.0038    0.0031  0.0025  0.0017    0.00085 0.0008    0.0005  0.0006
+    0.55    0.016   0.013   0.011   0.0087  0.0072    0.0061  0.0050  0.0035    0.0020  0.0020    0.0011  0.001
+    0.70    0.023   0.020   0.018   0.015   0.013     0.011   0.0089  0.0075    0.0061  0.0047    0.0034  0.002
+    0.90    0.035   0.031   0.028   0.024   0.020     0.017   0.014   0.012     0.01    0.008     0.006   0.004
+		</tableData>
+    <tableData breakPoint="5.0">
+            -10.0   -5.0    0.0     5.0     10.0     15.0    20.0     25.0     30.0    35.0    40.0    45.0
+    0       -0.0016 -0.0018 -0.0016 -0.0008 0.0     0.0     0.0       0.0       0.0     0.0     0.0     0.0
+    0.15    -0.0006 -0.0007 -0.0006 -0.0003 0.0     0.0     0.0       0.0       0.0     0.0     0.0     0.0
+    0.25     0.0     0.0     0.0     0.0     0.0      0.0     0.0     0.0       0.0     0.0     0.0     0.0
+    0.35     0.0016  0.0016  0.0015  0.0013  0.001   0.0008  0.0005  0.0003     0.0     0.0     0.0     0.0
+    0.45     0.0032  0.0030  0.0027  0.0024  0.0021  0.0016  0.001   0.0005     0.0     0.0     0.0     0.0
+    0.55     0.0068  0.0057  0.0047  0.0039  0.0031  0.0023  0.0015  0.001      0.0     0.0     0.0     0.0
+    0.70     0.013   0.012  0.010   0.0084  0.0065  0.0049  0.0033  0.0017     0.0     0.0      0.0    0.0
+    0.90     0.021   0.018   0.016   0.013   0.011   0.0084  0.0057  0.0035     0.0014  0.0005   0.0    0.0
+		</tableData>
+    <tableData breakPoint="10.0">
+            -10.0   -5.0    0.0     5.0     10.0     15.0     20.0     25.0     30.0    35.0    40.0    45.0
+    0       -0.0021 -0.0024 -0.0021 -0.0011 0.0       0.0     0.0       0.0     0.0     0.0     0.0     0.0
+    0.15    -0.0008 -0.0009 -0.0008 -0.0004 0.0       0.0     0.0       0.0     0.0     0.0     0.0     0.0    
+    0.25     0.0     0.0     0.0     0.0     0.0      0.0     0.0       0.0     0.0     0.0     0.0     0.0
+    0.35     0.00065 0.00068 0.00068 0.0005  0.00035  0.00023 0.00015   0.00010 0.0     0.0     0.0     0.0
+    0.45     0.0013  0.0014  0.0013  0.001   0.0007   0.0005  0.00030   0.00020 0.0     0.0     0.0     0.0
+    0.55     0.003   0.0031  0.0030  0.0026  0.0020   0.0012  0.0004    0.00030 0.0     0.0     0.0     0.0
+    0.70     0.0064  0.0067  0.0064  0.0052  0.0038   0.0023  0.0007    0.0005  0.0     0.0     0.0     0.0 
+    0.90     0.0117  0.012   0.012  0.0095  0.007    0.0044  0.0018    0.0013  0.0005  0.00016 0.0     0.0
+		</tableData> 
+	</table>
+</function>
+
+<function name="aero/coefficient/Cd_SB_coefficient">
+  <description>Cd SB switch function for SB drag coefficient</description>
+    <sum>
+      <product>
+        <property>aero/coefficient/Cd_SB_coefficient_low_mach</property>
+        <lt>
+          <property>velocities/mach</property>
+          <value> 3.0 </value>
+        </lt>
+      </product>
+      <product>
+        <property>aero/coefficient/Cd_SB_coefficient_high_mach</property>
+        <gt>
+          <property>velocities/mach</property>
+          <value> 3.0 </value>
+        </gt>
+      </product>
+    </sum>
+  </function>
+	
+
+<!-- CD Speebrake coefficient DCDSB old -->
+
+
+  <!-- crew manual mentions that gear drag is 60% of speedbrake effect -->
+	<!-- almost certainly needs Mach number dependence -->
+<function name="aero/coefficient/CDSb_coefficient_old">
+  	<description>Drag coefficient of the tail speedbrake</description>
+      <product>
+     		<property>fcs/speedbrake-pos-norm</property>
+      	<value>0.0344</value>
+      </product>
+</function>
+
+<!-- L/D basic ratio -->
+ <function name="aero/coefficient/GS">
+	<quotient>
+		<property>aero/coefficient/CL-basic</property>
+		<property>aero/coefficient/CD-basic</property>
+	</quotient>
+ </function>
+
+ <!-- L/D full ratio -->
+ <function name="aero/coefficient/LD-ratio-old">
+	<quotient>
+    <sum>
+		  <property>aero/coefficient/CL-basic</property>
+      <property>aero/coefficient/CLgear_coefficient</property>
+    </sum>
+    <sum>
+		  <property>aero/coefficient/CD-basic</property>
+      <property>aero/coefficient/CDgear_coefficient</property>
+      <property>aero/coefficient/CDSb_coefficient_old</property>
+    </sum>
+	</quotient>
+ </function>
+
+ <function name="aero/coefficient/LD-ratio-new">
+	<quotient>
+    <sum>
+		  <property>aero/coefficient/CL-basic</property>
+      <property>aero/coefficient/CLgear_coefficient</property>
+      <property>aero/coefficient/Cl_SB_coefficient_new</property>
+    </sum>
+    <sum>
+		  <property>aero/coefficient/CD-basic</property>
+      <property>aero/coefficient/CDgear_coefficient</property>
+      <property>aero/coefficient/Cd_SB_coefficient</property>
+    </sum>
+	</quotient>
+ </function>
+
+<!-- Normal coefficient based on Body axe Z used for Cm -->
+  <function name="aero/coefficient/CN">
+  <description>Normal force coefficient</description>
+	<sum>
+		<product>
+			<property>aero/coefficient/CL-basic</property>
+			<cos>
+				<property>aero/alpha-rad</property>			
+			</cos>
+		</product>
+		<product>
+			<property>aero/coefficient/CD-basic</property>
+			<sin>
+				<property>aero/alpha-rad</property>			
+			</sin>
+		</product>
+	</sum>
+  </function>
+
+
+ <function name="aero/coefficient/ground_effect">
+      <table>
+        <independentVar lookup="row">position/h-agl-ft</independentVar>
+         <tableData>
+           13.0		1.30
+	   20.0		1.25
+	   30.0		1.15
+	   40.0		1.07
+	   50.0		1.02
+	   60.0		1.00
+         </tableData>
+      </table>
+   </function>
+
+   <!-- Original Thorsten Cm coefficient combining Cm basic and Cm due to elevons deflection -->
+
+  <function name ="aero/coefficient/Cm_coefficient_basic_elevons">
+   <description>Pitch_moment_coefficient_including_basicCm_and_Cm_elevons</description>
+	<table>
+		<independentVar lookup="row">aero/coefficient/CN</independentVar>
+		<independentVar lookup="column">fcs/elevator-pos-deg</independentVar>
+		<independentVar lookup="table">velocities/mach</independentVar>
+		<tableData breakPoint="0.6">
+			-40.0	0.0	5.0	10.0	25.0
+		0.0	0.4	0.05	0.0	-0.05	-0.2
+		0.2	0.38	0.04	0.0	-0.05	-0.2
+		0.4	0.38	0.04	-0.005	-0.055	-0.21
+		0.7	0.37	0.03	-0.01	-0.06	-0.22
+		1.1	0.35	0.01	-0.04	-0.08	-0.24
+		1.3	0.43	0.07	0.02	-0.03	-0.18
+		</tableData>
+		<tableData breakPoint="1.2">
+			-40.0	-10.0	0.0	10.0	25.0
+		0.0	0.4	0.15	0.08	0.02	-0.08
+		0.2	0.35	0.11	0.05	-0.02	-0.12
+		0.4	0.3	0.07	0.005	-0.06	-0.16
+		0.7	0.22	0.025	-0.03	-0.09	-0.19
+		1.1	0.15	0.005	-0.05	-0.13	-0.23
+		1.3	0.23	0.025	-0.045	-0.12	-0.22
+		</tableData>
+		<tableData breakPoint="5.0">
+			-40.0	-35.0	0.0	10.0	25.0
+		0.0	0.017	0.015	0.0	-0.005	-0.012
+		0.2	0.017	0.015	0.0	-0.01	-0.024
+		0.4	0.017	0.015	0.0	-0.02	-0.047
+		0.7	0.02	0.015	-0.02	-0.06	-0.12
+		1.1	0.02	0.014	-0.04	-0.1	-0.2
+		1.3	0.02	0.014	-0.05	-0.125	-0.26
+		</tableData>
+		<tableData breakPoint="10.0">
+			-40.0	-35.0	0.0	10.0	25.0
+		0.0	0.001	0.0	-0.01	-0.025	-0.04
+		0.2	0.012	0.01	-0.01	-0.025	-0.05
+		0.4	0.022	0.02	0.0	-0.03	-0.065
+		0.7	0.035	0.03	-0.01	-0.04	-0.09
+		1.1	0.05	0.04	-0.02	-0.075	-0.17
+		1.3	0.05	0.04	-0.03	-0.1	-0.2
+		</tableData>
+	</table>
+   </function>
+
+
+  <!--Cm coefficient due to Body Flap deflection (Initial Thorsten one) -->
+  <!-- Date points from 'Entry dynamics ...', extrapolated to Mach 10 -->
+  <!-- normalization is unusual - the table is for -11.5 deg deflection -->
+
+   <function name ="aero/coefficient/Cm_BF_coefficient_Original">
+   <description>Pitching_moment_coefficient_due_to_Body_Flap</description>
+   <product>
+  <property>fcs/bodyflap-pos-rad</property>
+	<value>-5.0</value>
+	<table>
+	<independentVar lookup="row">aero/alpha-deg</independentVar>
+	<independentVar lookup="column">velocities/mach</independentVar>
+		<tableData>
+			1.5	3.0	5.0	10.0
+		-10.0	0.005	0.0	0.0	0.0
+		20.0	0.01	0.005	0.002	0.0012
+		30.0	0.017	0.01	0.006	0.0032
+		50.0	0.038	0.03	0.02	0.012
+		</tableData>
+	  </table>
+   </product>
+  </function>
+
+
+   <!--Cm coefficient due to Body Flap deflection (GinGin one / Rockwell Wind Tunnel Datas STS1 ) -->
+   <!--Two tables as AOA extends to 45 ° past mach 2 -->
+
+   <function name ="aero/coefficient/Cm_BF_coefficient_low_mach">
+   <description>Pitching_moment_coefficient_due_to_Body_Flap_below_mach_1.5</description>
+	<table>
+		<independentVar lookup="row">fcs/bodyflap-pos-rad</independentVar>
+		<independentVar lookup="column">aero/alpha-deg</independentVar>
+		<independentVar lookup="table">velocities/mach</independentVar>
+		<tableData breakPoint="0.25">
+            -10.0   -5.0    0.0     5.0     10.0      15.0  20.0    25.0
+    -0.192  0.0147  0.0153  0.0158  0.0170  0.0190  0.0181  0.0190  0.0190
+    -0.087  0.0067  0.0069  0.0071  0.0082  0.0080  0.0082  0.0085  0.0085 
+     0.000  0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0
+     0.087  -0.01   -0.0094 -0.0090 -0.0092 -0.0088 -0.0097 -0.0090 -0.0090 
+     0.174  -0.020  -0.0193 -0.0186 -0.0186 -0.0180 -0.0190 -0.0182 -0.0182
+     0.279  -0.031  -0.031  -0.031  -0.0305 -0.0307 -0.0309 -0.0304 -0.0304
+     0.384  -0.038  -0.041  -0.042  -0.0450 -0.0453 -0.0450 -0.0420 -0.0420 
+		</tableData>
+		<tableData breakPoint="0.6">
+			      -10.0   -5.0    0.0     5.0     10.0    15.0    20.0    25.0
+    -0.192  0.0180  0.0181  0.0179  0.0190  0.0201  0.0214  0.0230  0.0240   
+    -0.087  0.0084  0.0084  0.0083  0.0087  0.0091  0.0095  0.0099  0.0103
+     0.000  0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0
+     0.087  -0.0094 -0.0095 -0.0094 -0.0097 -0.0098 -0.0101 -0.0101 -0.0103  
+     0.174  -0.0198 -0.0199 -0.0198 -0.0203 -0.0202 -0.0209 -0.0204 -0.0207
+     0.279  -0.0340 -0.0341 -0.0339 -0.0349 -0.0343 -0.0351 -0.0340 -0.0340
+     0.384  -0.0490 -0.0491 -0.0488 -0.0504 -0.0489 -0.0499 -0.0490 -0.0500 
+		</tableData>
+		<tableData breakPoint="0.9">
+			     -10.0   -5.0    0.0     5.0     10.0      15.0  20.0    25.0
+    -0.192  0.0200  0.0208  0.0199  0.0181  0.0206  0.0210  0.0200  0.0200
+    -0.087  0.0100  0.0101  0.0094  0.0091  0.0100  0.0107  0.0108  0.0113
+     0.000  0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0
+     0.087  -0.0143 -0.0131 -0.0112 -0.0131 -0.0126 -0.0147 -0.0178 -0.0183
+     0.174  -0.0296 -0.0271 -0.0243 -0.0267 -0.0267 -0.0311 -0.0356 -0.0401
+     0.279  -0.0480 -0.0449 -0.0402 -0.0439 -0.0454 -0.0523 -0.0580 -0.0650  
+     0.384  -0.0650 -0.0627 -0.0562 -0.0609 -0.0646 -0.0737 -0.0800 -0.0880
+		</tableData>
+		<tableData breakPoint="1.5">
+			     -10.0   -5.0    0.0     5.0     10.0      15.0  20.0    25.0
+    -0.192  0.0086  0.0091  0.0098  0.0107  0.0121  0.0163  0.0185  0.0216
+    -0.087  0.0042  0.0045  0.0049  0.0054  0.0062  0.0077  0.0085  0.0096
+     0.000  0.0     0.0     0.0     0.0     0.0     0.0     0.0     0.0
+     0.087  -0.006  -0.0062 -0.0067 -0.0076 -0.0088 -0.0095 -0.0099 -0.0106
+     0.174  -0.012  -0.0129 -0.0145 -0.0165 -0.0189 -0.0202 -0.0206 -0.0220
+     0.279  -0.019  -0.0209 -0.0232 -0.0265 -0.0304 -0.0324 -0.0333 -0.0355 
+     0.384  -0.027  -0.0282 -0.0298 -0.0342 -0.0393 -0.0423 -0.0451 -0.0467
+		</tableData>
+    <tableData breakPoint="3.0">
+			     -10.0   -5.0     0.0      5.0     10.0      15.0     20.0      25.0     
+    -0.192 0.00006  0.0018  0.00265  0.00375  0.0049  0.00669   0.0085    0.01137    
+    -0.087 0.0004   0.0011  0.00148  0.00198  0.0026  0.00353   0.0045    0.00575   
+     0.000 0.0     0.0     0.0      0.0      0.0     0.0       0.0       0.0       
+     0.087 -0.0014 -0.0019 -0.0023 -0.0029   -0.0042 -0.0054  -0.0067   -0.0085   
+     0.174 -0.0031 -0.0041 -0.0049 -0.0062   -0.0086 -0.0112  -0.0139   -0.0171    
+     0.279 -0.0053 -0.0070 -0.0084 -0.0104   -0.0142 -0.0185  -0.0232   -0.0279   
+     0.384 -0.0075 -0.0100 -0.0119 -0.0015   -0.0197 -0.0257  -0.0325   -0.0386    
+		</tableData>
+	</table>
+   </function>
+
+   <function name ="aero/coefficient/Cm_BF_coefficient_high_mach">
+   <description>Pitching_moment_coefficient_due_to_Body_Flap_above_mach_1.5</description>
+	<table>
+		<independentVar lookup="row">fcs/bodyflap-pos-rad</independentVar>
+		<independentVar lookup="column">aero/alpha-deg</independentVar>
+		<independentVar lookup="table">velocities/mach</independentVar>
+		<tableData breakPoint="3.0">
+			     -10.0   -5.0     0.0      5.0     10.0      15.0     20.0      25.0     30.0     35.0    40.0    45.0
+    -0.192 0.00006  0.0018  0.00265  0.00375  0.0049  0.00669   0.0085    0.01137   0.0135  0.0155  0.018   0.020  
+    -0.087 0.0004   0.0011  0.00148  0.00198  0.0026  0.00353   0.0045    0.00575   0.0068  0.0078  0.009   0.010
+     0.000 0.0     0.0     0.0      0.0      0.0     0.0       0.0       0.0       0.0     0.0      0.0     0.0 
+     0.087 -0.0014 -0.0019 -0.0023 -0.0029   -0.0042 -0.0054  -0.0067   -0.0085   -0.0098  -0.0113 -0.0126 -0.0139
+     0.174 -0.0031 -0.0041 -0.0049 -0.0062   -0.0086 -0.0112  -0.0139   -0.0171   -0.02    -0.0227 -0.0255 -0.0283 
+     0.279 -0.0053 -0.0070 -0.0084 -0.0104   -0.0142 -0.0185  -0.0232   -0.0279   -0.0325  -0.0370 -0.0415 -0.0460
+     0.384 -0.0075 -0.0100 -0.0119 -0.0015   -0.0197 -0.0257  -0.0325   -0.0386   -0.0445  -0.0510 -0.0570 -0.0630
+		</tableData>
+    <tableData breakPoint="10.0">
+			    -10.0   -5.0     0.0      5.0     10.0      15.0     20.0      25.0     30.0     35.0    40.0    45.0
+    -0.192 0      0.00054 0.00098 0.00138   0.00178   0.00269   0.00408   0.0064  0.010   0.0120   0.0150 0.0180
+    -0.087 0      0.00024 0.00047 0.00072   0.00103   0.00162   0.00251   0.0042  0.0059  0.0069   0.0082 0.0096 
+     0.000 0.0    0.0     0.0      0.0      0.0       0.0       0.0       0.0       0.0     0.0     0.0     0.0 
+     0.087 0     -0.00024 -0.00051 -0.00084 -0.0013   -0.0021   -0.0034   -0.006  -0.008  -0.010   -0.012 -0.0149
+     0.174 0     -0.00049 -0.00105 -0.00179 -0.0029   -0.0048   -0.0079   -0.0144 -0.0189 -0.0227  -0.0259 -0.0314
+     0.279 -0.0002 -0.0009 -0.00200 -0.00366 -0.0062   -0.0102   -0.0161   -0.0280 -0.0355 -0.0409  -0.0450 -0.0506   
+     0.384 -0.0007 -0.0029 -0.00390 -0.00746 -0.0118   -0.0192   -0.0282   -0.0451 -0.0554 -0.0610  -0.065  -0.0677 
+		</tableData >
+    <tableData breakPoint="20.0">
+			    -10.0   -5.0     0.0      5.0     10.0      15.0     20.0      25.0     30.0     35.0    40.0    45.0
+    -0.192 0      0.00054 0.00098 0.00138   0.00178   0.00269   0.00408   0.0064  0.010   0.0120   0.0150 0.0180
+    -0.087 0      0.00024 0.00047 0.00072   0.00103   0.00162   0.00251   0.0042  0.0059  0.0069   0.0082 0.0096 
+     0.000 0.0    0.0     0.0      0.0      0.0       0.0       0.0       0.0       0.0     0.0     0.0     0.0 
+     0.087 0     -0.00024 -0.00051 -0.00084 -0.0013   -0.0021   -0.0034   -0.006  -0.008  -0.010   -0.012 -0.0149
+     0.174 0     -0.00049 -0.00105 -0.00179 -0.0029   -0.0048   -0.0079   -0.0144 -0.0189 -0.0227  -0.0259 -0.0314
+     0.279 -0.0002 -0.0009 -0.00200 -0.00366 -0.0062   -0.0102   -0.0161   -0.0280 -0.0355 -0.0409  -0.0450 -0.0506   
+     0.384 -0.0007 -0.0029 -0.00390 -0.00746 -0.0118   -0.0192   -0.0282   -0.0451 -0.0554 -0.0610  -0.065  -0.0677 
+		</tableData >
+	</table>
+   </function>
+
+   <function name ="aero/coefficient/Cm_BF_coefficient_high_altitude">
+   <description>Pitching_moment_coefficient_due_to_Body_Flap_above_300_kft</description>
+	<table>
+		<independentVar lookup="row">fcs/bodyflap-pos-rad</independentVar>
+		<independentVar lookup="column">aero/alpha-deg</independentVar>
+	  <tableData breakPoint="3.0">
+			      20.0      25.0     30.0     35.0    40.0    45.0    50.0
+    -0.192  0.004   0.0065    0.009     0.012   0.015   0.0178  0.021  
+    -0.087  0.003   0.0039    0.0054    0.0073  0.0078  0.0093  0.0107
+     0.000  0.0     0.0       0.0       0.0      0.0     0.0       0.0       
+     0.087  -0.002  -0.0038   -0.0055   -0.007  -0.0085 -0.010  -0.011
+     0.174  -0.0057 -0.010    -0.0125   -0.0143 -0.0158 -0.0170 -0.018
+     0.279  -0.011 -0.0166   -0.0200   -0.0219 -0.0233 -0.0240 -0.025
+     0.384  -0.0167 -0.0222   -0.0260   -0.0283 -0.030  -0.0315 -0.033
+		</tableData>
+	</table>
+   </function>
+
+
+    <function name="aero/coefficient/Cm_BF_coefficient">
+  <description>Cm BF switch function for BF pitch moment</description>
+    <sum>
+      <product>
+        <property>aero/coefficient/Cm_BF_coefficient_low_mach</property>
+        <lt>
+          <property>velocities/mach</property>
+          <value> 3.0 </value>
+        </lt>
+      </product>
+      <product>
+        <property>aero/coefficient/Cm_BF_coefficient_high_mach</property>
+        <gt>
+          <property>velocities/mach</property>
+          <value> 3.0 </value>
+        </gt>
+        <gt>
+          <property>atmosphere/rho-slugs_ft3</property>
+          <value> 5.13e-9 </value>
+        </gt>
+      </product>
+      <product>
+        <property>aero/coefficient/Cm_BF_coefficient_high_altitude</property>
+        <lt>
+          <property>atmosphere/rho-slugs_ft3</property>
+          <value> 5.13e-9 </value>
+        </lt>
+      </product>
+    </sum>
+  </function>
+
+
+
+
+  <axis name="LIFT">
+
+	<function name="aero/coefficient/CL">
+	<description>2d parametrization of the lift as function of AoA and Mach number below mach 4 / interpolated above mach 4 / above 300kfeet</description>
+	<product>
+    <property>aero/qbar-psf</property>
+    <property>metrics/Sw-sqft</property>
+    <property>aero/coefficient/CL-basic</property>
+	  <property>systems/failures/aero-structure-condition</property>
+	  <property>aero/coefficient/ground_effect</property>
+	</product> 
+	</function> 
+
+  <function name="aero/coefficient/CLgear">
+	<description>Lift of landing gear</description>
+	<product>
+    <property>aero/qbar-psf</property>
+    <property>metrics/Sw-sqft</property>
+    <property>aero/coefficient/CLgear_coefficient</property>
+	</product> 
+	</function> 
+
+  <function name="aero/coefficient/CLspeedbrakes">
+	<description>Lift of speedbrakes</description>
+	<product>
+    <property>aero/qbar-psf</property>
+    <property>metrics/Sw-sqft</property>
+    <property>aero/coefficient/Cl_SB_coefficient_new</property>
+	</product> 
+	</function>       
+
+  </axis>
+
+  <axis name="DRAG">
+
+	<function name="aero/coefficient/CD">
+	<description>2d parametrization of the drag as function of AoA and Mach number below mach 4 / interpolated above mach 4 / above 300kfeet</description>
+	<product>
+    <property>aero/qbar-psf</property>
+    <property>metrics/Sw-sqft</property>
+    <property>aero/coefficient/CD-basic</property>
+  </product>  	 
+	</function>   
+
+	<!-- gear drag is from 'Aerodynamical Design of the Space Shuttle Orbiter -->
+	<function name="aero/coefficient/CDgear">
+  <description>Drag of landing gear</description>
+    <product>
+      <property>aero/qbar-psf</property>
+      <property>metrics/Sw-sqft</property>
+      <property>aero/coefficient/CDgear_coefficient</property>
+    </product>
+  </function>
+
+	
+    	<function name="aero/coefficient/CDSb">
+       	<description>Drag of the tail speedbrake</description>
+         	<product>
+           		<property>aero/qbar-psf</property>
+           		<property>metrics/Sw-sqft</property>
+           		<property>aero/coefficient/Cd_SB_coefficient</property>
+         	</product>
+    	</function>
+
+	<function name="aero/coefficient/CDpc">
+    	<description>Drag of braking parachute</description>
+    		<product>
+     			<property>aero/qbar-psf</property>
+     			<property>metrics/chute-sqft</property>    
+     			<property>fcs/parachute_reef_pos_norm</property>
+     			<value>0.25</value>
+			<property>systems/failures/drag-chute-condition</property>
+			<difference>
+				<value>1.0</value>
+				<property>/controls/shuttle/drag-chute-jettison</property>
+			</difference>
+    			</product>
+   	</function>
+
+
+  <function name="aero/coefficient/CDstack">
+       <description>Drag of the ET and SRBs</description>
+       <product>
+          <property>aero/qbar-psf</property>
+          <property>metrics/Sw-sqft</property>
+	  <property>aero/srb-config</property>
+	  <table>
+                  <independentVar lookup="row">aero/alpha-deg</independentVar>
+		  <independentVar lookup="column">velocities/mach</independentVar>
+                  <tableData>
+              0.6	0.8	0.9	1.0	1.2	1.46	1.96	2.99	4.96
+			-5	0.16	0.17	0.2	0.225	0.26	0.26	0.21	0.155	0.13
+			-2	0.16	0.17	0.2	0.225	0.26	0.25	0.21	0.17	0.125
+			0	0.155	0.165	0.195	0.22	0.25	0.25	0.215	0.17	0.125
+			6	0.145	0.15	0.17	0.2	0.245	0.24	0.215	0.16	0.12
+			10	0.125	0.13	0.16	0.185	0.23	0.24	0.215	0.15	0.12
+		</tableData>
+	  </table>
+  	</product>
+    </function>
+
+
+  </axis>
+
+
+
+
+
+  <axis name="SIDE">
+
+    <function name="aero/coefficient/CYb">
+       <description>Side_force_due_to_beta</description>
+       <product>
+           <property>aero/qbar-psf</property>
+           <property>metrics/Sw-sqft</property>
+           <property>aero/beta-rad</property>
+           <!--<value>-1</value>-->
+	   <table>
+                  <independentVar lookup="row">velocities/mach</independentVar>
+                  <tableData>
+                        2.48	-0.81
+			2.99	-0.75
+			3.51	-0.66
+			3.98	-0.60
+			4.47	-0.54
+			9.98	-0.38
+                  </tableData>
+         </table>
+       </product>
+    </function>
+
+   <function name="aero/coefficient/CYdr">
+       <description>Side_force_due_to_rudder</description>
+       <product>
+           <property>aero/qbar-psf</property>
+           <property>metrics/Sw-sqft</property>
+           <property>fcs/rudder-pos-rad</property>
+	   <property>systems/failures/airfoils-yaw-condition</property>
+	   <table>
+                  <independentVar lookup="row">velocities/mach</independentVar>
+                  <tableData>
+                        2.48	0.064
+			2.99	0.049
+			3.51	0.037
+			3.98	0.031
+			4.47	0.027
+			9.98	0.0
+                  </tableData>
+         </table>
+       </product>
+    </function>
+
+   <function name="aero/coefficient/CYda">
+       <description>Side_force_due_to_aileron</description>
+       <product>
+           <property>aero/qbar-psf</property>
+           <property>metrics/Sw-sqft</property>
+           <property>fcs/left-aileron-pos-rad</property>
+	   <property>systems/failures/airfoils-roll-condition</property>
+	   <property>systems/apu/hyd-pressure-available</property>
+	   <table>
+                  <independentVar lookup="row">velocities/mach</independentVar>
+                  <tableData>
+                        2.48	0.02038
+			2.99	0.02241
+			3.51	0.01873
+			3.98	0.01375
+			4.47	0.01501
+			9.98	0.02215
+                  </tableData>
+         </table>
+       </product>
+    </function>
+
+  </axis>
+
+  <axis name="ROLL">
+
+    <function name="aero/coefficient/Clb">
+       <description>Roll_moment_due_to_beta</description>
+       <product>
+           <property>aero/qbar-psf</property>
+           <property>metrics/Sw-sqft</property>
+           <property>metrics/bw-ft</property>
+           <property>aero/beta-rad</property>
+	   <property>aero/orbiter-config</property>
+	   <value>57.2975</value>
+	   <sum>
+	   <table>
+                  <independentVar lookup="row">velocities/mach</independentVar>
+                  <tableData>
+                          0.4	-0.0025
+			  0.6	-0.0022
+			  0.8	-0.002
+			  1.0	-0.0022
+			  2.0	-0.0015
+			  4.0	-0.0015
+			  6.0	-0.0016
+			  10.0	-0.0018
+			  20.0	-0.0018     
+                  </tableData>
+         </table>
+	<table>
+                  <independentVar lookup="row">fcs/elevator-pos-deg</independentVar>
+		  <independentVar lookup="column">velocities/mach</independentVar>
+                  <tableData>
+                       		0.6		3.0
+			-40.0	0.0015		0.0005
+			-30.0	0.0009		0.00035
+			-10.0	0.00025		0.0001
+			0.0	0.0		0.0	
+			10.0	0.0002		-0.00015
+			20.0	0.0004		-0.0002
+                  </tableData>
+         </table>
+	 </sum>
+           <!--<value>-0.1</value>-->
+       </product>
+    </function>
+
+   <function name="aero/coefficient/Clb-launch">
+       <description>Roll_moment_due_to_beta_launch_vehicle</description>
+       <product>
+           <property>aero/qbar-psf</property>
+           <property>metrics/Sw-sqft</property>
+           <property>metrics/bw-ft</property>
+           <property>aero/beta-rad</property>
+	   <property>aero/launch-config</property>
+	   <!--<value>-0.05</value>-->
+	   <value>57.2975</value>
+	   <table>
+                  <independentVar lookup="row">velocities/mach</independentVar>
+                  <tableData>
+                   	0.5	-0.0062
+			1.0	-0.008
+			1.5	-0.008
+			3.0	-0.004
+			5.0	-0.0025	   
+                  </tableData>
+         </table>
+       </product>
+    </function>
+
+    <!-- table 2 from 'Separate Surface Control' -->
+
+    <function name="aero/coefficient/Clp">
+       <description>Roll_moment_due_to_roll_rate</description>
+       <product>
+           <property>aero/qbar-psf</property>
+           <property>metrics/Sw-sqft</property>
+           <property>metrics/bw-ft</property>
+           <property>aero/bi2vel</property>
+           <property>velocities/p-aero-rad_sec</property>
+	   <property>aero/orbiter-config</property>
+            <table>
+                  <independentVar lookup="row">velocities/mach</independentVar>
+                  <tableData>
+                        2.48	-0.2358
+			2.99	-0.2331
+			3.51	-0.2324
+			3.98	-0.2253
+			4.47	-0.2094
+			9.98	-0.2332 
+                  </tableData>
+         </table>
+       </product>
+    </function>
+
+    <function name="aero/coefficient/Clp-launch">
+       <description>Roll_moment_due_to_roll_rate</description>
+       <product>
+           <property>aero/qbar-psf</property>
+           <property>metrics/Sw-sqft</property>
+           <property>metrics/bw-ft</property>
+           <property>aero/bi2vel</property>
+           <property>velocities/p-aero-rad_sec</property>
+	   <property>aero/launch-config</property>
+           <!--<value>-0.4</value>-->
+	   <value>-1.4</value>-->
+       </product>
+    </function>
+
+    <!-- table 2 from 'Separate Surface Control' -->
+
+    <function name="aero/coefficient/Clr">
+       <description>Roll_moment_due_to_yaw_rate</description>
+       <product>
+           <property>aero/qbar-psf</property>
+           <property>metrics/Sw-sqft</property>
+           <property>metrics/bw-ft</property>
+           <property>aero/bi2vel</property>
+           <property>velocities/r-aero-rad_sec</property>
+           <!--<value>0.15</value>-->
+		<table>
+                  <independentVar lookup="row">velocities/mach</independentVar>
+                  <tableData>
+                        2.48	0.08294
+			2.99	0.06157
+			3.51	0.05322
+			3.98	0.04442
+			4.47	0.04321
+			9.98	0.05337
+                  </tableData>
+         </table>
+       </product>
+    </function>
+
+
+    <!-- base coefficients and dependence on elevator deflection from 'Aerodynamical design...'-->
+
+    <function name="aero/coefficient/Clda">
+       <description>Roll_moment_due_to_aileron</description>
+       <product>
+          <property>aero/qbar-psf</property>
+          <property>metrics/Sw-sqft</property>
+          <property>metrics/bw-ft</property>
+          <property>fcs/left-aileron-pos-rad</property>
+	  <property>systems/failures/airfoils-roll-condition</property>
+	  <property>systems/apu/hyd-pressure-available</property>
+ 	  <value>57.2975</value>
+	   <product>
+	   <table>
+                  <independentVar lookup="row">velocities/mach</independentVar>
+                  <tableData>
+                          0.4	0.0042
+			  0.6	0.0042
+			  0.8	0.0039
+			  1.0	0.0027
+			  2.0	0.001
+			  4.0	0.0008
+			  6.0	0.001
+			  10.0	0.0014
+			  20.0	0.0014     
+                  </tableData>
+         </table>
+	<table>
+                  <independentVar lookup="row">fcs/elevator-pos-deg</independentVar>
+		  <independentVar lookup="column">velocities/mach</independentVar>
+                  <tableData>
+                       		0.6		3.0
+			-40	0.119		0.250
+			-30	0.119		0.313
+			-20	0.214		0.563
+			-10	0.833		0.750
+			0.0	1.000		1.000
+			10.0	0.952		1.375
+			20.0	0.881		1.875
+		</tableData>
+	</table>
+  	</product>
+ 	<!--<table>
+                  <independentVar lookup="row">velocities/mach</independentVar>
+                  <independentVar lookup="column">position/h-sl-ft</independentVar>
+                  <tableData>
+                                0.0000	80000.0000
+                              0.0000	0.0500	0.0500
+                              0.4000	0.0700	0.0500
+                              0.6000	0.0800	0.0500
+                              1.0000	0.1100	0.0500
+                              1.4000	0.0800	0.0600
+                              1.6000	0.0700	0.0600
+                              2.4000	0.0600	0.0500
+                              6.0000	0.0300	0.0200
+                   </tableData>
+         </table>-->
+       </product>
+    </function>
+
+    <function name="aero/coefficient/Cldr">
+       <description>Roll_moment_due_to_rudder</description>
+       <product>
+           <property>aero/qbar-psf</property>
+           <property>metrics/Sw-sqft</property>
+           <property>metrics/bw-ft</property>
+           <property>fcs/rudder-pos-rad</property>
+	   <property>systems/failures/airfoils-yaw-condition</property>
+	   <property>systems/apu/hyd-pressure-available</property>
+	   <value>57.2975</value>
+	   <table>
+                  <independentVar lookup="row">velocities/mach</independentVar>
+                  <tableData>
+                          0.4	0.0008
+			  0.6	0.0008
+			  0.8	0.0009
+			  1.0	0.001
+			  2.0	0.0005
+			  4.0	0.00025
+			  6.0	0.0001
+			  10.0	0.0
+			  20.0	0.0    
+                  </tableData>
+         </table>
+           <!--<value>0.01</value>-->
+       </product>
+    </function>
+
+    
+
+  </axis>
+
+  <axis name="PITCH">
+
+   <!-- Date points from 'Aerodynamical Design of the Space Shuttle Orbiter' -->
+   <!-- tables extrapolated to cover full range of elevator movements -->
+
+
+   <function name ="aero/coefficient/Cm">
+   <description>Pitch_moment_as_function_of_alpha_elevator_and_Mach_number</description>
+   <product>
+   	<property>aero/qbar-psf</property>
+   	<property>metrics/Sw-sqft</property>
+    <property>metrics/cbarw-ft</property>
+  	<property>aero/orbiter-config</property>
+  	<property>aero/coefficient/Cm_coefficient_basic_elevons</property>
+    </product>
+   </function>
+
+   <!-- Date points from 'Entry dynamics ...', extrapolated to Mach 10 -->
+
+  <function name ="aero/coefficient/CmSB">
+   <description>Pitching_moment_due_to_speedbrake</description>
+   <product>
+   	<property>aero/qbar-psf</property>
+   	<property>metrics/Sw-sqft</property>
+       	<property>metrics/cbarw-ft</property>
+        <property>fcs/speedbrake-pos-norm</property>
+	<table>
+	<independentVar lookup="row">aero/alpha-deg</independentVar>
+	<independentVar lookup="column">velocities/mach</independentVar>
+		<tableData>
+			1.5	3.0	5.0	10.0
+		-10.0	0.046	0.031	0.025	0.0125
+		10.0	0.030	0.015	0.0094	0.0043
+		30.0	0.022	0.0077	0.0028	0.0013
+		50.0	0.015	0.0005	0.0	0.0
+		</tableData>
+	  </table>
+   </product>
+  </function>
+
+   
+
+  <function name ="aero/coefficient/CmBF">
+   <description>Pitching_moment_due_to_Body_Flap</description>
+   <product>
+    <property>aero/qbar-psf</property>
+    <property>metrics/Sw-sqft</property>
+    <property>metrics/cbarw-ft</property>
+    <property>aero/coefficient/Cm_BF_coefficient</property>
+   </product>
+  </function>
+
+
+
+    <!-- Data from "Determination of the aerodynamic interference between the space shuttle orbiter, -->
+    <!-- external tank, and solid rocket booster" using O/T5/S1 config-->
+
+    <function name="aero/coefficient/Cmalpha-launch">
+       <description>Pitch_moment_due_to_alpha_launch_vehicle</description>
+       <product>
+           <property>aero/qbar-psf</property>
+           <property>metrics/Sw-sqft</property>
+           <property>metrics/cbarw-ft</property>
+           <property>aero/alpha-rad</property>
+	   <property>aero/launch-config</property>
+	   <!--<value>-0.05</value>-->
+	   <value>57.2975</value>
+	   <table>
+                  <independentVar lookup="row">velocities/mach</independentVar>
+                  <tableData>
+		   	0.5	-0.0165 
+		   	1.0	-0.022
+			1.5	-0.0142
+			2.0	-0.0085
+			3.0	-0.006
+			5.0	-0.0055 
+                  </tableData>
+         </table>
+       </product>
+    </function>
+
+    <function name="aero/coefficient/Cmde-launch">
+       <description>Pitch_moment_due_to_elevator_launch_vehicle</description>
+       <product>
+          <property>aero/qbar-psf</property>
+          <property>metrics/Sw-sqft</property>
+          <property>metrics/cbarw-ft</property>
+          <property>fcs/elevator-pos-rad</property>
+	  <property>aero/launch-config</property>
+	  <property>systems/failures/airfoils-pitch-condition</property>
+          <table>
+            <independentVar lookup="row">velocities/mach</independentVar>
+            <tableData>
+              0.0     -1.200
+              2.0     -0.300
+            </tableData>
+          </table>
+       </product>
+    </function>
+
+    <function name="aero/coefficient/Cmq">
+       <description>Pitch_moment_due_to_pitch_rate</description>
+       <product>
+           <property>aero/qbar-psf</property>
+           <property>metrics/Sw-sqft</property>
+           <property>metrics/cbarw-ft</property>
+           <property>aero/ci2vel</property>
+           <property>velocities/q-aero-rad_sec</property>
+           <!--<value>-17</value>-->
+	  <value>-70</value>
+       </product>
+    </function>
+
+    <function name="aero/coefficient/Cmadot">
+       <description>Pitch_moment_due_to_alpha_rate</description>
+       <product>
+           <property>aero/qbar-psf</property>
+           <property>metrics/Sw-sqft</property>
+           <property>metrics/cbarw-ft</property>
+           <property>aero/ci2vel</property>
+           <property>aero/alphadot-rad_sec</property>
+           <value>-6</value>
+       </product>
+    </function>
+    
+
+  
+  </axis>
+
+  <axis name="YAW">
+
+    <function name="aero/coefficient/Cnb">
+       <description>Yaw_moment_due_to_beta</description>
+       <product>
+           <property>aero/qbar-psf</property>
+           <property>metrics/Sw-sqft</property>
+           <property>metrics/bw-ft</property>
+           <property>aero/beta-rad</property>
+	   <property>aero/orbiter-config</property>
+ 	   <value>57.2975</value>
+	   <sum>
+	   <table>
+                  <independentVar lookup="row">velocities/mach</independentVar>
+                  <tableData>
+                          0.4	0.015
+			  0.6	0.017
+			  0.8	0.02
+			  1.0	0.019
+			  2.0	-0.0005
+			  4.0	-0.001
+			  6.0	-0.00125
+			  10.0	-0.0011
+			  20.0	-0.0011    
+                  </tableData>
+         </table>
+	 <table>
+                  <independentVar lookup="row">fcs/elevator-pos-deg</independentVar>
+		  <independentVar lookup="column">velocities/mach</independentVar>
+                  <tableData>
+                       		0.6		3.0
+			-40.0	-0.0013		0.0003
+			-30.0	-0.001		0.0002
+			-20.0	-0.0007		0.0001
+			-10.0	-0.0004		0.00005
+			0.0	0.0		0.0	
+			10.0	0.0004		-0.00005
+			20.0	0.0001		-0.00008
+                  </tableData>
+         </table>
+	 </sum>
+           <!--<value>0.12</value>-->
+       </product>
+    </function>
+
+
+    <function name="aero/coefficient/Cnb-launch">
+       <description>Yaw_moment_due_to_beta_launch_vehicle</description>
+       <product>
+           <property>aero/qbar-psf</property>
+           <property>metrics/Sw-sqft</property>
+           <property>metrics/bw-ft</property>
+           <property>aero/beta-rad</property>
+	   <property>aero/launch-config</property>
+	   <value>57.2975</value>
+	   <table>
+                  <independentVar lookup="row">velocities/mach</independentVar>
+                  <tableData>
+                  	0.5	0.016
+			1.0	0.022
+			1.5	0.017
+			3.0	0.010
+			5.0	0.008
+                  </tableData>
+         </table>
+	   <!--<value>0.12</value>-->
+	</product>
+   </function>
+
+    <!-- table 2 from 'Separate Surface Control' -->
+    <function name="aero/coefficient/Cnr">
+       <description>Yaw_moment_due_to_yaw_rate</description>
+       <product>
+           <property>aero/qbar-psf</property>
+           <property>metrics/Sw-sqft</property>
+           <property>metrics/bw-ft</property>
+           <property>aero/bi2vel</property>
+           <property>velocities/r-aero-rad_sec</property>
+	   <property>aero/orbiter-config</property>
+	   <table>
+                  <independentVar lookup="row">velocities/mach</independentVar>
+                  <tableData>
+                   	2.48	-0.594
+			2.99	-0.68
+			3.15	-0.717
+			3.98	-0.676
+			4.47	-0.655
+			9.98	-0.19	   
+                  </tableData>
+         </table>
+           <!--<value>-0.15</value>-->
+       </product>
+    </function>
+
+    <function name="aero/coefficient/Cnr-launch">
+       <description>Yaw_moment_due_to_yaw_rate_launch_vehicle</description>
+       <product>
+           <property>aero/qbar-psf</property>
+           <property>metrics/Sw-sqft</property>
+           <property>metrics/bw-ft</property>
+           <property>aero/bi2vel</property>
+           <property>velocities/r-aero-rad_sec</property>
+	   <property>aero/launch-config</property>
+           <value>-0.15</value>
+       </product>
+    </function>
+
+     <!-- table 2 from 'Separate Surface Control' -->
+    <function name="aero/coefficient/Cnp">
+       <description>Yaw_moment_due_to_roll_rate</description>
+       <product>
+           <property>aero/qbar-psf</property>
+           <property>metrics/Sw-sqft</property>
+           <property>metrics/bw-ft</property>
+           <property>aero/bi2vel</property>
+           <property>velocities/p-aero-rad_sec</property>
+	   <property>aero/orbiter-config</property>
+	   <table>
+                  <independentVar lookup="row">velocities/mach</independentVar>
+                  <tableData>
+                   	2.48	0.057
+			2.99	0.029
+			3.15	0.012
+			3.98	0.0036
+			4.47	-0.0048
+			9.98	-0.036	   
+                  </tableData>
+         </table>
+           <!--<value>0.0</value>-->
+       </product>
+    </function>
+
+    <function name="aero/coefficient/Cndr">
+       <description>Yaw_moment_due_to_rudder</description>
+       <product>
+           <property>aero/qbar-psf</property>
+           <property>metrics/Sw-sqft</property>
+           <property>metrics/bw-ft</property>
+           <property>fcs/rudder-pos-rad</property>
+	   <property>systems/failures/airfoils-yaw-condition</property>
+	   <property>systems/apu/hyd-pressure-available</property>
+	   <value>57.2975</value>
+	   <table>
+                  <independentVar lookup="row">velocities/mach</independentVar>
+                  <tableData>
+                          0.4	-0.0013
+			  0.6	-0.0013
+			  0.8	-0.00145
+			  1.0	-0.0015
+			  2.0	-0.00055
+			  4.0	-0.00025
+			  6.0	-0.00005
+			  10.0	0.0
+			  20.0	0.0    
+                  </tableData>
+         </table>
+          <!--<value>-0.1</value>-->
+       </product>
+    </function>
+
+    <!-- this will largely be taken care of by the FCS which uses rudder to get beta to zero-->
+    <!-- leave at zero till this is implemented -->
+    <function name="aero/coefficient/Cnda">
+       <description>Yaw_moment_due_to_aileron</description>
+       <product>
+           <property>aero/qbar-psf</property>
+           <property>metrics/Sw-sqft</property>
+           <property>metrics/bw-ft</property>
+           <property>fcs/left-aileron-pos-rad</property>
+	   <property>aero/orbiter-config</property>
+	   <property>systems/apu/hyd-pressure-available</property>
+ 	   <value>57.2975</value>
+	   <product>
+	   <table>
+                  <independentVar lookup="row">velocities/mach</independentVar>
+                  <tableData>
+                          0.4	0.001
+			  0.6	0.001
+			  0.8	0.0011
+			  1.0	0.001
+			  2.0	-0.00025
+			  4.0	-0.00025
+			  6.0	-0.00025
+			  10.0	-0.00035
+			  20.0	-0.00035    
+                  </tableData>
+         </table>
+	<table>
+                  <independentVar lookup="row">fcs/elevator-pos-deg</independentVar>
+		  <independentVar lookup="column">velocities/mach</independentVar>
+                  <tableData>
+                       		0.6		3.0
+			-40.0	0.454		-0.666
+			-30.0	0.909		-0.666
+			-20.0	1.500		-0.500
+			-10.0	1.363		0.000	
+			0.0	1.000		1.000
+			10.0	0.363		2.000
+			20.0	-0.45		4.000
+		</tableData>
+	</table>
+
+	 </product>
+           <!--<value>0</value>-->
+       </product>
+    </function>
+
+  
+    
+  </axis>
+
+ </aerodynamics>
+
+ 
+
+ <external_reactions>
+
+  <!-- propellant dump-->
+
+  <force name="propellant_dump" frame="BODY">
+    <function>
+      <property>systems/mps/propellant-dump-force-lb</property>
+    </function>
+    <location unit="M">
+      <x> 17.0</x>
+      <y> 0</y>
+      <z>-2.5</z>
+    </location>
+    <direction>
+      <x>1</x>
+      <y>0</y>
+      <z>0</z>
+    </direction>
+  </force>
+
+  <!-- hi-load FES exhaust -->
+
+  <force name="fes_exhaust" frame="BODY">
+    <function>
+      <property>systems/atcs/hiload-fes-exhaust-force-lb</property>
+    </function>
+    <location unit="M">
+      <x> 16.0</x>
+      <y>-3.2</y>
+      <z>-1.5</z>
+    </location>
+    <direction>
+      <x>0</x>
+      <y>1</y>
+      <z>0</z>
+    </direction>
+  </force>
+
+  <!-- Parachute--> 
+
+  <force name="parachute" frame="WIND">
+    <function>
+      <product>
+        <property>aero/qbar-psf</property>
+        <property>metrics/chute-sqft</property>
+	<property>fcs/parachute_reef_pos_norm</property>
+	<property>systems/failures/drag-chute-condition</property>
+        <value> 0.3 </value> 
+      </product>
+    </function>
+    <location unit="FT">
+      <x> 17.70</x>
+      <y> 0</y>
+      <z>-1.0</z>
+    </location>
+    <!-- The direction describes a unit vector. In this case, since
+         the selected frame is the WIND frame, the "-1" x component
+         describes a direction exactly opposite of the direction
+         into the wind vector. That is, the direction specified below
+         is the direction that the drag force acts in. -->
+    <direction>
+      <x>-1</x>
+      <y>0</y>
+      <z>0</z>
+    </direction>
+  </force>
+
+
+  <!-- failed docking crash force -->
+
+  <force name="docking_resistance" frame="BODY">
+    <function>
+      		<property>systems/docking/crash-force-z</property>
+    </function>
+    <location unit="M">
+	<x> -8.10 </x>
+	<y> 0.00 </y>
+	<z> -1.0 </z>
+    </location>
+    <direction>
+      <x>0</x>
+      <y>0</y>
+      <z>1</z>
+    </direction>
+  </force>
+
+  <!-- Carrier aircraft -->
+
+  <force name="carrier_fwd_x" frame="BODY">
+    <function>
+	<product>
+      		<property>systems/carrier/force-fwd-x-lb</property>
+		<property>systems/carrier/connected</property>
+	</product>
+    </function>
+    <location unit="M">
+	<x> -15.00 </x>
+	<y> 0.00 </y>
+	<z> -6.87 </z>
+    </location>
+    <direction>
+      <x>1</x>
+      <y>0</y>
+      <z>0</z>
+    </direction>
+  </force>
+
+  <force name="carrier_fwd_y" frame="BODY">
+    <function>
+	<product>
+      		<property>systems/carrier/force-fwd-y-lb</property>
+		<property>systems/carrier/connected</property>
+	</product>
+    </function>
+    <location unit="M">
+	<x> -15.00 </x>
+	<y> 0.00 </y>
+	<z> -6.87 </z>
+    </location>
+    <direction>
+      <x>0</x>
+      <y>-1</y>
+      <z>0</z>
+    </direction>
+  </force>
+
+  <force name="carrier_fwd_z" frame="BODY">
+    <function>
+	<product>
+      		<property>systems/carrier/force-fwd-z-lb</property>
+		<property>systems/carrier/connected</property>
+	</product>
+    </function>
+    <location unit="M">
+	<x> -15.00 </x>
+	<y> 0.00 </y>
+	<z> -6.87 </z>
+    </location>
+    <direction>
+      <x>0</x>
+      <y>0</y>
+      <z>1</z>
+    </direction>
+  </force>
+
+  <force name="carrier_left_x" frame="BODY">
+    <function>
+	<product>
+      		<property>systems/carrier/force-left-x-lb</property>
+		<property>systems/carrier/connected</property>
+	</product>
+    </function>
+    <location unit="M">
+	<x> 3.60 </x>
+	<y> -4.2 </y>
+	<z>-7.97 </z>
+    </location>
+    <direction>
+      <x>1</x>
+      <y>0</y>
+      <z>0</z>
+    </direction>
+  </force>
+
+  <force name="carrier_left_y" frame="BODY">
+    <function>
+	<product>
+      		<property>systems/carrier/force-left-y-lb</property>
+		<property>systems/carrier/connected</property>
+	</product>
+    </function>
+    <location unit="M">
+	<x> 3.60 </x>
+	<y> -4.2 </y>
+	<z>-7.97 </z>
+    </location>
+    <direction>
+      <x>0</x>
+      <y>-1</y>
+      <z>0</z>
+    </direction>
+  </force>
+
+  <force name="carrier_left_z" frame="BODY">
+    <function>
+	<product>
+      		<property>systems/carrier/force-left-z-lb</property>
+		<property>systems/carrier/connected</property>
+	</product>
+    </function>
+    <location unit="M">
+	<x> 3.60 </x>
+	<y> -4.2 </y>
+	<z>-7.97 </z>
+    </location>
+    <direction>
+      <x>0</x>
+      <y>0</y>
+      <z>1</z>
+    </direction>
+  </force>
+
+  <force name="carrier_right_x" frame="BODY">
+    <function>
+	<product>
+      		<property>systems/carrier/force-right-x-lb</property>
+		<property>systems/carrier/connected</property>
+	</product>
+    </function>
+    <location unit="M">
+	<x> 3.60 </x>
+	<y> 4.2 </y>
+	<z>-7.97 </z>		
+    </location>
+    <direction>
+      <x>1</x>
+      <y>0</y>
+      <z>0</z>
+    </direction>
+  </force>
+
+  <force name="carrier_right_y" frame="BODY">
+    <function>
+	<product>
+      		<property>systems/carrier/force-right-y-lb</property>
+		<property>systems/carrier/connected</property>
+	</product>
+    </function>
+    <location unit="M">
+	<x> 3.60 </x>
+	<y> 4.2 </y>
+	<z>-7.97 </z>		
+    </location>
+    <direction>
+      <x>0</x>
+      <y>-1</y>
+      <z>0</z>
+    </direction>
+  </force>
+
+  <force name="carrier_right_z" frame="BODY">
+    <function>
+	<product>
+      		<property>systems/carrier/force-right-z-lb</property>
+		<property>systems/carrier/connected</property>
+	</product>
+    </function>
+    <location unit="M">
+	<x> 3.60 </x>
+	<y> 4.2 </y>
+	<z>-7.97 </z>		
+    </location>
+    <direction>
+      <x>0</x>
+      <y>0</y>
+      <z>1</z>
+    </direction>
+  </force>
+
+
+
+
+
+ </external_reactions> 
+
+
+ <system file="orbital_parameters"></system>
+ <system file="pointing"></system>
+ <system file="apu_hydraulics.xml"></system>
+ <system file="electrical_power.xml"></system>
+ <system file="atcs.xml"></system>
+ <system file="mechanical.xml"></system>
+ <system file="rms.xml"></system>
+ <system file="mps.xml"></system>
+ <system file="rcs_hardware"></system>
+ <system file="oms_hardware"></system>
+ <system file="rcs_control"></system>
+ <system file="eclss"></system>
+ <system file="computations"></system>
+ <system file="entry_guidance"></system>
+ <system file="throttle"></system>
+ <system file="thrust_vectoring"></system>
+ <system file="failures"></system>
+ <system file="cws"></system>
+ <system file="ground_effects"></system>
+ <system file="autopilot"></system>
+ <system file="navigation"></system>
+ <system file="antenna"></system>
+ <system file="light"></system>
+ <system file="carrier"></system>
+
+</fdm_config>

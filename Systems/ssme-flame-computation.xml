@@ -1,0 +1,420 @@
+<?xml version="1.0" encoding="UTF-8"?>
+ <PropertyList>
+
+<!-- this is really annoying - we compute all the properties in JSBSim, but they end up being tied -->
+<!-- and can't be fed to the effects system directly, so we copy them via property rule -->
+
+ <filter>
+   <type>gain</type>
+   <gain>1.0</gain>
+   <input>/fdm/jsbsim/systems/various/ssme-flame-collimation</input>
+   <output>/sim/systems/various/ssme-flame-collimation</output>
+ </filter>
+
+ <filter>
+   <type>gain</type>
+   <gain>1.0</gain>
+   <input>/fdm/jsbsim/systems/various/ssme-flame-density</input>
+   <output>/sim/systems/various/ssme-flame-density</output>
+ </filter>
+
+ <filter>
+   <type>gain</type>
+   <gain>2.5</gain>
+   <input>/fdm/jsbsim/systems/various/ssme-flame-base-density</input>
+   <output>/sim/systems/various/ssme-flame-base-density</output>
+ </filter>
+
+ <filter>
+   <type>gain</type>
+   <gain>1.0</gain>
+   <input>/fdm/jsbsim/systems/various/ssme-noise-strength</input>
+   <output>/sim/systems/various/ssme-noise-strength</output>
+ </filter>
+
+ <filter>
+   <type>gain</type>
+   <gain>1.0</gain>
+   <input>/fdm/jsbsim/systems/various/ssme-flame-shock-frequency</input>
+   <output>/sim/systems/various/ssme-flame-shock-frequency</output>
+ </filter>
+
+ <filter>
+   <type>gain</type>
+   <gain>1.0</gain>
+   <input>/fdm/jsbsim/systems/various/ssme-flame-r-base</input>
+   <output>/sim/systems/various/ssme-flame-r-base</output>
+ </filter>
+
+ <filter>
+   <type>gain</type>
+   <gain>1.0</gain>
+   <input>/fdm/jsbsim/systems/various/ssme-flame-g-base</input>
+   <output>/sim/systems/various/ssme-flame-g-base</output>
+ </filter>
+
+ <filter>
+   <type>gain</type>
+   <gain>1.0</gain>
+   <input>/fdm/jsbsim/systems/various/ssme-flame-b-base</input>
+   <output>/sim/systems/various/ssme-flame-b-base</output>
+ </filter>
+
+ <filter>
+   <type>gain</type>
+   <gain>1.0</gain>
+   <input>/fdm/jsbsim/systems/various/ssme-flame-r-high</input>
+   <output>/sim/systems/various/ssme-flame-r-high</output>
+ </filter>
+
+ <filter>
+   <type>gain</type>
+   <gain>1.0</gain>
+   <input>/fdm/jsbsim/systems/various/ssme-flame-g-high</input>
+   <output>/sim/systems/various/ssme-flame-g-high</output>
+ </filter>
+
+ <filter>
+   <type>gain</type>
+   <gain>1.0</gain>
+   <input>/fdm/jsbsim/systems/various/ssme-flame-b-high</input>
+   <output>/sim/systems/various/ssme-flame-b-high</output>
+ </filter>
+
+ <filter>
+   <type>gain</type>
+   <gain>1.0</gain>
+   <input>/fdm/jsbsim/systems/various/ssme-flame-r-low</input>
+   <output>/sim/systems/various/ssme-flame-r-low</output>
+ </filter>
+
+ <filter>
+   <type>gain</type>
+   <gain>1.0</gain>
+   <input>/fdm/jsbsim/systems/various/ssme-flame-g-low</input>
+   <output>/sim/systems/various/ssme-flame-g-low</output>
+ </filter>
+
+ <filter>
+   <type>gain</type>
+   <gain>1.0</gain>
+   <input>/fdm/jsbsim/systems/various/ssme-flame-b-low</input>
+   <output>/sim/systems/various/ssme-flame-b-low</output>
+ </filter>
+
+<!-- again for center engine -->
+
+ <filter>
+   <type>gain</type>
+   <gain>1.0</gain>
+   <input>/fdm/jsbsim/systems/various/ssme-flame-density1</input>
+   <output>/sim/systems/various/ssme-flame-density1</output>
+ </filter>
+
+ <filter>
+   <type>gain</type>
+   <gain>2.5</gain>
+   <input>/fdm/jsbsim/systems/various/ssme-flame-base-density1</input>
+   <output>/sim/systems/various/ssme-flame-base-density1</output>
+ </filter>
+
+ <filter>
+   <type>gain</type>
+   <gain>1.0</gain>
+   <input>/fdm/jsbsim/systems/various/ssme-noise-strength1</input>
+   <output>/sim/systems/various/ssme-noise-strength1</output>
+ </filter>
+
+ <filter>
+   <type>gain</type>
+   <gain>1.0</gain>
+   <input>/fdm/jsbsim/systems/various/ssme-flame-shock-frequency1</input>
+   <output>/sim/systems/various/ssme-flame-shock-frequency1</output>
+ </filter>
+
+ <filter>
+   <type>gain</type>
+   <gain>1.0</gain>
+   <input>/fdm/jsbsim/systems/various/ssme-flame-r-base1</input>
+   <output>/sim/systems/various/ssme-flame-r-base1</output>
+ </filter>
+
+ <filter>
+   <type>gain</type>
+   <gain>1.0</gain>
+   <input>/fdm/jsbsim/systems/various/ssme-flame-g-base1</input>
+   <output>/sim/systems/various/ssme-flame-g-base1</output>
+ </filter>
+
+ <filter>
+   <type>gain</type>
+   <gain>1.0</gain>
+   <input>/fdm/jsbsim/systems/various/ssme-flame-b-base1</input>
+   <output>/sim/systems/various/ssme-flame-b-base1</output>
+ </filter>
+
+ <filter>
+   <type>gain</type>
+   <gain>1.0</gain>
+   <input>/fdm/jsbsim/systems/various/ssme-flame-r-high1</input>
+   <output>/sim/systems/various/ssme-flame-r-high1</output>
+ </filter>
+
+ <filter>
+   <type>gain</type>
+   <gain>1.0</gain>
+   <input>/fdm/jsbsim/systems/various/ssme-flame-g-high1</input>
+   <output>/sim/systems/various/ssme-flame-g-high1</output>
+ </filter>
+
+ <filter>
+   <type>gain</type>
+   <gain>1.0</gain>
+   <input>/fdm/jsbsim/systems/various/ssme-flame-b-high1</input>
+   <output>/sim/systems/various/ssme-flame-b-high1</output>
+ </filter>
+
+ <filter>
+   <type>gain</type>
+   <gain>1.0</gain>
+   <input>/fdm/jsbsim/systems/various/ssme-flame-r-low1</input>
+   <output>/sim/systems/various/ssme-flame-r-low1</output>
+ </filter>
+
+ <filter>
+   <type>gain</type>
+   <gain>1.0</gain>
+   <input>/fdm/jsbsim/systems/various/ssme-flame-g-low1</input>
+   <output>/sim/systems/various/ssme-flame-g-low1</output>
+ </filter>
+
+ <filter>
+   <type>gain</type>
+   <gain>1.0</gain>
+   <input>/fdm/jsbsim/systems/various/ssme-flame-b-low1</input>
+   <output>/sim/systems/various/ssme-flame-b-low1</output>
+ </filter>
+
+
+<!-- again for left engine -->
+
+ <filter>
+   <type>gain</type>
+   <gain>1.0</gain>
+   <input>/fdm/jsbsim/systems/various/ssme-flame-density2</input>
+   <output>/sim/systems/various/ssme-flame-density2</output>
+ </filter>
+
+ <filter>
+   <type>gain</type>
+   <gain>2.5</gain>
+   <input>/fdm/jsbsim/systems/various/ssme-flame-base-density2</input>
+   <output>/sim/systems/various/ssme-flame-base-density2</output>
+ </filter>
+
+ <filter>
+   <type>gain</type>
+   <gain>1.0</gain>
+   <input>/fdm/jsbsim/systems/various/ssme-noise-strength2</input>
+   <output>/sim/systems/various/ssme-noise-strength2</output>
+ </filter>
+
+ <filter>
+   <type>gain</type>
+   <gain>1.0</gain>
+   <input>/fdm/jsbsim/systems/various/ssme-flame-shock-frequency2</input>
+   <output>/sim/systems/various/ssme-flame-shock-frequency2</output>
+ </filter>
+
+ <filter>
+   <type>gain</type>
+   <gain>1.0</gain>
+   <input>/fdm/jsbsim/systems/various/ssme-flame-r-base2</input>
+   <output>/sim/systems/various/ssme-flame-r-base2</output>
+ </filter>
+
+ <filter>
+   <type>gain</type>
+   <gain>1.0</gain>
+   <input>/fdm/jsbsim/systems/various/ssme-flame-g-base2</input>
+   <output>/sim/systems/various/ssme-flame-g-base2</output>
+ </filter>
+
+ <filter>
+   <type>gain</type>
+   <gain>1.0</gain>
+   <input>/fdm/jsbsim/systems/various/ssme-flame-b-base2</input>
+   <output>/sim/systems/various/ssme-flame-b-base2</output>
+ </filter>
+
+ <filter>
+   <type>gain</type>
+   <gain>1.0</gain>
+   <input>/fdm/jsbsim/systems/various/ssme-flame-r-high2</input>
+   <output>/sim/systems/various/ssme-flame-r-high2</output>
+ </filter>
+
+ <filter>
+   <type>gain</type>
+   <gain>1.0</gain>
+   <input>/fdm/jsbsim/systems/various/ssme-flame-g-high2</input>
+   <output>/sim/systems/various/ssme-flame-g-high2</output>
+ </filter>
+
+ <filter>
+   <type>gain</type>
+   <gain>1.0</gain>
+   <input>/fdm/jsbsim/systems/various/ssme-flame-b-high2</input>
+   <output>/sim/systems/various/ssme-flame-b-high2</output>
+ </filter>
+
+ <filter>
+   <type>gain</type>
+   <gain>1.0</gain>
+   <input>/fdm/jsbsim/systems/various/ssme-flame-r-low2</input>
+   <output>/sim/systems/various/ssme-flame-r-low2</output>
+ </filter>
+
+ <filter>
+   <type>gain</type>
+   <gain>1.0</gain>
+   <input>/fdm/jsbsim/systems/various/ssme-flame-g-low2</input>
+   <output>/sim/systems/various/ssme-flame-g-low2</output>
+ </filter>
+
+ <filter>
+   <type>gain</type>
+   <gain>1.0</gain>
+   <input>/fdm/jsbsim/systems/various/ssme-flame-b-low2</input>
+   <output>/sim/systems/various/ssme-flame-b-low2</output>
+ </filter>
+
+<!-- OMS engine -->
+
+ <filter>
+   <type>gain</type>
+   <gain>1.0</gain>
+   <input>/fdm/jsbsim/systems/various/oms-flame-density</input>
+   <output>/sim/systems/various/oms-flame-density</output>
+ </filter>
+
+ <filter>
+   <type>gain</type>
+   <gain>1.0</gain>
+   <input>/fdm/jsbsim/systems/various/strake-density</input>
+   <output>/sim/systems/various/strake-density</output>
+ </filter>
+
+ <filter>
+   <type>gain</type>
+   <gain>1.0</gain>
+   <input>/fdm/jsbsim/systems/thermal/nose-temperature-F</input>
+   <output>/sim/systems/various/nose-temperature-F</output>
+ </filter>
+
+ <filter>
+   <type>gain</type>
+   <gain>1.0</gain>
+   <input>/fdm/jsbsim/systems/thermal/nose-temperature-K</input>
+   <output>/sim/systems/various/nose-temperature-K</output>
+ </filter>
+
+ <filter>
+   <type>gain</type>
+   <gain>1.0</gain>
+   <input>/fdm/jsbsim/systems/light/payload-bay-flood-intensity</input>
+   <output>/sim/systems/various/payload-bay-flood-intensity</output>
+ </filter>
+
+ <filter>
+   <type>gain</type>
+   <gain>0.7</gain>
+   <input>/fdm/jsbsim/systems/light/payload-bay-flood-intensity</input>
+   <output>/lighting/effects/payload-ambience</output>
+ </filter>
+
+ <filter>
+   <type>gain</type>
+   <gain>1.0</gain>
+   <input>/fdm/jsbsim/systems/light/payload-bay-fwd-intensity</input>
+   <output>/sim/systems/various/payload-bay-fwd-intensity</output>
+ </filter>
+
+ <filter>
+   <type>gain</type>
+   <gain>1.0</gain>
+   <input>/fdm/jsbsim/systems/light/payload-bay-mid-intensity</input>
+   <output>/sim/systems/various/payload-bay-mid-intensity</output>
+ </filter>
+
+ <filter>
+   <type>gain</type>
+   <gain>1.0</gain>
+   <input>/fdm/jsbsim/systems/light/payload-bay-aft-intensity</input>
+   <output>/sim/systems/various/payload-bay-aft-intensity</output>
+ </filter>
+
+ <filter>
+   <type>gain</type>
+   <gain>1.0</gain>
+   <input>/fdm/jsbsim/systems/light/payload-bay-door-left-intensity</input>
+   <output>/sim/systems/various/payload-bay-door-left-intensity</output>
+ </filter>
+
+ <filter>
+   <type>gain</type>
+   <gain>1.0</gain>
+   <input>/fdm/jsbsim/systems/light/payload-bay-door-right-intensity</input>
+   <output>/sim/systems/various/payload-bay-door-right-intensity</output>
+ </filter>
+
+ <filter>
+   <type>gain</type>
+   <gain>1.0</gain>
+   <input>/fdm/jsbsim/systems/light/tail-intensity</input>
+   <output>/sim/systems/various/tail-intensity</output>
+ </filter>
+
+ <filter>
+   <type>gain</type>
+   <gain>1.0</gain>
+   <input>/fdm/jsbsim/systems/mechanical/pb-door-opening-fraction</input>
+   <output>/sim/systems/various/pb-door-opening-fraction</output>
+ </filter>
+
+ <filter>
+   <type>gain</type>
+   <gain>1.0</gain>
+   <input>/fdm/jsbsim/systems/various/drag-chute-force-norm</input>
+   <output>/controls/shuttle/drag-chute-force-norm</output>
+ </filter>
+
+ <filter>
+   <type>noise-spike</type>
+   <max-rate-of-change>/controls/shuttle/ku-antenna-slew-rate-degs</max-rate-of-change>
+   <input>/controls/shuttle/ku-antenna-alpha-deg-cmd</input>
+   <output>/controls/shuttle/ku-antenna-alpha-deg</output>
+ </filter>
+
+ <filter>
+   <type>noise-spike</type>
+   <max-rate-of-change>5.0</max-rate-of-change>
+   <input>/controls/shuttle/ku-antenna-beta-deg-cmd</input>
+   <output>/controls/shuttle/ku-antenna-beta-deg</output>
+ </filter>
+
+<filter>
+  <type>moving-average</type>
+  <samples>120</samples>
+  <input>/fdm/jsbsim/systems/eclss/cabin/oxygen-in-fraction</input>
+  <output>/fdm/jsbsim/systems/eclss/cabin/oxygen-in-fraction-av</output>
+</filter>
+
+<filter>
+  <type>moving-average</type>
+  <samples>120</samples>
+  <input>/fdm/jsbsim/systems/eclss/cabin/nitrogen-in-fraction</input>
+  <output>/fdm/jsbsim/systems/eclss/cabin/nitrogen-in-fraction-av</output>
+</filter>
+
+ </PropertyList>

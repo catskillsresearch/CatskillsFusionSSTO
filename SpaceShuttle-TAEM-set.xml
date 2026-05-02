@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+
+<!-- this puts the Shuttle onto a gliding path -->
+
+<PropertyList include="SpaceShuttle-common.xml">
+<sim>
+  <description>NASA Space Shuttle Atlantis on TAEM</description>
+  <long-description>
+     The Space Shuttle was a partially re-usable low orbit spacecraft operated by NASA from 1981 to 2011. In the Terminal Area Energy Management (TAEM) phase, the Shuttle is at about 80.000 ft some 60 miles to the landing site at around Mach 3, ready for its last six minutes of flight as a glider.
+  </long-description>
+  <variant-of>SpaceShuttle-launch</variant-of>
+  <presets>
+	<altitude-ft>83000.0</altitude-ft>
+	<pitch-deg>3.0</pitch-deg>	
+	<stage type="int">3</stage>
+  </presets>
+  <startup>
+    <splash-texture>Aircraft/SpaceShuttle/SpaceShuttle-TAEM-splash.png</splash-texture>
+  </startup>
+ <previews>
+      <preview>
+        <type>exterior</type>
+        <splash type="bool">true</splash>
+        <path>Pics/taem-splash01.png</path>
+      </preview>
+  </previews>
+  <config>
+    <shuttle>
+      <prelaunch-flag type="int">0</prelaunch-flag>
+    </shuttle>
+  </config>
+</sim>
+
+<fdm>
+   <jsbsim>
+	<systems>
+	   <dps>
+		<ops type="int">3</ops>
+		<major-mode type="int">305</major-mode>
+		<ops-bfs type="int">3</ops-bfs>
+		<major-mode-bfs type="int">305</major-mode-bfs>
+	   </dps>
+	</systems>
+   </jsbsim>
+</fdm>
+
+</PropertyList>

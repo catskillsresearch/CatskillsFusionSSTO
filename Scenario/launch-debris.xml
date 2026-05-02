@@ -1,0 +1,28 @@
+<?xml version="1.0" ?>
+
+<PropertyList>
+
+
+<metadata>
+	<mission-stage type="int">0</mission-stage>
+	<title type="string">Debris strike during SRB separation</title>
+</metadata>
+
+
+
+<failures>
+	 <mode n="0">
+	 <node  type="string">/fdm/jsbsim/systems/failures/tps-condition</node>
+	 <occurs-met-s  type="double">116.0</occurs-met-s>
+	 <probability  type="double">1.0</probability>
+	 <value  type="double">0.5</value>
+	 </mode>
+	 <mode n="1">
+	 <node  type="string">/fdm/jsbsim/systems/failures/window-cdr</node>
+	 <occurs-met-s  type="double">116.0</occurs-met-s>
+	 <probability  type="double">1.0</probability>
+	 <value  type="double">0.0</value>
+	 </mode>
+</failures>
+
+</PropertyList>

@@ -1,0 +1,339 @@
+<?xml version="1.0"?>
+
+<PropertyList>
+	<name>entry_guidance</name>
+	<layout>vbox</layout>
+	<default-padding>1</default-padding>
+	<modal>false</modal>
+	<width>500</width>
+
+	<empty>
+		<pref-height>6</pref-height>
+	</empty>
+
+	<text>
+		<label>Entry guidance computer</label>
+	</text>
+
+	<empty>
+		<pref-height>4</pref-height>
+	</empty>
+
+	<hrule/>
+
+
+  <group>
+    <layout>table</layout>
+
+    <text>
+      <label>Landing site:</label>
+      <halign>left</halign>
+      <row>2</row>
+      <col>0</col>
+    </text>
+
+
+   <combo>
+        <row>2</row>
+        <col>1</col>
+        <name>site-selection</name>
+        <halign>left</halign>
+        <stretch>true</stretch>
+        <pref-width>200</pref-width>
+        <property>/sim/gui/dialogs/SpaceShuttle/entry_guidance/site</property>
+	<value>Vandenberg Air Force Base</value>
+	<value>Kennedy Space Center</value>
+	<value>Edwards Air Force Base</value>
+	<value>White Sands Space Harbor</value>
+	<value>Zaragoza Airport</value>
+	<value>RAF Fairford</value>
+	<value>Banjul International Airport</value>
+	<value>Moron Air Base</value>
+	<value>Le Tube</value>
+        <binding>
+          <command>dialog-apply</command>
+          <object-name>site-selection</object-name>
+        </binding>
+      </combo>
+
+    <text>
+      <label>RWY:</label>
+      <halign>left</halign>
+      <row>2</row>
+      <col>2</col>
+    </text>
+
+   <combo>
+        <row>2</row>
+        <col>3</col>
+        <name>runway-selection</name>
+        <halign>left</halign>
+        <stretch>true</stretch>
+        <pref-width>50</pref-width>
+        <property>/sim/gui/dialogs/SpaceShuttle/entry_guidance/runway</property>
+        <properties>/sim/gui/dialogs/SpaceShuttle/entry_guidance/available-runways</properties>
+        <binding>
+          <command>dialog-apply</command>
+          <object-name>runway-selection</object-name>
+        </binding>
+      </combo>
+
+    <text>
+      <label>TAEM approach:</label>
+      <halign>left</halign>
+      <row>3</row>
+      <col>0</col>
+    </text>
+
+   <combo>
+        <row>3</row>
+        <col>1</col>
+        <name>approach-selection</name>
+        <halign>left</halign>
+        <stretch>true</stretch>
+        <pref-width>100</pref-width>
+	<value>OVHD</value>
+	<value>STRT</value>
+        <property>/fdm/jsbsim/systems/taem-guidance/approach-mode-string</property>
+        <binding>
+          <command>dialog-apply</command>
+          <object-name>approach-selection</object-name>
+        </binding>
+      </combo>
+
+    <text>
+      <label>Entry point:</label>
+      <halign>left</halign>
+      <row>3</row>
+      <col>2</col>
+    </text>
+
+   <combo>
+        <row>3</row>
+        <col>3</col>
+        <name>entry-selection</name>
+        <halign>left</halign>
+        <stretch>true</stretch>
+        <pref-width>100</pref-width>
+	<value>NEP</value>
+	<value>MEP</value>
+        <property>/fdm/jsbsim/systems/taem-guidance/entry-point-string</property>
+        <binding>
+          <command>dialog-apply</command>
+          <object-name>entry-selection</object-name>
+        </binding>
+      </combo>
+
+   <text>
+      <label>Abort mode:</label>
+      <halign>left</halign>
+      <row>4</row>
+      <col>0</col>
+    </text>
+
+
+   <combo>
+        <row>4</row>
+        <col>1</col>
+        <name>entry-mode</name>
+        <halign>left</halign>
+        <stretch>true</stretch>
+        <pref-width>200</pref-width>
+        <property>/sim/gui/dialogs/SpaceShuttle/entry_guidance/entry-mode</property>
+	<value>normal</value>
+	<value>TAL</value>
+	<value>RTLS</value>
+        <binding>
+          <command>dialog-apply</command>
+          <object-name>entry-mode</object-name>
+        </binding>
+      </combo>
+
+</group>
+
+  <group>
+    <layout>table</layout>
+
+
+    <text>
+      <label>Latitude:</label>
+      <halign>left</halign>
+      <row>0</row>
+      <col>0</col>
+    </text>
+
+   <text>
+      <halign>left</halign>
+      <row>0</row>
+      <col>1</col>
+      <label>12345678</label>
+      <format>%4.2f deg</format>
+      <live>true</live>
+      <property>/sim/gui/dialogs/SpaceShuttle/entry_guidance/site-lat</property>
+    </text>
+
+  <text>
+      <label>Longitude:</label>
+      <halign>left</halign>
+      <row>0</row>
+      <col>2</col>
+    </text>
+
+   <text>
+      <halign>left</halign>
+      <row>0</row>
+      <col>3</col>
+      <label>12345678</label>
+      <format>%4.2f deg</format>
+      <live>true</live>
+      <property>/sim/gui/dialogs/SpaceShuttle/entry_guidance/site-lon</property>
+    </text>
+
+   <text>
+      <label>Distance:</label>
+      <halign>left</halign>
+      <row>1</row>
+      <col>0</col>
+    </text>
+
+    <text>
+      <halign>left</halign>
+      <row>1</row>
+      <col>1</col>
+      <label>12345678</label>
+      <format>%5.0f nm</format>
+      <live>true</live>
+      <property>/fdm/jsbsim/systems/entry_guidance/remaining-distance-nm</property>
+    </text>
+
+    <text>
+      <halign>left</halign>
+      <row>1</row>
+      <col>2</col>
+      <label>12345678</label>
+      <format>%s</format>
+      <live>true</live>
+      <property>/sim/gui/dialogs/SpaceShuttle/entry_guidance/site-string</property>
+    </text>  
+
+        
+    </group>
+
+     <!--   <empty>
+		<pref-height>6</pref-height>
+	</empty>
+
+	<hrule/>
+
+	<empty>
+		<pref-height>6</pref-height>
+	</empty>
+ 
+   <group>
+     <layout>table</layout>
+
+     <checkbox>
+        <name>auto-pitch</name>
+ 	<row>0</row>
+        <col>0</col>
+          <property>/fdm/jsbsim/systems/ap/automatic-pitch-control</property>
+	  <label>automatic pitch control </label>
+          <live>true</live>
+ 	  <binding>
+              <command>dialog-apply</command>
+              <object-name>auto-pitch</object-name>
+          </binding>
+      </checkbox>
+
+   </group>-->
+
+	<empty>
+		<pref-height>12</pref-height>
+	</empty>
+
+	<hrule/>
+
+   <!--<group>
+     <layout>table</layout>
+
+ <text>
+      <label>De-orbit planner</label>
+      <halign>left</halign>
+      <row>1</row>
+      <col>0</col>
+    </text>
+
+ <text>
+      <label>radius</label>
+      <halign>left</halign>
+      <row>1</row>
+      <col>1</col>
+    </text>
+    
+        
+    <slider>
+      <name>radius</name>
+      <row>1</row>
+      <col>1</col>
+      <min>2500.0</min>
+      <max>5500.0</max>
+      <live>true</live>
+      <property>/sim/gui/dialogs/SpaceShuttle/entry_guidance/EI-radius</property>
+      <binding>
+        <command>dialog-apply</command>
+        <object-name>radius</object-name>
+      </binding>
+    </slider>
+
+    <text>
+      <row>1</row>
+      <col>2</col>
+      <halign>right</halign>
+      <label>12345678</label>
+      <format>%.f miles</format>
+      <live>true</live>
+      <property>/sim/gui/dialogs/SpaceShuttle/entry_guidance/EI-radius</property>
+    </text> 
+
+   </group>
+
+	<empty>
+		<pref-height>12</pref-height>
+	</empty>
+
+	<hrule/>
+
+	<empty>
+		<pref-height>20</pref-height>
+	</empty>-->
+
+<group>
+    <layout>table</layout>
+
+	<button>
+     		<halign>left</halign>
+		<row>0</row>
+		<col>0</col>
+		<legend>Activate</legend>
+		<default>true</default>
+		<binding>
+			<command>nasal</command>
+			<script>SpaceShuttle.compute_entry_guidance_target()</script>
+		</binding>
+	</button>
+
+	<button>
+      		<halign>right</halign>
+		<row>0</row>
+		<col>1</col>
+		<legend>Close</legend>
+		<default>true</default>
+		<key>Esc</key>
+		<binding>
+			<command>dialog-close</command>
+		</binding>
+	</button>
+
+</group>
+
+</PropertyList>

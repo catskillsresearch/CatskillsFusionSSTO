@@ -1,0 +1,42 @@
+
+The Space Shuttle modeling lives off the fact that NASA has made thousands of technical papers freely available, numerous of these resources have been used.
+
+The various aspects of the modeling have been carried out by the following people:
+
+Flight dynamics: 
+
+* based on various NASA technical papers by Thorsten Renk
+
+Exterior 3d model:
+
+* original taken from NASA under public domain, adapted from Herbert Wagner under GPL
+* for this project, modified and extended by Richard Harrison, Wayne Bragg and japreja
+
+Interior cockpit 3d model:
+
+* original by Chris Kuhn 
+* adapted for this project by Richard Harrison with permission from Chris Kuhn
+* photo textures based on the panoramas of Jon Brack http://www.jonbrack360.com/shuttle/ 
+* animated and modified by Wayne Bragg
+
+Effects and Shaders:
+
+* few adapted from Herbert Wagner under GPL
+* for this project extended by Thorsten Renk and Wayne Bragg
+
+Systems modeling:
+
+* based on the Space Shuttle Crew Operations Manual by Thorsten Renk
+
+Sounds:
+
+* adapted from Victor Slavutinsky for Vostok-1 under GPL by Herbert Wagner
+* modified for this project by Thorsten Renk
+
+Alternative MDU fonts:
+
+*  created by the SSU Team, adapted from Orbiter SSU project under LGPL
+
+Carrier aircraft 3d model:
+
+* Grupo FGBr, Martien van der Plas (SCA conversion), adapted by Jorge Pareja under GPL

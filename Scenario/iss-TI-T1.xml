@@ -1,0 +1,31 @@
+<?xml version="1.0" ?>
+
+<PropertyList>
+
+
+<metadata>
+	<mission-stage type="int">6</mission-stage>
+	<title type="string">ISS terminal intercept T1 burn</title>
+</metadata>
+
+<state>
+	<lat type="double">0</lat>
+	<lon type="double">5.07</lon>
+	<alt type="double">1050007.86</alt>
+	<u-body type="double">24354.15</u-body>
+	<v-body type="double">0.0053</v-body>
+	<w-body type="double">182.64</w-body>
+	<heading type="double">35.40</heading>
+	<pitch type="double">0.4422</pitch>
+	<roll type="double">0.0</roll>
+</state>
+
+<orbital-target>
+ 	<object-label type="string">ISS</object-label>
+ 	<inclination-deg type="double">51.64</inclination-deg>
+ 	<alt-km type="double">339.0</alt-km>
+ 	<node-lon-deg type="double">5.07</node-lon-deg>
+ 	<anomaly-deg type="double">0.55</anomaly-deg>
+</orbital-target>
+
+</PropertyList>

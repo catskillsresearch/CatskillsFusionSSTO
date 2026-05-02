@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+
+<PropertyList>
+
+    <path>Aircraft/SpaceShuttle/Models/Cuecards/cuecard_cdr_center_right.ac</path>
+
+   	<effect>
+         <inherits-from>Aircraft/SpaceShuttle/Models/Effects/shuttle-cuecard-object</inherits-from>
+	 <object-name>Cuecard-CDR-center-right</object-name>
+    	</effect>
+
+	 <animation>
+	  <type>pick</type>
+	   <object-name>Cuecard-CDR-center-right</object-name>
+	   <action>
+	    <button>0</button>
+	    <repeatable>false</repeatable>
+	    <interval-sec>0.2</interval-sec>
+	    <binding>
+	     <command>nasal</command>
+                <script>SpaceShuttle.cue_card_binder_CDR.popup_right_page();</script>
+	    </binding>
+	   </action>
+	   <action>
+	    <button>3</button>
+	    <repeatable>false</repeatable>
+	    <interval-sec>0.2</interval-sec>
+	    <binding>
+	     <command>nasal</command>
+                <script>SpaceShuttle.cue_card_binder_CDR.next_page(1);</script>
+	    </binding>
+	   </action>
+	   <action>
+	    <button>4</button>
+	    <repeatable>false</repeatable>
+	    <interval-sec>0.2</interval-sec>
+	    <binding>
+	     <command>nasal</command>
+                <script>SpaceShuttle.cue_card_binder_CDR.next_page(-1);</script>
+	    </binding>
+	   </action>
+	 </animation>
+
+</PropertyList>

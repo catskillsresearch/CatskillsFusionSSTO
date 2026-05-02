@@ -1,0 +1,1609 @@
+# TAEM guidance functionality for the Space Shuttle
+# Thorsten Renk 2015 // Gingin 2021
+
+var TAEM_WP_1 = geo.Coord.new();
+var TAEM_WP_2 = geo.Coord.new();
+var TAEM_AP = geo.Coord.new();
+var TAEM_threshold = geo.Coord.new();
+var TAEM_HAC_center = geo.Coord.new();
+var TAEM_rwy_nl = geo.Coord.new();
+var TAEM_rwy_nr = geo.Coord.new();
+var TAEM_rwy_fl = geo.Coord.new();
+var TAEM_rwy_fr = geo.Coord.new();
+var TAEM_guidance_available = 0;
+var TAEM_TACAN_available = 0;
+var TAEM_guidance_phase = 0;
+var TAEM_guidance_string = "";
+var TAEM_loop_running = 0;
+
+TAEM_threshold.MLS_available = 0;
+
+var HUD_data_set = {
+
+	vangle_aim: 0,
+	hangle_aim: 0,
+	vangle_threshold: 0,
+	hangle_threshold: 0,
+	vangle_guidance: 0,
+	vangle_nr: 0,
+	hangle_nr: 0,
+	vangle_nl: 0,
+	hangle_nl: 0,
+	vangle_fr: 0,
+	hangle_fr: 0,
+	vangle_fl: 0,
+	hangle_fl: 0,
+	MLS_acquired: 0,
+};
+
+
+var area_nav_set = {
+
+	TACAN_locked: 0,
+	MLS_locked: 0,
+	MLS_processing: 0,
+	air_data_available: 0,
+	gps_available: 0,
+	source: 0,
+
+	TACAN_aut: 0,
+	TACAN_inh: 1,
+	TACAN_for: 0,
+
+	air_data_h_aut: 0,
+	air_data_h_inh: 1,
+	air_data_h_for: 0,
+
+	air_data_gc_aut: 0,
+	air_data_gc_inh: 1,
+	air_data_gc_for: 0,
+
+	drag_h_aut: 1,
+	drag_h_inh: 0,
+	drag_h_for: 0,
+
+	gps_aut: 0,
+	gps_inh: 1,
+	gps_for: 0,
+
+	gps_gc_aut: 0,
+	gps_gc_inh: 1,
+	gps_gc_for: 0,
+
+	accuracy_lat : 0.1,
+	accuracy_lon: 0.1,
+	accuracy_alt: 15000.0,
+
+	acc_x: 5000.0,
+	acc_y: 5000.0,
+	acc_z: 5000.0,
+
+	offset_x: 0.0,
+	offset_y: 0.0,
+	offset_z: 0.0,
+
+	offset_lat: 0.0,
+	offset_lon: 0.0,
+	
+	baro_alt_m: 0.0,
+
+	tacan_acc_dist: 0,
+	tacan_acc_az: 0,
+
+	tacan_offset_dist: 0,
+	tacan_offset_az: 0,
+	tacan_offset_az_deg: 0,
+
+	dist_m: 0,
+
+	m_to_lat: 1.0/110952.0,
+	m_to_lon: 1.0/110952.0,
+
+	nav_bearing_tacan: 0,
+	nav_dist_tacan: 0,
+
+	tac_resid_range: 0.0,
+	tac_resid_bearing: 0.0,
+	tac_ratio_range: 0.0,
+	tac_ratio_bearing: 0.0,
+
+	adta_resid_h: 0.0,
+	adta_ratio_h: 0.0,
+
+	drag_h_resid: 0.0,
+	drag_h_ratio: 0.0,
+
+	gps_resid: 0.0,
+	gps_ratio: 0.0,
+
+	drag_h_atm_model : 0,
+	drag_h_offset: 	0.0,
+
+	gps_update_cycle_count: 0,
+
+	init: func {
+		me.true_pos = geo.aircraft_position();
+		me.nav_pos = state_vector_position();
+		
+		var acc_factor = 1.0;	
+
+		if (me.true_pos.lat() > 55.0)
+			{
+			if (me.drag_h_atm_model == 0) {acc_factor = 1.3;}
+			else if (me.drag_h_atm_model == 2) {acc_factor = 1.2;}
+			}
+		else if (me.true_pos.lat() < -55.0)
+			{
+			if (me.drag_h_atm_model == 0) {acc_factor = 1.3;}
+			else if (me.drag_h_atm_model == 1) {acc_factor = 1.2;}
+			}
+		else
+			{
+			if (me.drag_h_atm_model == 1) {acc_factor = 1.2;}
+			else if (me.drag_h_atm_model == 2){acc_factor = 1.2;}
+			}
+	
+
+		me.drag_h_offset = acc_factor * 800.0 * (rand() - 0.5);
+		#print("Init area nav, drag alt offset is: ", me.drag_h_offset);
+	},
+
+
+	update_entry: func {
+
+		me.update_pos();
+		me.update_signals();
+
+		if (me.TACAN_locked == 1) 
+			{
+			if (TAEM_TACAN_available == 0)
+				{set_TAEM_TACAN();}
+			else
+				{me.update_nav();}
+			}
+
+		if (me.air_data_available == 1)
+			{
+			me.compute_baro_alt_error();
+			}
+		me.compute_drag_alt_error();
+		me.update_sv_by_gps();
+	
+		SpaceShuttle.air_data_system.update();
+	},
+
+	update_taem: func {
+
+		me.update_pos();
+		me.update_signals();
+		me.update_nav();
+
+		if ((me.MLS_locked == 1) and (me.TACAN_for == 0))
+			{
+			me.compute_MLS_error_set();
+			}
+		else if ((me.TACAN_locked == 1) and (me.TACAN_inh == 0))
+			{
+			me.compute_tacan_error_set();
+			}	
+
+		if (me.air_data_available == 1)
+			{
+			me.compute_baro_alt_error();
+			}
+		me.compute_drag_alt_error();	
+		me.update_sv_by_gps();
+
+		SpaceShuttle.air_data_system.update();
+		
+	},
+
+	update_pos: func {
+		me.m_to_lon = 1.0/(math.cos(getprop("/position/latitude-deg")*math.pi/180.0) * 110952.0);
+		me.true_pos = geo.aircraft_position();
+		me.nav_pos = state_vector_position();
+		
+
+	},
+
+	update_nav: func {
+
+		if ((TAEM_guidance_available == 1) or (TAEM_TACAN_available == 1))
+			{
+			me.nav_bearing_tacan = me.nav_pos.course_to(TAEM_threshold);
+			me.nav_dist_tacan = me.nav_pos.distance_to(TAEM_threshold);
+
+			me.tac_bearing_tacan = me.true_pos.course_to(TAEM_threshold) + me.tacan_offset_az_deg;
+			me.tac_dist_tacan = me.true_pos.distance_to(TAEM_threshold) + me.tacan_offset_dist * 1853.0;
+
+
+			me.tac_resid_range = (me.tac_dist_tacan - me.nav_dist_tacan)/1853.0;
+			me.tac_resid_bearing = (me.tac_bearing_tacan - me.nav_bearing_tacan);
+
+			me.tac_ratio_range = math.abs(me.tac_resid_range)/0.5;
+			me.tac_ratio_bearing = math.abs(me.tac_resid_bearing)/2.5;
+
+			me.gps_resid = me.true_pos.direct_distance_to(me.nav_pos)/1853.0;
+			me.gps_ratio = me.gps_resid/0.2;
+
+			SpaceShuttle.tacan_system.redundancy_management();
+			}
+
+		if (me.air_data_available == 1)
+			{
+
+			me.baro_alt_m = getprop("/instrumentation/altimeter/indicated-altitude-ft") * 0.3048;
+			me.adta_resid_h = (me.baro_alt_m - me.nav_pos.alt())/0.3058;
+			me.adta_ratio_h = 0.5 * math.abs(me.adta_resid_h)/(me.nav_pos.alt() * 0.016404);
+			}
+	},
+
+	update_sv_by_gps: func {
+
+		if (me.gps_aut == 0)  {return;}
+
+		if (me.gps_update_cycle_count < 40)
+			{
+			me.gps_update_cycle_count = me.gps_update_cycle_count + 1;
+			return;
+			}
+		else
+			{
+			me.gps_update_cycle_count = 0;
+			#print("State vector written by GPS");
+			SpaceShuttle.GPS_to_prop();
+			}
+
+
+	},
+
+	update_signals: func {
+
+		me.dist_m = 0;	
+		if (TAEM_guidance_available == 1)
+			{
+			me.dist_m = me.true_pos.distance_to(TAEM_threshold);
+			}
+		else if (SpaceShuttle.entry_guidance_available == 1)
+			{
+			me.dist_m = getprop("/fdm/jsbsim/systems/entry_guidance/remaining-distance-nm") * 1853.0;
+			}
+		else 
+			{
+			me.dist_m = 1000000.0;
+			}
+
+
+
+		var dist_norm = me.dist_m/741200.0;
+
+		#print ("Range: ", me.dist_m, " norm: ", dist_norm);
+		#print ("LOS alt: ", 48000.0 * dist_norm * dist_norm);
+		
+		if ((me.dist_m < 741200.0) and (me.true_pos.alt() > 48000.0 * dist_norm * dist_norm)) # TACAN range
+			{
+			
+			if (getprop("/fdm/jsbsim/systems/navigation/tacan-available") == 1)
+				{
+				if (me.TACAN_locked == 0) {print("TACAN signal acquired");}	
+				me.TACAN_locked = 1;
+				}
+			else
+				{
+				if (me.TACAN_locked == 1) {print("TACAN signal lost");}	
+				me.TACAN_locked = 0;
+				TAEM_TACAN_available = 0;
+				}
+			}
+		else 
+			{
+			if (me.TACAN_locked == 1) {print("TACAN signal lost");}	
+			me.TACAN_locked = 0;
+			TAEM_TACAN_available = 0;
+			}
+
+
+
+		if ((TAEM_threshold.MLS_available == 1) and (me.dist_m < 37060.0) and (me.true_pos.alt() < 0.5 * me.dist_m)) # MLS range
+			{
+
+			
+			var heading = getprop("/orientation/heading-deg");
+			var delta_az = math.abs(heading - TAEM_threshold.heading);
+
+			if (delta_az > 180.0) {delta_az = delta_az - 360.0;}
+			if (delta_az < -180.0) {delta_az = delta_az + 360.0;}
+
+			var channel_match = 0;
+
+			for (var i=0; i<3; i=i+1)
+				{
+				if (SpaceShuttle.mls_system.receiver[i].channel == TAEM_threshold.MLS_channel)
+					{
+					channel_match = 1;
+					}
+				}
+
+
+			if ((delta_az < 55.0) and (channel_match == 1))
+				{
+				if (getprop("/fdm/jsbsim/systems/navigation/mls-available") == 1)
+					{
+					if (me.MLS_locked == 0) {print("MLS signal acquired");}	
+					me.MLS_locked = 1;
+					}
+				else
+					{
+					if (me.MLS_locked == 1) {print("MLS signal lost");}	
+					me.MLS_locked = 0;
+					}
+				}
+			else	
+				{
+				if (me.MLS_locked == 1) {print("MLS signal lost");}	
+				me.MLS_locked = 0;
+				}
+			}
+			
+		else
+			{
+			if (me.MLS_locked == 1) {print("MLS signal lost");}	
+			me.MLS_locked = 0;
+			}
+
+		if (getprop("/fdm/jsbsim/systems/navigation/air-data-available") == 1)
+			{
+			me.air_data_available = 1;
+			}
+		else
+			{
+			me.air_data_available = 0;
+			}
+
+		if (getprop("/fdm/jsbsim/systems/navigation/gps-available") == 1)
+			{
+			me.gps_available = 1;
+			}	
+		else
+			{
+			me.gps_available = 0;
+			}
+		
+
+	},
+
+
+	compute_tacan_error_set : func {
+
+
+		me.tacan_acc_dist = SpaceShuttle.tacan_system.acc_dist(me.dist_m);
+		me.tacan_offset_dist = SpaceShuttle.tacan_system.offset_range();
+
+		me.tacan_acc_az = SpaceShuttle.tacan_system.acc_az(me.dist_m);
+		me.tacan_offset_az_deg = SpaceShuttle.tacan_system.offset_az();
+		me.tacan_offset_az = me.tacan_offset_az_deg * me.dist_m * math.pi/180.0;
+
+		var bearing_rad = me.true_pos.course_to(TAEM_threshold) * math.pi/180.0;
+
+		var cb = math.cos(bearing_rad);
+		var sb = math.sin(bearing_rad);
+
+		var cabs = math.abs(cb);
+		var sabs = math.abs(sb);
+
+		if ((me.TACAN_for == 1) or ((me.TACAN_aut == 1) and (me.tac_ratio_range < 1.0) and (me.tac_ratio_bearing < 1.0)))
+			{
+			me.acc_x = cabs * me.tacan_acc_dist + sabs * me.tacan_acc_az;
+			me.acc_y = sabs * me.tacan_acc_dist + cabs * me.tacan_acc_az;
+
+			me.offset_x = cb * me.tacan_offset_dist - sb *  me.tacan_offset_az;
+			me.offset_y = sb * me.tacan_offset_dist + cb *  me.tacan_offset_az;
+
+			me.accuracy_lat = me.acc_x * me.m_to_lat;
+			me.accuracy_lon = me.acc_y * me.m_to_lon;
+
+			me.offset_lat = me.offset_x * me.m_to_lat;	
+			me.offset_lon = me.offset_y * me.m_to_lon;
+			}
+		else
+			{
+			me.acc_x = 5000.0;
+			me.acc_y = 5000.0;
+			me.offset_x = 0.0;
+			me.offset_y = 0.0;
+			me.offset_lat = 0.0;
+			me.offset_lon = 0.0;
+
+			me.accuracy_lat = me.acc_x * me.m_to_lat;
+			me.accuracy_lon = me.acc_y * me.m_to_lon;
+			
+			}
+
+	},
+
+	compute_MLS_error_set : func {
+
+		# according to SCOM, typical errors are 5 ft alt, 21 ft downtrack and 17 ft crosstrack
+
+		me.accuracy_x = 20.0 * 0.3058;
+		me.accuracy_y = 20.0 * 0.3058;
+		me.accuracy_z = 5.0 * 0.3058;
+
+		me.accuracy_lat = 20.0 * 0.3058 * me.m_to_lat;
+		me.accuracy_lon = 20.0 * 0.3085 * me.m_to_lon;
+		me.accuracy_alt = 5.0 * 0.3085 ;
+		me.acc_z = 5.0;
+		me.offset_z = 0.0;
+		me.offset_lat = 0.0;
+		me.offset_lon = 0.0;
+
+		me.MLS_processing = 1;
+
+
+
+	},
+
+	compute_baro_alt_error : func {
+
+		# FAA allows an 80 ft tolerance at 10.000 ft in barometric altitude
+		# so assume the error margin is some 50 ft every 10.000 ft
+		
+		# in addition we have an offset of the QNH is entered wrong
+
+
+
+		if ((me.air_data_h_for == 1) or ((me.air_data_h_aut == 1) and (me.adta_ratio_h < 1.0)))
+			{
+			me.offset_z = me.baro_alt_m - me.true_pos.alt();
+			me.acc_z = me.true_pos.alt() * 0.005;
+			}
+
+		else
+			{
+			me.offset_z = 0.0;
+			me.acc_z = 5000.0;
+			}
+
+		
+
+
+	},
+
+	compute_drag_alt_error: func {
+
+		me.drag_h_resid = (me.true_pos.alt() + me.drag_h_offset - me.nav_pos.alt())/0.3058;
+		me.drag_h_ratio = math.abs(me.drag_h_resid / 1640.0);
+
+	},
+
+
+};
+
+
+#Final segment ( 7nm NEP / 4 Nm MEP)
+var final_approach_reserve = 7.0;
+
+
+
+var TAEM_predictor_set = {
+
+	entry: [[0.0, 0.0], [0.0,0.0], [0.0,0.0]],
+	x: 0.0,
+	y: 0.0,
+	angle: 0.0,
+	
+	update: func {
+
+	var groundspeed = getprop("/velocities/groundspeed-kt") * 0.51444;
+	var rate = getprop("/orientation/yaw-rate-degps");	
+
+	me.x = 0;
+	me.y = 0;
+	me.angle = 0;
+
+	me.evolve(groundspeed, rate);
+
+	me.entry[0][0] = math.sqrt(me.x * me.x + me.y * me.y);
+	me.entry[0][1] = math.asin(me.x/me.entry[0][0]);	
+	
+	me.evolve(groundspeed, rate);
+
+	me.entry[1][0] = math.sqrt(me.x * me.x + me.y * me.y);
+	me.entry[1][1] = math.asin(me.x/me.entry[1][0]);
+
+	me.evolve(groundspeed, rate);
+
+	me.entry[2][0] = math.sqrt(me.x * me.x + me.y * me.y);
+	me.entry[2][1] = math.asin(me.x/me.entry[2][0]);
+
+
+
+
+	},
+
+	evolve: func (groundspeed, rate) {
+
+	for (var i=0; i < 20; i=i+1)
+		{
+		me.x = me.x + math.sin(me.angle * math.pi/180.0) * groundspeed;
+		me.y = me.y + math.cos(me.angle * math.pi/180.0) * groundspeed;
+		me.angle = me.angle + rate;
+		}
+
+	},
+
+};
+
+
+# helper function to get simulated state vector position rather than 
+# true aircraft position
+
+var state_vector_position = func {
+	var lat = getprop("/fdm/jsbsim/systems/navigation/state-vector/latitude-deg");
+	var lon = getprop("/fdm/jsbsim/systems/navigation/state-vector/longitude-deg");
+	var alt = getprop("/fdm/jsbsim/systems/navigation/state-vector/altitude-ft") * 0.3048;
+	return geo.Coord.new().set_latlon(lat, lon, alt);
+}
+
+
+# we pick up TACAN from ~400 miles out, at that time we have no TAEM guidance but would like
+# to be able to display something, so we create a 'lite' guidance target
+
+var set_TAEM_TACAN = func {
+
+if (TAEM_TACAN_available == 1) {return;}
+
+# first check whether we have a valid runway / site specified
+
+var site_string = getprop("/sim/gui/dialogs/SpaceShuttle/entry_guidance/site");
+var runway_string = getprop("/sim/gui/dialogs/SpaceShuttle/entry_guidance/runway");
+
+set_TAEM_threshold(site_string, runway_string);
+
+if (TAEM_threshold.lat() == 0.0)
+	{return;}
+
+print("Site TACAN data available");
+
+TAEM_TACAN_available = 1;
+
+}
+
+
+var compute_TAEM_guidance_targets = func {
+
+var major_mode = getprop("/fdm/jsbsim/systems/dps/major-mode");
+
+TAEM_guidance_available = 0;
+TAEM_guidance_phase = 0;
+
+var lat_to_m = 110952.0; 
+var lon_to_m  = math.cos(getprop("/position/latitude-deg")*math.pi/180.0) * lat_to_m;
+var m_to_lon = 1.0/lon_to_m;
+var m_to_lat = 1.0/lat_to_m;
+
+# first check whether we have a valid runway / site specified
+
+var site_string = getprop("/sim/gui/dialogs/SpaceShuttle/entry_guidance/site");
+var runway_string = getprop("/sim/gui/dialogs/SpaceShuttle/entry_guidance/runway");
+
+
+set_TAEM_threshold(site_string, runway_string);
+
+if (TAEM_threshold.lat() == 0.0)
+	{return;}
+
+print("TAEM site data available");
+
+var pos = geo.aircraft_position();
+
+#TAEM parameters calculation for TAEM ( below 120 Nm// 240 km) // 305 and 603
+if ((pos.distance_to(TAEM_threshold) > 240000.0) and (major_mode != 304))
+	{
+	#setprop("/sim/messages/copilot", "No TAEM guidance to site possible.");
+	SpaceShuttle.callout.make("No TAEM guidance to site possible.", "help");
+	return;
+	}
+
+#TAEM parameters calculation for latest entry stage 5 ( below 220 Nm// 407 km) // 304 Only
+else if ((pos.distance_to(TAEM_threshold) > 407440.0) and (major_mode == 304))
+	{
+	#setprop("/sim/messages/copilot", "No TAEM guidance to site possible.");
+	SpaceShuttle.callout.make("No TAEM guidance to site possible.", "help");
+	return;
+	}
+
+# if the threshold is defined and within range, we can construct a valid solution
+
+print("TAEM guidance available");
+if (major_mode != 304) {TAEM_guidance_available = 1;}
+setprop("/fdm/jsbsim/systems/ap/taem/auto-taem-master",1);
+
+#Reset of Sturns legality in case of TAEM recomputation 
+setprop("/fdm/jsbsim/systems/ap/taem/s-turn-treshold",0);
+
+
+var entry_point_string = getprop("/fdm/jsbsim/systems/taem-guidance/entry-point-string");
+
+var ep_distance = 7.0 * 1853.0;
+var ep_altitude = 12000.0 * 0.3048;
+
+if (entry_point_string == "MEP") 
+	{
+	ep_distance = 4.0 * 1853.0;
+	ep_altitude = 6000.0 * 0.3048;
+	}
+
+var aim_point_string = getprop("/fdm/jsbsim/systems/approach-guidance/aim-point-string");
+
+var ap_distance = 3000.0;
+
+if (aim_point_string = "CLSE")
+	{
+	ap_distance = ap_distance - 1000.0 * 0.3048;
+	}
+
+
+var runway_dir_vec = [math.sin(TAEM_threshold.heading * math.pi/180.0), math.cos(TAEM_threshold.heading * math.pi/180.0)];
+
+
+#print (TAEM_threshold.heading, " ", runway_dir_vec[0], " ", runway_dir_vec[1]);
+
+TAEM_WP_2.set_latlon(TAEM_threshold.lat() - m_to_lat * runway_dir_vec[1] * ep_distance,  TAEM_threshold.lon() - m_to_lon *runway_dir_vec[0] * ep_distance);
+TAEM_WP_2.set_alt(ep_altitude);
+
+# store the aim point
+
+TAEM_AP.set_latlon(TAEM_threshold.lat() - m_to_lat * runway_dir_vec[1] * ap_distance,  TAEM_threshold.lon() - m_to_lon *runway_dir_vec[0] * ap_distance);
+TAEM_AP.set_alt(TAEM_threshold.alt());
+
+
+# construct the edges of the HUD virtual runway
+
+TAEM_rwy_nl.set_latlon(TAEM_threshold.lat(), TAEM_threshold.lon(), TAEM_threshold.alt());
+TAEM_rwy_nl.apply_course_distance( (TAEM_threshold.heading - 180.0), 200.0); 
+TAEM_rwy_nl.apply_course_distance( (TAEM_threshold.heading - 90.0), 50.0); 
+
+TAEM_rwy_nr.set_latlon(TAEM_threshold.lat(), TAEM_threshold.lon(), TAEM_threshold.alt());
+TAEM_rwy_nr.apply_course_distance( (TAEM_threshold.heading - 180.0), 200.0); 
+TAEM_rwy_nr.apply_course_distance( (TAEM_threshold.heading + 90.0), 50.0); 
+
+TAEM_rwy_fl.set_latlon(TAEM_threshold.lat(), TAEM_threshold.lon(), TAEM_threshold.alt());
+TAEM_rwy_fl.apply_course_distance( TAEM_threshold.heading, TAEM_threshold.rwy_length); 
+TAEM_rwy_fl.apply_course_distance( (TAEM_threshold.heading - 90.0), 50.0);
+
+TAEM_rwy_fr.set_latlon(TAEM_threshold.lat(), TAEM_threshold.lon(), TAEM_threshold.alt());
+TAEM_rwy_fr.apply_course_distance( TAEM_threshold.heading, TAEM_threshold.rwy_length); 
+TAEM_rwy_fr.apply_course_distance( (TAEM_threshold.heading + 90.0), 50.0);
+
+# now construct the center of the HAC
+
+var approach_dir = pos.course_to(TAEM_WP_2);
+var approach_vec = [math.sin(approach_dir * math.pi/180.0), math.cos(approach_dir * math.pi/180.0)];
+
+#print (approach_dir, " ", approach_vec[0], " ", approach_vec[1]);
+
+var runway_perp_vec = [math.sin((TAEM_threshold.heading + 90) * math.pi/180.0), math.cos((TAEM_threshold.heading + 90) * math.pi/180.0)];
+
+var approach_dot_rwyperp = SpaceShuttle.dot_product_2d(approach_vec, runway_perp_vec);
+var approach_mode = getprop("/fdm/jsbsim/systems/taem-guidance/approach-mode-string");
+
+if ((approach_mode == "OVHD") and (approach_dot_rwyperp < 0.0)) # we need to flip direction
+	{
+	runway_perp_vec = [-runway_perp_vec[0], -runway_perp_vec[1]];
+	}
+if ((approach_mode == "STRT") and (approach_dot_rwyperp > 0.0)) # we need to flip direction
+	{
+	runway_perp_vec = [-runway_perp_vec[0], -runway_perp_vec[1]];
+	}
+
+
+#Radius final after HAC once spiraled inward (Rf = 14000 feet / 4270 m/2.3Nm)
+var hac_radius = 4270.0;
+
+#Nep 7 // MEP 4 
+if (entry_point_string == "MEP") 
+	{
+	#Same Hac size for MEP, just the target range change
+	#hac_radius = hac_radius * 0.57;
+	final_approach_reserve = 4.0;
+	}
+else {final_approach_reserve = 7.0;}
+
+#print(runway_perp_vec[0], " ", runway_perp_vec[1]);
+
+# HAC center is based on Final Radius (Rf = 14000 feet /4300m/ 2.3Nm) 
+TAEM_HAC_center.set_latlon(TAEM_WP_2.lat() + m_to_lat * runway_perp_vec[1] * hac_radius , TAEM_WP_2.lon() + m_to_lon * runway_perp_vec[0] *  hac_radius );
+TAEM_HAC_center.radius = hac_radius;
+
+# now, determine how much we have to turn and store the info
+
+
+var turn_degrees = math.abs(approach_dir - TAEM_threshold.heading);
+
+if ((turn_degrees < 180.0) and (approach_mode == "OVHD"))
+	{
+	turn_degrees = 360.0 - turn_degrees;
+	}
+else if ((turn_degrees > 180.0) and (approach_mode == "STRT"))
+	{
+	turn_degrees = 360.0 - turn_degrees;
+	}
+
+#Turn degrees stored for WP 1 construction depending on Turn degrees as radial will vary with it.
+
+setprop("/fdm/jsbsim/systems/taem-guidance/turn-hac-degrees", turn_degrees);
+print("Turn degrees: ", turn_degrees);
+
+
+
+
+# WP-1 is the tangent on the HAC which leads, after the turn, to a tangent pointing at the runway
+
+var wp1_vec = [-approach_vec[1], approach_vec[0]];
+var wp1_dot_rwy = SpaceShuttle.dot_product_2d(wp1_vec, runway_dir_vec);
+
+
+
+if ((wp1_dot_rwy < 0.0) and (approach_mode == "OVHD"))
+	{wp1_vec = [-wp1_vec[0], -wp1_vec[1]];}
+if ((wp1_dot_rwy > 0.0) and (approach_mode == "STRT"))
+	{wp1_vec = [-wp1_vec[0], -wp1_vec[1]];}
+
+
+
+#Hac factor done in Nasal to avoid Input/output latency for turn degrees
+
+var hac_factor_wp1 = 1.0;
+
+if (turn_degrees >= 270) {hac_factor_wp1 = 1.52 + ((turn_degrees - 270) * 0.35) / 90;}
+else if ((turn_degrees < 270) and (turn_degrees >= 180)) {hac_factor_wp1 = 1.21 + ((turn_degrees - 180) * 0.31) / 90;}
+else if ((turn_degrees < 180) and (turn_degrees >= 90)) {hac_factor_wp1 = 1.0 + ((turn_degrees - 90) * 0.21) / 90;}
+else {hac_factor_wp1 = 1.0;}
+
+# the WP 1 aim HAC entry point depends of the angle we have to fly at entry of the HAC (radius from 4.5 Nm to 2.3 Nm)
+TAEM_WP_1.set_latlon(TAEM_HAC_center.lat() + m_to_lat * wp1_vec[1] * hac_radius * hac_factor_wp1, TAEM_HAC_center.lon() + m_to_lon * wp1_vec[0] * hac_radius * hac_factor_wp1);
+
+
+
+#Formula based on TAEM guidance equations that takes into account the spiral inward (From 4.3 Nm max radius to 2.3Nm mini radius once NEP is reached)
+#Accuracy is better than to just take the Ri = Constant * hac_radius
+#TAEM_WP_1.distance_to_runway_m = 2.0 * math.pi * turn_degrees/360.0 * 1.14 * hac_radius + final_approach_reserve * 1853.0;
+
+TAEM_WP_1.turn_deg = turn_degrees;
+TAEM_WP_1.approach_dir = approach_dir;
+TAEM_WP_1.distance_to_runway_m = (hac_radius * turn_degrees + 0.028 * math.pow(turn_degrees,3.0) / 3) / 57.3 + final_approach_reserve * 1853.0;
+TAEM_WP_1.hac_radius = hac_factor_wp1 * hac_radius;
+
+
+# now figure out what direction to turn onto the HAC
+
+var test_vec = [runway_perp_vec[1], -runway_perp_vec[0]];
+
+
+
+var turn_direction = "right";
+
+if (SpaceShuttle.dot_product_2d(runway_dir_vec, test_vec) > 0.0)
+	{
+	turn_direction = "left";
+	}
+
+
+
+TAEM_WP_1.turn_direction = turn_direction;
+
+if (turn_direction == "right")
+	{setprop("/fdm/jsbsim/systems/ap/taem/set-bank-target", 30.0);}
+else
+	{setprop("/fdm/jsbsim/systems/ap/taem/set-bank-target", -30.0);}
+
+TAEM_guidance_phase = 1;
+
+# tell gliding RTLS AP that we're done with alpha transition
+
+setprop("/fdm/jsbsim/systems/ap/grtls/taem-transition-init", 1);
+
+# tell light manager to switch runway lights on
+
+SpaceShuttle.light_manager.set_theme("RUNWAY");
+
+
+
+#No guidance loop for entry
+if ((TAEM_loop_running == 0) and (major_mode != 304))
+	{TAEM_guidance_loop(0, 0.0);}
+}
+
+
+# the central TAEM guidance loop #########################################################
+
+
+var TAEM_guidance_loop = func (stage, radius_error_last) {
+
+TAEM_loop_running = 1;
+
+#var pos = geo.aircraft_position();
+
+var pos = state_vector_position();
+var mach = getprop("/fdm/jsbsim/velocities/mach");
+
+#Altitude above Runway Threshold for Path calculations
+var alt_qfe = getprop("/position/altitude-ft") - SpaceShuttle.TAEM_threshold.elevation;
+
+#Wp1 distance
+var dist_wp1 = pos.distance_to(TAEM_WP_1) / 1853.0;
+
+TAEM_predictor_set.update();
+
+if (TAEM_guidance_available == 0)
+	{
+	TAEM_loop_running = 0;
+	return;
+	} 
+
+update_HUD_symbology(pos);
+
+#area_nav_set.update_signals();
+
+
+if (stage == 0) # glide to WP 1
+	{
+	var course = pos.course_to(TAEM_WP_1);
+		
+	setprop("/fdm/jsbsim/systems/taem-guidance/course", course);
+
+	var heading = getprop("/orientation/heading-deg");
+
+	var delta_az = course - heading;
+	if (delta_az > 180.0) {delta_az = delta_az - 360.0;}
+	if (delta_az < -180.0) {delta_az = delta_az + 360.0;}
+
+	setprop("/fdm/jsbsim/systems/taem-guidance/delta-azimuth-deg", delta_az);
+	
+	
+	var dist_to_go = dist_wp1 + TAEM_WP_1.distance_to_runway_m/1853.0;
+	setprop("/fdm/jsbsim/systems/taem-guidance/distance-to-runway-nm", dist_to_go);
+
+	var glideslope_deviation = SpaceShuttle.get_glideslope_deviation(alt_qfe, dist_to_go);
+	
+
+	#Clamp here GS deviation to avoid huge value in vspeed target (taem ap)
+	#Max 5000 ft low gives (-0.04 * 5000 = 200 ft/s of correction ie. zero gamma regarding hdot ref taem)
+	#Pull Up logic for high mach: If entering HAC in supersonic, pitch up agressively ( up to 2G's) to go subsonic to enable SB E/W management and then dive to catch the path ( up to 30° pitch down according to Handbook)
+	#Huge GS deviation Bias introduced to make the AP think that we are low on GS, hence a decrease in Vertical speed commanded (pull up)
+
+
+	if ((mach > 1.0) and (dist_wp1 < 10.0)) #Pull up 10.0 Nm before entering the HAC to be subsonic once into it 
+		{
+		#10000 feet low Bias ---> Hdot of + 400 feetish commanded // 2Gish Nz max
+		setprop("/fdm/jsbsim/systems/taem-guidance/glideslope-deviation-ft", 7500);
+		}
+	else
+		{
+		glideslope_deviation = SpaceShuttle.clamp(glideslope_deviation, -10000, 5000);
+		setprop("/fdm/jsbsim/systems/taem-guidance/glideslope-deviation-ft", glideslope_deviation);
+		}
+
+	TAEM_energy_management();
+
+
+	#Same Logic than entering a DME arc (turn initation = GS/200 Nm before the Arc)
+	#Intial bank angle equal to a standard rate turn: Bank = arctan(Gs/364) / 3°.sec turn // approx formula GS/10 + 7
+	#Results OK : Better initial guidance into the HAC
+	#var groundspeed_kt = getprop("/velocities/groundspeed-kt");
+	#var bank_standard_turn = (groundspeed_kt / 10) + 7;
+
+	###30 ° of mean value for the hac turn is the sweet spot (ap.xml adjusted)
+
+
+
+	if (dist_wp1 < 1.5) {
+			
+			var turn_direction = TAEM_WP_1.turn_direction;
+			#setprop("/sim/messages/copilot", "Turn "~turn_direction~" into HAC!");
+			SpaceShuttle.callout.make("Turn "~turn_direction~" into HAC!", "help");
+			TAEM_guidance_phase = 2;
+			
+			if (turn_direction == "right")
+				{setprop("/fdm/jsbsim/systems/ap/taem/set-bank-target", 30);}
+			else
+				{setprop("/fdm/jsbsim/systems/ap/taem/set-bank-target", -30);}
+			TAEM_guidance_string = "HDG";
+
+			SpaceShuttle.callout.make("Commander, you should take CSS by now and make John Young proud of you", "help");
+			setprop("/fdm/jsbsim/systems/ap/taem/hac-turn-init", 1);
+			print("Waypoint 1 reached!"); 	stage = stage + 1;
+			}
+
+	}
+else if (stage == 1) # turn around HAC
+	{
+
+	TAEM_guidance_string = "HDG";
+	
+
+	var distance_to_runway = getprop("/fdm/jsbsim/systems/taem-guidance/distance-to-runway-nm");
+	var groundspeed_kt = getprop("/velocities/groundspeed-kt");
+	
+
+	#Factor difference between MEP and NEP ( 3Nm difference for distance remaining)
+	#Distance to runway in HAC // A/L transition distance to runway  and handover with MEP or NEP logic
+
+	var dist_al = 7.5;
+	var alti_transition = 14000;
+	var entry_point_string = getprop("/fdm/jsbsim/systems/taem-guidance/entry-point-string");
+	var hac_radius_factor_mep = getprop("fdm/jsbsim/systems/ap/taem/hac-radius-factor-mep");
+	var hac_radius_factor_nep = getprop("fdm/jsbsim/systems/ap/taem/hac-radius-factor-nep");
+	var hac_radius_factor = 1.0;
+	#var alt = getprop("/position/altitude-ft");
+	
+	if (entry_point_string == "MEP") 
+		{
+		dist_al = 4.5;
+		alti_transition = 9000;
+		hac_radius_factor = hac_radius_factor_mep;
+		}
+	else 
+		{
+		dist_al = 7.5;
+		alti_transition = 15000;
+		hac_radius_factor = hac_radius_factor_nep;
+		}
+
+	#HAC radius error // hac radius factor to take into the spiral inward and radius shrink from 4.3Nm max to 2.3Nm Radius final
+
+	var radius_error = hac_radius_factor * TAEM_HAC_center.radius - pos.distance_to(TAEM_HAC_center);
+	var rdot = (radius_error - radius_error_last)/0.2;
+	if (radius_error_last == -1.0) {rdot = 0.0;}
+	radius_error_last  = radius_error;
+	setprop("/fdm/jsbsim/systems/taem-guidance/radial-error-nm", radius_error/ 1853.);
+	setprop("/fdm/jsbsim/systems/taem-guidance/rdot-fps", rdot / 0.3048);
+
+	
+	#Smooth transition for distance remaining to runway (from angular distance into the HAC to a direct distance once Xrange decreased enough)
+
+	#HAC radial error added in case of large overshoot of HAC entry (High Speed , HAC more than 270 °, etc)
+	if (alt_qfe > alti_transition) {distance_to_runway = distance_to_runway - 0.2 * groundspeed_kt / 3600 - 0.2 * rdot / 1853;}
+
+	#Transition to direct distance once X track below 5kfeet ish ( we do it in terms of transition altitude // avoid to call back all the cross track logic and same efficiency)
+	else {distance_to_runway = pos.distance_to(TAEM_threshold) / 1853.0;}
+	
+	setprop("/fdm/jsbsim/systems/taem-guidance/distance-to-runway-nm", distance_to_runway);
+	
+
+
+	#Clamp here GS deviation to avoid huge value in vspeed target (taem ap)
+	#Max 5000 ft low gives (-0.04 * 5000 = 200 ft/s of correction ie. zero gamma regarding hdot ref taem)
+	#Pull up logic to be continued in the HAC if mach still above 1
+
+	var glideslope_deviation = SpaceShuttle.get_glideslope_deviation(alt_qfe, distance_to_runway);
+	
+	if (mach > 1.0)
+		{
+		#Level off if Supersonic (pull up also in ap.xml once in hac / line 1912)
+		setprop("/fdm/jsbsim/systems/taem-guidance/glideslope-deviation-ft", 0);
+		}
+	else
+		{
+		glideslope_deviation = SpaceShuttle.clamp(glideslope_deviation, -10000, 5000);
+		setprop("/fdm/jsbsim/systems/taem-guidance/glideslope-deviation-ft", glideslope_deviation);
+		}
+
+	
+	
+
+	TAEM_energy_management();
+
+	var heading = getprop("/orientation/heading-deg");
+	var delta_az = TAEM_threshold.heading - heading;
+	
+
+	if (delta_az > 180.0) {delta_az = delta_az - 360.0;}
+	if (delta_az < -180.0) {delta_az = delta_az + 360.0;}
+
+
+
+	#Then A/L transition (between 12k and 6kft // 7 Nm and 4 Nm // NEP and MEP)
+
+	if ((distance_to_runway < dist_al) or ((math.abs(delta_az) < 10.0) and (alt_qfe < alti_transition)))
+		{
+		TAEM_guidance_phase = 3;
+		print("TAEM guidance finished.");
+		#setprop("/sim/messages/copilot", "Take CSS and turn into final!");
+		SpaceShuttle.callout.make("Take CSS and turn into final!", "help");
+		setprop("/fdm/jsbsim/systems/ap/taem/set-bank-target", 0.0);
+		setprop("/fdm/jsbsim/systems/ap/taem/hac-turn-init", 0);
+		setprop("/fdm/jsbsim/systems/ap/taem/s-turn-init", 0);
+		setprop("/fdm/jsbsim/systems/ap/taem/al-init", 1);
+
+		TAEM_guidance_string = "PREFNL";
+		approach_guidance_loop();
+
+		settimer( func {
+		
+		setprop("/fdm/jsbsim/systems/ap/automatic-pitch-control", 0);
+		setprop("/fdm/jsbsim/systems/ap/css-pitch-control", 1);
+		setprop("/fdm/jsbsim/systems/ap/automatic-roll-control", 0);
+		setprop("/fdm/jsbsim/systems/ap/css-roll-control", 1);
+
+		}, 5.0);
+
+
+		stage = 2;
+		}
+	}
+else if (stage == 2)
+	{
+	
+	#Direct distance to TD zone like in A/L transition
+	var dist_thresh = pos.distance_to(TAEM_threshold) / 1853.0;
+	setprop("/fdm/jsbsim/systems/taem-guidance/distance-to-runway-nm", dist_thresh);
+
+	#GS available in A/L // Datas in vert_traj.nas up to 2 Nm (reliable)
+	var glideslope_deviation = SpaceShuttle.get_glideslope_deviation(alt_qfe, dist_thresh);
+	setprop("/fdm/jsbsim/systems/taem-guidance/glideslope-deviation-ft", glideslope_deviation);
+
+	if (dist_thresh < 0.2) {return;}
+	}
+
+
+settimer( func {TAEM_guidance_loop(stage, radius_error_last); }, 0.2);
+
+}
+
+
+# TAEM energy management - speedbrake and S-Turns #################################################
+
+var TAEM_energy_management = func {
+
+var major_mode = getprop("/fdm/jsbsim/systems/dps/major-mode");
+
+# no TAEM energy management during powered RTLS
+if (major_mode == 601) {return;}
+	
+
+SpaceShuttle.body_flap_management();
+
+
+#First Energy Logic (Thorsten)
+	var distance_to_runway = getprop("/fdm/jsbsim/systems/taem-guidance/distance-to-runway-nm");
+	var alt = getprop("/position/altitude-ft") * 0.3048;
+	var gsld = getprop("/fdm/jsbsim/systems/taem-guidance/glideslope-deviation-ft") * 0.3048;
+	var nominal_alt = gsld + alt;
+
+	var speed_kts = getprop("/fdm/jsbsim/velocities/ve-kts");
+
+	var speed = speed_kts * 1853.0 / 3600.0;
+	var nominal_speed = 270.0 * 1853.0 / 3600.0;
+	
+
+	var g = 9.81;
+
+	var E_act = g * alt + speed * speed;
+	var E_nom = g * nominal_alt + nominal_speed * nominal_speed;
+
+	var E_ratio = E_act/E_nom;
+
+	var dH_equiv_ft = (E_act - E_nom)/g / 0.3048;
+
+	setprop("/fdm/jsbsim/systems/taem-guidance/energy-ratio", E_ratio);
+	setprop("/fdm/jsbsim/systems/taem-guidance/dH-equiv-ft", dH_equiv_ft);
+
+
+#Latest Energy Logic (Jan 2021)
+
+var EW_actual = getprop("/fdm/jsbsim/systems/entry_guidance/taem-EW-actual-ratio-ft");
+var EW_sturn = getprop("/fdm/jsbsim/systems/entry_guidance/taem-EW-sturn-ratio-ft");
+var EW_nominal = getprop("/fdm/jsbsim/systems/entry_guidance/taem-EW-nominal-ratio-ft");
+var EW_mep = getprop("/fdm/jsbsim/systems/entry_guidance/taem-EW-mep-ratio-ft");
+var eas_nominal = getprop("/fdm/jsbsim/systems/entry_guidance/taem-nominal-eas-kts"); 
+var entry_point_string = getprop("/fdm/jsbsim/systems/taem-guidance/entry-point-string");
+var hac_turn_degrees = getprop("/fdm/jsbsim/systems/taem-guidance/turn-hac-degrees");
+var sd = eas_nominal - speed_kts;
+
+
+
+
+	
+#Flag to end Sturn when energy is back 10000 ft above Nominal EW 
+var sturn_init = getprop("/fdm/jsbsim/systems/ap/taem/s-turn-init"); 
+var sturn_treshold = getprop("/fdm/jsbsim/systems/ap/taem/s-turn-treshold"); 
+var EW_sturn_end = EW_nominal + 10000;
+
+
+
+
+# S-turns if lots of energy is to be depleted  // Actual EW above Sturn EW
+
+if ((EW_actual > EW_sturn) and (TAEM_guidance_phase == 1) and (sturn_treshold == 0))
+	{
+	
+	##Sturns illegal (1)
+	#OPS 3 TAEM // S turns between 25 and 55 Nm and for HAC less than 200 °
+	if ((major_mode == 305) and ((distance_to_runway < 25) or (distance_to_runway > 55) or (hac_turn_degrees > 200))) 
+		{
+		setprop("/fdm/jsbsim/systems/ap/taem/s-turn-treshold",1);
+		return;
+		}
+
+	#OPS 6 GRTLS // S turns above 35 Nm and no HAC turn degrees restriction
+	else if ((major_mode == 603) and (distance_to_runway < 35))
+		{
+		setprop("/fdm/jsbsim/systems/ap/taem/s-turn-treshold",1);
+		return;
+		}
+
+	##If Sturns legal (2)
+	else {setprop("/fdm/jsbsim/systems/ap/taem/s-turn-treshold",2);}
+	}
+
+
+else if (sturn_treshold == 2)
+	{
+	TAEM_guidance_string = "S-TURN";
+		
+
+		#Bank to 30° for OPS 3 and 45° for OPS 6 S-turn
+		var bank_value = 30.0;
+		if (major_mode == 603) {bank_value = 45.0;}
+
+		if (sturn_init == 1) # we are in a turn
+			{
+			var delta_az = getprop("/fdm/jsbsim/systems/taem-guidance/delta-azimuth-deg");
+			if (delta_az > 30.0)		
+				{
+				if (getprop("/fdm/jsbsim/systems/ap/taem/set-bank-target") == -bank_value)
+					{
+					#setprop("/sim/messages/copilot", "S-turn reversal!");
+					SpaceShuttle.callout.make("S-turn reversal!", "info");
+					}
+
+				setprop("/fdm/jsbsim/systems/ap/taem/set-bank-target", bank_value);
+
+				}
+			else if (delta_az < -30.0)
+				{
+				if (getprop("/fdm/jsbsim/systems/ap/taem/set-bank-target") == bank_value)
+					{
+					#setprop("/sim/messages/copilot", "S-turn reversal!");
+					SpaceShuttle.callout.make("S-turn reversal!", "info");
+					}
+				setprop("/fdm/jsbsim/systems/ap/taem/set-bank-target", -bank_value);
+				}
+
+			}
+		else
+			{
+			setprop("/fdm/jsbsim/systems/ap/taem/set-bank-target", bank_value);
+			#setprop("/sim/messages/copilot", "Initiating S-turn to deplete energy!");
+			SpaceShuttle.callout.make("Initiating S-turn to deplete energy!", "info");
+			setprop("/fdm/jsbsim/systems/ap/taem/s-turn-init",1);
+		
+			}
+	
+	#Ending condition// TAEM recomputation as we moved from initial WP1 trajectory
+	if (EW_actual < EW_sturn_end) 
+		{
+		SpaceShuttle.compute_TAEM_guidance_targets();
+		setprop("/fdm/jsbsim/systems/ap/taem/s-turn-treshold",0);
+		}
+	}
+	
+
+
+#No Sturn and Sturn trigger reset de EW sturn
+else if (((EW_actual < EW_sturn) and (sturn_treshold == 0)) or (sturn_treshold == 1))
+	{
+	if (TAEM_guidance_phase == 1)
+		{TAEM_guidance_string = "ACQ";}
+	else
+		{TAEM_guidance_string = "HDG";}
+	setprop("/fdm/jsbsim/systems/ap/taem/s-turn-init",0);
+	}
+
+
+# auto-SB (TAEM Guidance book/ Entry Handbook)
+
+var mach = getprop("/fdm/jsbsim/velocities/mach");
+var sb_max = 0.65;
+#var hac_init = getprop("/fdm/jsbsim/systems/ap/taem/hac-turn-init");
+var altitude_ft_qfe = getprop("/position/altitude-ft") - SpaceShuttle.TAEM_threshold.elevation;
+#Wp1 distance
+var pos = state_vector_position();
+var dist_wp1 = pos.distance_to(TAEM_WP_1) / 1853.0;
+
+#Between mach 2.5 and 0.95, SB at 65 % unless S turn engaged or approaching hac in supersonic // then below mach 0.95 SB modulation to maintain E/W nominal up to 15kfeet
+
+if ((mach > 1.0) and (sturn_init == 0)) #Fix SB setting
+	{
+	if (dist_wp1 < 10) {sb_max = 1.0;}
+	else {sb_max = 0.65;}
+	}
+else if (sturn_init == 1) #S-turn // Full SB
+	{
+	sb_max = 1.0;
+	}
+else #E/W SB management
+	{
+	#Normal/neutral position for SB is 0.25 ( 25 ° ie. no Cd/Cl/Cm with new FDM as per wind data tunnel)
+	var sb_max = 0.25;
+	
+	if (altitude_ft_qfe > 22000) #E/W management
+		{
+		sb_max = getprop("/fdm/jsbsim/systems/entry_guidance/taem-SB-EW-management");
+		}
+	else  #Transition to A/L SB management (qbar/EAS management)
+		{
+		sb_max = getprop("/fdm/jsbsim/systems/entry_guidance/taem-SB-eas-management");
+		}
+		
+
+	# we're short on energy and never use SB below Mach 0.95 (neutral at 0.25 % ie. 25 ° with latest Cl/d SB // Cl and Cd = 0 at 25°)
+	#MEP boundary before HAC
+	#Handled by the low energy SB management directly
+		#if ((EW_actual < EW_mep) and (SpaceShuttle.TAEM_guidance_phase < 2))
+			#{
+			#sb_max = 0.25;
+			#}
+
+	#Initial Thorsten SB logic
+		#sd = eas_nominal - speed_kts;
+		#if (sd < -5.0)
+		#	{sb_max = 1.0;}
+		#else if ((sd > -5.0) and (sd < 5.0))
+		#	{sb_max = 0.8;}
+		#else if ((sd > 5.0) and (sd < 15.0))
+		#	{sb_max = 0.6;}
+		#else if ((sd > 15.0) and (sd < 25.0))
+		#	{sb_max = 0.4;}
+		#else if (sd > 25)
+		#	{sb_max = 0.25;}
+	}
+
+
+
+
+if (getprop("/fdm/jsbsim/systems/ap/automatic-sb-control") == 1)	
+	{
+	var sb_state = getprop("/controls/shuttle/speedbrake");
+
+	if (sb_state > sb_max) {SpaceShuttle.decrease_speedbrake();}
+	else if (sb_state < sb_max) {SpaceShuttle.increase_speedbrake();}
+	}
+
+}
+
+# smart flare guidance ##################################################################
+
+var smart_flare  = func (alt_agl, airspeed, vspeed) {
+
+var alt_m = alt_agl * 0.3048;
+var vspeed_m = vspeed * 0.3048;
+var hspeed_m = math.sqrt(math.pow(airspeed * 0.514, 2.0) - math.pow(vspeed_m, 2.0));
+
+var alt_tgt_m = 150.0 * 0.3048;
+var alpha = getprop ("fdm/jsbsim/aero/alpha-deg");
+var angle = -getprop("/orientation/pitch-deg") + alpha;
+var angle_tgt = 1.5;
+var angle_rad = angle * math.pi/180.0;
+var angle_tgt_rad = angle_tgt * math.pi/180.0; 
+
+
+var t = (alt_m - alt_tgt_m) / (0.5 *  hspeed_m * (angle_rad + angle_tgt_rad ));
+var a = (angle - angle_tgt) / t;
+
+return a;
+
+}
+
+
+# the  approach guidance loop ###########################################################
+
+
+var approach_guidance_loop = func {
+
+SpaceShuttle.body_flap_management();
+
+#var pos = geo.aircraft_position();
+
+var pos = state_vector_position();
+
+var dist = pos.distance_to(TAEM_threshold);
+var course = pos.course_to(TAEM_threshold);
+var heading = getprop("/orientation/heading-deg");
+
+var alt_agl = getprop("/position/altitude-agl-ft");
+var vspeed = getprop("/fdm/jsbsim/velocities/v-down-fps");
+var airspeed = getprop("/fdm/jsbsim/velocities/ve-kts");
+
+update_HUD_symbology(pos);
+
+if (TAEM_guidance_phase == 3) 
+	{
+	if ((math.abs (course-heading) < 10.0) and (math.abs(HUD_data_set.vangle_aim - 17.0) < 10.0))
+		{
+		# we acquired glideslope
+		HUD_data_set.MLS_acquired = 1;
+		TAEM_guidance_phase = 4;
+		TAEM_guidance_string = "OGS";
+		}
+	}
+
+if (TAEM_guidance_phase == 4)
+	{
+	
+	var GLSD = (HUD_data_set.vangle_aim - 17.0);
+	HUD_data_set.vangle_guidance = 17.0 + 1.5 * GLSD;
+
+	
+
+	var sb_max = 0.25;
+	var final_sb_flag = 0;
+	
+
+
+	#Approach/Landing Handbook logic and values
+
+	# auto-SB control  (Max 300 kts with SB full extended) above 3000 ft QFE
+	if (alt_agl > 3000.0) {sb_max = getprop("/fdm/jsbsim/systems/entry_guidance/taem-SB-eas-management");}
+
+	# Fix SB setting below 3000 ft QFE
+	else if ((alt_agl < 3000.0) and (final_sb_flag == 0))
+		{
+		var sb_eas_factor = getprop("/fdm/jsbsim/systems/entry_guidance/taem-SB-eas-flare-management"); #Wind and Eas factor
+		var sb_mode = getprop("/fdm/jsbsim/systems/approach-guidance/speedbrake-mode-string"); #Lower TD speed targeted for Short // Shorter touchdown zone and lower speed targeted for ELS
+		var weight_final = getprop("/fdm/jsbsim/inertia/weight-lbs"); #Light/ Heavy/ Super heavy weight boundaries ( 222 klbs // 245 klbs)
+		var aim_point_string = getprop("/fdm/jsbsim/systems/approach-guidance/aim-point-string"); #Close In Vs Normal aimpoint ( More energy to be dissipated for close in)
+
+		#SB factor variables for standard configuration (Nominal SB and aim point / Lightweight)
+		var sb_option = 0;
+		var sb_aim_point = 0;
+		var sb_weight = 0;
+
+		#Nominal: Touchdown zone at 2500 feet / Lightweight speed 195kts / Heavy 205kts
+		#Short: Touchdown zone at 1500 feet / Lightweight speed 195kts / Heavy 205 kts ( plus 10% Speedbrakes to land shorter)
+		#ELS: Touchdown zone at 1000 feet / Heavyweight only 195kts (plus 25% speedbrakes to land slower and shorter) // Mainly for Abort 
+
+		#Sb mode factor
+		if (sb_mode == "SHORT") {sb_option = 0.10;}
+		else if (sb_mode == "ELS") {sb_option = 0.25;}
+
+		#Aim point factor
+		if (aim_point_string == "CLSE") {sb_aim_point = 0.1;}
+		
+
+		#Weight factor
+		if (weight_final > 222000) {sb_weight = 0.1;}
+
+		
+		#Final setting (Max 80% of SB)
+
+		sb_max = math.min(sb_eas_factor + sb_option + sb_aim_point + sb_weight, 0.8);
+		
+		#One time loop and setting
+		final_sb_flag = 1;
+		}
+
+	if (getprop("/fdm/jsbsim/systems/ap/automatic-sb-control") == 1)	
+		{
+		var sb_state = getprop("/controls/shuttle/speedbrake");
+
+		if (sb_state > sb_max) {SpaceShuttle.decrease_speedbrake();}
+		else if (sb_state < sb_max) {SpaceShuttle.increase_speedbrake();}
+		
+		}
+	
+
+	if (alt_agl < 2000.0)
+		{
+		# we initiate pre-flare
+		TAEM_guidance_phase = 5;
+		TAEM_guidance_string = "FLARE";
+		}
+	}
+
+if (TAEM_guidance_phase == 5)
+	{
+
+	# use smart pull-up guidance
+
+	var pull_up_speed = smart_flare (alt_agl, airspeed, vspeed);
+	var dt = getprop("/sim/time/delta-sec");
+
+
+	HUD_data_set.vangle_guidance = HUD_data_set.vangle_guidance - pull_up_speed * dt;
+	if (HUD_data_set.vangle_guidance < 1.5)
+		{HUD_data_set.vangle_guidance = 1.5;}
+
+	if (vspeed < 15.0)
+		{
+		# transit to inner glideslope
+		TAEM_guidance_phase = 6;
+		TAEM_guidance_string = "IGS";
+		}
+
+	if (alt_agl < 50.0)
+		{
+		TAEM_guidance_phase = 7;
+		TAEM_guidance_string = "FNLFL";
+		HUD_data_set.vangle_guidance = 0.1;
+		}
+
+	}
+
+
+if (TAEM_guidance_phase == 6) 
+	{
+	var dt = getprop("/sim/time/delta-sec");
+	HUD_data_set.vangle_guidance = HUD_data_set.vangle_guidance - 1.5 * dt;
+	if (HUD_data_set.vangle_guidance < 1.5)
+		{HUD_data_set.vangle_guidance = 1.5;}
+	
+
+	if (alt_agl < 50.0)
+		{
+		TAEM_guidance_phase = 7;
+		TAEM_guidance_string = "FNLFL";
+		HUD_data_set.vangle_guidance = 0.1;
+		}
+
+
+	}
+
+if (airspeed < 170.0) 
+	{
+	print ("Approach guidance signing off!");
+	return;
+	}
+
+settimer( approach_guidance_loop, 0.0);
+
+}
+
+
+
+# virtual rwy symbology for the HUD #######################################################
+
+var update_HUD_symbology = func (pos) {
+
+
+var vdist = pos.alt() - TAEM_threshold.alt();
+var heading = getprop("/orientation/heading-deg");
+
+
+# aim point and touchdown point
+
+var dist = pos.distance_to(TAEM_threshold);
+var course = pos.course_to(TAEM_threshold);
+var vAngle_rad = math.atan2(vdist, dist);
+
+var aim_dist = pos.distance_to(TAEM_AP);
+var aim_course= pos.course_to(TAEM_AP);
+var vAimAngle_rad = math.atan2(vdist, aim_dist);
+
+HUD_data_set.vangle_aim = vAimAngle_rad * 180.0/math.pi;
+HUD_data_set.hangle_aim = (aim_course - heading);
+
+HUD_data_set.vangle_threshold = math.atan2(vdist, dist) * 180.0/math.pi;
+HUD_data_set.hangle_threshold = (course - heading);
+
+# virtual runway edges
+
+var nr_dist = pos.distance_to(TAEM_rwy_nr);
+var nr_course = pos.course_to(TAEM_rwy_nr);
+
+HUD_data_set.vangle_nr = math.atan2(vdist, nr_dist) * 180.0/math.pi;
+HUD_data_set.hangle_nr = (nr_course - heading);
+
+
+var nl_dist = pos.distance_to(TAEM_rwy_nl);
+var nl_course = pos.course_to(TAEM_rwy_nl);
+
+HUD_data_set.vangle_nl = math.atan2(vdist, nl_dist) * 180.0/math.pi;
+HUD_data_set.hangle_nl = (nl_course - heading);
+
+var fr_dist = pos.distance_to(TAEM_rwy_fr);
+var fr_course = pos.course_to(TAEM_rwy_fr);
+
+HUD_data_set.vangle_fr = math.atan2(vdist, fr_dist) * 180.0/math.pi;
+HUD_data_set.hangle_fr = (fr_course - heading);
+
+
+var fl_dist = pos.distance_to(TAEM_rwy_fl);
+var fl_course = pos.course_to(TAEM_rwy_fl);
+
+HUD_data_set.vangle_fl = math.atan2(vdist, fl_dist) * 180.0/math.pi;
+HUD_data_set.hangle_fl = (fl_course - heading);
+
+}
+
+
+
+# set threshold for TAEM guidance #########################################################
+
+var set_TAEM_threshold = func (site_string, runway_string) {
+
+
+var data = SpaceShuttle.landing_site_data.entry_by_name(site_string);
+
+if (data.name != site_string)
+	{
+	SpaceShuttle.callout.make("No TAEM guidance data to site available.", "help");
+	TAEM_threshold.set_lat(0.0);
+	TAEM_threshold.set_lon(0.0);
+	return;
+	}
+
+if (data.rwy_pri == runway_string)
+	{
+	TAEM_threshold.set_latlon(data.TAEM_pri_lat, data.TAEM_pri_lon);
+	TAEM_threshold.heading = data.TAEM_pri_heading;	
+	TAEM_threshold.elevation = data.TAEM_pri_elevation;
+	TAEM_threshold.MLS_channel = data.TAEM_pri_MLS_channel;
+	TAEM_threshold.MLS_available = data.TAEM_pri_MLS_flag;
+	TAEM_threshold.set_alt(TAEM_threshold.elevation * 0.3048);
+	TAEM_threshold.rwy_length = data.TAEM_rwy_length;
+	}
+else
+	{
+	TAEM_threshold.set_latlon(data.TAEM_sec_lat, data.TAEM_sec_lon);
+	TAEM_threshold.heading = data.TAEM_sec_heading;	
+	TAEM_threshold.elevation = data.TAEM_sec_elevation;
+	TAEM_threshold.MLS_channel = data.TAEM_sec_MLS_channel;
+	TAEM_threshold.MLS_available = data.TAEM_sec_MLS_flag;
+	TAEM_threshold.set_alt(TAEM_threshold.elevation * 0.3048);
+	TAEM_threshold.rwy_length = data.TAEM_rwy_length;
+	}
+
+
+
+}
+
+#Dist in Nm with distance to runway nm in hsit.nas
+
+var get_hsit_scale = func (dist) {
+
+var hac_init = getprop("/fdm/jsbsim/systems/ap/taem/hac-turn-init");
+var al_init = getprop("/fdm/jsbsim/systems/ap/taem/al-init");
+
+#Scale almost constant up to Hac intercept
+if ((hac_init == 0) and (al_init == 0))
+	{
+	if (dist > 70) {return 0.2;} #70Nm (Vert traj 1 boundary)
+	else if (dist < 25) {return 1.0;} #28 Nm (360 ° HAC)
+	else {return 1.0 - 0.8 * ((dist - 25)/45);}
+	}
+
+#Then it really starts to get bigger up to A/L
+else if (hac_init == 1)
+	{
+	if (dist > 25) {return 1.0;} #26 Nm 360° HAC
+	else if (dist < 7) {return 2.5;} #7 Nm A/L
+	else {return 2.5 - 1.5 * ((dist - 7)/18);}
+	}
+
+#Runway in A/L even bigger 
+else if (al_init == 1)
+	{
+	return 3.0;
+	}
+
+
+}
+
+
+var get_hsit_x = func (dist, rel_angle, scale) {
+
+var dist_x = math.sin(rel_angle) * dist;
+return x = 265 + dist_x / 240.0 * scale;
+
+
+}
+
+var get_hsit_y = func (dist, rel_angle, scale) {
+
+var dist_y = math.cos (rel_angle) * dist;
+return 265 - dist_y / 240.0 * scale;
+
+}

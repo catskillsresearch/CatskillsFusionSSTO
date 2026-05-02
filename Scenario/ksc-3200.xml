@@ -1,0 +1,32 @@
+<?xml version="1.0" ?>
+
+<PropertyList>
+
+
+<metadata>
+	<mission-stage type="int">2</mission-stage>
+	<title type="string">3200 mn to KSC</title>
+</metadata>
+
+
+<state>
+	<lat>-9.78312342867</lat>
+	<lon>-119.780174911</lon>
+	<alt>400000.0</alt>
+	<u-body>23899.13</u-body>
+	<v-body>95.1139</v-body>
+	<w-body>433.53</w-body>
+	<heading>44.72</heading>
+	<pitch>0.7252</pitch>
+	<roll>0.0</roll>
+</state>
+
+<guidance>
+	<landing-site-index>1</landing-site-index>
+	<entry-guidance-on>1</entry-guidance-on>
+</guidance>
+
+
+
+
+</PropertyList>

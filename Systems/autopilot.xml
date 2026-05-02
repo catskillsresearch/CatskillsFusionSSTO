@@ -1,0 +1,5422 @@
+<?xml version="1.0"?>
+
+<system>
+
+	<!-- This contains AP routines for the orbital DAP set to 'Auto' -->
+ 	<!--  for auto-launch, entry and TAEM--> 
+	<!-- as well as abort-specific flight rules for TAL, RTLS and contingency aborts -->
+
+	<!-- Orbital DAP largely follows the universal pointing menu -->
+	<!-- the main mode is given by up-mnvr-flag,  modes are -->
+
+	<!-- 1: MNVR (maneuver to a specified inertial attitude) -->
+	<!-- 2: TRK  (track a specified location) -->
+	<!-- 3: ROT  (hold current axis and rotate around it) -->
+	<!-- 0: CNCL (cancel the current maneuver) -->
+
+	<!-- the OMS maneuver uses oms-mnvr-flag instead, modes are -->
+
+
+	<!-- 1: BURN ATT (maneuver to burn attitude) -->
+	<!-- 2: BURN ATT ERR (compute errors without automatic maneuvering commands -->
+	<!-- 0: CNCL (cancel manever)-->
+
+	<!-- For track and rotation, the body vector can be defined as body-vector-selection -->
+	
+	<!-- 1: +X -->
+	<!-- 2: -X -->
+	<!-- 3: -Z (from the payload bay upward) -->
+
+
+	<!-- for  aborts, the following encoding for abort-mode is used: -->
+
+	<!-- 1: RTLS -->
+	<!-- 2: TAL -->
+	<!-- 3: ATO -->
+	<!-- 4: AOA -->
+	<!-- 5: Contingency BLUE 2EO -->
+	<!-- 6: Contingency GREEN 2EO -->
+	<!-- 7: Contingency YELLOW 2EO -->
+	<!-- 8: Contingency ORANGE 2EO -->
+	<!-- 9: Contingency RED 2EO (not implemented) -->
+
+	<!-- 10: Contingency BLUE 3EO (not implemented) -->
+	<!-- 11: Contingency GREEN 3EO (not implemented) -->
+
+	<!-- all contingency aborts use RTLS software and guidance i.e. guidance-mode = 3 -->
+
+	<!-- the ET separation mode  (for contingency aborts) is controlled by etsep-mode -->
+	
+	<!-- 3: high rate sep, vehicle pitches down at 3-8 degree per second during separation -->
+	<!-- 4: alpha = -2 deg sep --> 
+
+	<channel name="Rates and deadbands config">
+
+		<switch name="systems/ap/rot-rate-degps">
+			<default value="0.0"/>
+			<test logic="OR" value="3.0">
+				systems/fcs/control-mode == 11	
+				systems/fcs/control-mode == 12	
+			</test>
+			<test value="5.0">
+				systems/fcs/control-mode == 13	
+			</test>
+			<test logic="OR" value="systems/ap/spec20/dap-A-PRI-rot-rate">
+				systems/fcs/control-mode == 20	
+				systems/fcs/control-mode == 26	
+				systems/fcs/control-mode == 27	
+				systems/fcs/control-mode == 28			
+			</test>
+			<test value="systems/ap/spec20/dap-A-VRN-rot-rate">
+				systems/fcs/control-mode == 25
+			</test>
+			<test logic="OR" value="systems/ap/spec20/dap-B-PRI-rot-rate">
+				systems/fcs/control-mode == 21	
+				systems/fcs/control-mode == 35	
+				systems/fcs/control-mode == 36
+				systems/fcs/control-mode == 37		
+			</test>
+			<test value="systems/ap/spec20/dap-B-VRN-rot-rate">
+				systems/fcs/control-mode == 30	
+			</test>
+			<test logic="OR" value="2.0">
+				systems/fcs/control-mode == 24
+				systems/fcs/control-mode == 29		
+			</test>
+		</switch>
+
+		<switch name="systems/ap/att-db-deg">
+			<default value="0.0"/>
+			<test logic="OR" value="0.12">
+				systems/fcs/control-mode == 11	
+				systems/fcs/control-mode == 12	
+				systems/fcs/control-mode == 13	
+			</test>
+			<test logic="OR" value="systems/ap/spec20/dap-A-PRI-att-db">
+				systems/fcs/control-mode == 20
+				systems/fcs/control-mode == 26	
+				systems/fcs/control-mode == 27	
+				systems/fcs/control-mode == 28			
+			</test>
+			<test value="systems/ap/spec20/dap-A-VRN-att-db">
+				systems/fcs/control-mode == 25
+			</test>
+			<test logic="OR" value="systems/ap/spec20/dap-B-PRI-att-db">
+				systems/fcs/control-mode == 21	
+				systems/fcs/control-mode == 35	
+				systems/fcs/control-mode == 36	
+				systems/fcs/control-mode == 37	
+			</test>
+			<test value="systems/ap/spec20/dap-B-VRN-att-db">
+				systems/fcs/control-mode == 30	
+			</test>
+			<test logic="OR" value="0.01">
+				systems/fcs/control-mode == 24
+				systems/fcs/control-mode == 29		
+			</test>
+		</switch>
+
+		<fcs_function name="systems/ap/att-db-rad">
+		<function>
+			<product>
+				<property>systems/ap/att-db-deg</property>
+				<value>0.0174532</value>
+			</product>
+		</function>	
+		</fcs_function>
+
+		<switch name="systems/ap/rate-db-degps">
+			<default value="0.0"/>
+			<test logic="OR" value="0.01">
+				systems/fcs/control-mode == 11	
+				systems/fcs/control-mode == 12
+				systems/fcs/control-mode == 13		
+			</test>
+			<test logic="OR" value="systems/ap/spec20/dap-A-PRI-rate-db">
+				systems/fcs/control-mode == 20	
+				systems/fcs/control-mode == 26	
+				systems/fcs/control-mode == 27
+				systems/fcs/control-mode == 28				
+			</test>
+			<test value="systems/ap/spec20/dap-A-VRN-rate-db">
+				systems/fcs/control-mode == 25
+			</test>
+			<test logic="OR" value="systems/ap/spec20/dap-B-PRI-rate-db">
+				systems/fcs/control-mode == 21
+				systems/fcs/control-mode == 35	
+				systems/fcs/control-mode == 36	
+				systems/fcs/control-mode == 37		
+			</test>
+			<test value="systems/ap/spec20/dap-B-VRN-rate-db">
+				systems/fcs/control-mode == 30	
+			</test>
+			<test logic="OR" value="0.01">
+				systems/fcs/control-mode == 24
+				systems/fcs/control-mode == 29		
+			</test>
+		</switch>
+
+		<switch name="systems/ap/rot-pls-degps">
+			<default value="0.0"/>
+			<test logic="OR" value="systems/ap/spec20/dap-A-PRI-rot-pls">
+				systems/fcs/control-mode == 1	
+				systems/fcs/control-mode == 20			
+			</test>
+			<test logic="OR" value="systems/ap/spec20/dap-B-PRI-rot-pls">
+				systems/fcs/control-mode == 21	
+				systems/fcs/control-mode == 32		
+			</test>
+			<test logic="OR" value="systems/ap/spec20/dap-A-VRN-rot-pls">
+				systems/fcs/control-mode == 25
+				systems/fcs/control-mode == 31						
+			</test>
+			<test logic="OR" value="systems/ap/spec20/dap-B-VRN-rot-pls">
+				systems/fcs/control-mode == 30	
+				systems/fcs/control-mode == 33					
+			</test>
+		</switch>
+
+		<switch name="systems/ap/trans-pls-fps">
+			<default value="0.0"/>
+			<test logic="OR" value="systems/ap/spec20/dap-A-PRI-tran-pls">
+				systems/fcs/control-mode == 2
+				systems/fcs/control-mode == 26
+				systems/fcs/control-mode == 27
+				systems/fcs/control-mode == 28						
+			</test>
+			<test logic="OR" value="systems/ap/spec20/dap-B-PRI-tran-pls">
+				systems/fcs/control-mode == 34	
+				systems/fcs/control-mode == 35	
+				systems/fcs/control-mode == 36	
+				systems/fcs/control-mode == 37					
+			</test>
+		</switch>
+
+	</channel>	
+
+
+	<channel name="Active control channels">
+		<switch name="systems/ap/track/auto-rotation-active">
+			<default value="0"/>
+			<test logic="OR" value="1">
+				systems/ap/up-mnvr-flag GT 0.0	
+				systems/ap/oms-mnvr-flag GT 0.0					
+			</test>
+		</switch>
+	</channel>
+
+
+	<channel name="Inertial vector tracking">
+
+		<fcs_function name="systems/ap/track/body-minus-x[0]">
+		<function>
+			<product>
+				<property>systems/pointing/inertial/body-x[0]</property>
+				<value>-1</value>
+			</product>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/ap/track/body-minus-x[1]">
+		<function>
+			<product>
+				<property>systems/pointing/inertial/body-x[1]</property>
+				<value>-1</value>
+			</product>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/ap/track/body-minus-x[2]">
+		<function>
+			<product>
+				<property>systems/pointing/inertial/body-x[2]</property>
+				<value>-1</value>
+			</product>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/ap/track/body-minus-y[0]">
+		<function>
+			<product>
+				<property>systems/pointing/inertial/body-y[0]</property>
+				<value>-1</value>
+			</product>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/ap/track/body-minus-y[1]">
+		<function>
+			<product>
+				<property>systems/pointing/inertial/body-y[1]</property>
+				<value>-1</value>
+			</product>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/ap/track/body-minus-y[2]">
+		<function>
+			<product>
+				<property>systems/pointing/inertial/body-y[2]</property>
+				<value>-1</value>
+			</product>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/ap/track/body-minus-z[0]">
+		<function>
+			<product>
+				<property>systems/pointing/inertial/body-z[0]</property>
+				<value>-1</value>
+			</product>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/ap/track/body-minus-z[1]">
+		<function>
+			<product>
+				<property>systems/pointing/inertial/body-z[1]</property>
+				<value>-1</value>
+			</product>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/ap/track/body-minus-z[2]">
+		<function>
+			<product>
+				<property>systems/pointing/inertial/body-z[2]</property>
+				<value>-1</value>
+			</product>
+		</function>
+		</fcs_function>
+
+
+		<switch name="systems/ap/track/body-vector[0]">
+			<default value="0.0"/>
+			<test value="systems/pointing/inertial/body-x[0]">
+				systems/ap/track/body-vector-selection == 1	
+			</test>
+			<test value="systems/ap/track/body-minus-x[0]">
+				systems/ap/track/body-vector-selection == 2	
+			</test>
+			<test value="systems/pointing/inertial/body-z[0]">
+				systems/ap/track/body-vector-selection == 3	
+			</test>
+		</switch>
+
+		<switch name="systems/ap/track/body-vector[1]">
+			<default value="0.0"/>
+			<test value="systems/pointing/inertial/body-x[1]">
+				systems/ap/track/body-vector-selection == 1	
+			</test>
+			<test value="systems/ap/track/body-minus-x[1]">
+				systems/ap/track/body-vector-selection == 2	
+			</test>
+			<test value="systems/pointing/inertial/body-z[1]">
+				systems/ap/track/body-vector-selection == 3	
+			</test>
+		</switch>
+
+		<switch name="systems/ap/track/body-vector[2]">
+			<default value="0.0"/>
+			<test value="systems/pointing/inertial/body-x[2]">
+				systems/ap/track/body-vector-selection == 1	
+			</test>
+			<test value="systems/ap/track/body-minus-x[2]">
+				systems/ap/track/body-vector-selection == 2	
+			</test>
+			<test value="systems/pointing/inertial/body-z[2]">
+				systems/ap/track/body-vector-selection == 3	
+			</test>
+		</switch>
+
+
+		<switch name="systems/ap/track/body-yaw[0]">
+			<default value="0.0"/>
+			<test value="systems/pointing/inertial/body-y[0]">
+				systems/ap/track/body-vector-selection == 1	
+			</test>
+			<test value="systems/ap/track/body-minus-y[0]">
+				systems/ap/track/body-vector-selection == 2	
+			</test>
+			<test value="systems/pointing/inertial/body-y[0]">
+				systems/ap/track/body-vector-selection == 3	
+			</test>
+		</switch>
+
+		<switch name="systems/ap/track/body-yaw[1]">
+			<default value="0.0"/>
+			<test value="systems/pointing/inertial/body-y[1]">
+				systems/ap/track/body-vector-selection == 1	
+			</test>
+			<test value="systems/ap/track/body-minus-y[1]">
+				systems/ap/track/body-vector-selection == 2	
+			</test>
+			<test value="systems/pointing/inertial/body-y[1]">
+				systems/ap/track/body-vector-selection == 3	
+			</test>
+		</switch>
+
+		<switch name="systems/ap/track/body-yaw[2]">
+			<default value="0.0"/>
+			<test value="systems/pointing/inertial/body-y[2]">
+				systems/ap/track/body-vector-selection == 1	
+			</test>
+			<test value="systems/ap/track/body-minus-y[2]">
+				systems/ap/track/body-vector-selection == 2	
+			</test>
+			<test value="systems/pointing/inertial/body-y[2]">
+				systems/ap/track/body-vector-selection == 3	
+			</test>
+		</switch>
+
+		<switch name="systems/ap/track/body-pitch[0]">
+			<default value="0.0"/>
+			<test value="systems/pointing/inertial/body-z[0]">
+				systems/ap/track/body-vector-selection == 1	
+			</test>
+			<test value="systems/ap/track/body-minus-z[0]">
+				systems/ap/track/body-vector-selection == 2	
+			</test>
+			<test value="systems/ap/track/body-minus-x[0]">
+				systems/ap/track/body-vector-selection == 3	
+			</test>
+		</switch>
+
+		<switch name="systems/ap/track/body-pitch[1]">
+			<default value="0.0"/>
+			<test value="systems/pointing/inertial/body-z[1]">
+				systems/ap/track/body-vector-selection == 1	
+			</test>
+			<test value="systems/ap/track/body-minus-z[1]">
+				systems/ap/track/body-vector-selection == 2	
+			</test>
+			<test value="systems/ap/track/body-minus-x[1]">
+				systems/ap/track/body-vector-selection == 3	
+			</test>
+		</switch>
+
+		<switch name="systems/ap/track/body-pitch[2]">
+			<default value="0.0"/>
+			<test value="systems/pointing/inertial/body-z[2]">
+				systems/ap/track/body-vector-selection == 1	
+			</test>
+			<test value="systems/ap/track/body-minus-z[2]">
+				systems/ap/track/body-vector-selection == 2	
+			</test>
+			<test value="systems/ap/track/body-minus-x[2]">
+				systems/ap/track/body-vector-selection == 3	
+			</test>
+		</switch>
+
+		<fcs_function name="systems/ap/att-db-rad-sin">
+		<function>
+			<sin><property>systems/ap/att-db-rad</property></sin>
+		</function>
+		</fcs_function>
+
+
+
+		<fcs_function name="systems/ap/track/pitch-error">
+		<function>
+			<sum>
+				<product>
+					<property>systems/ap/track/body-pitch[0]</property>
+					<property>systems/ap/track/target-vector[0]</property>
+				</product>
+				<product>
+					<property>systems/ap/track/body-pitch[1]</property>
+					<property>systems/ap/track/target-vector[1]</property>
+				</product>
+				<product>
+					<property>systems/ap/track/body-pitch[2]</property>
+					<property>systems/ap/track/target-vector[2]</property>
+				</product>
+			</sum>
+		</function>
+		</fcs_function>	
+
+		<fcs_function name="systems/ap/track/pitch-error-deg">
+		<function>
+			<product>
+				<asin>
+					<min>
+					<max>
+					<property>systems/ap/track/pitch-error</property>
+					<value>-1.0</value>
+					</max>
+					<value>1.0</value>
+					</min>
+				</asin>
+				<value>57.2974</value>
+			</product>
+		</function>
+		</fcs_function>	
+
+
+  		<deadband name="systems/ap/track/pitch-error-db">
+			<input>systems/ap/track/pitch-error</input>
+			<width>systems/ap/att-db-rad-sin</width>
+  		</deadband>
+
+
+
+		<fcs_function name="systems/ap/track/yaw-error">
+		<function>
+			<sum>
+				<product>
+					<property>systems/ap/track/body-yaw[0]</property>
+					<property>systems/ap/track/target-vector[0]</property>
+				</product>
+				<product>
+					<property>systems/ap/track/body-yaw[1]</property>
+					<property>systems/ap/track/target-vector[1]</property>
+				</product>
+				<product>
+					<property>systems/ap/track/body-yaw[2]</property>
+					<property>systems/ap/track/target-vector[2]</property>
+				</product>
+			</sum>
+		</function>
+		</fcs_function>	
+
+		<fcs_function name="systems/ap/track/yaw-error-deg">
+		<function>
+			<product>
+				<asin>
+					<property>systems/ap/track/yaw-error</property>
+				</asin>
+				<value>57.2974</value>
+			</product>
+		</function>
+		</fcs_function>	
+		
+
+  		<deadband name="systems/ap/track/yaw-error-db">
+			<input>systems/ap/track/yaw-error</input>
+			<width>systems/ap/att-db-rad-sin</width>
+  		</deadband>
+
+
+		<fcs_function name="systems/ap/track/roll-sine">
+		<function>
+			<sum>
+				<product>
+					<property>systems/ap/track/body-yaw[0]</property>
+					<property>systems/ap/track/target-sec[0]</property>
+				</product>
+				<product>
+					<property>systems/ap/track/body-yaw[1]</property>
+					<property>systems/ap/track/target-sec[1]</property>
+				</product>
+				<product>
+					<property>systems/ap/track/body-yaw[2]</property>
+					<property>systems/ap/track/target-sec[2]</property>
+				</product>
+			</sum>
+		</function>
+		</fcs_function>	
+
+
+		<switch name="systems/ap/track/roll-angle-sign">
+			<default value="1.0"/>
+			<test value="-1.0">
+				systems/ap/track/roll-sine GT 0.0
+			</test>
+		</switch>
+
+
+		
+
+
+		<fcs_function name="systems/ap/track/roll-error">
+		<function>
+			<difference>
+			<product>
+				<property>systems/ap/track/trk-om</property>
+				<value>-0.01745</value>
+			</product>
+			<product>
+			<acos>
+			<min>
+			<max>
+			<sum>
+				<product>
+					<property>systems/ap/track/body-pitch[0]</property>
+					<property>systems/ap/track/target-sec[0]</property>
+				</product>
+				<product>
+					<property>systems/ap/track/body-pitch[1]</property>
+					<property>systems/ap/track/target-sec[1]</property>
+				</product>
+				<product>
+					<property>systems/ap/track/body-pitch[2]</property>
+					<property>systems/ap/track/target-sec[2]</property>
+				</product>
+			</sum>
+			<value>-1.0</value>
+			</max>
+			<value>1.0</value>
+			</min>
+			</acos>
+			<property>systems/ap/track/roll-angle-sign</property>
+			</product>
+			</difference>
+		</function>
+		</fcs_function>	
+
+		<fcs_function name="systems/ap/track/roll-error-deg">
+		<function>
+			<product>
+				<property>systems/ap/track/roll-error</property>
+				<value>57.2974</value>
+			</product>
+		</function>
+		</fcs_function>	
+
+		<!-- this is a cheat - the OMS deadband gets too tight by some fluke, so we increase it -->
+
+		<switch name="systems/ap/track/roll-db-correction">
+		<default value="0.0"/>
+			<test value="0.12">
+				systems/ap/oms-mnvr-flag GT 0
+			</test>
+		</switch>
+
+
+		<fcs_function name="systems/ap/track/roll-db-rad">
+		<function>
+			<sum>
+				<property>systems/ap/att-db-rad</property>
+				<property>systems/ap/track/roll-db-correction</property>
+			</sum>
+		</function>
+		</fcs_function>
+
+		<!--<fcs_function name="systems/ap/track/roll-error-abs">
+		<function>
+			<abs>
+				<property>systems/ap/track/roll-error</property>
+			</abs>
+		</function>
+		</fcs_function>
+
+		<switch name="systems/ap/track/roll-error-db">
+			<default value="systems/ap/track/roll-error"/>
+			<test value="0.0">
+				systems/ap/track/roll-error-abs LT systems/ap/att-db-rad
+			</test>
+		</switch>-->
+
+
+  		<deadband name="systems/ap/track/roll-error-db">
+			<input>systems/ap/track/roll-error</input>
+			<width>systems/ap/track/roll-db-rad</width>
+  		</deadband>
+
+		<fcs_function name="systems/ap/track/total-attitude-error">
+		<function>
+			<sum>
+				<abs><property>systems/ap/track/yaw-error</property></abs>
+				<abs><property>systems/ap/track/pitch-error</property></abs>
+				<abs><property>systems/ap/track/roll-error-db</property></abs>
+			</sum>
+		</function>
+		</fcs_function>
+
+		<switch name="systems/ap/track/in-attitude">
+			<default value="0.0"/>
+			<test value="1.0">
+				systems/ap/track/total-attitude-error LT 0.1	
+			</test>
+		</switch>
+
+
+		<switch name="systems/ap/track/pitch-error-sense">
+			<default value="0.0"/>
+			<test value="systems/ap/track/pitch-error-db">
+				systems/ap/track/body-vector-selection == 1	
+			</test>
+			<test value="systems/ap/track/pitch-error-db">
+				systems/ap/track/body-vector-selection == 2	
+			</test>
+			<test value="systems/ap/track/pitch-error-db">
+				systems/ap/track/body-vector-selection == 3	
+			</test>
+		</switch>
+
+		<switch name="systems/ap/track/yaw-error-sense">
+			<default value="0.0"/>
+			<test value="systems/ap/track/yaw-error-db">
+				systems/ap/track/body-vector-selection == 1	
+			</test>
+			<test value="systems/ap/track/yaw-error-db">
+				systems/ap/track/body-vector-selection == 2	
+			</test>
+			<test value="systems/ap/track/roll-error-db">
+				systems/ap/track/body-vector-selection == 3	
+			</test>
+		</switch>
+
+		<switch name="systems/ap/track/roll-error-sense">
+			<default value="0.0"/>
+			<test value="systems/ap/track/roll-error-db">
+				systems/ap/track/body-vector-selection == 1	
+			</test>
+			<test value="systems/ap/track/roll-error-db">
+				systems/ap/track/body-vector-selection == 2	
+			</test>
+			<test value="systems/ap/track/yaw-error-db">
+				systems/ap/track/body-vector-selection == 3	
+			</test>
+		</switch>
+
+		<fcs_function name="systems/ap/track/pitch-rate-cmd">
+		<function>
+			<product>
+				<min>
+				<max>
+					<product>
+						<property>systems/ap/track/pitch-error-sense</property>
+						<value>3.0</value>
+					</product>
+					<value>-1.0</value>
+				</max>
+				<value>1.0</value>
+				</min>
+				<property>systems/ap/rot-rate-degps</property>
+			</product>
+		</function>
+		</fcs_function>
+
+		<switch name="systems/ap/track/roll-veto-active">
+			<default value="1.0"/>
+			<test value="0.0">
+				systems/ap/track/body-vector-selection == 3	
+			</test>
+		</switch>
+
+		<fcs_function name="systems/ap/track/yaw-rate-cmd">
+		<function>
+			<product>
+				<min>
+				<max>
+					<product>
+						<property>systems/ap/track/yaw-error-sense</property>
+						<value>3.0</value>
+					</product>
+					<value>-1.0</value>
+				</max>
+				<value>1.0</value>
+				</min>
+				<property>systems/ap/rot-rate-degps</property>
+				<difference>
+					<value>1.0</value>
+					<product>
+					<abs>
+						<quotient>
+						<property>systems/ap/track/pitch-rate-cmd</property>
+						<max>
+						<property>systems/ap/rot-rate-degps</property>
+						<value>0.001</value>
+						</max>
+						</quotient>
+					</abs>
+					<difference>
+						<value>1.0</value>
+						<property>systems/ap/track/roll-veto-active</property>
+					</difference>
+					</product>
+				</difference>
+			</product>
+		</function>
+		</fcs_function>
+
+
+
+
+		<fcs_function name="systems/ap/track/roll-rate-cmd">
+		<function>
+			<product>
+				<min>
+				<max>
+					<product>
+						<property>systems/ap/track/roll-error-sense</property>
+						<value>1.0</value>
+					</product>
+					<value>-1.0</value>
+				</max>
+				<value>1.0</value>
+				</min>
+				<property>systems/ap/rot-rate-degps</property>
+				<difference>
+					<value>1.0</value>
+					<abs>
+						<product>
+						<quotient>
+						<property>systems/ap/track/yaw-rate-cmd</property>
+						<max>
+						<property>systems/ap/rot-rate-degps</property>
+						<value>0.001</value>
+						</max>
+						</quotient>
+						<property>systems/ap/track/roll-veto-active</property>
+						</product>
+					</abs>
+				</difference>
+				<difference>
+					<value>1.0</value>
+					<abs>
+						<quotient>
+						<property>systems/ap/track/pitch-rate-cmd</property>
+						<max>
+						<property>systems/ap/rot-rate-degps</property>
+						<value>0.001</value>
+						</max>
+						</quotient>
+					</abs>
+				</difference>
+			</product>
+		</function>
+		</fcs_function>
+
+
+	</channel>
+
+
+	<channel name="Auto rotation rates">
+
+		<switch name="systems/ap/dap-inertial">
+			<default value="0.0"/>
+			<test logic="OR" value="1.0">
+				systems/fcs/control-mode == 11
+				systems/fcs/control-mode == 20	
+				systems/fcs/control-mode == 21	
+				systems/fcs/control-mode == 25
+				systems/fcs/control-mode == 30		
+			</test>
+		</switch>
+	
+		
+
+		<switch name="systems/ap/auto-rotation-mode">
+			<default value="0.0"/>
+			<test logic="AND" value="1.0">
+				systems/ap/dap-inertial == 1
+				systems/ap/orbital-dap-auto == 1
+			</test>
+		</switch>
+
+		<switch name="systems/ap/set-pitch-rate">
+			<default value="0.0"/>
+			<test logic="OR" value="systems/ap/track/pitch-rate-cmd">
+				systems/ap/up-mnvr-flag == 1
+				systems/ap/up-mnvr-flag == 2
+				systems/ap/oms-mnvr-flag == 1
+			</test>
+			<test value="0.0">
+				systems/ap/up-mnvr-flag == 3
+			</test>
+		</switch>
+
+		<switch name="systems/ap/set-yaw-rate">
+			<default value="0.0"/>
+			<test logic="OR" value="systems/ap/track/yaw-rate-cmd">
+				systems/ap/up-mnvr-flag == 1
+				systems/ap/up-mnvr-flag == 2
+				systems/ap/oms-mnvr-flag == 1
+			</test>
+			<test logic="AND" value="systems/ap/track/yaw-rate-cmd">
+				systems/ap/up-mnvr-flag == 3
+				systems/ap/track/body-vector-selection == 1
+			</test>
+			<test logic="AND" value="systems/ap/track/yaw-rate-cmd">
+				systems/ap/up-mnvr-flag == 3
+				systems/ap/track/body-vector-selection == 2
+			</test>
+			<test logic="AND" value="systems/ap/rot-rate-degps">
+				systems/ap/up-mnvr-flag == 3
+				systems/ap/track/body-vector-selection == 3
+			</test>
+		</switch>
+
+		<switch name="systems/ap/set-roll-rate">
+			<default value="0.0"/>
+			<test logic="OR" value="systems/ap/track/roll-rate-cmd">
+				systems/ap/up-mnvr-flag == 1
+				systems/ap/up-mnvr-flag == 2
+				systems/ap/oms-mnvr-flag == 1
+			</test>
+			<test logic="AND" value="systems/ap/rot-rate-degps">
+				systems/ap/up-mnvr-flag == 3
+				systems/ap/track/body-vector-selection == 1
+			</test>
+			<test logic="AND" value="systems/ap/rot-rate-degps">
+				systems/ap/up-mnvr-flag == 3
+				systems/ap/track/body-vector-selection == 2
+			</test>
+			<test logic="AND" value="systems/ap/track/roll-rate-cmd">
+				systems/ap/up-mnvr-flag == 3
+				systems/ap/track/body-vector-selection == 3
+			</test>
+		</switch>
+
+		<fcs_function name="systems/ap/pitch-rate-error">
+		<function>
+			<difference>
+				<product>
+				<property>systems/ap/set-pitch-rate</property>
+				<value>-0.01745</value>
+				</product>
+				<property>velocities/q-rad_sec</property>
+			</difference>
+		</function>
+		</fcs_function>
+
+		<pid name="systems/ap/pitch-rate-controller">
+			<input>systems/ap/pitch-rate-error</input>
+			<kp> 10.0 </kp>
+			<ki> 0.0 </ki>
+			<kd> 5.0</kd>
+			<clipto>
+				<min> -1.0 </min>
+        			<max>  1.0 </max>
+			</clipto>
+			<output>systems/ap/test-pitch</output>
+  		</pid>
+
+		<fcs_function name="systems/ap/yaw-rate-error">
+		<function>
+			<difference>
+				<product>
+				<property>systems/ap/set-yaw-rate</property>
+				<value>-0.01745</value>
+				</product>
+				<property>velocities/r-rad_sec</property>
+			</difference>
+		</function>
+		</fcs_function>
+
+		<pid name="systems/ap/yaw-rate-controller">
+			<input>systems/ap/yaw-rate-error</input>
+			<kp> 10.0 </kp>
+			<ki> 0.0 </ki>
+			<kd> 5.0</kd>
+			<clipto>
+				<min> -1.0 </min>
+        			<max>  1.0 </max>
+			</clipto>
+			<output>systems/ap/test-yaw</output>
+  		</pid>
+
+		<fcs_function name="systems/ap/roll-rate-error">
+		<function>
+			<difference>
+				<product>
+				<property>systems/ap/set-roll-rate</property>
+				<value>0.1166</value>
+				</product>
+				<property>velocities/p-rad_sec</property>
+			</difference>
+			
+		</function>
+		</fcs_function>
+
+
+		<fcs_function name="systems/ap/roll-rate-controller">
+		<function>
+			<min>
+			<max>
+				<product>
+					<property>systems/ap/roll-rate-error</property>
+					<quotient>
+						<value>25.0</value>
+						<max>
+						<property>systems/ap/rot-rate-degps</property>
+						<value>0.01</value>
+						</max>
+					</quotient>
+				</product>
+				<value>-1.0</value>
+			</max>
+			<value>1.0</value>
+			</min>
+		</function>
+		</fcs_function>
+
+
+
+	</channel>
+
+	<channel name="LVLH attitude hold" execute="systems/ap/orbital-dap-lvlh">
+
+		<!-- LVLH attitude hold is commanded when controls are idle -->
+		<!-- or when controls are translational -->
+		
+		<switch name="systems/ap/lvlh/rotational-control-input">
+			<default value="1"/>
+			<test logic="AND" value="0">
+				fcs/elevator-cmd-norm-css == 0
+				fcs/rudder-cmd-norm-css == 0
+				fcs/aileron-cmd-norm-css == 0
+			</test>
+			<test  value="0">
+				systems/fcs/rcs-translation == 1
+			</test>
+		</switch>
+		
+
+		<switch name="systems/ap/lvlh/attitude-hold-cmd">
+			<default value="0"/>
+			<test logic="AND" value="1">
+				systems/ap/orbital-dap-lvlh == 1
+				systems/ap/lvlh/rotational-control-input == 0
+				systems/ap/lvlh/engage-flag == 0
+			</test>
+		</switch>
+
+		<!-- unfortunately FG LVLH isn't shuttle LVLH, need to rotate coords to align with orbital track -->
+
+		<fcs_function name="systems/ap/lvlh/transformation-angle-rad">
+		<function>
+			<product>
+				<difference>
+					<property>velocities/course-deg</property>
+					<value>90.0</value>
+				</difference>
+				<value>0.01745329</value>
+			</product>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/ap/lvlh/s">
+		<function>
+			<sin>
+				<property>systems/ap/lvlh/transformation-angle-rad</property>
+			</sin>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/ap/lvlh/c">
+		<function>
+			<cos>
+				<property>systems/ap/lvlh/transformation-angle-rad</property>
+			</cos>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/ap/lvlh/body-x[0]">
+		<function>
+			<sum>
+				<product>
+					<property>systems/pointing/lvlh/body-x[1]</property>
+					<property>systems/ap/lvlh/s</property>
+				</product>
+				<product>
+					<property>systems/pointing/lvlh/body-x[0]</property>
+					<property>systems/ap/lvlh/c</property>
+				</product>
+			</sum>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/ap/lvlh/body-x[1]">
+		<function>
+			<sum>
+				<product>
+					<property>systems/pointing/lvlh/body-x[1]</property>
+					<property>systems/ap/lvlh/c</property>
+				</product>
+				<product>
+					<property>systems/pointing/lvlh/body-x[0]</property>
+					<property>systems/ap/lvlh/s</property>
+					<value>-1.0</value>
+				</product>
+			</sum>
+		</function>
+		</fcs_function>
+
+
+
+		<fcs_function name="systems/ap/lvlh/body-y[0]">
+		<function>
+			<sum>
+				<product>
+					<property>systems/pointing/lvlh/body-y[1]</property>
+					<property>systems/ap/lvlh/s</property>
+				</product>
+				<product>
+					<property>systems/pointing/lvlh/body-y[0]</property>
+					<property>systems/ap/lvlh/c</property>
+				</product>
+			</sum>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/ap/lvlh/body-y[1]">
+		<function>
+			<sum>
+				<product>
+					<property>systems/pointing/lvlh/body-y[1]</property>
+					<property>systems/ap/lvlh/c</property>
+				</product>
+				<product>
+					<property>systems/pointing/lvlh/body-y[0]</property>
+					<property>systems/ap/lvlh/s</property>
+					<value>-1.0</value>
+				</product>
+			</sum>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/ap/lvlh/body-z[0]">
+		<function>
+			<sum>
+				<product>
+					<property>systems/pointing/lvlh/body-z[1]</property>
+					<property>systems/ap/lvlh/s</property>
+				</product>
+				<product>
+					<property>systems/pointing/lvlh/body-z[0]</property>
+					<property>systems/ap/lvlh/c</property>
+				</product>
+			</sum>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/ap/lvlh/body-z[1]">
+		<function>
+			<sum>
+				<product>
+					<property>systems/pointing/lvlh/body-z[1]</property>
+					<property>systems/ap/lvlh/c</property>
+				</product>
+				<product>
+					<property>systems/pointing/lvlh/body-z[0]</property>
+					<property>systems/ap/lvlh/s</property>
+					<value>-1.0</value>
+				</product>
+			</sum>
+		</function>
+		</fcs_function>
+
+
+		<!-- sample-hold current pitch, yaw and roll in Shuttle LVLH -->
+
+		<switch name="systems/ap/lvlh/target-vector-pitch[0]">
+			<default value="systems/ap/lvlh/body-z[0]"/>
+			<test value="systems/ap/lvlh/target-vector-pitch[0]">
+				systems/ap/lvlh/attitude-hold-cmd == 1
+			</test>
+		</switch>
+
+		<switch name="systems/ap/lvlh/target-vector-pitch[1]">
+			<default value="systems/ap/lvlh/body-z[1]"/>
+			<test value="systems/ap/lvlh/target-vector-pitch[1]">
+				systems/ap/lvlh/attitude-hold-cmd == 1
+			</test>
+		</switch>
+
+		<switch name="systems/ap/lvlh/target-vector-pitch[2]">
+			<default value="systems/pointing/lvlh/body-z[2]"/>
+			<test value="systems/ap/lvlh/target-vector-pitch[2]">
+				systems/ap/lvlh/attitude-hold-cmd == 1
+			</test>
+		</switch>
+
+		<switch name="systems/ap/lvlh/target-vector-yaw[0]">
+			<default value="systems/ap/lvlh/body-y[0]"/>
+			<test value="systems/ap/lvlh/target-vector-yaw[0]">
+				systems/ap/lvlh/attitude-hold-cmd == 1
+			</test>
+		</switch>
+
+		<switch name="systems/ap/lvlh/target-vector-yaw[1]">
+			<default value="systems/ap/lvlh/body-y[1]"/>
+			<test value="systems/ap/lvlh/target-vector-yaw[1]">
+				systems/ap/lvlh/attitude-hold-cmd == 1
+			</test>
+		</switch>
+
+		<switch name="systems/ap/lvlh/target-vector-yaw[2]">
+			<default value="systems/pointing/lvlh/body-y[2]"/>
+			<test value="systems/ap/lvlh/target-vector-yaw[2]">
+				systems/ap/lvlh/attitude-hold-cmd == 1
+			</test>
+		</switch>
+
+		<switch name="systems/ap/lvlh/roll-sample-hold-deg">
+			<default value="/orientation/roll-deg"/>
+			<test value="systems/ap/lvlh/roll-sample-hold-deg">
+				systems/ap/lvlh/attitude-hold-cmd == 1
+			</test>
+		</switch>
+
+		<fcs_function name="systems/ap/lvlh/pitch-error">
+		<function>
+			<sum>
+				<product>
+					<property>systems/ap/lvlh/body-x[0]</property>
+					<property>systems/ap/lvlh/target-vector-pitch[0]</property>
+				</product>
+				<product>
+					<property>systems/ap/lvlh/body-x[1]</property>
+					<property>systems/ap/lvlh/target-vector-pitch[1]</property>
+				</product>
+				<product>
+					<property>systems/pointing/lvlh/body-x[2]</property>
+					<property>systems/ap/lvlh/target-vector-pitch[2]</property>
+				</product>
+			
+			</sum>
+		</function>
+		</fcs_function>	
+
+		<fcs_function name="systems/ap/lvlh/yaw-error">
+		<function>
+			<sum>
+				<product>
+					<property>systems/ap/lvlh/body-x[0]</property>
+					<property>systems/ap/lvlh/target-vector-yaw[0]</property>
+				</product>
+				<product>
+					<property>systems/ap/lvlh/body-x[1]</property>
+					<property>systems/ap/lvlh/target-vector-yaw[1]</property>
+				</product>
+				<product>
+					<property>systems/pointing/lvlh/body-x[2]</property>
+					<property>systems/ap/lvlh/target-vector-yaw[2]</property>
+				</product>
+			
+			</sum>
+		</function>
+		</fcs_function>	
+
+
+		<fcs_function name="systems/ap/lvlh/roll-error">
+		<function>
+			<difference>
+				<property>/orientation/roll-deg</property>
+				<property>systems/ap/lvlh/roll-sample-hold-deg</property>
+			</difference>
+		</function>
+		</fcs_function>
+
+
+		<fcs_function name="systems/ap/lvlh/pitch-rate-cmd">
+		<function>
+				<min>
+				<max>
+					<product>
+						<property>systems/ap/lvlh/pitch-error</property>
+						<value>10.0</value>
+						<property>systems/fcs/rcs-vernier-gain</property>
+					</product>
+					<value>-1.0</value>
+				</max>
+				<value>1.0</value>
+				</min>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/ap/lvlh/yaw-rate-cmd">
+		<function>
+				<min>
+				<max>
+					<product>
+						<property>systems/ap/lvlh/yaw-error</property>
+						<value>10.0</value>
+						<property>systems/fcs/rcs-vernier-gain</property>
+					</product>
+					<value>-1.0</value>
+				</max>
+				<value>1.0</value>
+				</min>
+		</function>
+		</fcs_function>
+
+
+		<fcs_function name="systems/ap/lvlh/roll-rate-cmd">
+		<function>
+				<min>
+				<max>
+					<product>
+						<property>systems/ap/lvlh/roll-error</property>
+						<value>-0.1</value>
+						<property>systems/fcs/rcs-vernier-gain</property>
+					</product>
+					<value>-1.0</value>
+				</max>
+				<value>1.0</value>
+				</min>
+		</function>
+		</fcs_function>
+
+	</channel>
+	
+	<!-- OPS 304, 305 and 602 automatic entry and TAEM -->
+
+	
+	
+	<!-- auto-entry/TAEM - guidance targets are fed by a Nasal script -->
+
+	<!-- general mode selection parameters activating the channels -->
+
+	<channel name="Auto entry and TAEM glide management">
+
+		<switch name="systems/ap/auto-entry-active">
+			<default value="0.0"/>
+			<test value="1.0">
+				systems/dps/major-mode == 304
+				systems/fcs/control-mode == 29
+			</test>
+			<test value="1.0">
+				systems/dps/major-mode-bfs == 304
+				systems/fcs/control-mode == 29
+				systems/dps/bfs-in-control == 1
+			</test>
+		</switch>
+
+		<switch name="systems/ap/alpha-hold-mode">
+			<default value="0.0"/>
+			<test logic="AND" value="1.0">
+				systems/ap/automatic-pitch-control == 1
+				systems/fcs/control-mode == 29
+				systems/dps/major-mode == 304
+			</test>
+			<test logic="AND" value="1.0">
+				systems/ap/automatic-pitch-control == 1
+				systems/fcs/control-mode == 29
+				systems/dps/major-mode-bfs == 304
+				systems/dps/bfs-in-control == 1
+			</test>
+		</switch>
+
+		<switch name="systems/ap/auto-bailout-active">
+			<default value="0.0"/>
+			<test logic="AND" value="1.0">
+				systems/ap/automatic-pitch-control == 1
+				systems/ap/automatic-roll-control == 1
+				systems/fcs/control-mode == 29
+				systems/abort/arm-bailout == 1
+			</test>
+		</switch>
+
+		<switch name="systems/ap/auto-taem-active">
+			<default value="0.0"/>
+			<test logic="AND" value="1.0">
+				systems/dps/major-mode == 305
+				systems/ap/taem/auto-taem-master == 1
+				systems/fcs/control-mode == 29
+			</test>
+			<test logic="AND" value="1.0">
+				systems/dps/major-mode == 602
+				systems/ap/taem/auto-taem-master == 1
+				systems/fcs/control-mode == 29
+				systems/ap/grtls/taem-transition-init == 1
+			</test>
+			<test logic="AND" value="1.0">
+				systems/dps/major-mode == 603
+				systems/ap/taem/auto-taem-master == 1
+				systems/fcs/control-mode == 29
+			</test>
+			<test logic="AND" value="1.0">
+				systems/dps/major-mode-bfs == 305
+				systems/ap/taem/auto-taem-master == 1
+				systems/fcs/control-mode == 29
+				systems/dps/bfs-in-control == 1
+			</test>
+			<test logic="AND" value="1.0">
+				systems/dps/major-mode-bfs == 602
+				systems/ap/taem/auto-taem-master == 1
+				systems/fcs/control-mode == 29
+				systems/ap/grtls/taem-transition-init == 1
+				systems/dps/bfs-in-control == 1
+			</test>
+			<test logic="AND" value="1.0">
+				systems/dps/major-mode-bfs == 603
+				systems/ap/taem/auto-taem-master == 1
+				systems/fcs/control-mode == 29
+				systems/dps/bfs-in-control == 1
+			</test>
+		</switch>
+
+	</channel>
+
+	<!-- automatic entry  - roll reversals are commanded by Nasal high-level code-->
+
+	<channel name="Entry autopilot" execute="systems/ap/auto-entry-active">
+
+		
+		<!-- Closed loop initiated at Drag = 3 or qbar = 8 -->
+
+		<switch name="systems/ap/entry/drag-management-init">
+			<default value="0"/>
+			<test logic="OR" value="1">
+				aero/qbar-psf GT 8.0
+				systems/entry_guidance/aero-drag-deceleration-fts GT 3.0
+			</test>
+		</switch>
+
+		<fcs_function name="systems/ap/entry/thermal-protection-bias">
+		<function>
+			<table>
+        		<independentVar lookup="row">systems/thermal/nose-temperature-K</independentVar>
+        		<tableData>
+          	 		   0.0	   0.0
+				1650.0	   0.0
+				1750.0	 -50.0
+				1850.0	-100.0
+				1900.0	-300.0
+				1950.0	-400.0
+				2000.0	-600.0
+				2100.0	-1000.0
+        		</tableData>
+      			</table>
+		</function>
+		</fcs_function>
+
+		<!-- Factor for triggering v-error-fps in the vspeed target fps // When drag bias guidance is too much off, v-error-fps kicks in// narrowing down while closing in to the runway -->
+		<!-- Vrel differences envelop coming from FDO Deorbit Handbook for STS 135 Entry datas from Entry FDO-->
+		<fcs_function name="systems/ap/entry/v-error-fps-factor">
+		<function>
+			<table>
+        		<independentVar lookup="row">velocities/vtrue-fps</independentVar>
+				<independentVar lookup="column">systems/entry_guidance/v-error-fps</independentVar>
+        		<tableData>
+						-1000	-750	-500  	-300	-200  -50	0   50		200 	300		500	   750		1000
+          	 	2500	-0.2	-0.2	-0.2  	-0.2	-0.1   	0	0	0		-0.2	-0.2	-0.2	-0.2	-0.2
+				6000	-0.2	-0.2	-0.2  	-0.2	-0.1   	0	0	0		-0.2	-0.2	-0.2	-0.2	-0.2
+				8000	-0.2	-0.2	-0.2  	-0.1	0		0	0	0		-0.1	-0.2	-0.2	-0.2	-0.2
+				10500	-0.2	-0.2	-0.2  	-0.1	0		0	0	0		0		-0.1	-0.2	-0.2	-0.2
+				14000	-0.2	-0.2	-0.2  	-0.1	0		0	0	0		0		-0.1	-0.2	-0.2	-0.2
+				16500	-0.2	-0.2	-0.2  	-0.1	0		0	0	0		0		-0.1	-0.1	-0.2	-0.2
+				18000	-0.2	-0.2	-0.2  	-0.1	0		0	0	0		0		-0.1	-0.1	-0.2	-0.2
+				25000	-0.2	-0.2	-0.2  	-0.1	0		0	0	0		0		0		0		-0.1	-0.2
+        		</tableData>
+      			</table>
+		</function>
+		</fcs_function>
+
+
+		<!-- Latest vspeed target based mainly on drag error and v error fps  -->
+		<fcs_function name="systems/ap/entry/vspeed-target-fps-function-new">
+		<function>
+			<sum>
+			<property>systems/entry_guidance/nominal-hdot-target</property>
+			<property>systems/ap/entry/thermal-protection-bias</property>
+			<product>		
+				<property>systems/entry_guidance/v-error-fps</property>
+				<value>-0.2</value>
+				<property>systems/fcs/no-y-jet</property>
+			</product>
+			<product>		
+				<property>systems/entry_guidance/v-error-fps</property>
+				<property>systems/ap/entry/v-error-fps-factor</property>
+				<difference>
+					<value>1.0</value>
+					<property>systems/fcs/no-y-jet</property>
+				</difference>
+			</product>
+			<product>	
+				<property>systems/entry_guidance/delta-drag-bias</property>
+				<difference>
+					<value>1.0</value>
+					<property>systems/fcs/no-y-jet</property>
+				</difference>
+			</product>
+			</sum>
+		</function>
+		</fcs_function>
+
+		<!-- Initial Vspeed target based only on v-error-fps -->
+		<fcs_function name="systems/ap/entry/vspeed-target-fps-old">
+		<function>
+			<sum>
+			<property>systems/entry_guidance/nominal-hdot-target</property>
+			<property>systems/ap/entry/thermal-protection-bias</property>
+			<product>		
+				<property>systems/entry_guidance/v-error-fps</property>
+				<value>-0.2</value>
+			</product>
+			</sum>
+		</function>
+		</fcs_function>
+
+		<!-- Latest vspeed target based mainly on drag error and v error fps ( larger deadband than intial function) -->
+
+		<!-- No yaw vspeed target -->
+		<fcs_function name="systems/ap/entry/vspeed-target-no-yaw">
+		<function>
+			<product>		
+				<property>systems/entry_guidance/v-error-fps</property>
+				<value>-0.2</value>
+				<property>systems/fcs/no-y-jet</property>
+			</product>
+		</function>
+		</fcs_function>
+
+		<!-- Vrel error vspeed target -->
+		<fcs_function name="systems/ap/entry/vspeed-target-vrel-error">
+		<function>
+			<product>		
+				<property>systems/entry_guidance/v-error-fps</property>
+				<property>systems/ap/entry/v-error-fps-factor</property>
+				<difference>
+					<value>1.0</value>
+					<property>systems/fcs/no-y-jet</property>
+				</difference>
+			</product>
+		</function>
+		</fcs_function>
+
+		<!-- Drag error vspeed target -->
+		<fcs_function name="systems/ap/entry/vspeed-target-drag-error">
+		<function>
+			<product>	
+				<property>systems/entry_guidance/delta-drag-bias</property>
+				<difference>
+					<value>1.0</value>
+					<property>systems/fcs/no-y-jet</property>
+				</difference>
+			</product>
+		</function>
+		</fcs_function>
+
+		<!-- Main vspeed target summing above functions -->
+		<fcs_function name="systems/ap/entry/vspeed-target-fps-function">
+		<function>
+			<sum>
+				<property>systems/entry_guidance/nominal-hdot-target</property>
+				<property>systems/ap/entry/thermal-protection-bias</property>	
+				<property>systems/ap/entry/vspeed-target-no-yaw</property>		
+				<property>systems/ap/entry/vspeed-target-vrel-error</property>	
+				<property>systems/ap/entry/vspeed-target-drag-error</property>
+			</sum>
+		</function>
+		</fcs_function>
+		
+
+		<!-- Max hdot targeted by guidance (Entry Workbook) -->
+		<switch name="systems/ap/entry/vspeed-target-fps">
+			<default value="systems/ap/entry/vspeed-target-fps-function"/>
+			<test value="-400.0">
+				systems/ap/entry/vspeed-target-fps-function LT -700.0
+			</test>
+			<test value="400.0">
+				systems/ap/entry/vspeed-target-fps-function GT 400.0
+			</test>
+		</switch>
+
+		<fcs_function name="systems/ap/entry/vspeed-error">
+		<function>
+			<quotient>
+			<max>
+				<min>
+				<product>
+					<difference>
+						<property>systems/ap/entry/vspeed-target-fps</property>
+						<property>velocities/v-down-fps</property>
+					</difference>
+					<value>1.0</value>
+					</product>
+				<value>100.0</value>
+				</min>
+			<value>-100.0</value>
+			</max>
+			<value>100.0</value>
+			</quotient>
+		</function>
+		</fcs_function>
+
+  		<deadband name="systems/ap/entry/abs-bank-target-trigger">
+			<input>systems/ap/entry/vspeed-error</input>
+			<width>0.5</width>
+  		</deadband>
+
+		<!-- Max Bank depending on Vrel ( from 90° at mach 25 to 60 ° in latest entry stage) -->
+
+		<fcs_function name="systems/ap/entry/abs-bank-modifier-deg-max">
+		<function>
+			<table>
+        		<independentVar lookup="row">velocities/vtrue-fps</independentVar>
+        		<tableData>
+          	 	2500	0		
+				6000	0
+				10500	5.0
+				14500	5.0
+				17000	15.0
+				25000	30.0
+        		</tableData>
+      			</table>
+		</function>
+		</fcs_function>
+
+		<pid name="systems/ap/entry/abs-bank-modifier-deg">
+			<input>systems/ap/entry/vspeed-error</input>
+			<kp> 60.0 </kp>
+			<ki> 1.0 </ki>
+			<kd> 60.0</kd>
+			<trigger>systems/ap/entry/abs-bank-target-trigger</trigger>
+			<clipto>
+				<min> -60.0</min>
+        		<max> systems/ap/entry/abs-bank-modifier-deg-max </max>
+			</clipto>
+  		</pid>
+
+		<fcs_function name="systems/ap/entry/drag-bank-angle-target-deg">
+		<function>
+			<product>
+			<sum>
+				<value>60.0</value>
+				<property>systems/ap/entry/abs-bank-modifier-deg</property>
+			</sum>
+			<property>systems/ap/entry/roll-sign</property>
+			</product>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/ap/entry/low-e-bank-angle-target-deg">
+		<function>
+			<product>
+				<value>-2.2</value>
+				<property>systems/entry_guidance/delta-azimuth-deg</property>
+			</product>
+		</function>
+		</fcs_function>
+
+		<switch name="systems/ap/entry/bank-angle-target-deg">
+			<default value="systems/ap/entry/drag-bank-angle-target-deg"/>
+			<test logic="OR" value="0.0">
+				systems/ap/entry/taem-transit-init == 1
+				systems/ap/entry/drag-management-init == 0
+			</test>
+			<test value="systems/ap/entry/low-e-bank-angle-target-deg">
+				systems/ap/entry/low-energy-logic == 1
+			</test>
+			<test value="systems/ap/entry/reversal-bank-angle-target-deg">
+				systems/ap/entry/roll-reversal-init == 1
+			</test>
+		</switch>
+
+
+		<fcs_function name="systems/ap/entry/bank-angle-error">
+		<function>
+			<max>
+			<min>
+			<quotient>
+			<difference>
+				<property>systems/ap/entry/bank-angle-target-deg</property>
+				<!--<property>/orientation/roll-deg</property>-->
+				<property>systems/navigation/state-vector/roll-deg</property>
+			</difference>
+			<value>20.0</value>
+			</quotient>
+			<value>1.0</value>
+			</min>
+			<value>-1.0</value>
+			</max>
+		</function>
+		</fcs_function>
+
+
+		<!--Low roll gain below qbar 20 (0.1) to avoid overshoot in first roll reversal-->
+
+		<switch name="systems/ap/entry/roll-gain">
+			<default value="0.1"/>
+			<test logic="OR" value="1.0">
+				systems/fcs/rcs-roll-mode == 1
+				systems/fcs/no-y-jet == 1
+			</test>
+			<test logic="AND" value="0.2">
+				systems/ap/entry/roll-reversal-init == 1
+				aero/qbar-psf GT 20.0
+			</test>
+		</switch>
+
+
+		<fcs_function name="systems/ap/entry/entry-controller-aileron-cmd-norm">
+		<function>
+			<product>
+				<property>systems/ap/entry/bank-angle-error</property>
+				<property>systems/ap/entry/roll-gain</property>
+			</product>
+		</function>
+		</fcs_function>
+
+
+		<!-- pitch channel including alpha  hold and fast drag modulation -->
+
+
+		<!-- Fast drag modulation based on Vrel error (drag error changes too fast with alpha to be a solid parameters for alpha mod)-->
+		<!-- Mach > 11 (below too much interferences with Bank drag and tighter deadbands for v speed target) -->
+		<!-- Deadband on Hdotdot and v error smoothen alpha modulation-->
+
+		<switch name="systems/ap/entry/fast-drag-modulation-factor">
+			<default value="0.0"/>
+			<test value="0.0">
+				systems/ap/entry/drag-management-init == 0
+			</test>
+			<test logic="AND" value="1.0">
+				accelerations/hdotdot-ft_s2 GT 1.0
+				systems/entry_guidance/v-error-fps GT 50.0
+				velocities/mach GT 11.0
+			</test>
+			<test logic="AND" value="-1.0">
+				accelerations/hdotdot-ft_s2 LT -1.0
+				systems/entry_guidance/v-error-fps LT -50.0
+				velocities/mach GT 11.0
+			</test>
+		</switch>
+
+		<fcs_function name="systems/ap/entry/fast-drag-vspeed-error">
+		<function>
+			<quotient>
+			<max>
+				<min>
+					<difference>
+						<property>systems/ap/entry/vspeed-target-fps</property>
+						<property>velocities/v-down-fps</property>
+					</difference>
+				<value>100.0</value>
+				</min>
+			<value>-100.0</value>
+			</max>
+			<value>100.0</value>
+			</quotient>
+		</function>
+		</fcs_function>
+
+		<switch name="systems/ap/entry/low-e-phugoid-trigger">
+			<default value="0.0"/>
+			<test value="1.0">
+				accelerations/hdotdot-ft_s2 GT 0.0
+			</test>
+		</switch>
+
+		<fcs_function name="systems/ap/entry/low-e-alpha-rad">
+		<function>
+			<product>
+			<table>
+        		<independentVar lookup="row">velocities/mach</independentVar>
+        		<tableData>
+				 3.0	0.0
+				 4.0	1.0
+				 5.0	8.0
+          	 	 10.0	5.0
+				 15.0	3.0
+				 18.0	0.0	
+        		</tableData>
+      			</table>
+			<value>-0.0174532925194</value>
+			<property>systems/ap/entry/low-e-phugoid-trigger</property>
+			</product>
+		</function>
+		</fcs_function>
+
+
+		
+
+		<fcs_function name="systems/ap/entry/fast-drag-dalpha-rad">
+		<function>
+			<sum>
+			<product>
+				<difference>
+					<value>1.0</value>
+					<property>systems/ap/entry/low-energy-logic</property>
+				</difference>
+				<value>0.052358333</value>
+				<property>systems/ap/entry/fast-drag-vspeed-error</property>
+				<property>systems/ap/entry/fast-drag-modulation-factor</property>
+			</product>
+			<product>
+				<value>-0.05235987</value>
+				<property>systems/ap/entry/low-energy-logic</property>
+			</product>
+			<product>
+				<property>systems/ap/entry/low-e-alpha-rad</property>
+				<property>systems/ap/entry/low-energy-logic</property>
+			</product>
+			</sum>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/ap/entry/drag-target-alpha-rad">
+		<function>
+			<sum>
+				<property>systems/entry_guidance/nominal-alpha-rad</property>	
+				<property>systems/ap/entry/fast-drag-dalpha-rad</property>
+			</sum>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/ap/entry/roll-abs-deg">
+		<function>
+			<abs>
+				<!--<property>/orientation/roll-deg</property>-->
+				<property>systems/navigation/state-vector/roll-deg</property>
+			</abs>
+		</function>
+		</fcs_function>
+		
+		<!--14° of AOA targeted at TAEM transition-->
+
+		<switch name="systems/ap/entry/alpha-target-rad">
+			<default value="systems/ap/entry/drag-target-alpha-rad"/>
+			<test logic="AND" value="0.26">
+				systems/ap/entry/taem-transit-init == 1
+				systems/ap/entry/roll-abs-deg LT 2.0
+			</test>
+		</switch>
+
+
+		<fcs_function name="systems/ap/alpha-error">
+		<function>
+			<difference>
+				<property>systems/ap/entry/alpha-target-rad</property>
+				<property>aero/alpha-rad</property>
+			</difference>
+		</function>
+		</fcs_function>
+
+  		<deadband name="systems/ap/alpha-error-trigger">
+			<input>systems/ap/alpha-error</input>
+			<width>0.01</width>
+  		</deadband>
+
+  		<pid name="systems/ap/alpha-controller">
+			<input>systems/ap/alpha-error</input>
+			<kp> 10.0 </kp>
+			<ki> 1.0 </ki>
+			<kd> 5.0</kd>
+			<trigger>systems/ap/alpha-error-trigger</trigger>
+			<clipto>
+				<min> -1.0 </min>
+        			<max>  1.0 </max>
+			</clipto>
+  		</pid>
+
+
+		<fcs_function name="systems/ap/alpha-controller-elevator-cmd-norm">
+		<function>
+			<product>
+				<value>-1</value>
+				<property>systems/ap/alpha-controller</property>
+				<property>systems/ap/alpha-hold-mode</property>
+			</product>
+		</function>
+		</fcs_function>
+
+	</channel>
+
+	<!-- TAEM guidance targets feed into aerojet DAP -->
+	<!-- they're mostly descent rate acquire/hold and direction acquire/hold -->
+	<!-- the higher level energy management is done by Nasal -->
+
+	<channel name="TAEM auto-glide" execute="systems/ap/auto-taem-active">
+
+	<!--vspeed target older logic -->
+		<fcs_function name="systems/ap/taem/vspeed-target-old">
+		<function>
+			<min>
+			<sum>
+			<value>50.0</value>
+			<product>
+				<property>systems/ap/taem/hac-turn-init</property>
+				<value>40.0</value>
+				<difference>
+					<value>1.0</value>
+					<property>systems/ap/auto-bailout-active</property>
+				</difference>
+			</product>
+			<product>
+				<property>velocities/mach</property>
+				<value>50.0</value>
+			</product>
+			<product>	
+				<value>-0.02</value>			
+				<property>systems/taem-guidance/glideslope-deviation-ft</property>
+				<difference>
+					<value>1.0</value>
+					<property>systems/ap/auto-bailout-active</property>
+				</difference>
+			</product>
+			<product>
+				<property>systems/ap/auto-bailout-active</property>
+				<value>-550</value>
+			</product>
+			<product>
+				<value>-40.0</value>
+				<sin>
+					<abs>
+						<property>attitude/roll-rad</property>
+					</abs>
+				</sin>
+			</product>
+			<product>
+			<max>
+				<difference>	
+					<value>235.0</value>
+					<property>velocities/ve-kts</property>
+				</difference>
+				<value>0.0</value>
+			</max>
+			<value>15.0</value>
+			</product>			
+			</sum>
+			<value>370.0</value>
+			</min>
+		</function>
+		</fcs_function>	
+
+
+		<!-- Newer vspeed target logic -->
+
+		<!-- Gs deviation factor (not used currently) -->
+		<fcs_function name="systems/ap/taem/gs-deviation-factor">
+		<function>
+			<table>
+        		<independentVar lookup="row">systems/taem-guidance/distance-to-runway-nm</independentVar>
+        		<tableData>
+          	 	2500	0		
+				6000	0
+				10500	5.0
+				14500	5.0
+				17000	15.0
+				25000	30.0
+        		</tableData>
+      			</table>
+		</function>
+		</fcs_function>
+
+		<!-- Hdot ref for vspeed-target -->
+		<fcs_function name="systems/ap/taem/vspeed-target-hdot-ref">
+			<function>
+				<product>
+					<property>systems/entry_guidance/taem-hdot-ref</property>
+					<difference>
+						<value>1.0</value>
+						<property>systems/ap/auto-bailout-active</property>
+					</difference>
+				</product>
+			</function>
+		</fcs_function>
+
+		<!-- Pull up if HAC supersonic for vspeed-target (mainly done in Taem guidance nasal script)// 0.1 mach = 70fts -->
+		<fcs_function name="systems/ap/taem/vspeed-target-hac-pullup">
+			<function>
+				<product>
+					<property>systems/ap/taem/hac-turn-init</property>
+					<max>
+					<difference>	
+						<property>velocities/mach</property>
+						<value>0.95</value>
+					</difference>
+					<value>0.0</value>
+					</max>
+					<value>-700.0</value>
+					<difference>
+						<value>1.0</value>
+						<property>systems/ap/auto-bailout-active</property>
+					</difference>
+				</product>
+			</function>
+		</fcs_function>
+
+		<!-- GS deviation correction hdot -->
+		<fcs_function name="systems/ap/taem/vspeed-target-gs-deviation">
+			<function>
+				<product>	
+					<value>-0.04</value>			
+					<property>systems/taem-guidance/glideslope-deviation-ft</property>
+					<difference>
+						<value>1.0</value>
+						<property>systems/ap/auto-bailout-active</property>
+					</difference>
+				</product>
+			</function>
+		</fcs_function>
+
+		<!-- Bailout hdot // aim is a 10 ° path at 190 kt ish(400ft/s) EAS ie . hdot of -30 ft/s -->
+		<fcs_function name="systems/ap/taem/vspeed-target-bailout">
+			<function>
+				<product>
+					<property>systems/ap/auto-bailout-active</property>
+					<value>30</value>
+				</product>
+			</function>
+		</fcs_function>
+
+		<!-- Overspeed pitch up KEAS (10ft/s per knots above 321 kts) -->
+		<fcs_function name="systems/ap/taem/vspeed-target-eas-limit">
+			<function>
+				<product>
+					<max>
+						<difference>	
+							<property>velocities/ve-kts</property>
+							<value>321.0</value>
+						</difference>
+						<value>0.0</value>
+					</max>
+					<value>-10.0</value>
+				</product>
+			</function>
+		</fcs_function>
+
+		<!-- Overspeed pitch up qbar (10ft/s per 1psf above qbar max = f(mach)) -->
+		<fcs_function name="systems/ap/taem/qbar-max">
+		<function>
+			<table>
+        		<independentVar lookup="row">velocities/mach</independentVar>
+        		<tableData>
+				1.0		350
+          	 	1.2		300
+				3.5		300
+        		</tableData>
+      		</table>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/ap/taem/vspeed-target-qbar-limit">
+			<function>
+				<product>
+					<max>
+						<difference>	
+							<property>aero/qbar-psf</property>
+							<property>systems/ap/taem/qbar-max</property>
+						</difference>
+						<value>0.0</value>
+					</max>
+					<value>-10.0</value>
+				</product>
+			</function>
+		</fcs_function>
+
+		<!-- Over G's pitch down (-20ft/s per 0.1G above 2.2 G's) -->
+		<fcs_function name="systems/ap/taem/vspeed-target-nz-limit">
+			<function>
+				<product>
+					<max>
+						<difference>	
+							<property>accelerations/Nz</property>
+							<value>2.2</value>
+						</difference>
+						<value>0.0</value>
+					</max>
+					<value>200.0</value>
+				</product>
+			</function>
+		</fcs_function>
+
+		<!-- Max L/D alpha exceedance pitch down (-50ft/s per 1° above max L/D alpha + 2°) // it acts also as a qbar min protection -->
+		<fcs_function name="systems/ap/taem/vspeed-target-alphaLD-limit">
+			<function>
+				<product>
+					<max>
+						<difference>	
+							<property>aero/alpha-deg</property>
+							<sum>
+								<value>2.0</value>
+								<property>systems/entry_guidance/taem-max-LD</property>
+							</sum>
+						</difference>
+						<value>0.0</value>
+					</max>
+					<value>50.0</value>
+				</product>
+			</function>	
+		</fcs_function>
+
+		<!-- Max vspeed-target as a Mach Function (from 550 for early RTLS to 400 in subsonic) -->
+		<fcs_function name="systems/ap/taem/vspeed-max">
+		<function>
+			<table>
+        		<independentVar lookup="row">velocities/mach</independentVar>
+        		<tableData>
+          	 	 1.0	400
+				 1.5	450
+				 2.5	500
+				 3.5	550
+        		</tableData>
+      			</table>
+		</function>
+		</fcs_function>
+
+		<!-- vspeed target function that drives TAEM AP guidance -->
+		<fcs_function name="systems/ap/taem/vspeed-target">
+		<function>
+			<min>
+				<sum>
+					<property>systems/ap/taem/vspeed-target-hdot-ref</property>
+					<property>systems/ap/taem/vspeed-target-gs-deviation</property>
+					<property>systems/ap/taem/vspeed-target-hac-pullup</property>
+					<property>systems/ap/taem/vspeed-target-bailout</property>
+					<!--property>systems/ap/taem/vspeed-target-eas-limit</property-->
+					<property>systems/ap/taem/vspeed-target-qbar-limit</property>
+					<property>systems/ap/taem/vspeed-target-nz-limit</property>
+					<property>systems/ap/taem/vspeed-target-alphaLD-limit</property>
+				</sum>
+				<property>systems/ap/taem/vspeed-max</property>
+			</min>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/ap/taem/vspeed-error">
+		<function>
+	
+			<product>
+				<difference>
+					<property>systems/ap/taem/vspeed-target</property>
+					<property>velocities/v-down-fps</property>
+				</difference>
+				<value>0.005</value>
+			</product>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/ap/taem/elevator-gain">
+		<function>
+			<table>
+        		<independentVar lookup="row">velocities/mach</independentVar>
+        		<tableData>
+          	 		 1.0	0.15
+				 2.0	0.10
+				 3.0	0.07
+				 4.0	0.05
+        		</tableData>
+      			</table>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/ap/taem/neg-elevator-gain">
+		<function>
+			<product>
+				<value>-1.0</value>
+				<property>systems/ap/taem/elevator-gain</property>
+			</product>
+		</function>
+		</fcs_function>
+
+
+ 		 <pid name="systems/ap/taem/taem-controller-elevator-cmd-norm">
+			<input>systems/ap/taem/vspeed-error</input>
+			<kp> 1.0 </kp>
+			<ki> 0.0 </ki>
+			<kd> 1.5</kd>
+			<clipto>
+				<min>systems/ap/taem/neg-elevator-gain</min>
+        			<max>systems/ap/taem/elevator-gain</max>
+			</clipto>
+  		</pid>
+
+
+		<!-- Bank limits before HAC limited to 30° in High Supersonic extending to 50° in Subsonic (SCOM)-->
+
+		<fcs_function name="systems/ap/taem/az-bank-target-limits">
+		<function>
+			<table>
+        		<independentVar lookup="row">velocities/mach</independentVar>
+        		<tableData>
+				 0.0	50
+				 0.85	50
+				 0.95	45
+				 1.3	45
+				 4.0	30
+        		</tableData>
+      			</table>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/ap/taem/az-bank-target">
+		<function>
+			<max>
+			<min>
+			<product>
+				<property>systems/taem-guidance/delta-azimuth-deg</property>
+				<value>10.0</value>
+			</product>
+			<property>systems/ap/taem/az-bank-target-limits</property>
+			</min>
+			<product>
+				<value>-1.0</value>
+				<property>systems/ap/taem/az-bank-target-limits</property>
+			</product>
+			</max>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/ap/taem/radial-speed-target-fps">
+		<function>
+			<min>
+			<max>
+			<product>
+				<value>-400.0</value>
+				<property>systems/taem-guidance/radial-error-nm</property>
+			</product>
+			<value>-300.0</value>
+			</max>
+			<value>300.0</value>
+			</min>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/ap/taem/rdot-error">
+		<function>
+			<quotient>
+			<difference>
+				<property>systems/ap/taem/radial-speed-target-fps</property>
+				<property>systems/taem-guidance/rdot-fps</property>
+			</difference>
+			<value>200.0</value>
+			</quotient>
+		</function>
+		</fcs_function>
+
+		<!-- Radius decreasing during spiral // better radial error monitoring //based on radius final == 2.3Nm -->
+		<!-- 1.0 == 2.3 Nm // 1.21 == 2.8 Nm // 1.52 == 3.5 Nm // 1.96 == 4.3 Nm -->
+		<!-- From 4.5Nm for 360 ° HAC to 2.3 Nm for 90°HAC -->
+
+		<!-- hac-radius-factor nep for TAEMguidance.nas radius error and Spec 50 HAC size -->
+		<!--fcs_function name="systems/ap/taem/hac-radius-factor-nep">
+		<function>
+			<table>
+        		<independentVar lookup="row">systems/taem-guidance/distance-to-runway-nm</independentVar>
+        		<tableData>
+				11.7	1.0
+				16.1	1.21
+				20.9	1.52
+				27.5	1.87
+        		</tableData>
+      			</table>
+		</function>
+		</fcs_function-->
+
+		<!-- hac-radius-factor nep for TAEMguidance.nas radius error and Spec 50 HAC size -->
+		<fcs_function name="systems/ap/taem/hac-radius-factor-nep">
+		<function>
+			<table>
+        		<independentVar lookup="row">/position/altitude-agl-ft</independentVar>
+        		<tableData>
+				20000	1.0
+				30000	1.21
+				38000	1.52
+				50000	1.87
+        		</tableData>
+      			</table>
+		</function>
+		</fcs_function>
+
+
+	<!-- hac-radius-factor mep (3nm less for distance) -->
+		<!--fcs_function name="systems/ap/taem/hac-radius-factor-mep">
+		<function>
+			<table>
+        		<independentVar lookup="row">systems/taem-guidance/distance-to-runway-nm</independentVar>
+        		<tableData>
+				8.7		1.0
+				13.1	1.21
+				17.9	1.52
+				24.5	1.87
+        		</tableData>
+      			</table>
+		</function>
+		</fcs_function-->
+
+	<!-- hac-radius-factor mep (3nm/5kft less for distance) -->
+		<fcs_function name="systems/ap/taem/hac-radius-factor-mep">
+		<function>
+			<table>
+        		<independentVar lookup="row">/position/altitude-agl-ft</independentVar>
+        		<tableData>
+				14000	1.0
+				22000	1.21
+				31000	1.52
+				44000	1.87
+        		</tableData>
+      			</table>
+		</function>
+		</fcs_function>
+
+		<!-- hac-radius-factor-wp1 for TAEMguidance.nas Waypoint 1 distance from HAC center depending on Turn degree at entry// independant of MEP/NEP -->
+		<fcs_function name="systems/ap/taem/hac-radius-factor-wp1">
+		<function>
+			<table>
+        		<independentVar lookup="row">systems/taem-guidance/turn-hac-degrees</independentVar>
+        		<tableData>
+				90		1.0
+				180		1.21
+				270		1.52
+				359		1.87
+        		</tableData>
+      			</table>
+		</function>
+		</fcs_function>
+
+		<!-- Initial Bank target of 30° instead of 15°, hence lower correction applied for rdot-error-->
+		<fcs_function name="systems/ap/taem/hac-bank-target-function">
+		<function>
+			<sum>
+			<property>systems/ap/taem/set-bank-target</property>
+			<product>
+				<property>systems/ap/taem/rdot-error</property>
+				<property>systems/ap/taem/set-bank-target</property>
+				<value>0.75</value>
+			</product>
+			</sum>
+		</function>
+		</fcs_function>
+
+		<!-- Max 50 ° bank (1.6G's) during HAC -->
+		<switch name="systems/ap/taem/hac-bank-target">
+			<default value="systems/ap/taem/hac-bank-target-function"/>
+			<test value="50.0">
+				systems/ap/taem/hac-bank-target-function GT 50.0
+			</test>
+			<test value="-50.0">
+				systems/ap/taem/hac-bank-target-function LT -50.0
+			</test>
+		</switch>
+
+		<switch name="systems/ap/taem/bank-target">
+			<default value="systems/ap/taem/az-bank-target"/>
+			<test logic="AND" value="systems/ap/taem/hac-bank-target">
+				systems/ap/taem/hac-turn-init == 1
+				systems/ap/auto-bailout-active == 0
+			</test>
+			<test logic="AND" value="systems/ap/taem/set-bank-target">
+				systems/ap/taem/s-turn-init == 1
+				systems/ap/auto-bailout-active == 0
+			</test>
+			<test value="0.0">
+				systems/ap/auto-bailout-active == 1
+			</test>
+		</switch>
+
+		<fcs_function name="systems/ap/taem/bank-error">
+		<function>
+	
+			<product>
+				<difference>
+					<property>systems/ap/taem/bank-target</property>
+					<!--<property>/orientation/roll-deg</property>-->
+					<property>systems/navigation/state-vector/roll-deg</property>
+				</difference>
+				<value>0.05</value>
+			</product>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/ap/taem/aileron-gain">
+		<function>
+			<table>
+        		<independentVar lookup="row">velocities/mach</independentVar>
+        		<tableData>
+          	 		 1.0	0.5
+				 2.0	0.4
+				 3.0	0.25
+				 4.0	0.1
+        		</tableData>
+      			</table>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/ap/taem/neg-aileron-gain">
+		<function>
+			<product>
+				<value>-1.0</value>
+				<property>systems/ap/taem/elevator-gain</property>
+			</product>
+		</function>
+		</fcs_function>
+
+
+ 		 <pid name="systems/ap/taem/taem-controller-aileron-cmd-norm">
+			<input>systems/ap/taem/bank-error</input>
+			<kp> 1.0 </kp>
+			<ki> 0.0 </ki>
+			<kd> 1.5</kd>
+			<clipto>
+				<min>systems/ap/taem/neg-aileron-gain</min>
+        			<max>systems/ap/taem/aileron-gain</max>
+			</clipto>
+  		</pid>
+
+
+
+	</channel>
+
+
+
+	<!-- OPS 601 automatic RTLS guidance -->
+
+	<!-- general mode selection parameters activating the channels -->
+
+	<channel name="Auto RTLS management">
+
+		<switch name="systems/ap/auto-prtls-active">
+			<default value="0.0"/>
+			<test logic="AND" value="1.0">
+				systems/dps/major-mode == 601
+				systems/entry_guidance/guidance-mode == 3
+				systems/fcs/control-mode == 10
+				systems/abort/abort-mode == 1
+			</test>
+			<test logic="AND" value="1.0">
+				systems/dps/major-mode == 601
+				systems/entry_guidance/guidance-mode == 3
+				systems/fcs/control-mode == 13
+				systems/abort/abort-mode == 1
+			</test>
+			<test logic="AND" value="1.0">
+				systems/dps/major-mode-bfs == 601
+				systems/entry_guidance/guidance-mode == 3
+				systems/fcs/control-mode == 10
+				systems/abort/abort-mode == 1
+				systems/dps/bfs-in-control == 1
+			</test>
+			<test logic="AND" value="1.0">
+				systems/dps/major-mode-bfs == 601
+				systems/entry_guidance/guidance-mode == 3
+				systems/fcs/control-mode == 13
+				systems/abort/abort-mode == 1
+				systems/dps/bfs-in-control == 1
+			</test>
+		</switch>
+
+		<switch name="systems/ap/auto-grtls-active">
+			<default value="0.0"/>
+			<test logic="AND" value="1.0">
+				systems/dps/major-mode == 602
+				systems/entry_guidance/guidance-mode == 3
+				systems/fcs/control-mode == 29
+				systems/ap/grtls/taem-transition-init == 0
+			</test>
+			<test logic="AND" value="1.0">
+				systems/dps/major-mode-bfs == 602
+				systems/entry_guidance/guidance-mode == 3
+				systems/fcs/control-mode == 29
+				systems/ap/grtls/taem-transition-init == 0
+				systems/dps/bfs-in-control == 1
+			</test>
+		</switch>
+
+		<switch name="systems/ap/auto-grtls-rcs-pitch-active">
+			<default value="0.0"/>
+			<test logic="AND" value="1.0">
+				systems/dps/major-mode == 602
+				systems/entry_guidance/guidance-mode == 3
+				systems/fcs/control-mode == 29
+				systems/ap/automatic-pitch-control == 1
+			</test>
+			<test logic="AND" value="1.0">
+				systems/dps/major-mode-bfs == 602
+				systems/entry_guidance/guidance-mode == 3
+				systems/fcs/control-mode == 29
+				systems/ap/automatic-pitch-control == 1
+				systems/dps/bfs-in-control == 1
+			</test>
+		</switch>
+
+		<switch name="systems/ap/auto-grtls-rcs-roll-active">
+			<default value="0.0"/>
+			<test logic="AND" value="1.0">
+				systems/dps/major-mode == 602
+				systems/entry_guidance/guidance-mode == 3
+				systems/fcs/control-mode == 29
+				systems/ap/automatic-roll-control == 1
+			</test>
+			<test logic="AND" value="1.0">
+				systems/dps/major-mode-bfs == 602
+				systems/entry_guidance/guidance-mode == 3
+				systems/fcs/control-mode == 29
+				systems/ap/automatic-roll-control == 1
+				systems/dps/bfs-in-control == 1
+			</test>
+		</switch>
+
+	</channel>
+
+	<channel name="Auto PRTLS management" execute="systems/ap/auto-prtls-active">
+
+
+		<fcs_function name="systems/ap/rtls/pitcharound-prop-fraction">
+		<function>
+			<table>
+        		<independentVar lookup="row">systems/abort/engine-fail-time</independentVar>
+        		<tableData>
+          	 		  0.0	44.0
+				 30.0	47.0
+				 60.0	47.0
+				 90.0	48.0
+				120.0	51.0
+				150.0	51.0
+				180.0	52.0
+				210.0	53.0
+				240.0	52.0
+        		</tableData>
+      			</table>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/ap/rtls/guid-percent">
+		<function>
+			<product>
+			<max>
+				<quotient>
+					<difference>
+						<property>propulsion/tank/pct-full</property>
+						<property>systems/ap/rtls/pitcharound-prop-fraction</property>
+					</difference>		
+					<difference>
+						<value>100.0</value>
+						<property>systems/ap/rtls/pitcharound-prop-fraction</property>
+					</difference>
+				</quotient>
+			<value>0.0</value>
+			</max>
+			<value>100.0</value>
+			</product>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/ap/rtls/outbound-pitch-deg">
+		<function>
+			<table>
+        		<independentVar lookup="row">systems/abort/engine-fail-time</independentVar>
+        		<tableData>
+          	 		  0.0	60.0
+				 30.0	58.0
+				 60.0	57.0
+				 90.0	56.0
+				120.0	49.0	
+				150.0	42.0
+				180.0	38.0
+				210.0	34.0
+				240.0	30.0
+        		</tableData>
+      			</table>
+		</function>
+		</fcs_function>
+
+	
+		<!-- roll definitions -->
+
+		<fcs_function name="systems/ap/rtls/roll-deg-abs">
+		<function>
+			<abs>
+				<property>/orientation/roll-deg</property>
+			</abs>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/ap/rtls/roll-deg-alt">
+		<function>
+			<sum>
+				<value>360.0</value>
+				<property>/orientation/roll-deg</property>
+			</sum>
+		</function>
+		</fcs_function>
+
+		
+		<switch name="systems/ap/rtls/roll-deg">
+			<default value="/orientation/roll-deg"/>
+			<test value="systems/ap/rtls/roll-deg-alt">
+				/orientation/roll-deg LT 0.0
+			</test>	
+		</switch>
+
+		<!-- phase -->
+
+		<switch name="systems/ap/rtls/flyout-active">
+			<default value="1.0"/>
+			<test value="0.0">
+				propulsion/tank/pct-full LT systems/ap/rtls/pitcharound-prop-fraction
+			</test>
+		</switch>
+
+		<switch name="systems/ap/rtls/flyback-active">
+			<default value="0.0"/>
+			<test logic="AND" value="1.0">
+				systems/ap/rtls/flyout-active == 0
+				systems/ap/rtls/roll-deg-abs LT 90.0
+				/orientation/pitch-deg LT 70.0
+				systems/ap/rtls/powered-pitchdown-active == 0
+			</test>
+			<test logic="AND" value="1.0">
+				systems/ap/rtls/flyback-active == 1
+				systems/ap/rtls/powered-pitchdown-active == 0
+			</test>
+		</switch>
+		
+
+		<switch name="systems/ap/rtls/powered-pitcharound-active">
+			<default value="0.0"/>
+			<test logic="AND" value="1.0">
+				systems/ap/rtls/flyout-active == 0
+				systems/ap/rtls/flyback-active == 0
+				systems/ap/rtls/powered-pitchdown-active == 0
+			</test>
+		</switch>
+		
+
+		<!-- roll -->
+
+
+
+		<fcs_function name="systems/ap/rtls/flyout-roll-error">
+		<function>
+			<difference>
+				<property>systems/ap/rtls/roll-deg</property>
+				<value>180.0</value>
+			</difference>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/ap/rtls/flyback-roll-error">
+		<function>
+			<product>
+				<value>1</value>
+				<property>/orientation/roll-deg</property>
+			</product>
+		</function>
+		</fcs_function>
+
+
+		<switch name="systems/ap/rtls/roll-error">
+			<default value="0.0"/>
+			<test value="systems/ap/rtls/flyout-roll-error">
+				systems/ap/rtls/flyout-active == 1
+			</test>
+			<test value="0.0">
+				systems/ap/rtls/powered-pitcharound-active == 1
+			</test>
+			<test logic="OR" value="systems/ap/rtls/flyback-roll-error">
+				systems/ap/rtls/flyback-active == 1
+				systems/ap/rtls/powered-pitchdown-active == 1
+			</test>
+		</switch>
+
+		<fcs_function name="systems/ap/rtls/roll-cmd">
+		<function>
+			<min>
+				<max>
+					<product>
+						<property>systems/ap/rtls/roll-error</property>
+						<value>-0.5</value>
+					</product>
+					<value>-0.05</value>
+				</max>
+				<value>0.05</value>
+			</min>
+		</function>
+		</fcs_function>
+
+
+		<!-- yaw -->
+
+
+
+		<fcs_function name="systems/ap/rtls/flyout-yaw-error">
+		<function>
+			<product>
+				<value>-0.2</value>
+				<property>aero/beta-deg</property>
+			</product>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/ap/rtls/flyback-yaw-error">
+		<function>
+			<difference>
+				<property>/orientation/heading-deg</property>
+				<property>systems/entry_guidance/target-azimuth-deg</property>
+			</difference>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/ap/rtls/powered-pitchdown-yaw-error">
+		<function>
+			<product>
+				<value>-0.4</value>
+				<property>aero/beta-deg</property>
+			</product>
+		</function>
+		</fcs_function>
+
+		<switch name="systems/ap/rtls/yaw-error">
+			<default value="0.0"/>
+			<test value="systems/ap/rtls/flyout-yaw-error">
+				systems/ap/rtls/flyout-active == 1
+			</test>
+			<test value="0.0">
+				systems/ap/rtls/powered-pitcharound-active == 1
+			</test>
+			<test value="systems/ap/rtls/flyback-yaw-error">
+				systems/ap/rtls/flyback-active == 1
+			</test>
+			<test value="systems/ap/rtls/powered-pitchdown-yaw-error">
+				systems/ap/rtls/powered-pitchdown-active == 1
+			</test>
+		</switch>
+
+		<fcs_function name="systems/ap/rtls/yaw-cmd">
+		<function>
+			<min>
+				<max>
+					<product>
+						<property>systems/ap/rtls/yaw-error</property>
+						<value>0.1</value>
+					</product>
+					<value>-0.25</value>
+				</max>
+				<value>0.25</value>
+			</min>
+		</function>
+		</fcs_function>
+
+
+		<!-- pitch -->
+		<!-- note that due to the different roll orientation pitch error flips sign in PPA -->
+
+		
+
+		<fcs_function name="systems/ap/rtls/flyout-pitch-error">
+		<function>
+			<difference>
+				<property>/orientation/pitch-deg</property>
+				<property>systems/ap/rtls/outbound-pitch-deg</property>
+			</difference>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/ap/rtls/powered-pitchdown-pitch-error">
+		<function>
+			<difference>
+				<value>-2.0</value>
+				<property>aero/alpha-deg</property>
+			</difference>
+		</function>
+		</fcs_function>
+
+
+		<fcs_function name="systems/ap/rtls/flyback-trajectory-deviation">
+		<function>
+			<min>
+			<max>
+			<difference>
+			<table>
+        			<independentVar lookup="row">systems/entry_guidance/site-relative-velocity-fps</independentVar>
+        			<tableData>
+				-8000.0		265000.0
+				-7000.0		260000.0
+				-2500.0		270000.0
+				    0.0		330000.0
+				 3400.0		420000.0
+        			</tableData>
+      				</table>
+			<property>/position/altitude-ft</property>
+			</difference>
+			<value>-40000.0</value>
+			</max>
+			<value>40000.0</value>
+			</min>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/ap/rtls/flyback-vspead-db-width">
+		<function>
+
+			<product>
+			<table>
+        			<independentVar lookup="row">systems/entry_guidance/site-relative-velocity-fps</independentVar>
+        			<tableData>
+				-7000.0		100.0
+				-2500.0		200.0
+				    0.0		300.0
+				 3400.0		700.0
+        			</tableData>
+      			</table>
+
+			<max>
+			<quotient>
+				<abs>
+					<property>systems/ap/rtls/flyback-trajectory-deviation</property>
+				</abs>				
+				<value>40000.0</value>
+			</quotient>
+			<value>0.3</value>
+			</max>
+			</product>
+			
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/ap/rtls/vspeed-biased-fps">
+		<function>
+			<sum>
+				<property>velocities/v-down-fps</property>
+			<table>
+        			<independentVar lookup="row">systems/entry_guidance/site-relative-velocity-fps</independentVar>
+        			<tableData>
+				-7000.0		150.0
+				-5500.0		0.0
+				-4500.0		-250.0
+				-3500.0		-400.0
+				-2500.0		-600.0
+				    0.0		-600.0
+				 3400.0		-700.0
+        			</tableData>
+      			</table>
+			</sum>
+		</function>
+		</fcs_function>
+
+  		<deadband name="systems/ap/rtls/vspeed-deadband">
+			<input>systems/ap/rtls/vspeed-biased-fps</input>
+			<width>systems/ap/rtls/flyback-vspead-db-width</width>
+  		</deadband>
+		
+
+		<switch name="systems/ap/rtls/flyback-trajectory-damper">
+			<default value="0.0"/>
+			<test logic ="AND" value="-2.0">
+				velocities/v-down-fps LT 150.0
+				systems/entry_guidance/site-relative-velocity-fps GT -3000.0
+			</test>
+			<test logic="AND" value="1.0">
+				systems/ap/rtls/flyback-trajectory-deviation GT 0.0
+				systems/ap/rtls/vspeed-biased-fps GT 0.0
+			</test>
+			<test logic="AND" value="-1.0">
+				systems/ap/rtls/flyback-trajectory-deviation LT 0.0
+				systems/ap/rtls/vspeed-biased-fps LT 0.0
+			</test>
+		</switch>
+
+		<fcs_function name="systems/ap/rtls/flyback-pitch-target">
+		<function>
+			<min>
+			<sum>
+				<table>
+        			<independentVar lookup="row">propulsion/tank/pct-full</independentVar>
+        			<tableData>
+					5.0	30.0
+					9.3	36.6
+					13.3	40.5
+					18.3	47.0
+					22.8	50.3
+					32.0	51.5
+					40.6	55.0
+					50.0	60.0
+        			</tableData>
+      				</table>
+			
+				<min>
+				<max>
+					<product>
+						<difference>
+							<value>275000.0</value>
+							<property>/position/altitude-ft</property>
+						</difference>
+						<value>0.001</value>
+					</product>
+				<value>0.0</value>
+				</max>
+				<value>10.0</value>
+				</min>
+
+				<product>
+					<property>systems/ap/rtls/flyback-trajectory-deviation</property>
+					<value>0.00035</value>
+				</product>
+
+				<product>
+					<property>systems/ap/rtls/vspeed-deadband</property>
+					<value>0.015</value>
+				</product>
+
+				<product>
+					<property>systems/ap/rtls/flyback-trajectory-damper</property>
+					<value>5.0</value>
+				</product>
+
+				<product>
+					<max>
+					<difference>
+						<property>aero/qbar-psf</property>
+						<value>1.0</value>
+					</difference>
+					<value>0.0</value>
+					</max>
+					<value>10.0</value>
+				</product>	
+
+			</sum>
+			<value>80.0</value>
+			</min>
+		</function>
+		</fcs_function>
+
+
+
+		<fcs_function name="systems/ap/rtls/flyback-pitch-error">
+		<function>
+			<difference>
+				<property>systems/ap/rtls/flyback-pitch-target</property>
+				<property>/orientation/pitch-deg</property>
+			</difference>
+		</function>
+		</fcs_function>
+
+
+		<fcs_function name="systems/ap/rtls/powered-pitcharound-pitch-error">
+		<function>
+			<sum>
+				<difference>
+					<value>69.0</value>
+					<property>/orientation/pitch-deg</property>
+				</difference>
+				<product>
+				<max>
+				<min>
+					<difference>
+						<property>systems/ap/rtls/roll-deg-abs</property>
+						<value>90.0</value>
+					</difference>
+					<value>1.0</value>
+				</min>
+				<value>0.0</value>
+				</max>
+				<value>-100.0</value>
+			</product>
+			</sum>
+		</function>
+		</fcs_function>
+		
+
+		<switch name="systems/ap/rtls/pitch-error">
+			<default value="0.0"/>
+			<test value="systems/ap/rtls/flyout-pitch-error">
+				systems/ap/rtls/flyout-active == 1
+			</test>
+			<test value="systems/ap/rtls/powered-pitcharound-pitch-error">
+				systems/ap/rtls/powered-pitcharound-active == 1
+			</test>
+			<test value="systems/ap/rtls/flyback-pitch-error">
+				systems/ap/rtls/flyback-active == 1
+			</test>
+			<test value="systems/ap/rtls/powered-pitchdown-pitch-error">
+				systems/ap/rtls/powered-pitchdown-active == 1
+			</test>
+		</switch>
+
+		<switch name="systems/ap/rtls/pitch-gain">
+			<default value="0.0"/>
+			<test value="0.2">
+				systems/ap/rtls/flyout-active == 1
+			</test>
+			<test  value="0.1">
+				systems/ap/rtls/flyback-active == 1
+			</test>
+			<test value="0.2">
+				systems/ap/rtls/powered-pitcharound-active == 1
+				systems/ap/rtls/roll-deg-abs LT 90.0
+				/orientation/pitch-deg LT 70.0
+			</test>
+			<test value="0.4">
+				systems/ap/rtls/powered-pitcharound-active == 1
+				systems/ap/rtls/roll-deg-abs LT 90.0
+				/orientation/pitch-deg LT 80.0
+			</test>
+			<test value="0.3">
+				systems/ap/rtls/powered-pitcharound-active == 1
+				systems/ap/rtls/roll-deg-abs GT 90.0
+				/orientation/pitch-deg LT 65.0
+			</test>
+			<test value="0.7">
+				systems/ap/rtls/powered-pitcharound-active == 1
+			</test>
+			<test value="0.6">
+				systems/ap/rtls/powered-pitchdown-active == 1
+			</test>
+
+		</switch>
+
+		<fcs_function name="systems/ap/rtls/pitch-cmd">
+		<function>
+			<min>
+				<max>
+					<product>
+						<property>systems/ap/rtls/pitch-error</property>
+						<value>-0.1</value>
+					</product>
+					<product>
+						<property>systems/ap/rtls/pitch-gain</property>
+						<value>-1.0</value>
+					</product>
+				</max>
+				<property>systems/ap/rtls/pitch-gain</property>
+			</min>
+		</function>
+		</fcs_function>
+
+
+	</channel>
+
+	<channel name="Auto GRTLS management" execute="systems/ap/auto-grtls-active">
+
+	<!-- GRTLS has no yaw channel since Aerojet DAP uses yaw to force beta = 0 -->
+
+	
+		<!-- phase -->
+
+		<switch name="systems/ap/grtls/alpha-recovery-active">
+			<default value="1.0"/>
+			<test logic="OR" value="0.0">
+				systems/ap/grtls/Nz-hold-active == 1
+				systems/ap/grtls/alpha-transition-active == 1
+			</test>
+		</switch>
+
+		<switch name="systems/ap/grtls/Nz-hold-active">
+			<default value="0.0"/>
+			<test logic="AND" value="1.0">
+				systems/ap/grtls/alpha-recovery-active == 1
+				systems/ap/grtls/alpha-transition-active == 0
+				accelerations/Nz GT 2.5
+			</test>
+			<test logic="AND" value="1.0">
+				systems/ap/grtls/Nz-hold-active == 1
+				systems/ap/grtls/alpha-transition-active == 0
+			</test>
+		</switch>
+
+		<switch name="systems/ap/grtls/alpha-transition-active">
+			<default value="0.0"/>
+			<test logic="AND" value="1.0">
+				systems/ap/grtls/Nz-hold-active == 1
+				velocities/v-down-fps LT -320.0
+			</test>
+			<test logic="AND" value="1.0">
+				systems/ap/grtls/Nz-hold-active == 1
+				velocities/v-down-fps LT 0.0
+				aero/alpha-deg GT 30.0
+			</test>
+			<test value="1.0">
+				systems/ap/grtls/alpha-transition-active == 1
+			</test>
+		</switch>
+
+
+		<!-- roll -->
+
+		<switch name="systems/ap/grtls/roll-gain">
+			<default value="1.0"/>	
+			<test value="0.1">
+				systems/ap/grtls/alpha-transition-active == 1
+			</test>
+		</switch>
+
+		<fcs_function name="systems/ap/grtls/roll-cmd">
+		<function>
+			<min>
+				<max>
+					<product>
+						<difference>
+							<property>systems/ap/grtls/roll-tgt-deg</property>
+							<property>/orientation/roll-deg</property>
+						</difference>
+						<value>0.5</value>
+					</product>
+					<product>
+						<value>-1.0</value>
+						<property>systems/ap/grtls/roll-gain</property>
+					</product>
+				</max>
+				<property>systems/ap/grtls/roll-gain</property>
+			</min>
+		</function>
+		</fcs_function>
+
+
+		<!-- pitch -->
+
+		<fcs_function name="systems/ap/grtls/alpha-recovery-pitch-error">
+		<function>
+			<difference>
+				<value>50.0</value>
+				<property>aero/alpha-deg</property>
+			</difference>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/ap/grtls/Nz-hold-pitch-error">
+		<function>
+			<min>
+			<product>
+				<difference>
+					<property>systems/ap/grtls/Nz-tgt</property>
+					<property>accelerations/Nz</property>
+				</difference>
+				<value>2.0</value>
+			</product>
+			<value>1.0</value>
+			</min>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/ap/grtls/alpha-transition-vspeed-error">
+		<function>
+			<min>
+			<max>
+			<quotient>
+				<difference>
+					<property>velocities/v-down-fps</property>
+					<value>20000.0</value>
+				</difference>
+				<value>10000.0</value>
+			</quotient>
+			<value>0.0</value>
+			</max>
+			<value>1.0</value>
+			</min>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/ap/grtls/alpha-transition-pitch-error">
+		<function>
+			<difference>
+				<sum>
+				<table>
+        				<independentVar lookup="row">velocities/mach</independentVar>
+         				<tableData>
+           				1.5	9.0
+					2.0	12.0
+					2.5	14.0
+					3.0	16.0
+					4.0	19.0
+					5.0	23.0
+         				</tableData>
+      				</table>
+				<product>
+					<value>10.0</value>
+					<property>systems/ap/grtls/alpha-transition-vspeed-error</property>
+				</product>
+				</sum>
+				<property>aero/alpha-deg</property>
+			</difference>
+		</function>
+		</fcs_function>
+
+
+		<switch name="systems/ap/grtls/pitch-error">
+			<default value="0.0"/>
+			<test value="systems/ap/grtls/alpha-recovery-pitch-error">
+				systems/ap/grtls/alpha-recovery-active == 1
+			</test>
+			<test value="systems/ap/grtls/Nz-hold-pitch-error">
+				systems/ap/grtls/Nz-hold-active == 1
+			</test>
+			<test value="systems/ap/grtls/alpha-transition-pitch-error">
+				systems/ap/grtls/alpha-transition-active == 1
+			</test>
+		</switch>
+
+		<switch name="systems/ap/grtls/pitch-gain">
+			<default value="1.0"/>
+			<test value="0.4">
+				aero/qbar-psf GT 40.0 
+			</test>
+		</switch>
+
+		<fcs_function name="systems/ap/grtls/pitch-cmd">
+		<function>
+			<min>
+				<max>
+					<product>
+						<property>systems/ap/grtls/pitch-error</property>
+						<value>-0.1</value>
+					</product>
+					<product>
+						<property>systems/ap/grtls/pitch-gain</property>
+						<value>-1.0</value>
+					</product>
+				</max>
+				<property>systems/ap/grtls/pitch-gain</property>
+			</min>
+		</function>
+		</fcs_function>
+
+	</channel>
+
+
+	<!-- OPS 601 automatic contingency guidance -->
+
+	<!-- general mode selection parameters activating the channels -->
+
+	<channel name="Auto Contingency management">
+
+		<switch name="systems/ap/auto-contingency-active">
+			<default value="0.0"/>
+			<test logic="AND" value="1.0">
+				systems/dps/major-mode == 601
+				systems/entry_guidance/guidance-mode == 3
+				systems/fcs/control-mode == 10
+				systems/abort/abort-mode GE 5
+			</test>
+			<test logic="AND" value="1.0">
+				systems/dps/major-mode == 601
+				systems/entry_guidance/guidance-mode == 3
+				systems/fcs/control-mode == 13
+				systems/abort/abort-mode GE 5
+			</test>
+		</switch>
+
+		<switch name="systems/ap/auto-contingency-roll-active">
+			<default value="0.0"/>
+			<test logic="AND" value="1.0">
+				systems/ap/auto-contingency-active == 1
+				systems/ap/automatic-roll-control == 1
+			</test>
+		</switch>
+
+	</channel>
+
+	<channel name="Auto contingency management" execute="systems/ap/auto-contingency-active">
+
+
+		<!-- targets -->
+
+		<switch name="systems/ap/contingency/initial-pitch-target">
+			<default value="0.0"/>
+			<test value="10.0"> <!-- BLUE -->
+				systems/abort/abort-mode == 5
+			</test>
+			<test  value="60.0"> <!-- GREEN -->
+				systems/abort/abort-mode == 6
+			</test>
+			<test  value="100.0"> <!-- YELLOW -->
+				systems/abort/abort-mode == 7
+			</test>
+			<test  value="30.0"> <!-- ORANGE -->
+				systems/abort/abort-mode == 8
+			</test>
+		</switch>
+
+		<switch name="systems/ap/contingency/yaw-target">
+			<default value="0.0"/>
+			<test logic="AND" value="systems/abort/yaw-steer-target"> 
+				systems/abort/abort-mode == 6
+				systems/abort/enable-yaw-steer == 1
+			</test>
+
+		</switch>
+
+		<!-- phase discriminators -->
+
+		<fcs_function name="systems/ap/contingency/heading-arg-raw">
+		<function>
+			<abs>
+			<difference>
+				<property>/orientation/heading-deg</property>
+				<property>velocities/course-deg</property>
+			</difference>
+			</abs>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/ap/contingency/heading-arg-subtracted">
+		<function>
+			<abs>
+			<difference>
+				<property>systems/ap/contingency/heading-arg-raw</property>
+				<value>360.0</value>
+			</difference>
+			</abs>
+		</function>
+		</fcs_function>
+
+		<switch name="systems/ap/contingency/heading-arg">
+			<default value="systems/ap/contingency/heading-arg-raw"/>
+			<test value="systems/ap/contingency/heading-arg-subtracted"> 
+				systems/ap/contingency/heading-arg-raw GT 180.0
+			</test>
+
+		</switch>
+
+		<switch name="systems/ap/contingency/heading-sign">
+			<default value="1"/>
+			<test value="-1">
+				systems/ap/contingency/heading-arg GT 90.0
+			</test>	
+		</switch>
+
+		<fcs_function name="systems/ap/contingency/pitch-extended-raw">
+		<function>
+			<difference>
+				<value>180.0</value>
+				<property>/orientation/pitch-deg</property>
+			</difference>	
+		</function>
+		</fcs_function>
+
+		<switch name="systems/ap/contingency/pitch-extended">
+			<default value="/orientation/pitch-deg"/>
+			<test value="systems/ap/contingency/pitch-extended-raw">
+				systems/ap/contingency/heading-sign == -1
+			</test>	
+		</switch>
+
+		<fcs_function name="systems/ap/contingency/active-pitch-error">
+		<function>
+			<difference>
+				<property>systems/ap/contingency/initial-pitch-target</property>
+				<property>/orientation/pitch-deg</property>
+			</difference>
+		</function>
+		</fcs_function>	
+
+		<fcs_function name="systems/ap/contingency/extended-pitch-error">
+		<function>
+			<difference>
+				<property>systems/ap/contingency/initial-pitch-target</property>
+				<property>systems/ap/contingency/pitch-extended</property>
+			</difference>
+		</function>
+		</fcs_function>	
+
+		<fcs_function name="systems/ap/contingency/upright-roll-error">
+		<function>
+			<property>/orientation/roll-deg</property>
+		</function>
+		</fcs_function>
+
+
+		<!-- phases -->
+
+
+		<switch name="systems/ap/contingency/initial-attitude-active">
+			<default value="1.0"/>
+			<test logic="OR" value="0.0"> 
+				systems/ap/contingency/roll-headsup-active == 1
+				systems/ap/contingency/flyout-active == 1
+				systems/ap/contingency/init-etsep-active == 1
+			</test>
+		</switch>
+
+		<switch name="systems/ap/contingency/roll-headsup-active">
+			<default value="0.0"/>
+			<test logic="AND" value="1.0"> 
+				systems/ap/contingency/flyout-active == 0
+				systems/ap/contingency/init-etsep-active == 0
+				systems/ap/contingency/active-pitch-error LT 1.0
+				systems/ap/contingency/active-pitch-error GT -1.0
+			</test>
+			<test logic="AND" value="1.0"> 
+				systems/ap/contingency/flyout-active == 0
+				systems/ap/contingency/init-etsep-active == 0
+				systems/ap/contingency/extended-pitch-error LT 1.0
+				systems/ap/contingency/extended-pitch-error GT -1.0
+			</test>
+		</switch>
+
+		<switch name="systems/ap/contingency/flyout-active">
+			<default value="0.0"/>
+			<test logic="AND" value="1.0"> 
+				systems/ap/contingency/roll-headsup-active == 1
+				systems/ap/contingency/init-etsep-active == 0
+				systems/ap/contingency/upright-roll-error LT 1.0
+				systems/ap/contingency/upright-roll-error GT -1.0
+			</test>
+			<test logic="AND" value="1.0"> 
+				systems/ap/contingency/flyout-active == 1
+				systems/ap/contingency/init-etsep-active == 0
+			</test>
+		</switch>
+
+
+
+
+		
+
+	
+		<!-- roll definitions -->
+
+		<fcs_function name="systems/ap/contingency/roll-deg-abs">
+		<function>
+			<abs>
+				<property>/orientation/roll-deg</property>
+			</abs>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/ap/contingency/roll-deg-alt">
+		<function>
+			<sum>
+				<value>360.0</value>
+				<property>/orientation/roll-deg</property>
+			</sum>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/ap/contingency/abs-roll-deg">
+		<function>
+			<abs>
+				<property>/orientation/roll-deg</property>
+			</abs>
+		</function>
+		</fcs_function>
+
+		
+		<switch name="systems/ap/contingency/roll-deg">
+			<default value="/orientation/roll-deg"/>
+			<test value="systems/ap/contingency/roll-deg-alt">
+				/orientation/roll-deg LT 0.0
+			</test>	
+		</switch>
+
+		<switch name="systems/ap/contingency/orientation-sign">
+			<default value="1"/>
+			<test value="-1">
+				systems/ap/contingency/abs-roll-deg GT 90.0
+				systems/ap/contingency/heading-sign == 1
+			</test>	
+			<test value="1">
+				systems/ap/contingency/abs-roll-deg GT 90.0
+				systems/ap/contingency/heading-sign == -1
+			</test>	
+			<test value="-1">
+				systems/ap/contingency/abs-roll-deg LT 90.0
+				systems/ap/contingency/heading-sign == -1
+			</test>	
+		</switch>
+
+
+
+
+		<!-- roll channel -->
+
+
+
+		<fcs_function name="systems/ap/contingency/inverted-roll-error">
+		<function>
+			<difference>
+				<property>systems/ap/contingency/roll-deg</property>
+				<value>180.0</value>
+			</difference>
+		</function>
+		</fcs_function>
+
+
+
+		<switch name="systems/ap/contingency/roll-error">
+			<default value="systems/ap/contingency/inverted-roll-error"/>
+			<test logic="AND" value="systems/ap/contingency/upright-roll-error">
+				systems/ap/contingency/orientation-sign == 1
+				systems/ap/contingency/initial-attitude-active == 1
+			</test>
+			<test logic="AND" value="systems/ap/contingency/upright-roll-error">
+				systems/ap/contingency/roll-headsup-active == 1
+				systems/ap/contingency/heading-sign == 1
+			</test>	
+			<test logic="AND" value="systems/ap/contingency/upright-roll-error">
+				systems/ap/contingency/flyout-active == 1
+				systems/ap/contingency/heading-sign == 1
+
+			</test>	
+			<test value="systems/ap/contingency/upright-roll-error">
+				systems/ap/contingency/init-etsep-active == 1
+			</test>	
+		</switch>
+
+
+		<fcs_function name="systems/ap/contingency/roll-cmd">
+		<function>
+			<min>
+				<max>
+					<product>
+						<property>systems/ap/contingency/roll-error</property>
+						<!--<value>-0.04</value>-->
+						<table>
+        						<independentVar lookup="row">aero/qbar-psf</independentVar>
+         						<tableData>
+      								0.00	-0.04
+								0.05	-0.04
+								0.1	-0.08
+								0.3	-0.2
+       							</tableData>
+    						</table>
+					</product>
+					<value>-1.0</value>
+				</max>
+				<value>1.0</value>
+			</min>
+		</function>
+		</fcs_function>
+
+		<!-- pitch channel -->
+
+
+		<fcs_function name="systems/ap/contingency/alpha-error">
+		<function>
+			<difference>
+				<value>-2.0</value>
+				<property>aero/alpha-deg</property>
+			</difference>
+		</function>
+		</fcs_function>
+	
+
+		<switch name="systems/ap/contingency/pitch-error">
+			<default value="0.0"/>
+			<test logic="AND" value="systems/ap/contingency/active-pitch-error">
+				systems/ap/contingency/initial-attitude-active == 1
+				systems/abort/abort-mode == 5
+			</test>	
+			<test logic="AND" value="systems/ap/contingency/active-pitch-error">
+				systems/ap/contingency/flyout-active == 1
+				systems/abort/abort-mode == 5
+			</test>	
+			<test logic="AND" value="systems/ap/contingency/active-pitch-error">
+				systems/ap/contingency/initial-attitude-active == 1
+				systems/abort/abort-mode == 6
+			</test>	
+			<test logic="AND" value="systems/ap/contingency/active-pitch-error">
+				systems/ap/contingency/flyout-active == 1
+				systems/abort/abort-mode == 6
+			</test>	
+			<test logic="AND" value="systems/ap/contingency/extended-pitch-error">
+				systems/ap/contingency/initial-attitude-active == 1
+				systems/abort/abort-mode == 7
+			</test>	
+			<test logic="AND" value="systems/ap/contingency/extended-pitch-error">
+				systems/ap/contingency/flyout-active == 1
+				systems/abort/abort-mode == 7
+			</test>	
+			<test logic="AND" value="systems/ap/contingency/active-pitch-error">
+				systems/ap/contingency/initial-attitude-active == 1
+				systems/abort/abort-mode == 8
+			</test>	
+			<test logic="AND" value="systems/ap/contingency/active-pitch-error">
+				systems/ap/contingency/flyout-active == 1
+				systems/abort/abort-mode == 8
+			</test>	
+			<test logic="AND" value="systems/ap/contingency/alpha-error">
+				systems/ap/contingency/init-etsep-active == 1
+				systems/ap/contingency/etsep-mode == 4
+			</test>
+			<test logic="AND" value ="-2.0">
+				systems/ap/contingency/init-etsep-active == 1
+				systems/ap/contingency/etsep-mode == 3
+				systems/abort/abort-mode NE 8
+			</test>
+			<test logic="AND" value ="-3.5">
+				systems/ap/contingency/init-etsep-active == 1
+				systems/ap/contingency/etsep-mode == 3
+				systems/abort/abort-mode == 8
+			</test>
+		</switch>
+
+
+		<fcs_function name="systems/ap/contingency/pitch-cmd-raw">
+		<function>
+			<product>
+			<min>
+				<max>
+					<product>
+						<property>systems/ap/contingency/pitch-error</property>
+						<value>-0.1</value>
+					</product>
+					<value>-0.25</value>
+				</max>
+				<value>0.25</value>
+			</min>
+			<property>systems/ap/contingency/orientation-sign</property>
+			</product>
+		</function>
+		</fcs_function>
+
+		<!-- freeze pitch error during vertical transit to avoid Euler singularity issues -->
+
+		<switch name="systems/ap/contingency/pitch-cmd">
+			<default value="systems/ap/contingency/pitch-cmd-raw"/>
+			<test logic="OR" value="systems/ap/contingency/pitch-cmd">
+				/orientation/pitch-deg GT  86.0
+				/orientation/pitch-deg LT -86.0
+			</test>
+		</switch>
+
+		<!-- yaw -->
+
+		<fcs_function name="systems/ap/contingency/powered-pitchdown-yaw-error">
+		<function>
+			<product>
+				<value>-0.4</value>
+				<property>aero/beta-deg</property>
+			</product>
+		</function>
+		</fcs_function>
+
+		
+
+		<fcs_function name="systems/ap/contingency/yaw-steering-yaw-error-raw">
+		<function>
+			<difference>
+				<property>/orientation/heading-deg</property>
+				<sum>
+					<property>velocities/course-deg</property>
+					<property>systems/ap/contingency/yaw-target</property>
+				</sum>
+			</difference>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/ap/contingency/yaw-steering-yaw-error-subtracted">
+		<function>
+			<difference>
+				<property>systems/ap/contingency/yaw-steering-yaw-error-raw</property>
+				<value>360.0</value>
+			</difference>
+		</function>
+		</fcs_function>
+
+		<switch name="systems/ap/contingency/yaw-steering-yaw-error">
+			<default value="systems/ap/contingency/yaw-steering-yaw-error-raw"/>
+			<test value="systems/ap/contingency/yaw-steering-yaw-error-subtracted">
+				systems/ap/contingency/yaw-steering-yaw-error-raw GT 180.0
+			</test>
+		</switch>
+
+
+		<switch name="systems/ap/contingency/yaw-error">
+			<default value="0.0"/>
+			<test value="systems/ap/contingency/powered-pitchdown-yaw-error">
+				systems/ap/contingency/init-etsep-active == 1
+			</test>
+			<test logic="AND" value="systems/ap/contingency/yaw-steering-yaw-error">
+				systems/ap/contingency/init-etsep-active == 0
+				systems/abort/abort-mode == 6
+				systems/ap/contingency/flyout-active == 1
+			</test>
+		</switch>
+
+		<fcs_function name="systems/ap/contingency/yaw-cmd">
+		<function>
+			<min>
+				<max>
+					<product>
+						<property>systems/ap/contingency/yaw-error</property>
+						<value>0.1</value>
+					</product>
+					<value>-0.25</value>
+				</max>
+				<value>0.25</value>
+			</min>
+		</function>
+		</fcs_function>
+
+
+
+
+
+
+	
+	</channel>
+
+
+
+	<!-- auto-launch - due to the very different demands, this is organized in stages -->
+	<!-- and the relevant guidance targets are fed by a Nasal script -->
+
+	<channel name="Auto launch management">
+
+		<switch name="systems/ap/launch/stage1-active">
+			<default value="0.0"/>
+			<test value="1.0">
+				systems/ap/launch/stage == 1
+			</test>
+		</switch>
+
+		<switch name="systems/ap/launch/stage2-active">
+			<default value="0.0"/>
+			<test value="1.0">
+				systems/ap/launch/stage == 2
+			</test>
+		</switch>
+
+		<switch name="systems/ap/launch/stage3-active">
+			<default value="0.0"/>
+			<test logic="AND" value="1.0">
+				systems/ap/launch/stage == 3
+				systems/entry_guidance/guidance-mode == 0
+			</test>
+		</switch>
+
+		<switch name="systems/ap/launch/TAL-redes-active">
+			<default value="0.0"/>
+			<test logic="AND" value="1.0">
+				systems/ap/launch/stage == 3
+				systems/entry_guidance/guidance-mode == 2
+				systems/abort/boundary-redes-flag == 0
+			</test>
+		</switch>
+
+		<switch name="systems/ap/launch/stage3-TAL-active">
+			<default value="0.0"/>
+			<test logic="AND" value="1.0">
+				systems/ap/launch/stage == 3
+				systems/entry_guidance/guidance-mode == 2
+			</test>
+		</switch>
+
+		<switch name="systems/ap/launch/stage4-active">
+			<default value="0.0"/>
+			<test logic="AND" value="1.0">
+				systems/ap/launch/stage == 4
+				systems/entry_guidance/guidance-mode == 0
+			</test>
+		</switch>
+
+		<switch name="systems/ap/launch/stage4-TAL-active">
+			<default value="0.0"/>
+			<test logic="AND" value="1.0">
+				systems/ap/launch/stage == 4
+				systems/entry_guidance/guidance-mode == 2
+			</test>
+		</switch>
+
+		<switch name="systems/ap/launch/autolaunch-roll-yaw-channel">
+			<default value="0.0"/>
+			<test logic="AND" value="1.0">
+				systems/ap/automatic-roll-control == 1
+				systems/ap/launch/autolaunch-master == 1
+			</test>
+		</switch>
+
+		<switch name="systems/ap/launch/autolaunch-pitch-channel">
+			<default value="0.0"/>
+			<test logic="AND" value="1.0">
+				systems/ap/automatic-pitch-control == 1
+				systems/ap/launch/autolaunch-master == 1
+			</test>
+		</switch>
+
+
+	</channel>
+
+
+
+
+	<!-- liftoff and rotation to launch course -->
+	
+	<channel name="Auto launch stage 1" execute="systems/ap/launch/stage1-active">
+
+		<fcs_function name="systems/ap/launch/stage1-course-error">
+		<function>
+			<sum>
+				<product>
+					<property>systems/pointing/lvlh/body-y[0]</property>
+					<property>systems/ap/launch/course-vector[0]</property>
+				</product>
+				<product>
+					<property>systems/pointing/lvlh/body-y[1]</property>
+					<property>systems/ap/launch/course-vector[1]</property>
+				</product>
+				<product>
+					<property>systems/pointing/lvlh/body-y[2]</property>
+					<property>systems/ap/launch/course-vector[2]</property>
+				</product>
+			</sum>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/ap/launch/stage1-roll-cmd">
+		<function>
+			<min>
+				<max>
+					<product>
+						<property>systems/ap/launch/stage1-course-error</property>
+						<value>-2.0</value>
+					</product>
+					<value>-0.8</value>
+				</max>
+				<value>0.8</value>
+			</min>
+		</function>
+		</fcs_function>
+
+	</channel>
+
+	<!-- climbout to SRB separation -->
+
+	<channel name="Auto launch stage 2" execute="systems/ap/launch/stage2-active">
+
+		<fcs_function name="systems/ap/launch/stage2-pitch-error">
+		<function>
+			<difference>
+				<!--<property>/orientation/pitch-deg</property>-->
+				<property>systems/navigation/state-vector/pitch-deg</property>
+				<property>systems/ap/launch/pitch-target</property>
+			</difference>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/ap/launch/stage2-tgt-azimuth">
+		<function>
+			<sum>
+			<property>systems/ap/launch/launch-azimuth</property>
+			<max>			
+			<min>
+			<product>
+				<property>systems/ap/launch/cross-track</property>
+				<value>-2.0</value>
+				<property>systems/ap/launch/asc-node-lon-tgt-flag</property>
+			</product>
+			<value>20.0</value>
+			</min>
+			<value>-20.0</value>
+			</max>			
+			</sum>
+		</function>
+		</fcs_function>
+		
+
+		<fcs_function name="systems/ap/launch/stage2-yaw-error">
+		<function>
+			<product>
+			<difference>
+				<property>/orientation/heading-deg</property>
+				<!--<property>systems/ap/launch/launch-azimuth</property>-->
+				<property>systems/ap/launch/stage2-tgt-azimuth</property>
+			</difference>
+			<table>
+        			<independentVar lookup="row">/orientation/pitch-deg</independentVar>
+         			<tableData>
+      					0.00	1.0
+					80.0	1.0
+					85.0	0.0	
+       				</tableData>
+    			</table>
+			</product>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/ap/launch/stage2-roll-alt">
+		<function>
+			<sum>
+				<value>360.0</value>
+				<property>systems/navigation/state-vector/roll-deg</property>
+				<!--<property>/orientation/roll-deg</property>-->
+			</sum>
+		</function>
+		</fcs_function>
+
+		
+		<switch name="systems/ap/launch/stage2-roll-deg">
+			<default value="systems/navigation/state-vector/roll-deg"/>
+			<test value="systems/ap/launch/stage2-roll-alt">
+				systems/navigation/state-vector/roll-deg LT 0.0
+			</test>	
+		</switch>
+
+
+		<fcs_function name="systems/ap/launch/stage2-roll-error">
+		<function>
+			<product>
+			<difference>
+				<property>systems/ap/launch/stage2-roll-deg</property>
+				<value>180.0</value>
+			</difference>
+			<table>
+        			<independentVar lookup="row">/orientation/pitch-deg</independentVar>
+         			<tableData>
+      					0.00	1.0
+					80.0	1.0
+					85.0	0.0	
+       				</tableData>
+    			</table>
+			</product>
+		</function>
+		</fcs_function>
+
+
+
+
+		<fcs_function name="systems/ap/launch/stage2-pitch-cmd">
+		<function>
+			<min>
+				<max>
+					<product>
+						<property>systems/ap/launch/stage2-pitch-error</property>
+						<value>-0.1</value>
+					</product>
+					<product>
+					<property>systems/ap/launch/pitch-max-rate-norm</property>	
+					<value>-1</value>
+					</product>
+				</max>
+				<property>systems/ap/launch/pitch-max-rate-norm</property>
+			</min>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/ap/launch/stage2-yaw-cmd">
+		<function>
+			<min>
+				<max>
+					<product>
+						<property>systems/ap/launch/stage2-yaw-error</property>
+						<value>-0.1</value>
+					</product>
+					<value>-0.1</value>
+				</max>
+				<value>0.1</value>
+			</min>
+		</function>
+		</fcs_function>
+
+
+		<fcs_function name="systems/ap/launch/stage2-roll-cmd">
+		<function>
+			<min>
+				<max>
+					<product>
+						<property>systems/ap/launch/stage2-roll-error</property>
+						<value>-0.5</value>
+					</product>
+					<value>-0.2</value>
+				</max>
+				<value>0.2</value>
+			</min>
+		</function>
+		</fcs_function>
+
+
+		<!-- Functions for SRB Stage2  Open Loop Guidance-->
+
+
+		<!-- Nominal Pitch Schedule-->
+		<fcs_function name="systems/ap/launch/stage2-nominal-pitch-schedule">
+		<function>
+			<table>
+        		<independentVar lookup="row">velocities/vtrue-fps</independentVar>
+         		<tableData>
+				0			89.9
+				127 		70.5
+				341			70.1
+				414			70.0
+				493			69.7
+				571			69.4
+				678			68.6
+				747			67.8
+				846			66.2
+				932			64.4
+				1068		62.1
+				1149		61.1
+				1304		59.0
+				1382		58.2
+				1463		57.8
+				1550		57.1
+				1693		54.7
+				1797		52.9
+				2027		48.7
+				2154		46.4
+				2286		43.0
+				2353		42.0	
+				2421		41.6
+				2746		38.6
+				3019		36.3
+				3157		35.3
+				3350		33.9
+				3573		32.4
+				3950		29.8
+				5000		22.6
+         		</tableData>
+      		</table>
+		</function>
+		</fcs_function>
+
+
+		<!-- Engine Out Pitch Schedule-->
+		<fcs_function name="systems/ap/launch/stage2-eo-pitch-schedule">
+		<function>
+			<table>
+        		<independentVar lookup="row">velocities/vtrue-fps</independentVar>
+         		<tableData>
+				0			89.9
+				127 		70.5
+				341			70.1
+				414			70.0
+				493			69.7
+				571			69.4
+				678			68.6
+				747			67.8
+				846			66.2
+				932			64.4
+				1068		62.1
+				1149		61.1
+				1304		59.0
+				1382		58.2
+				1463		57.8
+				1550		57.1
+				1693		54.7
+				1797		52.9
+				2027		48.7
+				2154		46.4
+				2286		43.0
+				2353		42.0	
+				2421		41.6
+				2746		40.0
+				5000		40.0
+         		</tableData>
+      		</table>
+		</function>
+		</fcs_function>
+
+		<!-- Pitch rate schedule as a function of nominal pitch rate and Nz Load Relief-->
+		<fcs_function name="systems/ap/launch/stage2-pitch-rate-schedule-nominal">
+		<function>
+			<table>
+        		<independentVar lookup="row">velocities/vtrue-fps</independentVar>
+         		<tableData>
+				0			0.25
+				127 		0.25
+				341			0.25
+				414			0.20
+				493			0.20
+				571			0.20
+				678			0.10
+				747			0.10
+				846			0.10
+				847			0.03
+				932			0.03
+				1068		0.03
+				1149		0.03
+				1304		0.03
+				1382		0.03
+				1463		0.03
+				1464		0.05
+				1550		0.05
+				1693		0.05
+				1694		0.08
+				1797		0.08
+				2027		0.08
+				2154		0.08
+				2286		0.08
+				2353		0.07	
+				2421		0.07
+				2746		0.05
+				5000		0.04
+         		</tableData>
+      		</table>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/ap/launch/stage2-load-relief-gain">
+		<function>
+			<table>
+        		<independentVar lookup="row">velocities/vtrue-fps</independentVar>
+         		<tableData>
+				0			1
+				547			1
+				900			0
+				1335		0
+				2628		1
+         		</tableData>
+      		</table>
+		</function>
+		</fcs_function>
+
+		<switch name="systems/ap/launch/stage2-load-relief">
+			<default value="1.0"/>
+			<test logic="OR" value="systems/ap/launch/stage2-load-relief-gain">
+				systems/various/wing-bending-moment GT 2000000.0
+				systems/various/wing-bending-moment LT -2000000.0
+				aero/qbar-psf GT 800.0
+			</test>
+		</switch>
+
+		<fcs_function name="systems/ap/launch/stage2-pitch-rate-schedule">
+		<function>
+			<product>
+        		<property>systems/ap/launch/stage2-pitch-rate-schedule-nominal</property>
+				<property>systems/ap/launch/stage2-load-relief</property>
+         	</product>
+		</function>
+		</fcs_function>
+
+		
+
+
+
+	</channel>
+
+	<!-- pitchdown, hdot capture and inclination acquisition -->
+
+	<channel name="Auto launch stage 3" execute="systems/ap/launch/stage3-active">
+
+		<fcs_function name="systems/ap/launch/stage3-pitch-error">
+		<function>
+			<difference>
+				<!--<property>/orientation/pitch-deg</property>-->
+				<property>systems/navigation/state-vector/pitch-deg</property>
+				<property>systems/ap/launch/pitch-target</property>
+			</difference>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/ap/launch/stage3-roll-alt">
+		<function>
+			<sum>
+				<value>360.0</value>
+				<property>systems/navigation/state-vector/roll-deg</property>
+			</sum>
+		</function>
+		</fcs_function>
+
+		
+		<switch name="systems/ap/launch/stage3-roll-deg">
+			<default value="systems/navigation/state-vector/roll-deg"/>
+			<test value="systems/ap/launch/stage3-roll-alt">
+				systems/navigation/state-vector/roll-deg LT 0.0
+			</test>	
+		</switch>
+
+
+		<fcs_function name="systems/ap/launch/stage3-roll-error">
+		<function>
+			<difference>
+				<property>systems/ap/launch/stage3-roll-deg</property>
+				<value>180.0</value>
+			</difference>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/ap/launch/stage3-inclination-error">
+		<function>
+			<product>
+			<difference>
+				<property>systems/ap/launch/inclination-target</property>
+				<property>systems/orbital/inclination-deg</property>
+			</difference>
+			<property>systems/ap/launch/inc-targeting-flag</property>
+			</product>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/ap/launch/stage3-beta-target">
+		<function>
+			<min>
+				<max>
+					<product>
+						<property>systems/ap/launch/stage3-inclination-error</property>
+						<property>systems/ap/launch/inc-acquire-sign</property>
+      						<table>
+        					<independentVar lookup="row">velocities/mach</independentVar>
+         					<tableData>
+      						  7.0	0.0
+						  8.0	100.0
+						  14.0	300.0
+						  25.0	100.0
+       					  	</tableData>
+    						</table>
+						<value>0.0</value>
+					</product>
+					<value>-10.0</value>	
+				</max>
+				<value>10.0</value>
+			</min>
+		</function>
+		</fcs_function>
+
+  		<deadband name="systems/ap/launch/stage3-beta-PID-trigger">
+			<input>systems/ap/launch/stage3-beta-target</input>
+			<width>0.3</width>
+  		</deadband>
+
+		<pid name="systems/ap/launch/stage3-beta-pid">
+			<input>systems/ap/launch/stage3-beta-target</input>
+			<kp> 0.7 </kp>
+			<ki> 0.2 </ki>
+			<kd> 0.3</kd>
+			<trigger>systems/ap/launch/stage3-beta-PID-trigger</trigger>
+			<clipto>
+				<min> -10.0 </min>
+        			<max>  10.0 </max>
+			</clipto>
+		</pid>
+
+
+		<fcs_function name="systems/ap/launch/stage3-yaw-error-inc">
+		<function>
+			<difference>
+				<property>systems/ap/launch/stage3-beta-pid</property>
+				<property>aero/beta-deg</property>
+			</difference>
+		</function>
+		</fcs_function>
+
+
+		<fcs_function name="systems/ap/launch/stage3-xtrack-approach-tgt">
+		<function>
+			<table>
+        		<independentVar lookup="row">systems/ap/launch/cross-track</independentVar>
+         		<tableData>
+				-15.0	-0.2
+				-5.0	-0.08
+				-1.0	-0.04
+				0.0	0.0
+				1.0	0.04
+				5.0	0.08
+				15.0	0.2
+       			</tableData>
+    			</table>			
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/ap/launch/stage3-xtrack-approach-error">
+		<function>
+			<difference>
+				<property>systems/ap/launch/stage3-xtrack-approach-tgt</property>
+				<property>systems/ap/launch/cross-track-approach-speed</property>
+			</difference>
+		</function>
+		</fcs_function>
+		
+
+		<fcs_function name="systems/ap/launch/stage3-tgt-azimuth">
+		<function>
+			<sum>
+				<property>systems/ap/launch/launch-azimuth</property>
+				<table>
+        			<independentVar lookup="row">systems/ap/launch/stage3-xtrack-approach-error</independentVar>
+         			<tableData>
+      					-0.2	45.0
+					-0.1	30.0
+					-0.05	15.0
+					-0.02	5.0
+					0.0	0.0
+					0.02	-5.0
+					0.05	-15.0
+					0.1	-25.0
+					0.2	-30.0
+       				 </tableData>
+    				</table>
+			</sum>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/ap/launch/stage3-yaw-error-dl">
+		<function>
+			<product>
+			<difference>
+				<property>systems/ap/launch/stage3-tgt-azimuth</property>
+				<property>/orientation/heading-deg</property>
+			</difference>
+			<value>20.0</value>
+			<table>
+        			<independentVar lookup="row">velocities/mach</independentVar>
+         			<tableData>
+					0.0	1.0
+      					6.5	1.0
+					7.0	0.0
+					25.0	0.0	
+       				</tableData>
+    			</table>
+			<property>systems/ap/launch/asc-node-lon-tgt-flag</property>
+			</product>
+		</function>
+		</fcs_function>
+
+
+		<fcs_function name="systems/ap/launch/stage3-yaw-error">
+		<function>
+			<sum>
+				<property>systems/ap/launch/stage3-yaw-error-inc</property>
+				<property>systems/ap/launch/stage3-yaw-error-dl</property>
+			</sum>
+		</function>
+		</fcs_function>
+
+
+		<fcs_function name="systems/ap/launch/stage3-pitch-cmd">
+		<function>
+			<min>
+				<max>
+					<product>
+						<property>systems/ap/launch/stage3-pitch-error</property>
+						<value>-0.1</value>
+					</product>
+					<product>
+					<property>systems/ap/launch/pitch-max-rate-norm</property>	
+					<value>-1</value>
+					</product>
+				</max>
+				<property>systems/ap/launch/pitch-max-rate-norm</property>
+			</min>
+		</function>
+		</fcs_function>
+
+
+		<fcs_function name="systems/ap/launch/stage3-roll-cmd">
+		<function>
+			<min>
+				<max>
+					<product>
+						<property>systems/ap/launch/stage3-roll-error</property>
+						<value>-0.5</value>
+					</product>
+					<value>-0.2</value>
+				</max>
+				<value>0.2</value>
+			</min>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/ap/launch/stage3-yaw-cmd">
+		<function>
+			<min>
+				<max>
+					<product>
+						<property>systems/ap/launch/stage3-yaw-error</property>
+						<value>0.1</value>
+					</product>
+					<value>-0.2</value>
+				</max>
+				<value>0.2</value>
+			</min>
+		</function>
+		</fcs_function>
+
+	</channel>
+
+	<!-- hdot management, droop recovery and roll to heads up -->
+
+	<channel name="Auto launch stage 4" execute="systems/ap/launch/stage4-active">
+
+
+		<fcs_function name="systems/ap/launch/stage4-roll-abs">
+		<function>
+			<abs>
+				<property>systems/navigation/state-vector/roll-deg</property>
+			</abs>
+		</function>
+		</fcs_function>
+
+		<switch name="systems/ap/launch/stage4-rthu-in-progress">
+			<default value="0.0"/>
+			<test logic="AND" value="1.0">
+				systems/ap/launch/rthu-cmd == 1
+				systems/ap/launch/stage4-roll-abs GT 5.0
+			</test>	
+		</switch>
+
+		<fcs_function name="systems/ap/launch/stage4-roll-alt">
+		<function>
+			<sum>
+				<value>360.0</value>
+				<property>systems/navigation/state-vector/roll-deg</property>
+			</sum>
+		</function>
+		</fcs_function>
+
+
+
+		
+		<switch name="systems/ap/launch/stage4-roll-deg">
+			<default value="systems/navigation/state-vector/roll-deg"/>
+			<test value="systems/ap/launch/stage4-roll-alt">
+				systems/navigation/state-vector/roll-deg LT 0.0
+			</test>	
+		</switch>
+
+
+		<fcs_function name="systems/ap/launch/stage4-roll-error-inv">
+		<function>
+			<difference>
+				<property>systems/ap/launch/stage4-roll-deg</property>
+				<value>180.0</value>
+			</difference>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/ap/launch/stage4-roll-error-hu">
+		<function>
+			<difference>
+				<property>systems/navigation/state-vector/roll-deg</property>
+				<value>0.0</value>
+			</difference>
+		</function>
+		</fcs_function>
+
+		<switch name="systems/ap/launch/stage4-roll-error">
+			<default value="systems/ap/launch/stage4-roll-error-inv"/>
+			<test value="systems/ap/launch/stage4-roll-error-hu">
+				systems/ap/launch/rthu-cmd == 1
+			</test>	
+		</switch>
+
+		<fcs_function name="systems/ap/launch/stage4-inclination-error">
+		<function>
+			<product>
+			<difference>
+				<property>systems/ap/launch/inclination-target</property>
+				<property>systems/orbital/inclination-deg</property>
+			</difference>
+			<property>systems/ap/launch/inc-targeting-flag</property>
+			</product>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/ap/launch/stage4-beta-target">
+		<function>
+			<min>
+				<max>
+					<product>
+						<property>systems/ap/launch/stage4-inclination-error</property>
+						<property>systems/ap/launch/inc-acquire-sign</property>
+      						<table>
+        					<independentVar lookup="row">velocities/eci-velocity-mag-fps</independentVar>
+         					<!--<tableData>
+      						  6.0	0.0
+						  7.0	100.0
+						  14.0	300.0
+						  25.0	100.0
+       					  	</tableData>-->
+						<tableData>
+						  17000.0	0.0
+						  18000.0   200.0
+						  25000.0	200.0
+       					  	</tableData>
+    						</table>
+					</product>
+					<value>-10.0</value>
+				</max>
+				<value>10.0</value>
+			</min>
+		</function>
+		</fcs_function>
+
+ 		<deadband name="systems/ap/launch/stage4-beta-PID-trigger">
+			<input>systems/ap/launch/stage4-beta-target</input>
+			<width>0.1</width>
+  		</deadband>
+
+		<pid name="systems/ap/launch/stage4-beta-pid">
+			<input>systems/ap/launch/stage4-beta-target</input>
+			<kp> 0.7 </kp>
+			<ki> 0.0 </ki>
+			<kd> 0.0</kd>
+			<!--<ki> 0.2 </ki>
+			<kd> 0.3</kd>-->
+			<trigger>systems/ap/launch/stage4-beta-PID-trigger</trigger>
+			<clipto>
+				<min> -5.0 </min>
+        			<max>  5.0 </max>
+			</clipto>
+		</pid>
+
+		<fcs_function name="systems/ap/launch/stage4-yaw-error">
+		<function>
+			<difference>
+				<property>systems/ap/launch/stage4-beta-pid</property>
+				<property>aero/beta-deg</property>
+			</difference>
+		</function>
+		</fcs_function>
+
+
+		<fcs_function name="systems/ap/launch/stage4-hdot-error">
+		<function>
+			<difference>
+				<property>velocities/v-down-fps</property>
+				<property>systems/ap/launch/hdot-target</property>
+			</difference>
+		</function>
+		</fcs_function>
+		
+		<switch name="systems/ap/launch/variable-pid-min">
+			<default value="-10"/>
+			<test logic="AND" value="0">
+                velocities/eci-velocity-mag-fps GT 21000
+				velocities/eci-velocity-mag-fps LT 24000
+				systems/mps/number-engines-operational == 3.0
+				systems/ap/launch/rthu-enable == 1
+			</test>
+			<test logic="AND" value="5">
+                velocities/eci-velocity-mag-fps GT 24000
+				systems/mps/number-engines-operational == 3.0
+				systems/ap/launch/rthu-enable == 1
+			</test>
+			<test logic="AND" value="-10">
+                velocities/eci-velocity-mag-fps GT 21000
+				velocities/eci-velocity-mag-fps LT 24000
+				systems/mps/number-engines-operational == 3.0
+				systems/ap/launch/rthu-enable == 0
+			</test>
+			<test logic="AND" value="-10">
+                velocities/eci-velocity-mag-fps GT 24000
+				systems/mps/number-engines-operational == 3.0
+				systems/ap/launch/rthu-enable == 0
+			</test>
+			<test logic="AND" value="0">
+                velocities/eci-velocity-mag-fps GT 13000
+				systems/mps/number-engines-operational == 1.0
+			</test>
+		</switch>
+		
+		<switch name="systems/ap/launch/variable-pid-max">
+			<default value="30"/>
+			<test logic="AND" value="20">
+                velocities/eci-velocity-mag-fps GT 21000
+				velocities/eci-velocity-mag-fps LT 24000
+				systems/mps/number-engines-operational == 3.0
+				systems/ap/launch/rthu-enable == 1
+			</test>
+			<test logic="AND" value="18">
+                velocities/eci-velocity-mag-fps GT 24000
+				systems/mps/number-engines-operational == 3.0
+				systems/ap/launch/rthu-enable == 1
+			</test>
+			<test logic="AND" value="4">
+                velocities/eci-velocity-mag-fps GT 21000
+				velocities/eci-velocity-mag-fps LT 24000
+				systems/mps/number-engines-operational == 3.0
+				systems/ap/launch/rthu-enable == 0
+			</test>
+			<test logic="AND" value="3">
+                velocities/eci-velocity-mag-fps GT 24000
+				systems/mps/number-engines-operational == 3.0
+				systems/ap/launch/rthu-enable == 0
+			</test>
+			<test logic="AND" value="40">
+                velocities/eci-velocity-mag-fps GT 13000
+				systems/mps/number-engines-operational == 1.0
+			</test>
+		</switch>
+
+  		<deadband name="systems/ap/launch/stage4-pitch-PID-trigger">
+			<input>systems/ap/launch/stage4-hdot-error</input>
+			<width>10.0</width>
+  		</deadband>
+
+		<pid name="systems/ap/launch/stage4-pitch-target">
+			<input>systems/ap/launch/stage4-hdot-error</input>
+			<kp> systems/ap/launch/kphdot </kp>
+			<ki> systems/ap/launch/kihdot </ki>
+			<kd> systems/ap/launch/kdhdot </kd>
+			<trigger>systems/ap/launch/stage4-pitch-PID-trigger</trigger>
+			<clipto>
+				<min> systems/ap/launch/variable-pid-min </min>
+        			<max>  systems/ap/launch/variable-pid-max </max>
+			</clipto>
+		</pid>
+
+
+		<fcs_function name="systems/ap/launch/stage4-pitch-error-nominal">
+		<function>
+			<difference>
+				<property>systems/navigation/state-vector/pitch-deg</property>
+				<property>systems/ap/launch/stage4-pitch-target</property>
+			</difference>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/ap/launch/stage4-pitch-error-droop">
+		<function>
+			<difference>
+				<property>systems/navigation/state-vector/pitch-deg</property>
+				<property>systems/ap/launch/droop-pitch-target</property>
+			</difference>
+		</function>
+		</fcs_function>
+
+		<switch name="systems/ap/launch/stage4-pitch-error">
+			<default value="systems/ap/launch/stage4-pitch-error-nominal"/>
+			<test  value="systems/ap/launch/stage4-pitch-error-droop">
+				systems/ap/launch/droop-guidance-active == 1
+			</test>
+		</switch>
+
+		<switch name="systems/ap/launch/stage4-roll-limit">
+			<default value="0.2"/>
+			<test  value="0.4">
+				systems/fcs/control-mode == 13
+			</test>
+			<test  value="0.5">
+				systems/ap/launch/stage4-rthu-in-progress == 1
+			</test>
+			<test logic="AND"  value="0.08">
+				velocities/eci-velocity-mag-fps GT 13000
+				velocities/eci-velocity-mag-fps LT 17000
+				systems/ap/launch/stage4-rthu-in-progress == 0
+			</test>
+		</switch>
+
+		<switch name="systems/ap/launch/stage4-yaw-limit">
+			<default value="0.25"/>
+			<test  value="0.01">
+				systems/ap/launch/stage4-rthu-in-progress == 1
+			</test>
+		</switch>
+
+		<switch name="systems/ap/launch/stage4-roll-gain">
+			<default value="-0.5"/>
+			<test  value="-0.1">
+				systems/fcs/control-mode == 13
+			</test>
+		</switch>
+
+		<switch name="systems/ap/auto-stage4-serc-roll-active">
+			<default value="0.0"/>
+			<test logic="AND" value="1.0">
+				systems/fcs/control-mode == 13
+				systems/ap/automatic-roll-control == 1
+			</test>
+		</switch>
+
+
+
+
+		<fcs_function name="systems/ap/launch/stage4-roll-cmd">
+		<function>
+			<min>
+				<max>
+					<product>
+						<property>systems/ap/launch/stage4-roll-error</property>
+						<property>systems/ap/launch/stage4-roll-gain</property>
+					</product>
+					<product>
+						<value>-1.0</value>
+						<property>systems/ap/launch/stage4-roll-limit</property>
+					</product>
+				</max>
+				<property>systems/ap/launch/stage4-roll-limit</property>
+			</min>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/ap/launch/stage4-yaw-cmd-raw">
+		<function>
+			<min>
+				<max>
+					<product>
+						<property>systems/ap/launch/stage4-yaw-error</property>
+						<value>0.1</value>
+					</product>
+					<product>
+						<value>-1</value>
+						<property>systems/ap/launch/stage4-yaw-limit</property>
+					</product>
+					<!--<value>-0.25</value>-->
+				</max>
+				<!--<value>0.25</value>-->
+				<property>systems/ap/launch/stage4-yaw-limit</property>
+			</min>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/ap/launch/stage4-pitch-cmd-raw">
+		<function>
+			<min>
+				<max>
+					<product>
+						<property>systems/ap/launch/stage4-pitch-error</property>
+						<value>-0.1</value>
+					</product>
+					<product>
+						<property>systems/ap/launch/pitch-max-rate-norm</property>	
+						<value>-1</value>
+					</product>
+				</max>
+				<property>systems/ap/launch/pitch-max-rate-norm</property>
+			</min>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/ap/launch/stage4-cr">
+		<function>
+			<cos>
+				<product>
+					<property>systems/navigation/state-vector/roll-deg</property>
+					<value>0.0174532922</value>
+				</product>
+			</cos>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/ap/launch/stage4-sr">
+		<function>
+			<sin>
+				<product>
+					<property>systems/navigation/state-vector/roll-deg</property>
+					<value>0.0174532922</value>
+				</product>
+			</sin>
+		</function>
+		</fcs_function>
+
+
+		<fcs_function name="systems/ap/launch/stage4-pitch-cmd">
+		<function>
+			<sum>
+				<product>
+					<value>-1</value>
+					<property>systems/ap/launch/stage4-cr</property>
+					<property>systems/ap/launch/stage4-pitch-cmd-raw</property>
+				</product>
+				<product>
+					<value>1</value>
+					<property>systems/ap/launch/stage4-sr</property>
+					<property>systems/ap/launch/stage4-yaw-cmd-raw</property>
+				</product>
+			</sum>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/ap/launch/stage4-yaw-cmd">
+		<function>
+			<sum>
+				<product>
+					<abs>
+					<property>systems/ap/launch/stage4-cr</property>
+					</abs>
+					<property>systems/ap/launch/stage4-yaw-cmd-raw</property>
+				</product>
+				<product>
+					<value>1</value>
+					<property>systems/ap/launch/stage4-sr</property>
+					<property>systems/ap/launch/stage4-pitch-cmd-raw</property>
+				</product>
+			</sum>
+		</function>
+		</fcs_function>
+
+
+
+	</channel>
+
+
+	<!-- TAL redesignation tables runned one before flag-->
+
+	<channel name="TAL boundary redesignation" execute="systems/ap/launch/TAL-redes-active"> 
+
+			<!-- 1EO Boundaries after a TAL (single engine OPS 109 and SE TAL redesignation) as a function of Inc and Vi at first failure-->
+
+			<!-- Single engine OPS3  redesignation-->
+			<fcs_function name="systems/abort/boundary-one-engine-ops3-redes">
+			<function>
+				<table>
+					<independentVar lookup="column">systems/ap/launch/inclination-target</independentVar>
+					<independentVar lookup="row">systems/abort/engine-fail-vi</independentVar>
+					<tableData>
+								28.5		51.6
+					5900		10800		11100
+					6000		10800		11200
+					6100		10800		11300
+					6200		10800		11300
+					6300		10800		11500
+					6400		10800		11500
+					6500		10800		11600
+					6600		10800		11600
+					6700		10900		11700
+					6800		10900		11700
+					6900		10900		11800
+					7000		10900		11800
+					7100		11000		11800
+					7200		11100		11800
+					7300		11100		11800
+					7400		11200		11800
+					7500		11200		11800
+					7600		11200		11800
+					7700		11200		11800
+					7800		11300		11800
+					7900		11300		11800
+					8000		11400		11800
+					8700		11400		11800
+					8800		12100		11800
+					10400		12100		11800
+					10800		12100		12300
+					</tableData>
+				</table>
+			</function>
+			</fcs_function>
+
+			<!-- Single engine TAL redesignation-->
+			<fcs_function name="systems/abort/boundary-one-engine-tal-redes">
+			<function>
+				<table>
+					<independentVar lookup="column">systems/ap/launch/inclination-target</independentVar>
+					<independentVar lookup="row">systems/abort/engine-fail-vi</independentVar>
+					<tableData>
+								28.5		51.6
+					5900		16800		17000
+					6000		16800		16900
+					6100		16800		16700
+					6200		16800		16500
+					6300		16800		16300
+					6400		16800		16100
+					6500		16800		15900
+					6600		16800		15800
+					6700		16700		15600
+					6800		16500		15400
+					6900		16300		15200
+					7000		16200		15100
+					7100		16000		14900
+					7200		15800		14800
+					7300		15700		14600
+					7400		15600		14500
+					7500		15400		14400
+					7600		15300		14300
+					7700		15200		14100
+					7800		15200		14000
+					7900		15100		13900
+					8000		15000		13800
+					8100		15000		13800
+					8200		15000		13700
+					8300		14900		13700
+					8400		14900		13600
+					8500		14900		13600
+					8600		14900		13500	
+					8700		14800		13500
+					8800		14100		13500
+					10400		14100		13500
+					10800		14100		14300
+					</tableData>
+				</table>
+			</function>
+			</fcs_function>
+
+		</channel>
+
+	<!-- TAL hdot capture and course acquisition -->
+
+	<channel name="Auto launch stage 3 TAL" execute="systems/ap/launch/stage3-TAL-active">
+
+		
+
+		<fcs_function name="systems/ap/launch/stage3-TAL-pitch-error">
+		<function>
+			<difference>
+				<property>systems/navigation/state-vector/pitch-deg</property>
+				<!--<property>/orientation/pitch-deg</property>-->
+				<property>systems/ap/launch/pitch-target</property>
+			</difference>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/ap/launch/stage3-TAL-roll-alt">
+		<function>
+			<sum>
+				<value>360.0</value>
+				<property>systems/navigation/state-vector/roll-deg</property>
+			</sum>
+		</function>
+		</fcs_function>
+
+		
+		<switch name="systems/ap/launch/stage3-TAL-roll-deg">
+			<default value="systems/navigation/state-vector/roll-deg"/>
+			<test value="systems/ap/launch/stage3-TAL-roll-alt">
+				systems/navigation/state-vector/roll-deg LT 0.0
+			</test>	
+		</switch>
+
+
+		<fcs_function name="systems/ap/launch/stage3-TAL-roll-error">
+		<function>
+			<difference>
+				<property>systems/ap/launch/stage3-TAL-roll-deg</property>
+				<value>180.0</value>
+			</difference>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/ap/launch/stage3-TAL-groundtrack-course-deg-raw">
+		<function>
+		<product>
+			<atan2>
+					<property>velocities/v-east-fps</property>
+					<property>velocities/v-north-fps</property>
+			</atan2>
+		<value>57.2957</value>
+		</product>
+		</function>
+		</fcs_function>
+
+		<switch name="systems/ap/launch/stage3-TAL-groundtrack-course-adjust">
+			<default value="0.0"/>
+			<test  value="360.0">
+				systems/ap/launch/stage3-TAL-groundtrack-course-deg-raw LT 0
+			</test>
+		</switch>
+	
+		<fcs_function name="systems/ap/launch/stage3-TAL-groundtrack-course-deg">
+		<function>
+			<sum>
+				<property>systems/ap/launch/stage3-TAL-groundtrack-course-adjust</property>
+				<property>systems/ap/launch/stage3-TAL-groundtrack-course-deg-raw</property>
+			</sum>
+		</function>
+		</fcs_function>
+
+
+		<fcs_function name="systems/ap/launch/stage3-TAL-course-error">
+		<function>
+			<difference>
+				<property>systems/ap/launch/course-target</property>
+				<property>systems/ap/launch/stage3-TAL-groundtrack-course-deg</property>
+			</difference>
+		</function>
+		</fcs_function>
+
+		
+
+
+		<fcs_function name="systems/ap/launch/stage3-TAL-yaw-error">
+		<function>
+			<difference>
+				<sum>
+					<property>systems/ap/launch/course-target</property>
+					<max>
+						<min>
+							<property>systems/ap/launch/stage3-TAL-course-error</property>
+							<value>10.0</value>
+						</min>
+					<value>-10.0</value>
+					</max>
+				</sum>	
+				<property>/orientation/heading-deg</property>			
+			</difference>
+		</function>
+		</fcs_function>
+
+
+		<fcs_function name="systems/ap/launch/stage3-TAL-pitch-cmd">
+		<function>
+			<min>
+				<max>
+					<product>
+						<property>systems/ap/launch/stage3-TAL-pitch-error</property>
+						<value>-0.1</value>
+					</product>
+					<product>
+					<property>systems/ap/launch/pitch-max-rate-norm</property>	
+					<value>-1</value>
+					</product>
+				</max>
+				<property>systems/ap/launch/pitch-max-rate-norm</property>
+			</min>
+		</function>
+		</fcs_function>
+
+
+		<fcs_function name="systems/ap/launch/stage3-TAL-roll-cmd">
+		<function>
+			<min>
+				<max>
+					<product>
+						<property>systems/ap/launch/stage3-TAL-roll-error</property>
+						<value>-0.5</value>
+					</product>
+					<value>-0.2</value>
+				</max>
+				<value>0.2</value>
+			</min>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/ap/launch/stage3-TAL-yaw-cmd">
+		<function>
+			<min>
+				<max>
+					<product>
+						<property>systems/ap/launch/stage3-TAL-yaw-error</property>
+						<value>0.1</value>
+					</product>
+					<value>-0.2</value>
+				</max>
+				<value>0.2</value>
+			</min>
+		</function>
+		</fcs_function>
+
+	</channel>
+
+	<!-- TAL ballistic targeting under hdot control -->
+
+	<channel name="Auto launch stage 4 TAL" execute="systems/ap/launch/stage4-TAL-active">
+
+
+		<fcs_function name="systems/ap/launch/stage4-TAL-roll-abs">
+		<function>
+			<abs>
+				<property>systems/navigation/state-vector/roll-deg</property>
+			</abs>
+		</function>
+		</fcs_function>
+
+		<switch name="systems/ap/launch/stage4-TAL-rthu-in-progress">
+			<default value="0.0"/>
+			<test logic="AND" value="1.0">
+				systems/ap/launch/rthu-cmd == 1
+				systems/ap/launch/stage4-TAL-roll-abs GT 5.0
+			</test>	
+		</switch>
+
+		<switch name="systems/ap/launch/stage4-TAL-yaw-sign">
+			<default value="1.0"/>
+			<test  value="-1.0">
+				systems/ap/launch/rthu-cmd == 1
+			</test>	
+		</switch>
+
+		<fcs_function name="systems/ap/launch/stage4-TAL-hdot-error">
+		<function>
+			<difference>
+				<property>velocities/v-down-fps</property>
+				<property>systems/ap/launch/hdot-target</property>
+			</difference>
+		</function>
+		</fcs_function>
+		
+		<switch name="systems/ap/launch/variable-pid-tal-min">
+			<default value="0"/>
+			<test logic="AND" value="0">
+                velocities/eci-velocity-mag-fps GT 7000
+				systems/mps/number-engines-operational == 3.0
+			</test>
+			<test logic="AND" value="5">
+                velocities/eci-velocity-mag-fps GT 21000
+				systems/mps/number-engines-operational == 2.0
+			</test>
+			<test logic="AND" value="-10">
+                velocities/eci-velocity-mag-fps GT 13000
+				systems/mps/number-engines-operational == 1.0
+			</test>
+		</switch>
+		
+		<switch name="systems/ap/launch/variable-pid-tal-max">
+			<default value="40"/>
+			<test logic="AND" value="20">
+                velocities/eci-velocity-mag-fps GT 7000
+				systems/mps/number-engines-operational == 3.0
+			</test>
+			<test logic="AND" value="20">
+                velocities/eci-velocity-mag-fps GT 21000
+				systems/mps/number-engines-operational == 2.0
+			</test>
+			<test logic="AND" value="40">
+                velocities/eci-velocity-mag-fps GT 13000
+				systems/mps/number-engines-operational == 1.0
+			</test>
+		</switch>
+
+  		<deadband name="systems/ap/launch/stage4-TAL-pitch-PID-trigger">
+			<input>systems/ap/launch/stage4-TAL-hdot-error</input>
+			<width>10.0</width>
+  		</deadband>
+
+
+		<pid name="systems/ap/launch/stage4-TAL-pitch-target">
+			<input>systems/ap/launch/stage4-TAL-hdot-error</input>
+			<kp> systems/ap/launch/kphdot </kp>
+			<ki> systems/ap/launch/kihdot </ki>
+			<kd> systems/ap/launch/kdhdot </kd>
+			<trigger>systems/ap/launch/stage4-TAL-pitch-PID-trigger</trigger>
+			<clipto>
+				<min> systems/ap/launch/variable-pid-tal-min </min>
+        			<max>  systems/ap/launch/variable-pid-tal-max </max>
+			</clipto>
+		</pid>
+
+
+		<fcs_function name="systems/ap/launch/stage4-TAL-pitch-error-nominal">
+		<function>
+			<difference>
+				<!--<property>/orientation/pitch-deg</property>-->
+				<property>systems/navigation/state-vector/pitch-deg</property>
+				<property>systems/ap/launch/stage4-TAL-pitch-target</property>
+			</difference>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/ap/launch/stage4-TAL-pitch-error-droop">
+		<function>
+			<difference>
+				<property>systems/navigation/state-vector/pitch-deg</property>
+				<property>systems/ap/launch/droop-pitch-target</property>
+			</difference>
+		</function>
+		</fcs_function>
+
+		<switch name="systems/ap/launch/stage4-TAL-pitch-error">
+			<default value="systems/ap/launch/stage4-TAL-pitch-error-nominal"/>
+			<test  value="systems/ap/launch/stage4-TAL-pitch-error-droop">
+				systems/ap/launch/droop-guidance-active == 1
+			</test>
+		</switch>
+
+
+		<fcs_function name="systems/ap/launch/stage4-TAL-roll-alt">
+		<function>
+			<sum>
+				<value>360.0</value>
+				<property>systems/navigation/state-vector/roll-deg</property>
+			</sum>
+		</function>
+		</fcs_function>
+
+		
+		<switch name="systems/ap/launch/stage4-TAL-roll-deg">
+			<default value="systems/navigation/state-vector/roll-deg"/>
+			<test value="systems/ap/launch/stage4-TAL-roll-alt">
+				systems/navigation/state-vector/roll-deg LT 0.0
+			</test>	
+		</switch>
+
+
+		<fcs_function name="systems/ap/launch/stage4-TAL-roll-error-inv">
+		<function>
+			<difference>
+				<property>systems/ap/launch/stage4-TAL-roll-deg</property>
+				<value>180.0</value>
+			</difference>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/ap/launch/stage4-TAL-roll-error-hu">
+		<function>
+			<difference>
+				<property>systems/navigation/state-vector/roll-deg</property>
+				<value>0.0</value>
+			</difference>
+		</function>
+		</fcs_function>
+
+		<switch name="systems/ap/launch/stage4-TAL-roll-error">
+			<default value="systems/ap/launch/stage4-TAL-roll-error-inv"/>
+			<test value="systems/ap/launch/stage4-TAL-roll-error-hu">
+				systems/ap/launch/rthu-cmd == 1
+			</test>	
+		</switch>
+
+
+
+		<fcs_function name="systems/ap/launch/stage4-TAL-groundtrack-course-deg-raw">
+		<function>
+		<product>
+			<atan2>
+					<property>velocities/v-east-fps</property>
+					<property>velocities/v-north-fps</property>
+			</atan2>
+		<value>57.2957</value>
+		</product>
+		</function>
+		</fcs_function>
+
+		<switch name="systems/ap/launch/stage4-TAL-groundtrack-course-adjust">
+			<default value="0.0"/>
+			<test  value="360.0">
+				systems/ap/launch/stage4-TAL-groundtrack-course-deg-raw LT 0
+			</test>
+		</switch>
+	
+		<fcs_function name="systems/ap/launch/stage4-TAL-groundtrack-course-deg">
+		<function>
+			<sum>
+				<property>systems/ap/launch/stage4-TAL-groundtrack-course-adjust</property>
+				<property>systems/ap/launch/stage4-TAL-groundtrack-course-deg-raw</property>
+			</sum>
+		</function>
+		</fcs_function>
+
+
+		<fcs_function name="systems/ap/launch/stage4-TAL-course-error">
+		<function>
+			<difference>
+				<property>systems/ap/launch/course-target</property>
+				<property>systems/ap/launch/stage4-TAL-groundtrack-course-deg</property>
+			</difference>
+		</function>
+		</fcs_function>
+
+
+
+		<fcs_function name="systems/ap/launch/stage4-TAL-yaw-error">
+		<function>
+			<product>
+			<property>systems/ap/launch/stage4-TAL-yaw-sign</property>
+			<difference>
+				<sum>
+					<property>systems/ap/launch/course-target</property>
+					<max>
+						<min>
+							<property>systems/ap/launch/stage4-TAL-course-error</property>
+							<value>10.0</value>
+						</min>
+					<value>-10.0</value>
+					</max>
+				</sum>	
+				<property>/orientation/heading-deg</property>			
+			</difference>
+			</product>
+		</function>
+		</fcs_function>
+
+
+		<fcs_function name="systems/ap/launch/stage4-TAL-pitch-cmd-raw">
+		<function>
+			<min>
+				<max>
+					<product>
+						<property>systems/ap/launch/stage4-TAL-pitch-error</property>
+						<value>-0.1</value>
+					</product>
+					<product>
+					<property>systems/ap/launch/pitch-max-rate-norm</property>	
+					<value>-1</value>
+					</product>
+				</max>
+				<property>systems/ap/launch/pitch-max-rate-norm</property>
+			</min>
+		</function>
+		</fcs_function>
+
+		<switch name="systems/ap/launch/stage4-TAL-roll-limit">
+			<default value="0.2"/>
+			<test  value="0.4">
+				systems/fcs/control-mode == 13
+			</test>
+			<test  value="0.4">
+				systems/ap/launch/stage4-TAL-rthu-in-progress == 1
+			</test>
+		</switch>
+
+
+
+		<switch name="systems/ap/launch/stage4-TAL-yaw-limit">
+			<default value="0.1"/>
+			<test  value="0.5">
+				systems/ap/launch/stage4-TAL-rthu-in-progress == 1
+			</test>
+		</switch>
+
+		<switch name="systems/ap/launch/stage4-TAL-roll-gain">
+			<default value="-0.5"/>
+			<test  value="-0.1">
+				systems/fcs/control-mode == 13
+			</test>
+		</switch>
+
+		<switch name="systems/ap/auto-stage4-TAL-serc-roll-active">
+			<default value="0.0"/>
+			<test logic="AND" value="1.0">
+				systems/fcs/control-mode == 13
+				systems/ap/automatic-roll-control == 1
+			</test>
+		</switch>
+
+		<fcs_function name="systems/ap/launch/stage4-TAL-roll-cmd">
+		<function>
+			<min>
+				<max>
+					<product>
+						<property>systems/ap/launch/stage4-TAL-roll-error</property>
+						<property>systems/ap/launch/stage4-TAL-roll-gain</property>
+					</product>
+					<product>
+						<value>-1.0</value>
+						<property>systems/ap/launch/stage4-TAL-roll-limit</property>
+					</product>
+				</max>
+
+				<property>systems/ap/launch/stage4-TAL-roll-limit</property>
+			</min>
+		</function>
+		</fcs_function>
+
+
+
+		<fcs_function name="systems/ap/launch/stage4-TAL-yaw-cmd-raw">
+		<function>
+			<min>
+				<max>
+					<product>
+						<property>systems/ap/launch/stage4-TAL-yaw-error</property>
+						<value>0.1</value>
+					</product>
+					<product>
+						<value>-1.0</value>
+						<property>systems/ap/launch/stage4-TAL-yaw-limit</property>
+					</product>
+					<!--<value>-0.1</value>-->
+				</max>
+				<!--<value>0.1</value>-->
+				<property>systems/ap/launch/stage4-TAL-yaw-limit</property>
+			</min>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/ap/launch/stage4-TAL-cr">
+		<function>
+			<cos>
+				<product>
+					<property>systems/navigation/state-vector/roll-deg</property>
+					<value>0.0174532922</value>
+				</product>
+			</cos>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/ap/launch/stage4-TAL-sr">
+		<function>
+			<sin>
+				<product>
+					<property>systems/navigation/state-vector/roll-deg</property>
+					<value>0.0174532922</value>
+				</product>
+			</sin>
+		</function>
+		</fcs_function>
+
+
+		<fcs_function name="systems/ap/launch/stage4-TAL-pitch-cmd">
+		<function>
+			<sum>
+				<product>
+					<value>-1</value>
+					<property>systems/ap/launch/stage4-TAL-cr</property>
+					<property>systems/ap/launch/stage4-TAL-pitch-cmd-raw</property>
+				</product>
+				<product>
+					<value>1</value>
+					<property>systems/ap/launch/stage4-TAL-sr</property>
+					<property>systems/ap/launch/stage4-TAL-yaw-cmd-raw</property>
+				</product>
+			</sum>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/ap/launch/stage4-TAL-yaw-cmd">
+		<function>
+			<sum>
+				<product>
+					<abs>
+					<property>systems/ap/launch/stage4-TAL-cr</property>
+					</abs>
+					<property>systems/ap/launch/stage4-TAL-yaw-cmd-raw</property>
+				</product>
+				<product>
+					<value>1</value>
+					<property>systems/ap/launch/stage4-TAL-sr</property>
+					<property>systems/ap/launch/stage4-TAL-pitch-cmd-raw</property>
+				</product>
+			</sum>
+		</function>
+		</fcs_function>
+
+	</channel>
+
+	<channel name="Auto launch command merge">
+
+		<switch name="systems/ap/launch/roll-cmd">
+			<default value="0.0"/>
+			<test value="systems/ap/launch/stage1-roll-cmd">
+				systems/ap/launch/stage == 1
+			</test>
+			<test value="systems/ap/launch/stage2-roll-cmd">
+				systems/ap/launch/stage == 2
+			</test>
+			<test logic="AND" value="systems/ap/launch/stage3-roll-cmd">
+				systems/ap/launch/stage == 3
+				systems/entry_guidance/guidance-mode == 0
+			</test>
+			<test logic="AND" value="systems/ap/launch/stage3-TAL-roll-cmd">
+				systems/ap/launch/stage == 3
+				systems/entry_guidance/guidance-mode == 2
+			</test>
+			<test logic="AND" value="systems/ap/launch/stage4-roll-cmd">
+				systems/ap/launch/stage == 4
+				systems/entry_guidance/guidance-mode == 0
+			</test>
+			<test logic="AND" value="systems/ap/launch/stage4-TAL-roll-cmd">
+				systems/ap/launch/stage == 4
+				systems/entry_guidance/guidance-mode == 2
+			</test>
+			<test logic="AND" value="systems/ap/rtls/roll-cmd">
+				systems/entry_guidance/guidance-mode == 3
+				systems/abort/abort-mode == 1
+			</test>	
+			<test logic="AND" value="0.0">
+				systems/entry_guidance/guidance-mode == 3
+				systems/abort/abort-mode GE 5
+			</test>
+		</switch>
+
+		<switch name="systems/ap/launch/pitch-cmd">
+			<default value="0.0"/>
+			<test value="systems/ap/launch/stage2-pitch-cmd">
+				systems/ap/launch/stage == 2
+			</test>
+			<test logic="AND" value="systems/ap/launch/stage3-pitch-cmd">
+				systems/ap/launch/stage == 3
+				systems/entry_guidance/guidance-mode == 0
+			</test>
+			<test logic="AND" value="systems/ap/launch/stage3-TAL-pitch-cmd">
+				systems/ap/launch/stage == 3
+				systems/entry_guidance/guidance-mode == 2
+			</test>
+			<test logic="AND" value="systems/ap/launch/stage4-pitch-cmd">
+				systems/ap/launch/stage == 4
+				systems/entry_guidance/guidance-mode == 0
+			</test>
+			<test logic="AND" value="systems/ap/launch/stage4-TAL-pitch-cmd">
+				systems/ap/launch/stage == 4
+				systems/entry_guidance/guidance-mode == 2
+			</test>
+			<test logic="AND" value="systems/ap/rtls/pitch-cmd">
+				systems/entry_guidance/guidance-mode == 3
+				systems/abort/abort-mode == 1
+			</test>
+			<test logic="AND" value="systems/ap/contingency/pitch-cmd">
+				systems/entry_guidance/guidance-mode == 3
+				systems/abort/abort-mode GE 5
+			</test>
+		</switch>
+
+		<switch name="systems/ap/launch/yaw-cmd">
+			<default value="0.0"/>
+			<test value="systems/ap/launch/stage2-yaw-cmd">
+				systems/ap/launch/stage == 2
+			</test>
+			<test logic="AND" value="systems/ap/launch/stage3-yaw-cmd">
+				systems/ap/launch/stage == 3
+				systems/entry_guidance/guidance-mode == 0
+			</test>
+			<test logic="AND" value="systems/ap/launch/stage3-TAL-yaw-cmd">
+				systems/ap/launch/stage == 3
+				systems/entry_guidance/guidance-mode == 2
+			</test>
+			<test logic="AND" value="systems/ap/launch/stage4-yaw-cmd">
+				systems/ap/launch/stage == 4
+				systems/entry_guidance/guidance-mode == 0
+			</test>
+			<test logic="AND" value="systems/ap/launch/stage4-TAL-yaw-cmd">
+				systems/ap/launch/stage == 4
+				systems/entry_guidance/guidance-mode == 2
+			</test>
+			<test logic="AND" value="systems/ap/rtls/yaw-cmd">
+				systems/entry_guidance/guidance-mode == 3
+				systems/abort/abort-mode == 1
+			</test>
+			<test logic="AND" value="systems/ap/contingency/yaw-cmd">
+				systems/entry_guidance/guidance-mode == 3
+				systems/abort/abort-mode GE 5
+			</test>
+		</switch>
+
+
+		
+	</channel>
+</system>

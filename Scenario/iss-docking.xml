@@ -1,0 +1,23 @@
+<?xml version="1.0" ?>
+
+<PropertyList>
+
+
+<metadata>
+	<mission-stage type="int">6</mission-stage>
+	<title type="string">ISS docking</title>
+</metadata>
+
+
+<proximity-object>
+	<name type="string">ISS</name>
+	<prox-x type="double">1500.0</prox-x>
+	<prox-y type="double">0.0</prox-y>
+	<prox-z type="double">0.0</prox-z>
+</proximity-object>
+
+
+
+
+
+</PropertyList>

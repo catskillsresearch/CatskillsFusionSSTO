@@ -1,0 +1,875 @@
+<?xml version="1.0"?>
+
+<PropertyList>
+	<name>simulation</name>
+	<layout>vbox</layout>
+	<default-padding>1</default-padding>
+	<modal>false</modal>
+	<width>500</width>
+
+	<empty>
+		<pref-height>6</pref-height>
+	</empty>
+
+	<text>
+		<label>Simulation and Rendering Options</label>
+	</text>
+
+	<empty>
+		<pref-height>4</pref-height>
+	</empty>
+
+	<hrule/>
+
+ <group>
+ <layout>table</layout>
+
+	<text>
+      		<label>Simulation</label>
+      		<halign>left</halign>
+      		<row>0</row>
+     	 	<col>0</col>
+    	</text>
+
+	
+	<text>
+      		<label>Thermal system computation speed</label>
+      		<halign>left</halign>
+      		<row>1</row>
+     	 	<col>0</col>
+    	</text>
+	<text>
+      		<label>real</label>
+      		<halign>center</halign>
+      		<row>1</row>
+     	 	<col>1</col>
+    	</text>
+
+       <slider>
+      		<name>thermal-speed-switch</name>
+      		<row>1</row>
+      		<col>2</col>
+      		<min>0</min>
+      		<max>2</max>
+      		<step>1</step>
+      		<live>true</live>
+      		<property>/sim/config/shuttle/thermal-system-computation-speed</property>
+      		<binding>
+        		<command>dialog-apply</command>
+        		<object-name>thermal-speed-switch</object-name>
+     		</binding>
+    	</slider>
+
+	<text>
+      		<label>accelerated</label>
+      		<halign>center</halign>
+      		<row>1</row>
+     	 	<col>3</col>
+    	</text>
+
+	<text>
+      		<label>Navigation</label>
+      		<halign>left</halign>
+      		<row>2</row>
+     	 	<col>0</col>
+    	</text>
+	<text>
+      		<label>perfect</label>
+      		<halign>center</halign>
+      		<row>2</row>
+     	 	<col>1</col>
+    	</text>
+
+       <slider>
+      		<name>nav-switch</name>
+      		<row>2</row>
+      		<col>2</col>
+      		<min>0</min>
+      		<max>1</max>
+      		<step>1</step>
+      		<live>true</live>
+      		<property>/fdm/jsbsim/systems/navigation/state-vector/use-realistic-sv</property>
+      		<binding>
+        		<command>dialog-apply</command>
+        		<object-name>nav-switch</object-name>
+     		</binding>
+    	</slider>
+
+	<text>
+      		<label>realistic</label>
+      		<halign>center</halign>
+      		<row>2</row>
+     	 	<col>3</col>
+    	</text>
+
+	<text>
+      		<label>DPS realism</label>
+      		<halign>left</halign>
+      		<row>3</row>
+     	 	<col>0</col>
+    	</text>
+	<text>
+      		<label>simplified</label>
+      		<halign>center</halign>
+      		<row>3</row>
+     	 	<col>1</col>
+    	</text>
+
+       <slider>
+      		<name>avionics-switch</name>
+      		<row>3</row>
+      		<col>2</col>
+      		<min>0</min>
+      		<max>1</max>
+      		<step>1</step>
+      		<live>true</live>
+      		<property>/sim/config/shuttle/dps-detail-level</property>
+      		<binding>
+        		<command>dialog-apply</command>
+        		<object-name>avionics-switch</object-name>
+     		</binding>
+     		<binding>
+        		<command>nasal</command>
+			<script>
+				SpaceShuttle.dps_simulation_detail_level = getprop("/sim/config/shuttle/dps-detail-level");
+			</script>
+     		</binding>
+    	</slider>
+
+	<text>
+      		<label>realistic</label>
+      		<halign>center</halign>
+      		<row>3</row>
+     	 	<col>3</col>
+    	</text>
+
+
+	<text>
+      		<label>MDU update speed</label>
+      		<halign>left</halign>
+      		<row>4</row>
+     	 	<col>0</col>
+    	</text>
+	<text>
+      		<label>slow</label>
+      		<halign>center</halign>
+      		<row>4</row>
+     	 	<col>1</col>
+    	</text>
+
+       <slider>
+      		<name>mdu-update-speed-switch</name>
+      		<row>4</row>
+      		<col>2</col>
+      		<min>0</min>
+      		<max>4</max>
+      		<step>1</step>
+      		<live>true</live>
+      		<property>/sim/config/shuttle/mdu-update-speed</property>
+      		<binding>
+        		<command>dialog-apply</command>
+        		<object-name>mdu-update-speed-switch</object-name>
+     		</binding>
+    	</slider>
+
+	<text>
+      		<label>fast</label>
+      		<halign>center</halign>
+      		<row>4</row>
+     	 	<col>3</col>
+    	</text>
+
+	<text>
+      		<label>ADI ball detail</label>
+      		<halign>left</halign>
+      		<row>5</row>
+     	 	<col>0</col>
+    	</text>
+	<text>
+      		<label>low</label>
+      		<halign>center</halign>
+      		<row>5</row>
+     	 	<col>1</col>
+    	</text>
+
+       <slider>
+      		<name>adi-quality-switch</name>
+      		<row>5</row>
+      		<col>2</col>
+      		<min>0</min>
+      		<max>4</max>
+      		<step>1</step>
+      		<live>true</live>
+      		<property>/fdm/jsbsim/systems/adi/quality-level</property>
+      		<binding>
+        		<command>dialog-apply</command>
+        		<object-name>adi-quality-switch</object-name>
+     		</binding>
+    	</slider>
+
+	<text>
+      		<label>high</label>
+      		<halign>center</halign>
+      		<row>5</row>
+     	 	<col>3</col>
+    	</text>
+
+    <text>
+        <label>Cockpit detail</label>
+        <halign>left</halign>
+        <row>6</row>
+        <col>0</col>
+    </text>
+    <text>
+        <label>default</label>
+        <halign>center</halign>
+        <row>6</row>
+        <col>1</col>
+    </text>
+
+    <slider>
+        <name>cockpit-detail-switch</name>
+        <row>6</row>
+        <col>2</col>
+        <min>0</min>
+        <max>1</max>
+        <step>1</step>
+        <live>true</live>
+        <property>/sim/config/shuttle/detailed-flightdeck</property>
+        <binding>
+            <command>dialog-apply</command>
+            <object-name>cockpit-detail-switch</object-name>
+        </binding>
+    </slider>
+
+    <text>
+        <label>high</label>
+        <halign>center</halign>
+        <row>6</row>
+        <col>3</col>
+    </text>
+
+
+    <checkbox>
+        <name>place-gantry</name>
+      	<halign>left</halign>
+ 	<row>7</row>
+        <col>0</col>
+          <property>/sim/config/shuttle/place-gantry</property>
+          <label>Show launch gantry</label>
+          <live>true</live>
+ 	  <binding>
+              <command>dialog-apply</command>
+              <object-name>place-gantry</object-name>
+          </binding>
+        </checkbox>
+
+    <checkbox>
+        <name>srb-shake</name>
+      	<halign>left</halign>
+ 	<row>7</row>
+        <col>1</col>
+          <property>/sim/config/shuttle/srb-shake</property>
+          <label>SRBs shake view</label>
+          <live>true</live>
+ 	  <binding>
+              <command>dialog-apply</command>
+              <object-name>srb-shake</object-name>
+          </binding>
+        </checkbox>
+
+    <!--<checkbox>
+        <name>hud-filter</name>
+ 	<row>6</row>
+        <col>2</col>
+          <property>/sim/config/shuttle/hud-filter</property>
+          <label>HUD effect</label>
+          <live>true</live>
+ 	  <binding>
+              <command>dialog-apply</command>
+              <object-name>hud-filter</object-name>
+          </binding>
+        </checkbox>-->
+
+      <checkbox>
+        <name>display-effect</name>
+      	<halign>left</halign>
+ 	<row>8</row>
+        <col>0</col>
+          <property>/sim/config/shuttle/display-effect</property>
+          <label>Enhanced displays</label>
+          <live>true</live>
+ 	  <binding>
+              <command>dialog-apply</command>
+              <object-name>display-effect</object-name>
+          </binding>
+        </checkbox>
+
+       <checkbox>
+        <name>velcro-effect</name>
+      	<halign>left</halign>
+ 	<row>8</row>
+        <col>1</col>
+          <property>/sim/config/shuttle/velcro-effect</property>
+          <label>Velcro visuals</label>
+          <live>true</live>
+ 	  <binding>
+              <command>dialog-apply</command>
+              <object-name>velcro-effect</object-name>
+          </binding>
+        </checkbox>
+
+	<text>
+      		<label>Display dust level</label>
+      		<halign>left</halign>
+      		<row>9</row>
+     	 	<col>0</col>
+      		<enable>
+       		<property>/sim/config/shuttle/display-effect</property>
+      		</enable>
+    	</text>
+	<text>
+      		<label>clean</label>
+      		<halign>center</halign>
+      		<row>9</row>
+     	 	<col>1</col>
+      		<enable>
+       		<property>/sim/config/shuttle/display-effect</property>
+      		</enable>
+    	</text>
+
+       <slider>
+      		<name>dust-switch</name>
+      		<row>9</row>
+      		<col>2</col>
+      		<enable>
+       		<property>/sim/config/shuttle/display-effect</property>
+      		</enable>
+      		<min>0</min>
+      		<max>3</max>
+      		<step>0.2</step>
+      		<live>true</live>
+      		<property>/sim/config/shuttle/dust-level</property>
+      		<binding>
+        		<command>dialog-apply</command>
+        		<object-name>dust-switch</object-name>
+     		</binding>
+    	</slider>
+
+	<text>
+      		<label>dirty</label>
+      		<enable>
+       		<property>/sim/config/shuttle/display-effect</property>
+      		</enable>
+      		<halign>center</halign>
+      		<row>9</row>
+     	 	<col>3</col>
+    	</text>
+
+	<text>
+      		<label>SM realism</label>
+      		<halign>left</halign>
+      		<row>10</row>
+     	 	<col>0</col>
+    	</text>
+	<text>
+      		<label>default</label>
+      		<halign>center</halign>
+      		<row>10</row>
+     	 	<col>1</col>
+    	</text>
+
+       <slider>
+      		<name>avionics-switch</name>
+      		<row>10</row>
+      		<col>2</col>
+      		<min>0</min>
+      		<max>1</max>
+      		<step>1</step>
+      		<live>true</live>
+      		<property>/sim/config/shuttle/sm-detail-level</property>
+      		<binding>
+        		<command>dialog-apply</command>
+        		<object-name>avionics-switch</object-name>
+     		</binding>
+     		<binding>
+        		<command>nasal</command>
+			<script>
+				SpaceShuttle.sm_simulation_detail_level = getprop("/sim/config/shuttle/sm-detail-level");
+			</script>
+     		</binding>
+    	</slider>
+
+	<text>
+      		<label>enhanced</label>
+      		<halign>center</halign>
+      		<row>10</row>
+     	 	<col>3</col>
+    	</text>
+
+
+	<!--<text>
+      		<label>CWS (placeholder)</label>
+      		<halign>left</halign>
+      		<row>11</row>
+     	 	<col>0</col>
+    	</text>
+	<text>
+      		<label>default</label>
+      		<halign>center</halign>
+      		<row>11</row>
+     	 	<col>1</col>
+    	</text>
+
+       <slider>
+      		<name>avionics-switch</name>
+      		<row>11</row>
+      		<col>2</col>
+      		<min>0</min>
+      		<max>1</max>
+      		<step>1</step>
+      		<live>true</live>
+      		<property>/sim/config/shuttle/cws-detail-level</property>
+      		<binding>
+        		<command>dialog-apply</command>
+        		<object-name>avionics-switch</object-name>
+     		</binding>
+     		<binding>
+        		<command>nasal</command>
+			<script>
+				SpaceShuttle.cws_simulation_detail_level = getprop("/sim/config/shuttle/cws-detail-level");
+			</script>
+     		</binding>
+    	</slider>
+
+	<text>
+      		<label>enhanced</label>
+      		<halign>center</halign>
+      		<row>11</row>
+     	 	<col>3</col>
+    	</text>-->
+
+
+  </group>
+
+        <empty>
+		<pref-height>6</pref-height>
+	</empty>
+
+	<hrule/>
+
+	<empty>
+		<pref-height>6</pref-height>
+	</empty>
+
+  <group>
+ <layout>table</layout>
+
+	<text>
+      		<label>Voice callouts</label>
+      		<halign>left</halign>
+      		<row>0</row>
+     	 	<col>0</col>
+    	</text>
+
+      <checkbox>
+        <name>callout-help</name>
+      	<halign>left</halign>
+ 	<row>1</row>
+        <col>0</col>
+          <property>/sim/config/shuttle/callouts/help</property>
+          <label>help</label>
+          <live>true</live>
+ 	  <binding>
+              <command>dialog-apply</command>
+              <object-name>callout-help</object-name>
+          </binding>
+        </checkbox>
+
+      <checkbox>
+        <name>callout-info</name>
+      	<halign>left</halign>
+ 	<row>1</row>
+        <col>1</col>
+          <property>/sim/config/shuttle/callouts/info</property>
+          <label>info</label>
+          <live>true</live>
+ 	  <binding>
+              <command>dialog-apply</command>
+              <object-name>callout-info</object-name>
+          </binding>
+        </checkbox>
+
+      <checkbox>
+        <name>callout-real</name>
+      	<halign>left</halign>
+ 	<row>1</row>
+        <col>2</col>
+          <property>/sim/config/shuttle/callouts/real</property>
+          <label>real</label>
+          <live>true</live>
+ 	  <binding>
+              <command>dialog-apply</command>
+              <object-name>callout-real</object-name>
+          </binding>
+        </checkbox>
+
+      <checkbox>
+        <name>callout-limit</name>
+      	<halign>left</halign>
+ 	<row>2</row>
+        <col>0</col>
+          <property>/sim/config/shuttle/callouts/limit</property>
+          <label>limits</label>
+          <live>true</live>
+ 	  <binding>
+              <command>dialog-apply</command>
+              <object-name>callout-limit</object-name>
+          </binding>
+        </checkbox>
+
+      <checkbox>
+        <name>callout-failure</name>
+      	<halign>left</halign>
+ 	<row>2</row>
+        <col>1</col>
+          <property>/sim/config/shuttle/callouts/failure</property>
+          <label>failures</label>
+          <live>true</live>
+ 	  <binding>
+              <command>dialog-apply</command>
+              <object-name>callout-failure</object-name>
+          </binding>
+        </checkbox>
+
+      <checkbox>
+        <name>callout-essential</name>
+      	<halign>left</halign>
+ 	<row>2</row>
+        <col>2</col>
+          <property>/sim/config/shuttle/callouts/essential</property>
+          <label>essential</label>
+          <live>true</live>
+ 	  <binding>
+              <command>dialog-apply</command>
+              <object-name>callout-essential</object-name>
+          </binding>
+        </checkbox>
+
+  </group>
+	
+        <empty>
+		<pref-height>6</pref-height>
+	</empty>
+
+	<hrule/>
+
+	<empty>
+		<pref-height>6</pref-height>
+	</empty>
+
+  <group>
+ <layout>table</layout>
+
+	<text>
+      		<label>Equipment</label>
+      		<halign>left</halign>
+      		<row>0</row>
+     	 	<col>0</col>
+    	</text>
+
+	<text>
+      		<label>ET type</label>
+      		<halign>left</halign>
+      		<row>1</row>
+     	 	<col>0</col>
+    	</text>
+
+   	<combo>
+       		 <row>1</row>
+        	 <col>1</col>
+        	 <name>ET-selection</name>
+        	 <halign>left</halign>
+        	 <stretch>true</stretch>
+        	 <pref-width>200</pref-width>
+        	 <property>/sim/config/shuttle/ET-config</property>
+		 <value>standard weight</value>
+		 <value>lightweight</value>
+		 <value>super lightweight</value>
+        	 <binding>
+             	 	<command>dialog-apply</command>
+          	 	<object-name>ET-selection</object-name>
+        	 </binding>
+      	</combo>
+
+	<text>
+      		<label>Tail cone</label>
+      		<halign>left</halign>
+      		<row>2</row>
+     	 	<col>0</col>
+    	</text>
+
+   	<combo>
+       		 <row>2</row>
+        	 <col>1</col>
+        	 <name>TC-selection</name>
+        	 <halign>left</halign>
+        	 <stretch>true</stretch>
+        	 <pref-width>200</pref-width>
+        	 <property>/sim/config/shuttle/TC-config</property>
+		 <value>none</value>
+		 <value>use tailcone</value>
+        	 <binding>
+             	 	<command>dialog-apply</command>
+          	 	<object-name>TC-selection</object-name>
+        	 </binding>
+      	</combo>
+
+	<text>
+      		<label>Payload</label>
+      		<halign>left</halign>
+      		<row>3</row>
+     	 	<col>0</col>
+    	</text>
+
+      <combo>
+          <row>3</row>
+          <col>1</col>
+          <name>PL-selection</name>
+          <halign>left</halign>
+          <stretch>true</stretch>
+          <pref-width>200</pref-width>
+          <property>/sim/config/shuttle/PL-selection</property>
+          <value>none</value>
+          <value>TDRS demo</value>
+          <value>SPARTAN-201</value>
+          <value>HST</value>
+          <binding>
+              <command>dialog-apply</command>
+              <object-name>PL-selection</object-name>
+          </binding>
+          <binding>
+              <command>nasal</command>
+              <script>SpaceShuttle.update_payload_selection()</script>
+          </binding>
+      </combo>
+
+	<text>
+      		<label>OMS kit</label>
+      		<halign>left</halign>
+      		<row>4</row>
+     	 	<col>0</col>
+    	</text>
+
+
+
+   	<combo>
+       		 <row>4</row>
+        	 <col>1</col>
+        	 <name>OMS-kit</name>
+        	 <halign>left</halign>
+        	 <stretch>true</stretch>
+        	 <pref-width>200</pref-width>
+        	 <property>/sim/config/shuttle/OMS-kit-config</property>
+		 <value>none</value>
+		 <value>OMS kit 500 fps</value>
+		 <value>OMS kit 1000 fps</value>
+		 <value>OMS kit 1500 fps</value>
+        	 <binding>
+             	 	<command>dialog-apply</command>
+          	 	<object-name>OMS-kit</object-name>
+        	 </binding>
+		<binding>
+			<command>nasal</command>
+                    	<script>SpaceShuttle.update_oms_kit_selection()</script>
+		</binding>
+      	</combo>
+
+	<text>
+      		<label>COAS</label>
+      		<halign>left</halign>
+      		<row>5</row>
+     	 	<col>0</col>
+    	</text>
+
+   	<combo>
+       		 <row>5</row>
+        	 <col>1</col>
+        	 <name>COAS</name>
+        	 <halign>left</halign>
+        	 <stretch>true</stretch>
+        	 <pref-width>200</pref-width>
+        	 <property>/sim/config/shuttle/COAS-config</property>
+		 <value>none</value>
+		 <value>FWD</value>
+		 <value>AFT</value>
+        	 <binding>
+             	 	<command>dialog-apply</command>
+          	 	<object-name>COAS</object-name>
+        	 </binding>
+		<binding>
+			<command>nasal</command>
+                    	<script>SpaceShuttle.coas_device.check_mount()</script>
+		</binding>
+      	</combo>
+
+
+
+  
+    <checkbox>
+        <name>loose-items</name>
+ 	<row>6</row>
+        <col>0</col>
+          <property>/sim/config/shuttle/loose-items</property>
+          <label>allow/stow loose items</label>
+          <live>true</live>
+ 	  <binding>
+              <command>dialog-apply</command>
+              <object-name>loose-items</object-name>
+          </binding>
+        </checkbox>
+
+</group>
+
+        <empty>
+		<pref-height>6</pref-height>
+	</empty>
+
+	<hrule/>
+
+	<empty>
+		<pref-height>6</pref-height>
+	</empty>
+
+  <group>
+ <layout>table</layout>
+
+	<text>
+      		<label>Orbital rendering</label>
+      		<halign>left</halign>
+      		<row>0</row>
+     	 	<col>0</col>
+    	</text>
+
+	<checkbox>
+        <name>use-earthview</name>
+ 	<row>1</row>
+        <col>0</col>
+          <property>/sim/config/shuttle/rendering/use-earthview</property>
+          <label>automatically use Earthview orbital rendering</label>
+          <live>true</live>
+ 	  <binding>
+              <command>dialog-apply</command>
+              <object-name>use-earthview</object-name>
+          </binding>
+	  <binding>
+		<command>nasal</command>
+		<script>SpaceShuttle.earthview_flag = getprop("/sim/config/shuttle/rendering/use-earthview");</script>
+	  </binding>
+        </checkbox>
+
+	<text>
+      		<enable>
+       		<property>/sim/config/shuttle/rendering/use-earthview</property>
+      		</enable>
+      		<label>transition to Earthview at</label>
+      		<halign>left</halign>
+      		<row>2</row>
+     	 	<col>0</col>
+    	</text>
+
+    <slider>
+      <name>earthview-transition</name>
+      <row>2</row>
+      <col>1</col>
+      <min>85000.0</min>
+      <max>320000.00</max>
+      <enable>
+       <property>/sim/config/shuttle/rendering/use-earthview</property>
+      </enable>
+      <live>true</live>
+      <property>/sim/config/shuttle/rendering/earthview-transition-alt-ft</property>
+      <binding>
+        <command>dialog-apply</command>
+        <object-name>earthview-transition</object-name>
+      </binding>
+      <binding>
+		<command>nasal</command>
+		<script>SpaceShuttle.earthview_transition_alt = getprop("/sim/config/shuttle/rendering/earthview-transition-alt-ft");</script>
+      </binding>
+    </slider>
+
+    <text>
+      <enable>
+       <property>/sim/config/shuttle/rendering/use-earthview</property>
+      </enable>
+      <row>2</row>
+      <col>2</col>
+      <halign>right</halign>
+      <label>12345678</label>
+      <format>%.f ft</format>
+      <live>true</live>
+      <property>/sim/config/shuttle/rendering/earthview-transition-alt-ft</property>
+    </text> 
+
+    <text>
+      	<label>orbital targets simulated in detail at</label>
+      	<halign>left</halign>
+      	<row>3</row>
+     	<col>0</col>
+    </text>
+
+    <slider>
+      <name>target-lod</name>
+      <row>3</row>
+      <col>1</col>
+      <min>1000.0</min>
+      <max>15000.0</max>
+      <live>true</live>
+      <property>/sim/config/shuttle/rendering/orbital-target-lod-m</property>
+      <binding>
+        <command>dialog-apply</command>
+        <object-name>target-lod</object-name>
+      </binding>
+      <binding>
+		<command>nasal</command>
+		<script>SpaceShuttle.orbital_target_lod = getprop("/sim/config/shuttle/rendering/orbital-target-lod-m");</script>
+      </binding>
+    </slider>
+
+    <text>
+      <row>3</row>
+      <col>2</col>
+      <halign>right</halign>
+      <label>12345678</label>
+      <format>%.f m</format>
+      <live>true</live>
+      <property>/sim/config/shuttle/rendering/orbital-target-lod-m</property>
+    </text> 
+
+
+ </group>
+
+
+
+	<empty>
+		<pref-height>12</pref-height>
+	</empty>
+
+	<hrule/>
+
+	<empty>
+		<pref-height>20</pref-height>
+	</empty>
+
+	<button>
+		<legend>Close</legend>
+		<default>true</default>
+		<key>Esc</key>
+		<binding>
+			<command>dialog-close</command>
+		</binding>
+	</button>
+
+</PropertyList>
+

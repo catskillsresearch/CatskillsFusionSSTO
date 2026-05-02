@@ -1,0 +1,702 @@
+<?xml version="1.0"?>
+
+<!-- Thorsten Renk 2015 -->
+<!-- apoapsis and periapsis calculation adapted from Victor Slavutinsky in Vostok-1 -->
+
+<system>
+
+	<channel name="input from FG">
+		<switch name="ic/sea-level-radius-ft">
+			<default value="0.0"/>
+			<test logic="AND" value="/position/sea-level-radius-ft">
+				simulation/sim-time-sec GT 0.1
+			</test>
+		</switch>
+
+	</channel>
+
+	<channel name="Orbital">
+
+		<!-- Orbit parameters calculation -->
+
+		<fcs_function name="systems/orbital/semimajor-axis-length-ft">
+		<description>
+			This equation calculates the semimajor-axis length in feet. a = mu/(2*mu/r - v^2) 
+		</description>
+		<function>
+			<quotient>
+				<p> systems/orbital/gm </p>
+				<difference>
+					<quotient>
+						<product>
+							<v> 2.0 </v>
+							<p> systems/orbital/gm </p>
+						</product>
+						<p> position/radius-to-vehicle-ft </p>
+					</quotient>
+					<pow>
+						<p> velocities/eci-velocity-mag-fps </p>
+						<v> 2.0 </v>
+					</pow>
+				</difference>
+			</quotient>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/orbital/orbital-period-s">
+		<function>
+			<product>
+				<value>2.0</value>
+				<value>3.1415926</value>
+				<pow>
+					<quotient>
+						<pow>
+							<property>systems/orbital/semimajor-axis-length-ft</property>
+							<value>3.0</value>
+						</pow>
+						<property>systems/orbital/gm</property>
+					</quotient>
+					<value>0.5</value>		
+				</pow>
+			</product>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/orbital/r-dot-v">
+		<function>
+			<sum>
+				<product>
+					<property>position/eci-x-ft</property>
+					<property>velocities/eci-x-fps</property>
+				</product>
+				<product>
+					<property>position/eci-y-ft</property>
+					<property>velocities/eci-y-fps</property>
+				</product>
+				<product>
+					<property>position/eci-z-ft</property>
+					<property>velocities/eci-z-fps</property>
+				</product>
+			</sum>
+		</function>
+		</fcs_function>
+
+
+
+		<fcs_function name="systems/orbital/epsilon-x">
+		<function>
+			<sum>
+				<quotient>
+					<product>
+						<property>velocities/eci-velocity-mag-fps</property>
+						<property>velocities/eci-velocity-mag-fps</property>
+						<property>position/eci-x-ft</property>
+					</product>
+					<property>systems/orbital/gm</property> 
+				</quotient>
+				<quotient>
+					<product>
+						<value>-1</value>
+						<property>systems/orbital/r-dot-v</property>
+						<property>velocities/eci-x-fps</property>
+					</product>
+					<property>systems/orbital/gm</property> 
+				</quotient>
+				<quotient>	
+					<product>
+						<value>-1</value>
+						<property>position/eci-x-ft</property>
+					</product>
+					<property>position/radius-to-vehicle-ft</property>
+				</quotient>
+			</sum>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/orbital/epsilon-y">
+		<function>
+			<sum>
+				<quotient>
+					<product>
+						<property>velocities/eci-velocity-mag-fps</property>
+						<property>velocities/eci-velocity-mag-fps</property>
+						<property>position/eci-y-ft</property>
+					</product>
+					<property>systems/orbital/gm</property> 
+				</quotient>
+				<quotient>
+					<product>
+						<value>-1</value>
+						<property>systems/orbital/r-dot-v</property>
+						<property>velocities/eci-y-fps</property>
+					</product>
+					<property>systems/orbital/gm</property> 
+				</quotient>
+				<quotient>	
+					<product>
+						<value>-1</value>
+						<property>position/eci-y-ft</property>
+					</product>
+					<property>position/radius-to-vehicle-ft</property>
+				</quotient>
+			</sum>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/orbital/epsilon-z">
+		<function>
+			<sum>
+				<quotient>
+					<product>
+						<property>velocities/eci-velocity-mag-fps</property>
+						<property>velocities/eci-velocity-mag-fps</property>
+						<property>position/eci-z-ft</property>
+					</product>
+					<property>systems/orbital/gm</property> 
+				</quotient>
+				<quotient>
+					<product>
+						<value>-1</value>
+						<property>systems/orbital/r-dot-v</property>
+						<property>velocities/eci-z-fps</property>
+					</product>
+					<property>systems/orbital/gm</property> 
+				</quotient>
+				<quotient>	
+					<product>
+						<value>-1</value>
+						<property>position/eci-z-ft</property>
+					</product>
+					<property>position/radius-to-vehicle-ft</property>
+				</quotient>
+			</sum>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/orbital/epsilon">
+		<function>
+			<pow>
+				<sum>
+					<product>
+						<property>systems/orbital/epsilon-x</property>
+						<property>systems/orbital/epsilon-x</property>
+					</product>
+					<product>
+						<property>systems/orbital/epsilon-y</property>
+						<property>systems/orbital/epsilon-y</property>
+					</product>
+					<product>
+						<property>systems/orbital/epsilon-z</property>
+						<property>systems/orbital/epsilon-z</property>
+					</product>
+				</sum>
+				<value>0.5</value>
+			</pow>
+		</function>
+		<output>systems/orbital/eccentricity</output>
+		</fcs_function>
+
+		<fcs_function name="systems/orbital/angle-to-periapsis-rad">
+		<function>
+			<acos>
+			<quotient>
+			<sum>
+				<product>
+					<property>position/eci-x-ft</property>
+					<property>systems/orbital/epsilon-x</property>
+				</product>
+				<product>
+					<property>position/eci-y-ft</property>
+					<property>systems/orbital/epsilon-y</property>
+				</product>
+				<product>
+					<property>position/eci-z-ft</property>
+					<property>systems/orbital/epsilon-z</property>
+				</product>
+			</sum>
+			<product>
+					<property>position/radius-to-vehicle-ft</property>
+					<property>systems/orbital/epsilon</property>
+			</product>
+			</quotient>
+			</acos>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/orbital/apoapsis-ft">
+		<function>
+			<difference>
+				<product>
+					<property>systems/orbital/semimajor-axis-length-ft</property>
+					<sum>
+						<value>1</value>
+						<property>systems/orbital/eccentricity</property>
+					</sum>
+				</product>
+				<property>ic/sea-level-radius-ft</property>
+			</difference>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/orbital/apoapsis-km">
+		<function>
+			<quotient>
+				<property>systems/orbital/apoapsis-ft</property>
+				<value>3280.83989501312335958005</value>
+			</quotient>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/orbital/apoapsis-indicated-km">
+		<function>
+			<table>
+				<independentVar lookup="row">systems/orbital/apoapsis-km</independentVar>
+				<tableData>
+					-1.0		0.0
+					0.0		0.0
+					9999.0		9999.0
+					10000.0		9999.0
+				</tableData>
+			</table>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/orbital/apoapsis-hundreds-km">
+		<function>
+			<integer>	
+				<quotient>
+					<property>systems/orbital/apoapsis-indicated-km</property>
+					<value>100</value>
+				</quotient>
+			</integer>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/orbital/apoapsis-tens-km">
+		<function>
+			<integer>	
+				<product>
+					<fraction>
+						<quotient>
+							<property>systems/orbital/apoapsis-indicated-km</property>
+							<value>100</value>
+						</quotient>
+					</fraction>
+					<value>10</value>
+				</product>
+			</integer>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/orbital/apoapsis-ones-km">
+		<function>
+			<integer>	
+				<product>
+					<fraction>
+						<quotient>
+							<property>systems/orbital/apoapsis-indicated-km</property>
+							<value>10</value>
+						</quotient>
+					</fraction>
+					<value>10</value>
+				</product>
+			</integer>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/orbital/periapsis-ft">
+		<function>
+			<difference>
+				<product>
+					<property>systems/orbital/semimajor-axis-length-ft</property>
+					<difference>
+						<value>1</value>
+						<property>systems/orbital/eccentricity</property>
+					</difference>
+				</product>
+				<property>ic/sea-level-radius-ft</property>
+			</difference>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/orbital/periapsis-km">
+		<function>
+			<quotient>
+				<property>systems/orbital/periapsis-ft</property>
+				<value>3280.83989501312335958005</value>
+			</quotient>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/orbital/periapsis-indicated-km">
+		<function>
+			<table>
+				<independentVar lookup="row">systems/orbital/periapsis-km</independentVar>
+				<tableData>
+					-1.0		0.0
+					0.0		0.0
+					9999.0		9999.0
+					10000.0		9999.0
+				</tableData>
+			</table>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/orbital/periapsis-hundreds-km">
+		<function>
+			<integer>	
+				<quotient>
+					<property>systems/orbital/periapsis-indicated-km</property>
+					<value>100</value>
+				</quotient>
+			</integer>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/orbital/periapsis-tens-km">
+		<function>
+			<integer>	
+				<product>
+					<fraction>
+						<quotient>
+							<property>systems/orbital/periapsis-indicated-km</property>
+							<value>100</value>
+						</quotient>
+					</fraction>
+					<value>10</value>
+				</product>
+			</integer>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/orbital/periapsis-ones-km">
+		<function>
+			<integer>	
+				<product>
+					<fraction>
+						<quotient>
+							<property>systems/orbital/periapsis-indicated-km</property>
+							<value>10</value>
+						</quotient>
+					</fraction>
+					<value>10</value>
+				</product>
+			</integer>
+		</function>
+		</fcs_function>
+
+	<!-- inclination calculator - find the orbital plane vector, then dot against +z direction--> 
+
+
+		<fcs_function name="systems/orbital/plane-x">
+		<function>
+			<difference>
+				<product>
+					<property>position/eci-y-ft</property>
+					<property>velocities/eci-z-fps</property>
+				</product>
+				<product>
+					<property>position/eci-z-ft</property>
+					<property>velocities/eci-y-fps</property>
+				</product>
+			</difference>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/orbital/plane-y">
+		<function>
+			<difference>
+				<product>
+					<property>position/eci-z-ft</property>
+					<property>velocities/eci-x-fps</property>
+				</product>
+				<product>
+					<property>position/eci-x-ft</property>
+					<property>velocities/eci-z-fps</property>
+				</product>
+			</difference>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/orbital/plane-z">
+		<function>
+			<difference>
+				<product>
+					<property>position/eci-x-ft</property>
+					<property>velocities/eci-y-fps</property>
+				</product>
+				<product>
+					<property>position/eci-y-ft</property>
+					<property>velocities/eci-x-fps</property>
+				</product>
+			</difference>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/orbital/plane-norm">
+		<function>
+			<quotient>
+			<value>1.0</value>
+			<pow>
+				<sum>
+				<pow>
+					<property>systems/orbital/plane-x</property>
+					<value>2.0</value>
+				</pow>
+				<pow>
+					<property>systems/orbital/plane-y</property>
+					<value>2.0</value>
+				</pow>
+				<pow>
+					<property>systems/orbital/plane-z</property>
+					<value>2.0</value>
+				</pow>
+				</sum>
+				<value>0.5</value>
+			</pow>
+			</quotient>
+		</function>
+		</fcs_function>
+
+
+		<fcs_function name="systems/orbital/inclination-rad">
+		<function>
+			<acos>
+				<product>
+					<property>systems/orbital/plane-norm</property>
+					<property>systems/orbital/plane-z</property>
+				</product>
+			</acos>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/orbital/inclination-deg">
+		<function>
+			<product>
+				<property>systems/orbital/inclination-rad</property>
+				<value>57.29578</value>	
+			</product>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/orbital/norm-n">
+		<function>
+			<pow>
+				<sum>
+					<pow>
+						<property>systems/orbital/plane-x</property>
+						<value>2.0</value>
+					</pow>
+					<pow>
+						<property>systems/orbital/plane-y</property>
+						<value>2.0</value>
+					</pow>	
+				</sum>
+				<value>0.5</value>			
+			</pow>
+		</function>
+		</fcs_function>
+
+		
+
+		<fcs_function name="systems/orbital/ascending-node-lon-rad">
+		<function>
+			<acos>
+				<quotient>
+				<product>
+					<property>systems/orbital/plane-y</property>
+					<value>-1.0</value>
+				</product>
+				<property>systems/orbital/norm-n</property>
+				<!--<pow>
+				<sum>
+				<pow>
+					<property>systems/orbital/plane-x</property>
+					<value>2.0</value>
+				</pow>
+				<pow>
+					<property>systems/orbital/plane-y</property>
+					<value>2.0</value>
+				</pow>	
+				</sum>
+				<value>0.5</value>			
+				</pow>-->
+				</quotient>
+			</acos>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/orbital/ascending-node-lon-deg-raw">
+		<function>
+			<product>
+				<property>systems/orbital/ascending-node-lon-rad</property>
+				<value>57.29578</value>	
+			</product>
+		</function>
+		</fcs_function>
+
+		<switch name="systems/orbital/ascending-node-lon-deg-corr">
+			<default value="1.0"/>
+			<test value="0.0">
+				systems/orbital/plane-x LT 0.0
+			</test>
+		</switch>
+
+		<fcs_function name="systems/orbital/ascending-node-lon-deg">
+		<function>
+			<sum>
+			<product>
+				<property>systems/orbital/ascending-node-lon-deg-raw</property>
+				<property>systems/orbital/ascending-node-lon-deg-corr</property>
+			</product>
+			<product>
+				<difference>
+					<value>1.0</value>
+					<property>systems/orbital/ascending-node-lon-deg-corr</property>
+				</difference>
+				<difference>
+				<value>360.0</value>
+				<property>systems/orbital/ascending-node-lon-deg-raw</property>
+				</difference>
+			</product>
+			</sum>
+		</function>
+		</fcs_function>
+
+		<!-- argument of the periapsis (angle from periapsis to ascending node) -->
+
+		<fcs_function name="systems/orbital/periapsis-arg-rad-raw">
+		<function>
+			<acos>
+				<quotient>
+					<sum>
+						<product>
+							<value>-1.0</value>
+							<property>systems/orbital/plane-y</property>
+							<property>systems/orbital/epsilon-x</property>
+						</product>
+						<product>
+							<property>systems/orbital/plane-x</property>
+							<property>systems/orbital/epsilon-y</property>
+						</product>
+					</sum>
+					<product>
+						<property>systems/orbital/epsilon</property>
+						<property>systems/orbital/norm-n</property>
+					</product>
+				</quotient>
+			</acos>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/orbital/periapsis-arg-rad-corr">
+		<function>
+			<difference>
+				<value>6.283185307</value>
+				<property>systems/orbital/periapsis-arg-rad-raw</property>
+			</difference>
+		</function>
+		</fcs_function>
+
+		<switch name="systems/orbital/periapsis-arg-rad">
+			<default value="systems/orbital/periapsis-arg-rad-raw"/>
+			<test value="systems/orbital/periapsis-arg-rad-corr">
+				systems/orbital/epsilon-z LT 0.0
+			</test>
+		</switch>
+
+		<fcs_function name="systems/orbital/periapsis-arg-deg">
+		<function>
+			<product>
+				<property>systems/orbital/periapsis-arg-rad</property>
+				<value>57.29578</value>
+			</product>
+		</function>
+		</fcs_function>
+
+		<!-- true anomaly -->
+
+		<fcs_function name="systems/orbital/true-anomaly-rad-raw">
+		<function>
+			<acos>
+				<quotient>
+					<sum>
+						<product>
+							<property>position/eci-x-ft</property>
+							<property>systems/orbital/epsilon-x</property>
+						</product>
+						<product>
+							<property>position/eci-y-ft</property>
+							<property>systems/orbital/epsilon-y</property>
+						</product>
+						<product>
+							<property>position/eci-z-ft</property>
+							<property>systems/orbital/epsilon-z</property>
+						</product>
+					</sum>
+					<product>
+						<property>position/radius-to-vehicle-ft</property>
+						<property>systems/orbital/epsilon</property>
+					</product>
+				</quotient>
+			</acos>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/orbital/true-anomaly-rad-corr">
+		<function>
+			<difference>
+				<value>6.283185307</value>
+				<property>systems/orbital/true-anomaly-rad-raw</property>
+			</difference>
+		</function>
+		</fcs_function>
+
+
+		<switch name="systems/orbital/true-anomaly-rad">
+			<default value="systems/orbital/true-anomaly-rad-raw"/>
+			<test value="systems/orbital/true-anomaly-rad-corr">
+				 systems/orbital/r-dot-v LT 0.0
+			</test>
+		</switch>
+
+		<fcs_function name="systems/orbital/true-anomaly-deg">
+		<function>
+			<product>
+				<property>systems/orbital/true-anomaly-rad</property>
+				<value>57.29578</value>
+			</product>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/orbital/argument-of-latitude-deg-raw">
+		<function>
+			<sum>
+				<property>systems/orbital/true-anomaly-deg</property>
+				<property>systems/orbital/periapsis-arg-deg</property>
+			</sum>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/orbital/argument-of-latitude-deg-corr">
+		<function>
+			<difference>
+				<property>systems/orbital/argument-of-latitude-deg-raw</property>
+				<value>360.0</value>
+			</difference>
+		</function>
+		</fcs_function>
+
+		<switch name="systems/orbital/argument-of-latitude-deg">
+			<default value="systems/orbital/argument-of-latitude-deg-raw"/>
+			<test value="systems/orbital/argument-of-latitude-deg-corr">
+				 systems/orbital/argument-of-latitude-deg-raw GT 360.0
+			</test>
+		</switch>
+
+	</channel>
+
+
+
+
+</system>

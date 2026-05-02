@@ -1,0 +1,120 @@
+<?xml version="1.0"?>
+
+<!--###################################################################################
+    This file is licenced under the terms of the GNU General Public Licence V3 or later
+    ###################################################################################
+-->
+
+<PropertyList>
+
+    <!-- Brake Parachute -->
+
+	<path>DragChute.ac</path>
+	<nopreview/>
+
+	<offsets>
+		<x-m>0.0</x-m>
+		<y-m>0.0</y-m>
+		<z-m>0.0</z-m>
+		<pitch-deg>0</pitch-deg>
+	</offsets>
+
+    <animation>
+        <type>scale</type>
+        <property>/controls/shuttle/drag-chute-deploy-timer</property>
+        <interpolation>
+            <entry>
+                <ind>1</ind>
+                <dep>.25</dep>
+            </entry>
+            <entry>
+                <ind>2</ind>
+                <dep>.25</dep>
+            </entry>
+            <entry>
+                <ind>3</ind>
+                <dep>.48</dep>
+            </entry>
+            <entry>
+                <ind>6</ind>
+                <dep>.48</dep>
+            </entry>
+            <entry>
+                <ind>7</ind>
+                <dep>1</dep>
+            </entry>
+        </interpolation>
+        <center>
+            <x-m> 0.0</x-m>
+            <y-m> 0.0</y-m>
+            <z-m> 0.0</z-m>
+        </center>
+        <axis>
+            <x>0</x>
+            <y>1</y>
+            <z>1</z>
+        </axis>
+    </animation>
+
+    <animation>
+        <type>rotate</type>
+        <property>/controls/shuttle/drag-chute-slant</property>
+        <factor>-1.0</factor>
+
+        <center>
+            <x-m> 0.0</x-m>
+            <y-m> 0.0</y-m>
+            <z-m> 8.0</z-m>
+        </center>
+        <axis>
+            <x>0</x>
+            <y>1</y>
+            <z>0</z>
+        </axis>
+    </animation>
+
+ <animation>
+  <type>translate</type>
+  <property>/controls/shuttle/drag-chute-dist</property>
+  <axis>
+   <x>0</x>
+   <y>0</y>
+   <z>1</z>
+  </axis>
+ </animation>
+
+ <animation>
+  <type>translate</type>
+  <property>/controls/shuttle/drag-chute-down</property>
+  <axis>
+   <x>1</x>
+   <y>0</y>
+   <z>0</z>
+  </axis>
+ </animation>
+
+
+ <animation>
+        <type>rotate</type>
+        <property>orientation/pitch-deg</property>
+        <factor>-1.0</factor>
+
+        <center>
+            <x-m> 0.0</x-m>
+            <y-m> 0.0</y-m>
+            <z-m> 0.0</z-m>
+        </center>
+        <axis>
+            <x>0</x>
+            <y>1</y>
+            <z>0</z>
+        </axis>
+  </animation>
+
+    <effect> 
+	<inherits-from>Aircraft/SpaceShuttle/Effects/chute</inherits-from>
+        <object-name>MC_Chute</object-name>
+        <object-name>MC_Cords</object-name>
+    </effect>
+
+</PropertyList>

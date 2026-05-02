@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<PropertyList>
+
+    <path>hst.ac</path>
+    <nopreview/>
+
+    <effect>
+        <inherits-from>Effects/space-combined</inherits-from>
+            <object-name>hst-base-access-panel-b</object-name>
+            <object-name>hst-base-cameras</object-name>
+            <object-name>hst-base-for-endcover</object-name>
+            <object-name>hst-base-frame</object-name>
+            <object-name>hst-base-handholds</object-name>
+            <object-name>hst-acc</object-name>
+            <object-name>hst-radio-dish</object-name>
+            <object-name>hst-solar-cells</object-name>
+            <object-name>hst-solar-cells-frame</object-name>
+            <object-name>hst-handholds</object-name>
+            <object-name>hst-scale-2.007</object-name>
+            <object-name>hst-scale-2.008</object-name>
+            <object-name>hst-scale-2.014</object-name>
+            <object-name>hst-scale-2.015</object-name>
+            <object-name>hst-scale-2.016</object-name>
+            <object-name>hst-scale-2.017</object-name>
+            <object-name>hst-scale-2.018</object-name>
+            <object-name>hst-scale-2.019</object-name>
+            <object-name>hook</object-name>
+    </effect>
+
+    <effect>
+        <inherits-from>Aircraft/SpaceShuttle/Models/HST/hst-shine</inherits-from>
+            <object-name>hst-apprature-cover</object-name>
+            <object-name>hst-base-aft-endcover</object-name>
+            <object-name>hst-base-access-panel-a</object-name>
+    </effect>
+
+    <effect>
+        <inherits-from>Aircraft/SpaceShuttle/Models/HST/foil-normal</inherits-from>
+            <object-name>hst-main</object-name>
+    </effect>
+
+    <effect>
+        <inherits-from>Aircraft/SpaceShuttle/Models/HST/foil-normal2</inherits-from>
+            <object-name>hst-base-cover</object-name>
+            <object-name>hst-base-for-shroud</object-name>
+            <object-name>hst-base-access-door-left</object-name>
+            <object-name>hst-base-access-door-right</object-name>
+            <object-name>hst-scale-2.000</object-name>
+            <object-name>hst-scale-2.001</object-name>
+            <object-name>hst-scale-2.002</object-name>
+            <object-name>hst-scale-2.003</object-name>
+            <object-name>hst-scale-2.004</object-name>
+            <object-name>hst-scale-2.005</object-name>
+            <object-name>hst-scale-2.006</object-name>
+
+            <object-name>hst-scale-2.009</object-name>
+            <object-name>hst-scale-2.010</object-name>
+            <object-name>hst-scale-2.011</object-name>
+            <object-name>hst-scale-2.012</object-name>
+            <object-name>hst-scale-2.013</object-name>
+    </effect>
+
+    <animation>
+        <type>material</type>
+        <object-name>hst-base-cover</object-name>
+        <shininess>100</shininess>
+    </animation>
+
+    <animation>
+        <type>material</type>
+        <object-name>hst-main</object-name>
+        <shininess>128</shininess>
+    </animation>
+
+    <animation>
+        <enable-hot type="bool">false</enable-hot>
+    </animation>
+
+    
+    <animation>
+        <type>rotate</type>
+        <property>/controls/shuttle/HST/payload-roll-deg</property>
+        <axis>
+            <x>1</x>
+            <y>0</y>
+            <z>0</z>
+        </axis>
+        <center>
+            <x-m> 0</x-m>
+            <y-m> 0</y-m>
+            <z-m> 0</z-m>
+        </center>
+    </animation>
+    
+
+    <animation>
+        <type>rotate</type>
+        <property>/controls/shuttle/HST/payload-yaw-deg</property>
+        <axis>
+            <x>0</x>
+            <y>0</y>
+            <z>1</z>
+        </axis>
+        <center>
+            <x-m> 0</x-m>
+            <y-m> 0</y-m>
+            <z-m> 0</z-m>
+        </center>
+    </animation>
+
+
+    <animation>
+        <type>rotate</type>
+        <property>/controls/shuttle/HST/payload-pitch-deg</property>
+        <axis>
+            <x>0</x>
+            <y>1</y>
+            <z>0</z>
+        </axis>
+        <center>
+            <x-m> 0</x-m>
+            <y-m> 0</y-m>
+            <z-m> 0</z-m>
+        </center>
+    </animation>
+
+    
+   <animation>
+      <type>select</type>
+      <object-name>hst-solar-cells-frame</object-name>
+      <object-name>hst-solar-cells</object-name>
+      <condition>
+          <!--<and>
+              <equals>
+                  <property>sim/config/shuttle/PL-selection-flag</property>
+                  <value>3</value>
+              </equals>
+              <equals>
+                  <property>/fdm/jsbsim/systems/rms/payload/payload-released</property>
+                  <value>1</value>
+              </equals>
+              <greater-than>
+                  <property>/fdm/jsbsim/systems/rendezvous/target/distance-m</property>
+                  <value>25</value>
+              </greater-than>
+          </and>-->
+		<equals>
+ 		<property>/controls/shuttle/HST/payload-deployment-stage</property>
+                <value>1</value>
+		</equals>
+      </condition>
+  </animation>
+
+</PropertyList>

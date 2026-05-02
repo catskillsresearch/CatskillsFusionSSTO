@@ -1,0 +1,380 @@
+<?xml version="1.0"?>
+
+<system>
+
+	<channel name="Gear and tire damage simulation" execrate="8">
+
+	<!-- rolling friction adjustments for blown tires -->
+
+		<fcs_function name="systems/failures/tire-nose-condition">
+		<function>
+			<product>
+				<sum>
+					<property>systems/failures/gear/tire-nose-left-condition</property>
+					<property>systems/failures/gear/tire-nose-right-condition</property>
+				</sum>
+				<value>0.5</value>
+			</product>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/failures/tire-left-condition">
+		<function>
+			<product>
+				<sum>
+					<property>systems/failures/gear/tire-left-ib-condition</property>
+					<property>systems/failures/gear/tire-left-ob-condition</property>
+				</sum>
+				<value>0.5</value>
+			</product>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/failures/tire-right-condition">
+		<function>
+			<product>
+				<sum>
+					<property>systems/failures/gear/tire-right-ib-condition</property>
+					<property>systems/failures/gear/tire-right-ob-condition</property>
+				</sum>
+				<value>0.5</value>
+			</product>
+		</function>
+		</fcs_function>
+
+		<switch name="systems/failures/tire-nose-friction">
+			<default value="0.02"/>
+			<test value="0.1">
+				systems/failures/tire-nose-condition == 0.0
+			</test>
+			<test value="0.05">
+				systems/failures/tire-nose-condition LT 0.7
+			</test>
+			<output> gear/unit[0]/rolling_friction_coeff </output>
+		</switch>
+
+		<switch name="systems/failures/tire-left-friction">
+			<default value="0.02"/>
+			<test value="0.1">
+				systems/failures/tire-left-condition == 0.0
+			</test>
+			<test value="0.05">
+				systems/failures/tire-left-condition LT 0.7
+			</test>
+			<output> gear/unit[1]/rolling_friction_coeff </output>
+		</switch>
+
+		<switch name="systems/failures/tire-right-friction">
+			<default value="0.02"/>
+			<test value="0.1">
+				systems/failures/tire-right-condition == 0.0
+			</test>
+			<test value="0.05">
+				systems/failures/tire-right-condition LT 0.7
+			</test>
+			<output> gear/unit[2]/rolling_friction_coeff </output>
+		</switch>
+
+	<!-- contact point position adjustment for damaged gear struts and blown tire-->
+
+		<switch name="systems/failures/gearstrut-nose-position">
+			<!--<default value="gear/unit[0]/z-position"/>-->
+			<default value="-270.47244"/>
+				<test value="-265">
+					systems/failures/tire-nose-condition LT 0.5
+					systems/failures/gear/gearstrut-nose-condition GT 0.0
+          systems/failures/shuttle-destroyed EQ 0
+				</test>
+				<test value="-242.0">
+					systems/failures/gear/gearstrut-nose-condition == 0.0
+          systems/failures/shuttle-destroyed EQ 0
+				</test>
+        <test value="-186">
+          systems/failures/shuttle-destroyed EQ 1
+			  </test>
+			<output> gear/unit[0]/z-position </output>
+		</switch>
+
+		<switch name="systems/failures/gearstrut-left-position">
+			<!--<default value="gear/unit[1]/z-position"/>-->
+			<default value="-313.779528"/>
+				<test value="-309">
+					systems/failures/tire-left-condition LT 0.5
+					systems/failures/gear/gearstrut-left-condition GT 0.0
+          systems/failures/shuttle-destroyed EQ 0
+				</test>
+				<test value="-250">
+					systems/failures/gear/gearstrut-left-condition == 0.0
+          systems/failures/shuttle-destroyed EQ 0
+				</test>
+        <test value="-186">
+          systems/failures/shuttle-destroyed EQ 1
+			  </test>
+			<output> gear/unit[1]/z-position </output>
+		</switch>
+
+		<switch name="systems/failures/gearstrut-right-position">
+			<!--<default value="gear/unit[2]/z-position"/>-->
+			<default value="-313.779528"/>
+				<test value="-309">
+					systems/failures/tire-right-condition LT 0.5
+					systems/failures/gear/gearstrut-right-condition GT 0.0
+          systems/failures/shuttle-damaged NE 1
+          systems/failures/shuttle-destroyed EQ 0
+				</test>
+				<test value="-250">
+					systems/failures/gear/gearstrut-right-condition == 0.0
+          systems/failures/shuttle-damaged NE 1
+          systems/failures/shuttle-destroyed EQ 0
+				</test>
+        <test value="-228">
+          systems/failures/shuttle-damaged EQ 1
+          systems/failures/shuttle-destroyed EQ 0
+			  </test>
+        <test value="-186">
+          systems/failures/shuttle-destroyed EQ 1
+			  </test>
+			<output> gear/unit[2]/z-position </output>
+		</switch>
+
+    <!-- contact point position adjustment for damaged shuttle (right wing gone) or destroyed-->
+
+		<switch name="systems/failures/left-wing-position">
+			<default value="-4.81"/>
+        <test value="157.48">
+          systems/failures/shuttle-destroyed EQ 1
+			  </test>
+			<output> contact/unit[8]/z-position </output>
+		</switch>
+
+		<switch name="systems/failures/right-wing-position">
+			<default value="-4.81"/>
+				<test value="157.48">
+          systems/failures/shuttle-destroyed EQ 1
+				</test>
+				<test value="157.48">
+          systems/failures/shuttle-destroyed EQ 0
+          systems/failures/shuttle-damaged EQ 1
+				</test>
+			<output> contact/unit[9]/z-position </output>
+		</switch>
+	
+	<!-- friction adjustment for damaged gear struts -->
+
+		<switch name="systems/failures/gearstrut-nose-friction">
+			<default value="gear/unit[0]/rolling_friction_coeff"/>
+			<test value="0.4">
+				systems/failures/gear/gearstrut-nose-condition == 0.0
+			</test>
+			<output> gear/unit[0]/rolling_friction_coeff </output>
+		</switch>
+
+		<switch name="systems/failures/gearstrut-left-friction">
+			<default value="gear/unit[1]/rolling_friction_coeff"/>
+			<test value="0.4">
+				systems/failures/gear/gearstrut-left-condition == 0.0
+			</test>
+			<output> gear/unit[1]/rolling_friction_coeff </output>
+		</switch>
+
+		<switch name="systems/failures/gearstrut-right-friction">
+			<default value="gear/unit[2]/rolling_friction_coeff"/>
+			<test value="0.4">
+				systems/failures/gear/gearstrut-right-condition == 0.0
+			</test>
+			<output> gear/unit[2]/rolling_friction_coeff </output>
+		</switch>
+
+	</channel>
+
+	<channel name="Hydraulic brake and steering failures" execrate="8">
+
+		<switch name="systems/failures/brake-sys1-operational">
+			<default value="0.0"/>
+			<test logic="AND" value="1.0">
+				systems/landing/brake-mn-A-switch == 1
+				systems/landing/brake-isolation-valve-1-status == 1
+				systems/apu/hyd-1-pressurized == 1
+			</test>
+		</switch>
+
+		<switch name="systems/failures/brake-sys2-operational">
+			<default value="0.0"/>
+			<test logic="AND" value="1.0">
+				systems/landing/brake-mn-B-switch == 1
+				systems/landing/brake-isolation-valve-2-status == 1
+				systems/apu/hyd-2-pressurized == 1
+			</test>
+		</switch>
+
+		<switch name="systems/failures/brake-sys3-operational">
+			<default value="0.0"/>
+			<test logic="AND" value="1.0">
+				systems/landing/brake-mn-C-switch == 1
+				systems/landing/brake-isolation-valve-3-status == 1
+				systems/apu/hyd-3-pressurized == 1
+			</test>
+		</switch>
+
+		<switch name="systems/failures/nws-operational">
+			<default value="fcs/steer-pos-deg"/>
+			<test logic="AND" value="0.0">
+				systems/apu/hyd-1-pressurized == 0
+				systems/failures/brake-sys2-operational == 0
+			</test>
+			<output>fcs/steer-pos-deg</output>
+		</switch>
+
+		<switch name="systems/failures/brake-hydraulics-13-operational">
+			<default value="1.0"/>
+			<test logic="AND" value="0.0">
+				systems/failures/brake-sys1-operational == 0
+				systems/failures/brake-sys2-operational == 1
+				systems/failures/brake-sys3-operational == 0
+			</test>
+		</switch>
+
+		<switch name="systems/failures/brake-hydraulics-23-operational">
+			<default value="1"/>
+			<test logic="AND" value="0">
+				systems/failures/brake-sys1-operational == 1
+				systems/failures/brake-sys2-operational == 0
+				systems/failures/brake-sys3-operational == 0
+			</test>
+		</switch>
+
+
+		<switch name="systems/failures/brake-left-hydraulics-operational">
+			<default value="0.4"/>
+			<test logic="OR" value="0.2">
+				systems/failures/brake-hydraulics-13-operational == 0
+				systems/failures/brake-hydraulics-23-operational == 0
+			</test>
+			<output>gear/unit[1]/static_friction_coeff</output>
+		</switch>
+
+		<switch name="systems/failures/brake-right-hydraulics-operational">
+			<default value="0.4"/>
+			<test logic="OR" value="0.2">
+				systems/failures/brake-hydraulics-13-operational == 0
+				systems/failures/brake-hydraulics-23-operational == 0
+			</test>
+			<output>gear/unit[2]/static_friction_coeff</output>
+		</switch>
+
+	</channel>
+
+	<channel name="Electrical bus shorts" execrate="8">
+		
+		<fcs_function name="systems/failures/circuits/mn-A-power-loss-kW">
+		<function>
+			<product>
+				<difference>
+				<quotient>
+					<value>1</value>
+					<sum>
+						<property>systems/failures/electrical/main-A-condition</property>
+						<value>0.1</value>
+					</sum>
+				</quotient>
+				<value>0.909</value>
+				</difference>
+			<value>10.0</value>
+			</product>
+		</function>
+		</fcs_function>
+
+
+		<fcs_function name="systems/failures/circuits/mn-B-power-loss-kW">
+		<function>
+			<product>
+				<difference>
+				<quotient>
+					<value>1</value>
+					<sum>
+						<property>systems/failures/electrical/main-B-condition</property>
+						<value>0.1</value>
+					</sum>
+				</quotient>
+				<value>0.909</value>
+				</difference>
+			<value>10.0</value>
+			</product>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/failures/circuits/mn-C-power-loss-kW">
+		<function>
+			<product>
+				<difference>
+				<quotient>
+					<value>1</value>
+					<sum>
+						<property>systems/failures/electrical/main-C-condition</property>
+						<value>0.1</value>
+					</sum>
+				</quotient>
+				<value>0.909</value>
+				</difference>
+			<value>10.0</value>
+			</product>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/failures/circuits/ac1-power-loss-kW">
+		<function>
+			<product>
+				<difference>
+				<quotient>
+					<value>1</value>
+					<sum>
+						<property>systems/failures/electrical/ac1-condition</property>
+						<value>0.1</value>
+					</sum>
+				</quotient>
+				<value>0.909</value>
+				</difference>
+			<value>10.0</value>
+			</product>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/failures/circuits/ac2-power-loss-kW">
+		<function>
+			<product>
+				<difference>
+				<quotient>
+					<value>1</value>
+					<sum>
+						<property>systems/failures/electrical/ac2-condition</property>
+						<value>0.1</value>
+					</sum>
+				</quotient>
+				<value>0.909</value>
+				</difference>
+			<value>10.0</value>
+			</product>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/failures/circuits/ac3-power-loss-kW">
+		<function>
+			<product>
+				<difference>
+				<quotient>
+					<value>1</value>
+					<sum>
+						<property>systems/failures/electrical/ac3-condition</property>
+						<value>0.1</value>
+					</sum>
+				</quotient>
+				<value>0.909</value>
+				</difference>
+			<value>10.0</value>
+			</product>
+		</function>
+		</fcs_function>
+
+	</channel>
+
+</system>

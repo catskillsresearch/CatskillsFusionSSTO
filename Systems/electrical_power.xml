@@ -1,0 +1,1609 @@
+<?xml version="1.0"?>
+
+<system>
+
+	<channel name="FC 1" execrate="4">
+
+		<switch name="systems/electrical/fc/fc-ready-to-start">
+			<default value="0.0"/>
+			<test logic="AND" value="1.0">
+				systems/electrical/fc/reactant-valve-status == 1
+				systems/electrical/fc/fc-controller-power == 1
+				systems/electrical/fc/fc-controller-power-ovhd == 1
+			</test>
+		</switch>
+
+		<switch name="systems/electrical/fc/fc-running">
+			<default value="0.0"/>
+			<test logic="AND" value="1.0">
+				systems/electrical/fc/fc-ready-to-start == 1
+				systems/electrical/fc/fc-start-cmd == 1
+			</test>
+		</switch>
+
+		<kinematic name="systems/electrical/fc/fc-ready-for-load-transit">
+			<input>systems/electrical/fc/fc-running</input>
+			<traverse>
+				<setting>
+					<position>0.0</position>
+					<time>0.0</time>
+				</setting>
+				<setting>
+					<position>1.0</position>
+					<time>30.0</time>
+				</setting>
+			</traverse>
+		</kinematic>
+
+		<switch name="systems/electrical/fc/fc-ready-for-load">
+			<default value="0.0"/>
+			<test logic="OR" value="1.0">
+				systems/electrical/fc/fc-ready-for-load-transit == 1
+				systems/electrical/init-electrical-on GT 0.0
+			</test>
+		</switch>
+
+		<fcs_function name="systems/electrical/fc/fc-max-power-output-kW">
+		<function>	
+			<max>
+			<product>
+				<value>12.0</value>
+				<property>systems/electrical/fc/fc-ready-for-load</property>
+				<property>systems//failures/electrical/fc1-condition</property>
+				<property>systems/electrical/fc/fc-efficiency</property>
+			</product>
+			<property>systems/electrical/init-electrical-on</property>
+			</max>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/electrical/fc/rel-load">
+		<function>
+			<product>
+				<property>systems/electrical/bus/rel-power-demand</property>
+				<property>systems/electrical/fc/bus-connector-status</property>
+			</product>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/electrical/fc/voltage">
+		<function>
+		<product>
+		<table>
+        		<independentVar lookup="row">systems/electrical/fc/rel-load</independentVar>
+        		<tableData>
+          	 		0.00	32.5
+				1.00	27.5
+				1.33	24.5
+				1.41	23.5
+				10.0	1.0
+        		</tableData>
+      		</table>
+		<property>systems/electrical/fc/fc-ready-for-load</property>
+		<property>systems/failures/electrical/fc1-condition</property>
+		</product>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/electrical/fc/coolant-pump-failure">
+		<function>
+			<difference>
+				<value>1.0</value>
+				<property>systems/failures/fc1-coolant-pump-condition</property>
+			</difference>
+		</function>
+		</fcs_function>
+
+		<kinematic name="systems/electrical/fc/overheat-transit">
+			<input>systems/electrical/fc/coolant-pump-failure</input>
+			<traverse>
+				<setting>
+					<position>0.0</position>
+					<time>0.0</time>
+				</setting>
+				<setting>
+					<position>1.0</position>
+					<time>540.0</time>
+				</setting>
+			</traverse>
+		</kinematic>
+
+		<fcs_function name="systems/electrical/fc/stack-temperature-K">
+		<function>
+			<max>
+				<product>
+				<sum>
+					<value>359.5</value>
+					<product>
+						<quotient>
+						<property>systems/electrical/bus/power-demand-kW</property>
+						<value>0.03</value>
+						</quotient>
+						<value>0.04418</value>
+					</product>
+				</sum>
+				<property>systems/electrical/fc/fc-ready-for-load-transit</property>
+				</product>
+				<product>
+				<sum>
+					<value>359.5</value>
+					<product>
+						<property>systems/electrical/fc/overheat-transit</property>
+						<value>65</value>
+					</product>	
+				</sum>
+				<property>systems/electrical/fc/fc-ready-for-load-transit</property>
+				</product>
+				<property>systems/thermal-distribution/payload-bay-temperature-K</property>
+			</max>
+		</function>
+		</fcs_function>
+
+
+		<switch name="systems/electrical/fc/pump-power-consumption-kW">
+			<default value="0.0"/>
+			<test logic="AND" value="0.2808">
+				systems/electrical/ac/voltage GT 115.0
+				systems/failures/fc1-coolant-pump-condition EQ 1.0
+				systems/electrical/fc/fc-running EQ 1.0
+			</test>
+			<test logic="AND" value="0.105">
+				systems/electrical/ac/voltage GT 115.0
+				systems/failures/fc1-coolant-pump-condition LT 1.0
+				systems/electrical/fc/fc-running EQ 1.0
+			</test>
+		</switch>
+
+
+
+	</channel>
+
+
+	<channel name="FC 2" execrate="4">
+
+		<switch name="systems/electrical/fc[1]/fc-ready-to-start">
+			<default value="0.0"/>
+			<test logic="AND" value="1.0">
+				systems/electrical/fc[1]/reactant-valve-status == 1
+				systems/electrical/fc[1]/fc-controller-power == 1
+				systems/electrical/fc[1]/fc-controller-power-ovhd == 1
+			</test>
+		</switch>
+
+		<switch name="systems/electrical/fc[1]/fc-running">
+			<default value="0.0"/>
+			<test logic="AND" value="1.0">
+				systems/electrical/fc[1]/fc-ready-to-start == 1
+				systems/electrical/fc[1]/fc-start-cmd == 1
+			</test>
+		</switch>
+
+		<kinematic name="systems/electrical/fc[1]/fc-ready-for-load-transit">
+			<input>systems/electrical/fc[1]/fc-running</input>
+			<traverse>
+				<setting>
+					<position>0.0</position>
+					<time>0.0</time>
+				</setting>
+				<setting>
+					<position>1.0</position>
+					<time>30.0</time>
+				</setting>
+			</traverse>
+		</kinematic>
+
+		<switch name="systems/electrical/fc[1]/fc-ready-for-load">
+			<default value="0.0"/>
+			<test logic="OR"  value="1.0">
+				systems/electrical/fc[1]/fc-ready-for-load-transit == 1
+				systems/electrical/init-electrical-on GT 0.0
+			</test>
+		</switch>
+
+		<fcs_function name="systems/electrical/fc[1]/fc-max-power-output-kW">
+		<function>	
+			<max>
+			<product>
+				<value>12.0</value>
+				<property>systems/electrical/fc[1]/fc-ready-for-load</property>
+				<property>systems/failures/electrical/fc2-condition</property>
+				<property>systems/electrical/fc[1]/fc-efficiency</property>
+			</product>
+			<property>systems/electrical/init-electrical-on</property>
+			</max>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/electrical/fc[1]/rel-load">
+		<function>
+			<product>
+				<property>systems/electrical/bus[1]/rel-power-demand</property>
+				<property>systems/electrical/fc[1]/bus-connector-status</property>
+			</product>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/electrical/fc[1]/voltage">
+		<function>
+		<product>
+		<table>
+        		<independentVar lookup="row">systems/electrical/fc[1]/rel-load</independentVar>
+        		<tableData>
+          	 		0.00	32.5
+				1.00	27.5
+				1.33	24.5
+				1.41	23.5
+				10.0	1.0
+        		</tableData>
+      		</table>
+		<property>systems/electrical/fc[1]/fc-ready-for-load</property>
+		<property>systems/failures/electrical/fc2-condition</property>
+		</product>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/electrical/fc[1]/coolant-pump-failure">
+		<function>
+			<difference>
+				<value>1.0</value>
+				<property>systems/failures/fc2-coolant-pump-condition</property>
+			</difference>
+		</function>
+		</fcs_function>
+
+		<kinematic name="systems/electrical/fc[1]/overheat-transit">
+			<input>systems/electrical/fc[1]/coolant-pump-failure</input>
+			<traverse>
+				<setting>
+					<position>0.0</position>
+					<time>0.0</time>
+				</setting>
+				<setting>
+					<position>1.0</position>
+					<time>540.0</time>
+				</setting>
+			</traverse>
+		</kinematic>
+
+		<fcs_function name="systems/electrical/fc[1]/stack-temperature-K">
+		<function>
+			<max>
+				<product>
+				<sum>
+					<value>359.5</value>
+					<product>
+						<quotient>
+						<property>systems/electrical/bus[1]/power-demand-kW</property>
+						<value>0.03</value>
+						</quotient>
+						<value>0.04418</value>
+					</product>
+				</sum>
+				<property>systems/electrical/fc[1]/fc-ready-for-load-transit</property>
+				</product>
+				<product>
+				<sum>
+					<value>359.5</value>
+					<product>
+						<property>systems/electrical/fc[1]/overheat-transit</property>
+						<value>65</value>
+					</product>	
+				</sum>
+				<property>systems/electrical/fc[1]/fc-ready-for-load-transit</property>
+				</product>
+				<property>systems/thermal-distribution/payload-bay-temperature-K</property>
+			</max>
+		</function>
+		</fcs_function>
+
+		<switch name="systems/electrical/fc[1]/pump-power-consumption-kW">
+			<default value="0.0"/>
+			<test logic="AND" value="0.2808">
+				systems/electrical/ac[1]/voltage GT 115.0
+				systems/failures/fc2-coolant-pump-condition EQ 1.0
+				systems/electrical/fc[1]/fc-running EQ 1.0
+			</test>
+			<test logic="AND" value="0.105">
+				systems/electrical/ac[1]/voltage GT 115.0
+				systems/failures/fc2-coolant-pump-condition LT 1.0
+				systems/electrical/fc[1]/fc-running EQ 1.0
+			</test>
+		</switch>
+
+	</channel>
+
+	<channel name="FC 3" execrate="4">
+
+		<switch name="systems/electrical/fc[2]/fc-ready-to-start">
+			<default value="0.0"/>
+			<test logic="AND" value="1.0">
+				systems/electrical/fc[2]/reactant-valve-status == 1
+				systems/electrical/fc[2]/fc-controller-power == 1
+				systems/electrical/fc[2]/fc-controller-power-ovhd == 1
+			</test>
+		</switch>
+
+		<switch name="systems/electrical/fc[2]/fc-running">
+			<default value="0.0"/>
+			<test logic="AND" value="1.0">
+				systems/electrical/fc[2]/fc-ready-to-start == 1
+				systems/electrical/fc[2]/fc-start-cmd == 1
+			</test>
+		</switch>
+
+		<kinematic name="systems/electrical/fc[2]/fc-ready-for-load-transit">
+			<default value="0.0"/>
+			<input>systems/electrical/fc[2]/fc-running</input>
+			<traverse>
+				<setting>
+					<position>0.0</position>
+					<time>0.0</time>
+				</setting>
+				<setting>
+					<position>1.0</position>
+					<time>30.0</time>
+				</setting>
+			</traverse>
+		</kinematic>
+
+		<switch name="systems/electrical/fc[2]/fc-ready-for-load">
+			<default value="0.0"/>
+			<test logic="OR"  value="1.0">
+				systems/electrical/fc[2]/fc-ready-for-load-transit == 1
+				systems/electrical/init-electrical-on GT 0.0
+			</test>
+		</switch>
+
+		<fcs_function name="systems/electrical/fc[2]/fc-max-power-output-kW">
+		<function>	
+			<max>
+			<product>
+				<value>12.0</value>
+				<property>systems/electrical/fc[2]/fc-ready-for-load</property>
+				<property>systems/failures/electrical/fc3-condition</property>
+				<property>systems/electrical/fc[2]/fc-efficiency</property>
+			</product>
+			<property>systems/electrical/init-electrical-on</property>
+			</max>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/electrical/fc[2]/rel-load">
+		<function>
+			<product>
+				<property>systems/electrical/bus[2]/rel-power-demand</property>
+				<property>systems/electrical/fc[2]/bus-connector-status</property>
+			</product>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/electrical/fc[2]/voltage">
+		<function>
+		<product>
+		<table>
+        		<independentVar lookup="row">systems/electrical/fc[2]/rel-load</independentVar>
+        		<tableData>
+          	 		0.00	32.5
+				1.00	27.5
+				1.33	24.5
+				1.41	23.5
+				10.0	1.0
+        		</tableData>
+      		</table>
+		<property>systems/electrical/fc[2]/fc-ready-for-load</property>
+		<property>systems/failures/electrical/fc3-condition</property>
+		</product>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/electrical/fc[2]/coolant-pump-failure">
+		<function>
+			<difference>
+				<value>1.0</value>
+				<property>systems/failures/fc3-coolant-pump-condition</property>
+			</difference>
+		</function>
+		</fcs_function>
+
+		<kinematic name="systems/electrical/fc[2]/overheat-transit">
+			<input>systems/electrical/fc[2]/coolant-pump-failure</input>
+			<traverse>
+				<setting>
+					<position>0.0</position>
+					<time>0.0</time>
+				</setting>
+				<setting>
+					<position>1.0</position>
+					<time>540.0</time>
+				</setting>
+			</traverse>
+		</kinematic>
+
+		<fcs_function name="systems/electrical/fc[2]/stack-temperature-K">
+		<function>
+			<max>
+			<product>
+				<sum>
+					<value>359.5</value>
+					<product>
+						<quotient>
+						<property>systems/electrical/bus[2]/power-demand-kW</property>
+						<value>0.03</value>
+						</quotient>
+						<value>0.04418</value>
+					</product>
+				</sum>
+				<property>systems/electrical/fc[2]/fc-ready-for-load-transit</property>
+			</product>
+			<product>
+				<sum>
+					<value>359.5</value>
+					<product>
+						<property>systems/electrical/fc[2]/overheat-transit</property>
+						<value>65</value>
+					</product>	
+				</sum>
+				<property>systems/electrical/fc[2]/fc-ready-for-load-transit</property>
+				</product>
+			<property>systems/thermal-distribution/payload-bay-temperature-K</property>
+			</max>
+		</function>
+		</fcs_function>
+
+		<switch name="systems/electrical/fc[2]/pump-power-consumption-kW">
+			<default value="0.0"/>
+			<test logic="AND" value="0.2808">
+				systems/electrical/ac[2]/voltage GT 115.0
+				systems/failures/fc3-coolant-pump-condition EQ 1.0
+				systems/electrical/fc[2]/fc-running EQ 1.0
+			</test>
+			<test logic="AND" value="0.105">
+				systems/electrical/ac[2]/voltage GT 115.0
+				systems/failures/fc3-coolant-pump-condition LT 1.0
+				systems/electrical/fc[2]/fc-running EQ 1.0
+			</test>
+		</switch>
+
+	</channel>
+
+	<channel name="Line heater switches and temperatures" execrate="4">
+
+		<fcs_function name="systems/electrical/h2o-line-heater-power-kW">
+		<function>
+			<product>
+				<property>systems/electrical/h2o-line-heater-switch</property>
+				<value>0.08</value>
+			</product>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/electrical/h2o-relief-heater-power-kW">
+		<function>
+			<product>
+				<property>systems/electrical/h2o-relief-heater-switch</property>
+				<value>0.08</value>
+			</product>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/electrical/purge-heater-power-kW">
+		<function>
+			<product>
+				<property>systems/electrical/purge-heater-switch</property>
+				<value>0.08</value>
+			</product>
+		</function>
+		</fcs_function>
+
+		<kinematic name="systems/electrical/purge-heater-transit">
+			<input>systems/electrical/purge-heater-switch</input>
+			<traverse>
+				<setting>
+					<position>0.0</position>
+					<time>0.0</time>
+				</setting>
+				<setting>
+					<position>1.0</position>
+					<time>300.0</time>
+				</setting>
+			</traverse>
+		</kinematic>
+
+		<fcs_function name="systems/electrical/h2o-line-T">
+		<function>
+			<max>
+			<product>
+				<property>systems/electrical/h2o-line-heater-switch</property>
+				<value>302.0</value>
+			</product>
+			<property>systems/thermal-distribution/payload-bay-temperature-K</property>
+			</max>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/electrical/h2o-relief-T">
+		<function>
+			<max>
+			<product>
+				<property>systems/electrical/h2o-relief-heater-switch</property>
+				<value>300.0</value>
+			</product>
+			<property>systems/thermal-distribution/payload-bay-temperature-K</property>
+			</max>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/electrical/purge-line-T">
+		<function>
+			<max>
+			<product>
+				<property>systems/electrical/purge-heater-transit</property>
+				<value>310.0</value>
+			</product>
+			<property>systems/thermal-distribution/payload-bay-temperature-K</property>
+			</max>
+		</function>
+		</fcs_function>
+
+	</channel>
+
+
+      <h2o-line-heater-switch type="int">0</h2o-line-heater-switch>
+      <h2o-relief-heater-switch type="int">0</h2o-relief-heater-switch>
+      <purge-heater-switch type="int">0</purge-heater-switch>
+
+	<channel name="Bus 1" execrate="4">
+
+		<fcs_function name="systems/electrical/bus/max-power-output-kW">
+		<function>	
+			<product>
+				<property>systems/electrical/fc/fc-max-power-output-kW</property>
+				<property>systems/electrical/fc/bus-connector-status</property>
+			</product>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/electrical/bus/rel-power-demand-raw">
+		<function>	
+			<quotient>
+				<property>systems/electrical/bus/power-demand-kW</property>
+				<max>
+					<property>systems/electrical/bus/max-power-output-kW</property>
+					<value>0.1</value>
+				</max>
+			</quotient>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/electrical/bus/voltage-raw">
+		<function>
+		<product>
+			<property>systems/electrical/fc/bus-connector-status</property>
+			<property>systems/electrical/fc/voltage</property>
+			<value>0.99</value>
+		</product>
+		</function>
+		</fcs_function>
+
+		<switch name="systems/electrical/bus/power-available">
+			<default value="0.0"/>
+			<test  value="1.0">
+				systems/electrical/bus/max-power-output-kW GT 0.0
+			</test>
+		</switch>
+
+		<switch name="systems/electrical/ac/power-available">
+			<default value="0.0"/>
+			<test logic="AND" value="1.0">
+				systems/electrical/bus/voltage GT 20.0
+				systems/electrical/ac/inverter-power-switch == 1
+				systems/electrical/ac/inv-ac-switch == 1
+			</test>
+		</switch>
+
+		<switch name="systems/electrical/ac/master-ac-controller">
+			<default value="0.0"/>
+			<test logic="AND" value="1.0">
+				systems/electrical/ac/ac-cont-1a == 1
+				systems/electrical/ac/ac-cont-1b == 1
+				systems/electrical/ac/ac-cont-1c == 1
+			</test>
+		</switch>
+
+
+	</channel>
+
+	<channel name="Bus 2" execrate="4">
+
+		<fcs_function name="systems/electrical/bus[1]/max-power-output-kW">
+		<function>	
+			<product>
+				<property>systems/electrical/fc[1]/fc-max-power-output-kW</property>
+				<property>systems/electrical/fc[1]/bus-connector-status</property>
+			</product>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/electrical/bus[1]/rel-power-demand-raw">
+		<function>	
+			<quotient>
+				<property>systems/electrical/bus[1]/power-demand-kW</property>
+				<max>
+					<property>systems/electrical/bus[1]/max-power-output-kW</property>
+					<value>0.1</value>
+				</max>
+			</quotient>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/electrical/bus[1]/voltage-raw">
+		<function>
+		<product>
+			<property>systems/electrical/fc[1]/bus-connector-status</property>
+			<property>systems/electrical/fc[1]/voltage</property>
+			<value>0.99</value>
+		</product>
+		</function>
+		</fcs_function>
+
+
+		<switch name="systems/electrical/bus[1]/power-available">
+			<default value="0.0"/>
+			<test  value="1.0">
+				systems/electrical/bus[1]/max-power-output-kW GT 0.0
+			</test>
+		</switch>
+
+		<switch name="systems/electrical/ac[1]/power-available">
+			<default value="0.0"/>
+			<test logic="AND" value="1.0">
+				systems/electrical/bus[1]/voltage GT 20.0 
+				systems/electrical/ac[1]/inverter-power-switch == 1
+				systems/electrical/ac[1]/inv-ac-switch == 1
+			</test>
+		</switch>
+
+		<switch name="systems/electrical/ac[1]/master-ac-controller">
+			<default value="0.0"/>
+			<test logic="AND" value="1.0">
+				systems/electrical/ac[1]/ac-cont-2a == 1
+				systems/electrical/ac[1]/ac-cont-2b == 1
+				systems/electrical/ac[1]/ac-cont-2c == 1
+			</test>
+		</switch>
+
+	</channel>
+
+	<channel name="Bus 3" execrate="4">
+
+		<fcs_function name="systems/electrical/bus[2]/max-power-output-kW">
+		<function>	
+			<product>
+				<property>systems/electrical/fc[2]/fc-max-power-output-kW</property>
+				<property>systems/electrical/fc[2]/bus-connector-status</property>
+			</product>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/electrical/bus[2]/rel-power-demand-raw">
+		<function>	
+			<quotient>
+				<property>systems/electrical/bus[2]/power-demand-kW</property>
+				<max>
+					<property>systems/electrical/bus[2]/max-power-output-kW</property>
+					<value>0.1</value>
+				</max>
+			</quotient>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/electrical/bus[2]/voltage-raw">
+		<function>
+		<product>
+			<property>systems/electrical/fc[2]/bus-connector-status</property>
+			<property>systems/electrical/fc[2]/voltage</property>
+			<value>0.99</value>
+		</product>
+		</function>
+		</fcs_function>
+
+
+		<switch name="systems/electrical/bus[2]/power-available">
+			<default value="0.0"/>
+			<test value="1.0">
+				systems/electrical/bus[2]/max-power-output-kW GT 0.0
+			</test>
+		</switch>
+
+		<switch name="systems/electrical/ac[2]/power-available">
+			<default value="0.0"/>
+			<test logic="AND" value="1.0">
+				systems/electrical/bus[2]/voltage GT 20.0
+				systems/electrical/ac[2]/inverter-power-switch == 1
+				systems/electrical/ac[2]/inv-ac-switch == 1
+			</test>
+		</switch>
+
+		<switch name="systems/electrical/ac[2]/master-ac-controller">
+			<default value="0.0"/>
+			<test logic="AND" value="1.0">
+				systems/electrical/ac[2]/ac-cont-3a == 1
+				systems/electrical/ac[2]/ac-cont-3b == 1
+				systems/electrical/ac[2]/ac-cont-3c == 1
+			</test>
+		</switch>
+
+	</channel>
+
+
+	<channel name="Total available and requested power" execrate="4">
+
+		<!-- the requested power is distributed as follows -->
+
+		<!-- systems explicitly known to use main A,B,C or AC 1,2,3 are registered there -->
+		<!-- systems using the essential buses are shared across all -->
+		<!-- systems using AB power distribution are shared across main A and B -->
+		<!-- systems with unknown power source are shared across all -->		
+		
+
+		<!-- for power allocation we check whether a bus is connected at all -->
+		<!-- for system functioning, we require that the bus provides sufficient voltage -->
+	
+		<summer name="systems/electrical/number-powered-buses">
+			<input>systems/electrical/bus/power-available</input>
+			<input>systems/electrical/bus[1]/power-available</input>
+			<input>systems/electrical/bus[2]/power-available</input>
+		</summer>
+
+		<summer name="systems/electrical/number-AB-powered-buses">
+			<input>systems/electrical/bus/power-available</input>
+			<input>systems/electrical/bus[1]/power-available</input>
+		</summer>
+
+   		<summer name="systems/electrical/total-available-power-kW">
+      			<input>systems/electrical/bus/max-power-output-kW</input>
+     			<input>systems/electrical/bus[1]/max-power-output-kW</input>
+      			<input>systems/electrical/bus[2]/max-power-output-kW</input>
+   		</summer>
+
+		<fcs_function name="systems/electrical/generic-power-demand-kW">
+		<function>
+			<value>5.64</value>
+		</function>
+		</fcs_function>
+
+		<summer name="systems/electrical/ac/sum-power-demand-kW">
+			<input>systems/failures/circuits/ac1-power-loss-kW</input>
+			<input>systems/mps/engine[2]/controller-A-power-demand-kW</input>
+			<input>systems/mps/engine[1]/controller-B-power-demand-kW</input>
+			<input>systems/electrical/fc/pump-power-consumption-kW</input>
+			<input>systems/mechanical/pb-door-sys1-power-demand-kW</input>
+			<input>systems/atcs/freon-pump-1-ac1-power-kW</input>
+			<input>systems/atcs/freon-pump-2-ac1-power-kW</input>
+			<input>systems/antenna/s-pm-sys1-amp-power-demand-kW</input>
+		</summer>
+
+		<fcs_function name="systems/electrical/ac/power-demand-kW">
+		<function>
+			<product>
+				<property>systems/electrical/ac/sum-power-demand-kW</property>
+				<property>systems/electrical/ac/inverter-power-switch</property>
+				<property>systems/electrical/ac/inv-ac-switch</property>
+			</product>
+		</function>
+		</fcs_function>
+
+		<summer name="systems/electrical/ac[1]/sum-power-demand-kW">
+			<input>systems/failures/circuits/ac2-power-loss-kW</input>
+			<input>systems/mps/engine/controller-A-power-demand-kW</input>
+			<input>systems/mps/engine[2]/controller-B-power-demand-kW</input>
+			<input>systems/electrical/fc[1]/pump-power-consumption-kW</input>
+			<input>systems/mechanical/pb-door-sys2-power-demand-kW</input>
+			<input>systems/eclss/cabin/fan-B-power-demand-kW</input>
+			<input>systems/atcs/freon-pump-1-ac2-power-kW</input>
+			<input>systems/antenna/s-pm-sys2-amp-power-demand-kW</input>
+		</summer>
+
+		<fcs_function name="systems/electrical/ac[1]/power-demand-kW">
+		<function>
+			<product>
+				<property>systems/electrical/ac[1]/sum-power-demand-kW</property>
+				<property>systems/electrical/ac[1]/inverter-power-switch</property>
+				<property>systems/electrical/ac[1]/inv-ac-switch</property>
+			</product>
+		</function>
+		</fcs_function>
+
+		<summer name="systems/electrical/ac[2]/sum-power-demand-kW">
+			<input>systems/failures/circuits/ac3-power-loss-kW</input>
+			<input>systems/mps/engine/controller-B-power-demand-kW</input>
+			<input>systems/mps/engine[1]/controller-A-power-demand-kW</input>
+			<input>systems/electrical/fc[2]/pump-power-consumption-kW</input>
+			<input>systems/eclss/cabin/fan-A-power-demand-kW</input>
+			<input>systems/atcs/freon-pump-2-ac3-power-kW</input>
+		</summer>
+
+		<fcs_function name="systems/electrical/ac[2]/power-demand-kW">
+		<function>
+			<product>
+				<property>systems/electrical/ac[2]/sum-power-demand-kW</property>
+				<property>systems/electrical/ac[2]/inverter-power-switch</property>
+				<property>systems/electrical/ac[2]/inv-ac-switch</property>
+			</product>
+		</function>
+		</fcs_function>
+
+		<summer name="systems/electrical/shared-AB-power-demand-kW">
+			<input>systems/rcs-hardware/heater-fwd-power-kW</input>
+			<!--<input>systems/rcs-hardware/heater-left-power-kW</input>
+			<input>systems/rcs-hardware/heater-right-power-kW</input>-->
+			<input>systems/rcs-hardware/heater-fwd-1-power-kW</input>
+			<input>systems/rcs-hardware/heater-fwd-2-power-kW</input>
+			<input>systems/rcs-hardware/heater-fwd-3-power-kW</input>
+			<input>systems/rcs-hardware/heater-fwd-4-power-kW</input>
+			<input>systems/rcs-hardware/heater-fwd-5-power-kW</input>
+			<input>systems/rcs-hardware/heater-aft-1-power-kW</input>
+			<input>systems/rcs-hardware/heater-aft-2-power-kW</input>
+			<input>systems/rcs-hardware/heater-aft-3-power-kW</input>
+			<input>systems/rcs-hardware/heater-aft-4-power-kW</input>
+			<input>systems/rcs-hardware/heater-aft-5-power-kW</input>
+			<input>systems/oms-hardware/heater-left-power-kW</input>
+			<input>systems/oms-hardware/heater-right-power-kW</input>
+			<input>systems/oms-hardware/heater-crossfeed-power-kW</input>
+			<input>systems/apu/apu/heater-tank-power-kW</input>
+			<input>systems/apu/apu[1]/heater-tank-power-kW</input>
+			<input>systems/apu/apu[2]/heater-tank-power-kW</input>
+			<input>systems/electrical/h2o-line-heater-power-kW</input>
+			<input>systems/electrical/h2o-relief-heater-power-kW</input>
+			<input>systems/electrical/purge-heater-power-kW</input>
+			<input>systems/light/payload-bay-power-demand-kW</input>
+			<input>systems/light/cabin-light-power-demand-kW</input>
+		</summer>
+
+		<fcs_function name="systems/electrical/individual-AB-power-demand-kW">
+		<function>
+			<quotient>
+				<property>systems/electrical/shared-AB-power-demand-kW</property>
+				<max>
+				<value>0.1</value>
+				<property>systems/electrical/number-AB-powered-buses</property>
+				</max>
+			</quotient>
+		</function>
+		</fcs_function>
+
+		<summer name="systems/electrical/shared-power-demand-kW">
+			<input>systems/electrical/generic-power-demand-kW</input>
+			<input>systems/dps/gpc1-power-demand-kW</input>
+			<input>systems/dps/gpc2-power-demand-kW</input>
+			<input>systems/dps/gpc3-power-demand-kW</input>
+			<input>systems/dps/gpc4-power-demand-kW</input>
+			<input>systems/dps/gpc5-power-demand-kW</input>
+			<input>systems/navigation/imu1-power-demand-kW</input>
+			<input>systems/navigation/imu2-power-demand-kW</input>
+			<input>systems/navigation/imu3-power-demand-kW</input>
+			<input>systems/apu/apu/controller-power-demand-kW</input>
+			<input>systems/apu/apu[1]/controller-power-demand-kW</input>
+			<input>systems/apu/apu[2]/controller-power-demand-kW</input>
+		</summer>
+
+		<fcs_function name="systems/electrical/individual-power-demand-kW">
+		<function>
+			<quotient>
+				<property>systems/electrical/shared-power-demand-kW</property>
+				<max>
+				<value>0.1</value>
+				<property>systems/electrical/number-powered-buses</property>
+				</max>
+			</quotient>
+		</function>
+		</fcs_function>
+		
+		<summer name="systems/electrical/bus/power-demand-kW-nominal">
+			<input>systems/electrical/individual-AB-power-demand-kW</input>
+			<input>systems/electrical/ac/power-demand-kW</input>	
+			<input>systems/failures/circuits/mn-A-power-loss-kW</input>
+			<input>systems/apu/apu/hyd-circ-pump-power-A-kW</input>
+			<input>systems/apu/apu[2]/hyd-circ-pump-power-A-kW</input>
+			<input>systems/electrical/individual-power-demand-kW</input>
+			<input>systems/electrical/display/CRT1-power-demand-kW</input>
+			<input>systems/electrical/display/MFD2-power-demand-kW</input>
+			<input>systems/electrical/display/PLT1-power-demand-kW</input>
+			<input>systems/rms/thermal/heater-A-power-demand-kW</input>
+			<input>systems/atcs/fes-left-heater-A-power-kW</input>
+			<input>systems/atcs/fes-feedline-A-power-kW</input>
+			<input>systems/navigation/tacan1-power-demand-kW</input>
+			<input>systems/dps/idp-power-demand-kW[0]</input>
+		</summer>
+
+		<summer name="systems/electrical/bus[1]/power-demand-kW-nominal">
+			<input>systems/electrical/individual-AB-power-demand-kW</input>
+			<input>systems/electrical/ac[1]/power-demand-kW</input>
+			<input>systems/failures/circuits/mn-B-power-loss-kW</input>
+			<input>systems/apu/apu/hyd-circ-pump-power-B-kW</input>
+			<input>systems/apu/apu[1]/hyd-circ-pump-power-B-kW</input>
+			<input>systems/electrical/individual-power-demand-kW</input>
+			<input>systems/electrical/display/CRT2-power-demand-kW</input>
+			<input>systems/electrical/display/CDR2-power-demand-kW</input>
+			<input>systems/electrical/display/MFD1-power-demand-kW</input>
+			<input>systems/rms/thermal/heater-B-power-demand-kW</input>
+			<input>systems/atcs/fes-left-heater-B-power-kW</input>
+			<input>systems/atcs/fes-right-heater-B-power-kW</input>	
+			<input>systems/atcs/fes-feedline-B-power-kW</input>
+			<input>systems/navigation/tacan2-power-demand-kW</input>
+			<input>systems/dps/idp-power-demand-kW[1]</input>
+		</summer>
+
+		<summer name="systems/electrical/bus[2]/power-demand-kW-nominal">
+			<input>systems/electrical/ac[2]/power-demand-kW</input>
+			<input>systems/failures/circuits/mn-C-power-loss-kW</input>
+			<input>systems/apu/apu[1]/hyd-circ-pump-power-C-kW</input>
+			<input>systems/apu/apu[2]/hyd-circ-pump-power-C-kW</input>
+			<input>systems/electrical/individual-power-demand-kW</input>
+			<input>systems/electrical/display/CRT3-power-demand-kW</input>
+			<input>systems/electrical/display/CDR1-power-demand-kW</input>
+			<input>systems/electrical/display/PLT2-power-demand-kW</input>
+			<input>systems/atcs/fes-right-heater-C-power-kW</input>
+			<input>systems/atcs/fes-feedline-C-power-kW</input>
+			<input>systems/navigation/tacan3-power-demand-kW</input>
+			<input>systems/dps/idp-power-demand-kW[2]</input>
+			<input>systems/dps/idp-power-demand-kW[3]</input>
+		</summer>
+
+		<fcs_function name="systems/electrical/total-power-demand-kW">
+		<function>
+			<sum>
+				<product>
+					<property>systems/electrical/bus/power-demand-kW</property>
+					<property>systems/electrical/bus/power-available</property>
+				</product>
+				<product>
+					<property>systems/electrical/bus[1]/power-demand-kW</property>
+					<property>systems/electrical/bus[1]/power-available</property>
+				</product>
+				<product>
+					<property>systems/electrical/bus[2]/power-demand-kW</property>
+					<property>systems/electrical/bus[2]/power-available</property>
+				</product>
+			</sum>
+		</function>
+		</fcs_function>
+
+	</channel>
+		
+
+	<!-- for power demand as calculated above, equipment needs to register when it receives power at all -->
+	<!-- for proper functioning however equipment needs to check against operating voltage of the bus -->
+
+
+
+
+	<channel name="Bus ties and corresponding voltages" execrate="4">
+
+		<switch name="systems/electrical/ties/tie-AB">
+			<default value="0.0"/>
+			<test logic="AND" value="1.0">
+				systems/electrical/bus/tie-switch == 1
+				systems/electrical/bus[1]/tie-switch == 1
+				systems/electrical/bus[2]/tie-switch == 0
+			</test>
+		</switch>
+
+		<switch name="systems/electrical/ties/tie-AC">
+			<default value="0.0"/>
+			<test logic="AND" value="1.0">
+				systems/electrical/bus/tie-switch == 1
+				systems/electrical/bus[1]/tie-switch == 0
+				systems/electrical/bus[2]/tie-switch == 1
+			</test>
+		</switch>
+
+		<switch name="systems/electrical/ties/tie-BC">
+			<default value="0.0"/>
+			<test logic="AND" value="1.0">
+				systems/electrical/bus/tie-switch == 0
+				systems/electrical/bus[1]/tie-switch == 1
+				systems/electrical/bus[2]/tie-switch == 1
+			</test>
+		</switch>
+	
+		<switch name="systems/electrical/ties/tie-ABC">
+			<default value="0.0"/>
+			<test logic="AND" value="1.0">
+				systems/electrical/bus/tie-switch == 1
+				systems/electrical/bus[1]/tie-switch == 1
+				systems/electrical/bus[2]/tie-switch == 1
+			</test>
+		</switch>
+
+		<fcs_function name="systems/electrical/ties/rel-demand-tie-AB">
+		<function>
+			<quotient>
+				<sum>
+					<property>systems/electrical/bus/power-demand-kW-nominal</property>
+					<property>systems/electrical/bus[1]/power-demand-kW-nominal</property>
+				</sum>
+				<max>
+				<sum>
+					<property>systems/electrical/bus/max-power-output-kW</property>
+					<property>systems/electrical/bus[1]/max-power-output-kW</property>
+				</sum>
+				<value>0.1</value>
+				</max>
+			</quotient>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/electrical/ties/demand-tie-AB-kW">
+		<function>
+			<product>
+				<sum>
+					<property>systems/electrical/bus/power-demand-kW-nominal</property>
+					<property>systems/electrical/bus[1]/power-demand-kW-nominal</property>
+				</sum>
+				<value>0.5</value>
+			</product>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/electrical/ties/voltage-tie-AB">
+		<function>
+		<product>
+		<table>
+        		<independentVar lookup="row">systems/electrical/ties/rel-demand-tie-AB</independentVar>
+        		<tableData>
+          	 		0.00	32.5
+				1.00	27.5
+				1.33	24.5
+				1.41	23.5
+				10.0	0.0
+        		</tableData>
+      		</table>
+		<value>0.99</value>
+		</product>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/electrical/ties/rel-demand-tie-AC">
+		<function>
+			<quotient>
+				<sum>
+					<property>systems/electrical/bus/power-demand-kW-nominal</property>
+					<property>systems/electrical/bus[2]/power-demand-kW-nominal</property>
+				</sum>
+				<max>
+				<sum>
+					<property>systems/electrical/bus/max-power-output-kW</property>
+					<property>systems/electrical/bus[2]/max-power-output-kW</property>
+				</sum>
+				<value>0.1</value>
+				</max>
+			</quotient>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/electrical/ties/demand-tie-AC-kW">
+		<function>
+			<product>
+				<sum>
+					<property>systems/electrical/bus/power-demand-kW-nominal</property>
+					<property>systems/electrical/bus[2]/power-demand-kW-nominal</property>
+				</sum>
+				<value>0.5</value>
+			</product>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/electrical/ties/voltage-tie-AC">
+		<function>
+		<product>
+		<table>
+        		<independentVar lookup="row">systems/electrical/ties/rel-demand-tie-AC</independentVar>
+        		<tableData>
+          	 		0.00	32.5
+				1.00	27.5
+				1.33	24.5
+				1.41	23.5
+				10.0	0.0
+        		</tableData>
+      		</table>
+		<value>0.99</value>
+		</product>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/electrical/ties/rel-demand-tie-BC">
+		<function>
+			<quotient>
+				<sum>
+					<property>systems/electrical/bus[1]/power-demand-kW-nominal</property>
+					<property>systems/electrical/bus[2]/power-demand-kW-nominal</property>
+				</sum>
+				<max>
+				<sum>
+					<property>systems/electrical/bus[1]/max-power-output-kW</property>
+					<property>systems/electrical/bus[2]/max-power-output-kW</property>
+				</sum>
+				<value>0.1</value>
+				</max>
+			</quotient>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/electrical/ties/demand-tie-BC-kW">
+		<function>
+			<product>
+				<sum>
+					<property>systems/electrical/bus[1]/power-demand-kW-nominal</property>
+					<property>systems/electrical/bus[2]/power-demand-kW-nominal</property>
+				</sum>
+				<value>0.5</value>
+			</product>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/electrical/ties/voltage-tie-BC">
+		<function>
+		<product>
+		<table>
+        		<independentVar lookup="row">systems/electrical/ties/rel-demand-tie-BC</independentVar>
+        		<tableData>
+          	 		0.00	32.5
+				1.00	27.5
+				1.33	24.5
+				1.41	23.5
+				10.0	0.0
+        		</tableData>
+      		</table>
+		<value>0.99</value>
+		</product>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/electrical/ties/rel-demand-tie-ABC">
+		<function>
+			<quotient>
+				<sum>
+					<property>systems/electrical/bus/power-demand-kW-nominal</property>
+					<property>systems/electrical/bus[1]/power-demand-kW-nominal</property>
+					<property>systems/electrical/bus[2]/power-demand-kW-nominal</property>
+				</sum>
+				<max>
+				<sum>
+					<property>systems/electrical/bus/max-power-output-kW</property>
+					<property>systems/electrical/bus[1]/max-power-output-kW</property>
+					<property>systems/electrical/bus[2]/max-power-output-kW</property>
+				</sum>
+				<value>0.1</value>
+				</max>
+			</quotient>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/electrical/ties/demand-tie-ABC-kW">
+		<function>
+			<product>
+				<sum>
+					<property>systems/electrical/bus/power-demand-kW-nominal</property>
+					<property>systems/electrical/bus[1]/power-demand-kW-nominal</property>
+					<property>systems/electrical/bus[2]/power-demand-kW-nominal</property>
+				</sum>
+				<value>0.33333</value>
+			</product>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/electrical/ties/voltage-tie-ABC">
+		<function>
+		<product>
+		<table>
+        		<independentVar lookup="row">systems/electrical/ties/rel-demand-tie-ABC</independentVar>
+        		<tableData>
+          	 		0.00	32.5
+				1.00	27.5
+				1.33	24.5
+				1.41	23.5
+				10.0	0.0
+        		</tableData>
+      		</table>
+		<value>0.99</value>
+		</product>
+		</function>
+		</fcs_function>
+
+
+		<switch name="systems/electrical/bus/voltage">
+			<default value="systems/electrical/bus/voltage-raw"/>
+			<test  value="systems/electrical/ties/voltage-tie-AB">
+				systems/electrical/ties/tie-AB == 1
+			</test>
+			<test  value="systems/electrical/ties/voltage-tie-AC">
+				systems/electrical/ties/tie-AC == 1
+			</test>
+			<test  value="systems/electrical/ties/voltage-tie-ABC">
+				systems/electrical/ties/tie-ABC == 1
+			</test>
+		</switch>
+
+		<switch name="systems/electrical/bus[1]/voltage">
+			<default value="systems/electrical/bus[1]/voltage-raw"/>
+			<test  value="systems/electrical/ties/voltage-tie-AB">
+				systems/electrical/ties/tie-AB == 1
+			</test>
+			<test  value="systems/electrical/ties/voltage-tie-BC">
+				systems/electrical/ties/tie-BC == 1
+			</test>
+			<test  value="systems/electrical/ties/voltage-tie-ABC">
+				systems/electrical/ties/tie-ABC == 1
+			</test>
+		</switch>
+
+		<switch name="systems/electrical/bus[2]/voltage">
+			<default value="systems/electrical/bus[2]/voltage-raw"/>
+			<test  value="systems/electrical/ties/voltage-tie-AC">
+				systems/electrical/ties/tie-AC == 1
+			</test>
+			<test  value="systems/electrical/ties/voltage-tie-BC">
+				systems/electrical/ties/tie-BC == 1
+			</test>
+			<test  value="systems/electrical/ties/voltage-tie-ABC">
+				systems/electrical/ties/tie-ABC == 1
+			</test>
+		</switch>
+
+		<switch name="systems/electrical/bus/rel-power-demand">
+			<default value="systems/electrical/bus/rel-power-demand-raw"/>
+			<test  value="systems/electrical/ties/rel-demand-tie-AB">
+				systems/electrical/ties/tie-AB == 1
+			</test>
+			<test  value="systems/electrical/ties/rel-demand-tie-AC">
+				systems/electrical/ties/tie-AC == 1
+			</test>
+			<test  value="systems/electrical/ties/rel-demand-tie-ABC">
+				systems/electrical/ties/tie-ABC == 1
+			</test>
+		</switch>
+
+		<switch name="systems/electrical/bus[1]/rel-power-demand">
+			<default value="systems/electrical/bus[1]/rel-power-demand-raw"/>
+			<test  value="systems/electrical/ties/rel-demand-tie-AB">
+				systems/electrical/ties/tie-AB == 1
+			</test>
+			<test  value="systems/electrical/ties/rel-demand-tie-BC">
+				systems/electrical/ties/tie-BC == 1
+			</test>
+			<test  value="systems/electrical/ties/rel-demand-tie-ABC">
+				systems/electrical/ties/tie-ABC == 1
+			</test>
+		</switch>
+
+		<switch name="systems/electrical/bus[2]/rel-power-demand">
+			<default value="systems/electrical/bus[2]/rel-power-demand-raw"/>
+			<test  value="systems/electrical/ties/rel-demand-tie-AC">
+				systems/electrical/ties/tie-AC == 1
+			</test>
+			<test  value="systems/electrical/ties/rel-demand-tie-BC">
+				systems/electrical/ties/tie-BC == 1
+			</test>
+			<test  value="systems/electrical/ties/rel-demand-tie-ABC">
+				systems/electrical/ties/tie-ABC == 1
+			</test>
+		</switch>
+
+
+		<switch name="systems/electrical/bus/power-demand-kW">
+			<default value="systems/electrical/bus/power-demand-kW-nominal"/>
+			<test  value="systems/electrical/ties/demand-tie-AB-kW">
+				systems/electrical/ties/tie-AB == 1
+			</test>
+			<test  value="systems/electrical/ties/demand-tie-AC-kW">
+				systems/electrical/ties/tie-AC == 1
+			</test>
+			<test  value="systems/electrical/ties/demand-tie-ABC-kW">
+				systems/electrical/ties/tie-ABC == 1
+			</test>
+		</switch>
+
+		<switch name="systems/electrical/bus[1]/power-demand-kW">
+			<default value="systems/electrical/bus[1]/power-demand-kW-nominal"/>
+			<test  value="systems/electrical/ties/demand-tie-AB-kW">
+				systems/electrical/ties/tie-AB == 1
+			</test>
+			<test  value="systems/electrical/ties/demand-tie-BC-kW">
+				systems/electrical/ties/tie-BC == 1
+			</test>
+			<test  value="systems/electrical/ties/demand-tie-ABC-kW">
+				systems/electrical/ties/tie-ABC == 1
+			</test>
+		</switch>
+
+		<switch name="systems/electrical/bus[2]/power-demand-kW">
+			<default value="systems/electrical/bus[2]/power-demand-kW-nominal"/>
+			<test  value="systems/electrical/ties/demand-tie-AC-kW">
+				systems/electrical/ties/tie-AC == 1
+			</test>
+			<test  value="systems/electrical/ties/demand-tie-BC-kW">
+				systems/electrical/ties/tie-BC == 1
+			</test>
+			<test  value="systems/electrical/ties/demand-tie-ABC-kW">
+				systems/electrical/ties/tie-ABC == 1
+			</test>
+		</switch>
+
+
+		<!--<fcs_function name="systems/electrical/essential-bus/voltage">
+		<function>
+			<max>
+				<property>systems/electrical/bus/voltage</property>
+				<property>systems/electrical/bus[1]/voltage</property>
+				<property>systems/electrical/bus[2]/voltage</property>
+			</max>
+		</function>
+		</fcs_function>-->
+
+
+		<fcs_function name="systems/electrical/ess/voltage">
+		<function>
+			<max>
+				<product>
+					<property>systems/electrical/fc/voltage</property>
+					<property>systems/electrical/ess/ess-power-fc-switch</property>
+				</product>
+				<product>
+					<property>systems/electrical/ess/ess-power-buses-switch</property>
+					<max>
+					<property>systems/electrical/bus[1]/voltage</property>
+					<property>systems/electrical/bus[2]/voltage</property>
+					</max>
+				</product>
+			</max>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/electrical/ess[1]/voltage">
+		<function>
+			<max>
+				<product>
+					<property>systems/electrical/fc[1]/voltage</property>
+					<property>systems/electrical/ess[1]/ess-power-fc-switch</property>
+				</product>
+				<product>
+					<property>systems/electrical/ess[1]/ess-power-buses-switch</property>
+					<max>
+					<property>systems/electrical/bus/voltage</property>
+					<property>systems/electrical/bus[2]/voltage</property>
+					</max>
+				</product>
+			</max>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/electrical/ess[2]/voltage">
+		<function>
+			<max>
+				<product>
+					<property>systems/electrical/fc[2]/voltage</property>
+					<property>systems/electrical/ess[2]/ess-power-fc-switch</property>
+				</product>
+				<product>
+					<property>systems/electrical/ess[2]/ess-power-buses-switch</property>
+					<max>
+					<property>systems/electrical/bus/voltage</property>
+					<property>systems/electrical/bus[1]/voltage</property>
+					</max>
+				</product>
+			</max>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/electrical/ac/voltage">
+		<function>
+			<product>
+			<table>
+        		<independentVar lookup="row">systems/electrical/ac/power-demand-kW</independentVar>
+        		<tableData>
+          	 		0.0	117.0
+				7.0	117.0
+				10.0	110.0
+				20.0	80.0
+				100.0	0.0
+        		</tableData>
+      			</table>
+			<property>systems/electrical/ac/power-available</property>
+			</product>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/electrical/ac[1]/voltage">
+		<function>
+			<product>
+			<table>
+        		<independentVar lookup="row">systems/electrical/ac[1]/power-demand-kW</independentVar>
+        		<tableData>
+          	 		0.0	117.0
+				7.0	117.0
+				10.0	110.0
+				20.0	80.0
+				100.0	0.0
+        		</tableData>
+      			</table>
+			<property>systems/electrical/ac[1]/power-available</property>
+			</product>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/electrical/ac[2]/voltage">
+		<function>
+			<product>
+			<table>
+        		<independentVar lookup="row">systems/electrical/ac[2]/power-demand-kW</independentVar>
+        		<tableData>
+          	 		0.0	117.0
+				7.0	117.0
+				10.0	110.0
+				20.0	80.0
+				100.0	0.0
+        		</tableData>
+      			</table>
+			<property>systems/electrical/ac[2]/power-available</property>
+			</product>
+		</function>
+		</fcs_function>
+
+	</channel>
+
+
+	<channel name="Voltage and curent gauges" execrate="8">
+
+
+		<switch name="systems/electrical/gauges/ac-voltage-displayed">
+			<default  value="0.0"/>
+			<test logic="OR" value="systems/electrical/ac/voltage">
+				systems/electrical/gauges/ac-selector-knob == 0
+				systems/electrical/gauges/ac-selector-knob == 3
+				systems/electrical/gauges/ac-selector-knob == 6
+			</test>
+			<test logic="OR" value="systems/electrical/ac[1]/voltage">
+				systems/electrical/gauges/ac-selector-knob == 1
+				systems/electrical/gauges/ac-selector-knob == 4
+				systems/electrical/gauges/ac-selector-knob == 7
+			</test>
+			<test logic="OR" value="systems/electrical/ac[2]/voltage">
+				systems/electrical/gauges/ac-selector-knob == 2
+				systems/electrical/gauges/ac-selector-knob == 5
+				systems/electrical/gauges/ac-selector-knob == 8
+			</test>
+		</switch>
+
+		<fcs_function name="systems/electrical/gauges/ac-volts-needle-deg">
+		<function>
+			<product>
+			<max>
+				<difference>
+					<property>systems/electrical/gauges/ac-voltage-displayed</property>
+					<value>90.0</value>
+				</difference>
+				<value>0.0</value>
+			</max>
+			<value>-5.926</value>
+			</product>
+		</function>
+		</fcs_function>
+
+		<switch name="systems/electrical/gauges/dc-voltage-displayed">
+			<default value="0.0"/>
+			<test  value="systems/electrical/ess/voltage">
+				systems/electrical/gauges/dc-selector-knob == 0
+			</test>
+			<test  value="systems/electrical/ess[1]/voltage">
+				systems/electrical/gauges/dc-selector-knob == 1
+			</test>
+			<test  value="systems/electrical/ess[2]/voltage">
+				systems/electrical/gauges/dc-selector-knob == 2
+			</test>
+			<test  value="systems/electrical/bus/voltage">
+				systems/electrical/gauges/dc-selector-knob == 3
+			</test>
+			<test  value="systems/electrical/bus[1]/voltage">
+				systems/electrical/gauges/dc-selector-knob == 4
+			</test>
+			<test  value="systems/electrical/bus[2]/voltage">
+				systems/electrical/gauges/dc-selector-knob == 5
+			</test>
+			<test  value="systems/electrical/fc/voltage">
+				systems/electrical/gauges/dc-selector-knob == 6
+			</test>
+			<test  value="systems/electrical/fc[1]/voltage">
+				systems/electrical/gauges/dc-selector-knob == 7
+			</test>
+			<test  value="systems/electrical/fc[2]/voltage">
+				systems/electrical/gauges/dc-selector-knob == 8
+			</test>
+		</switch>
+
+		<fcs_function name="systems/electrical/gauges/dc-volts-needle-deg">
+		<function>
+			<product>
+			<max>
+				<difference>
+					<property>systems/electrical/gauges/dc-voltage-displayed</property>
+					<value>20.0</value>
+				</difference>
+				<value>0.0</value>
+			</max>
+			<value>-9.8522</value>
+			</product>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/electrical/gauges/amps-fc1">
+		<function>
+			<quotient>
+				<product>
+					<property>systems/electrical/bus/power-demand-kW</property>
+					<property>systems/electrical/fc/bus-connector-status</property>
+					<value>1000.0</value>
+				</product>
+				<property>systems/electrical/fc/voltage</property>
+			</quotient>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/electrical/gauges/amps-fc2">
+		<function>
+			<quotient>
+				<product>
+					<property>systems/electrical/bus[1]/power-demand-kW</property>
+					<property>systems/electrical/fc[1]/bus-connector-status</property>
+					<value>1000.0</value>
+				</product>
+				<property>systems/electrical/fc[1]/voltage</property>
+			</quotient>
+		</function>
+		</fcs_function>
+
+		<fcs_function name="systems/electrical/gauges/amps-fc3">
+		<function>
+			<quotient>
+				<product>
+					<property>systems/electrical/bus[2]/power-demand-kW</property>
+					<property>systems/electrical/fc[2]/bus-connector-status</property>
+					<value>1000.0</value>
+				</product>
+				<property>systems/electrical/fc[2]/voltage</property>
+			</quotient>
+		</function>
+		</fcs_function>
+
+
+		<switch name="systems/electrical/gauges/dc-amps-displayed">
+			<default value="0.0"/>
+			<test  value="systems/electrical/gauges/amps-fc1">
+				systems/electrical/gauges/dc-selector-knob == 6
+			</test>
+			<test  value="systems/electrical/gauges/amps-fc2">
+				systems/electrical/gauges/dc-selector-knob == 7
+			</test>
+			<test  value="systems/electrical/gauges/amps-fc3">
+				systems/electrical/gauges/dc-selector-knob == 8
+			</test>
+		</switch>
+
+		<switch name="systems/electrical/gauges/fc-stack-T-display-K">
+			<default  value="0.0"/>
+			<test  value="systems/electrical/fc/stack-temperature-K">
+				systems/electrical/gauges/fc-stack-selector-switch == 0
+			</test>
+			<test  value="systems/electrical/fc[1]/stack-temperature-K">
+				systems/electrical/gauges/fc-stack-selector-switch == 1
+			</test>
+			<test  value="systems/electrical/fc[2]/stack-temperature-K">
+				systems/electrical/gauges/fc-stack-selector-switch == 2
+			</test>
+		</switch>
+
+	</channel>
+
+
+
+</system>

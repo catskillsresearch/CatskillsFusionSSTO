@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PropertyList>
+  
+   <path>SSME.ac</path>
+
+ <effect>
+    <inherits-from>Aircraft/SpaceShuttle/Models/Effects/shuttle-main</inherits-from>
+	<object-name>SSME</object-name>
+ </effect>
+      
+<offsets>
+  <!-- Motor 1 default location -->
+  <x-m> -0.1 </x-m>
+  <y-m> 0 </y-m>
+  <z-m> 0 </z-m>
+</offsets>  
+
+<animation>
+  <type>rotate</type>
+  <property>fdm/jsbsim/propulsion/engine[2]/pitch-angle-rad</property>
+  <factor>57.2975</factor>
+  <offset-deg>16.0</offset-deg>
+  <center>
+   <x-m>13.5</x-m>
+   <y-m>0.0   </y-m>
+   <z-m>-0.95</z-m>
+  </center>
+  <axis>
+   <x>0</x>
+   <y>1</y>
+   <z>0</z>
+  </axis>
+ </animation>
+
+<animation>
+  <type>rotate</type>
+  <property>fdm/jsbsim/propulsion/engine[2]/yaw-angle-rad</property>
+  <factor>57.2975</factor>
+  <offset-deg>0.0</offset-deg>
+  <center>
+   <x-m>13.5</x-m>
+   <y-m>0.0   </y-m>
+   <z-m>-0.95</z-m>
+  </center>
+  <axis>
+   <x>0</x>
+   <y>0</y>
+   <z>1</z>
+  </axis>
+ </animation>
+
+
+<model>
+<path>Aircraft/SpaceShuttle/Models/Effects/engine-fire-alt1.xml</path>
+     <offsets>
+       <x-m> 15.8 </x-m>
+       <y-m> 0.0</y-m>
+       <z-m> -0.65 </z-m>
+       <pitch-deg>-8.0</pitch-deg>
+     </offsets>
+   <condition>
+	<or>
+ 	<greater-than>
+	<property>/fdm/jsbsim/propulsion/engine[2]/thrust-lbs</property>
+ 	<value>0</value>
+ 	</greater-than>
+	<equals>
+		<property>/sim/config/shuttle/prelaunch-flag</property>
+		<value>1</value>
+  	</equals>
+	</or>
+     </condition>
+</model>
+
+    <model>
+ 	<name>cryo-vent-ssme1</name>
+  	<path>Aircraft/SpaceShuttle/Models/Effects/cryo_vent_ssme.xml</path>
+  	<offsets>
+        	<x-m>15.8</x-m>
+		<y-m>0.0</y-m>
+		<z-m>-1.9</z-m>
+           <pitch-deg>-90</pitch-deg>
+  	</offsets>
+	 <condition>
+		<and>
+		<equals>
+			<property>/sim/config/shuttle/prelaunch-flag</property>
+			<value>1</value>
+		</equals>
+		<equals>
+			<property>/fdm/jsbsim/systems/various/ssme-ignition-density-target</property>
+			<value>0.0</value>
+		</equals>
+		</and>
+	 </condition>
+  </model>
+
+</PropertyList>

@@ -1,0 +1,3484 @@
+<?xml version="1.0"?>
+
+<PropertyList>
+
+ <fdm>
+  <jsbsim>
+   <accelerations>
+    <hdotdot-ft_s2 type="double">0.0</hdotdot-ft_s2>
+   </accelerations>
+   <propulsion>
+     <srb-pc50-discrete>0</srb-pc50-discrete>
+   </propulsion>
+   <fcs>
+    <controller-power-plt type="int">1</controller-power-plt>
+    <controller-power-cdr type="int">1</controller-power-cdr>
+    <controller-power-aft type="int">1</controller-power-aft>
+    <elevator-cmd-norm-eileen type="double">0</elevator-cmd-norm-eileen>
+    <rudder-cmd-norm-eileen type="double">0</rudder-cmd-norm-eileen>
+    <aileron-cmd-norm-eileen type="double">0</aileron-cmd-norm-eileen>
+    <eileen-in-control type="int">0</eileen-in-control>
+    <elevator-cmd-norm-css type="double">0</elevator-cmd-norm-css>
+    <rudder-cmd-norm-css type="double">0</rudder-cmd-norm-css>
+    <aileron-cmd-norm-css type="double">0</aileron-cmd-norm-css>
+    <no-y-jet-beta-error type="double">0.0</no-y-jet-beta-error>
+   </fcs>
+   <simulation>
+    <gravitational-torque type="bool">true</gravitational-torque>
+   </simulation>
+   <systems>
+    <thermal>
+	<temperature-norm type="double">1.0</temperature-norm>
+	<nose-temperature-K type="double">0.0</nose-temperature-K>
+	<plasma-ambience-red type="double">0.0</plasma-ambience-red>
+	<plasma-ambience-green type="double">0.0</plasma-ambience-green>
+	<plasma-ambience-blue type="double">0.0</plasma-ambience-blue>
+    </thermal>
+    <abort>
+       <arm-tal type="int">0</arm-tal>
+       <arm-ato type="int">0</arm-ato>
+       <arm-rtls type="int">0</arm-rtls>
+       <arm-contingency type="int">0</arm-contingency>
+       <arm-bailout type="int">0</arm-bailout>
+       <abort-mode type="int">0</abort-mode>
+       <arm-serc type="int">0</arm-serc>
+       <oms-abort-tgt-id type="int">0</oms-abort-tgt-id>
+       <engine-fail-time type="double">-1.0</engine-fail-time>
+       <engine2-fail-time type="double">-1.0</engine2-fail-time>
+       <engine-fail-string type="string"></engine-fail-string>
+       <engine2-fail-string type="string"></engine2-fail-string>
+       <engine-fail-vi type="double">5900</engine-fail-vi>
+       <abort-mode-switch type="int">0</abort-mode-switch>
+       <contingency-abort-region type="string">BLUE</contingency-abort-region>
+       <contingency-abort-region-3eo type="string">BLUE</contingency-abort-region-3eo>
+       <contingency-hdot-fps type="double">1330.0</contingency-hdot-fps>
+       <contingency-2eo-vi type="double">12100</contingency-2eo-vi>
+       <enable-serc type="int">0</enable-serc>
+       <enable-yaw-steer type="int">0</enable-yaw-steer>
+       <yaw-steer-target type="double">0.0</yaw-steer-target>
+       <ato-v-mssn-cntn type="double">12000.0</ato-v-mssn-cntn>
+       <ato-v-lin type="double">11500.0</ato-v-lin>
+       <ato-v-zero type="double">18000.0</ato-v-zero>
+       <abort-cmd-ss type="int">0</abort-cmd-ss>
+       <boundary-redes-flag type="int">0</boundary-redes-flag>
+       <boundary-one-engine-ops3-redes type="double">12200</boundary-one-engine-ops3-redes>
+       <boundary-one-engine-tal-redes type="double">14200</boundary-one-engine-tal-redes>
+    </abort>
+    <adi>
+       <toggle-switch type="int">0</toggle-switch>
+       <attitude-select type="int">-1</attitude-select>
+       <quality-level type="int">3</quality-level>
+       <update-method type="int">2</update-method>
+       <rate-range-select type="int">1</rate-range-select>
+       <error-range-select type="int">1</error-range-select>
+       <hsi-source-select type="int">0</hsi-source-select>
+       <hsi-unit-select type="int">2</hsi-unit-select>
+       <air-data-select type="int">0</air-data-select>
+       <att-ref-for-ss type="int">0</att-ref-for-ss>
+       <att-ref-aft-ss type="int">0</att-ref-aft-ss>
+    </adi>
+    <ap>
+       <entry-mode type="int">0</entry-mode>
+       <alpha-hold-mode type="int">0</alpha-hold-mode>
+       <alpha-controller-elevator-cmd-norm type="double">0.0</alpha-controller-elevator-cmd-norm>
+       <auto-entry-active type="int">0</auto-entry-active>
+       <auto-grtls-rcs-pitch-active type="int">0</auto-grtls-rcs-pitch-active>
+       <auto-grtls-rcs-roll-active type="int">0</auto-grtls-rcs-roll-active>
+       <auto-contingency-roll-active type="int">0</auto-contingency-roll-active>
+       <alpha-controller-elevator-cmd-norm type="double">0.0</alpha-controller-elevator-cmd-norm>
+       <automatic-pitch-control type="int">0</automatic-pitch-control>
+       <css-pitch-control type="int">1</css-pitch-control>
+       <automatic-roll-control type="int">0</automatic-roll-control>
+       <css-roll-control type="int">1</css-roll-control>
+       <automatic-sb-control type="int">1</automatic-sb-control>
+       <automatic-throttle-control type="int">1</automatic-throttle-control>
+       <automatic-bodyflap-control type="int">1</automatic-bodyflap-control>
+       <orbital-dap-auto type="int">0</orbital-dap-auto>
+       <orbital-dap-inertial type="int">0</orbital-dap-inertial>
+       <orbital-dap-lvlh type="int">0</orbital-dap-lvlh>
+       <orbital-dap-free type="int">1</orbital-dap-free>
+       <set-pitch-rate type="double">0.0</set-pitch-rate>
+       <set-yaw-rate type="double">0.0</set-yaw-rate>
+       <set-roll-rate type="double">0.0</set-roll-rate>
+       <up-mnvr-flag type="int">0</up-mnvr-flag>
+       <oms-mnvr-flag type="int">0</oms-mnvr-flag>
+       <mnvr-timer-sec type="int">0</mnvr-timer-sec>
+       <mnvr-timer-min type="int">0</mnvr-timer-min>
+       <mnvr-timer-h type="int">0</mnvr-timer-h>
+       <auto-stage4-serc-roll-active type="double">0.0</auto-stage4-serc-roll-active>
+       <auto-stage4-TAL-serc-roll-active type="double">0.0</auto-stage4-TAL-serc-roll-active>
+       <lvlh>
+	  <engage-flag type="int">0</engage-flag>
+       </lvlh>
+       <orbital-dap-buttons>
+	  <dap-a-select type="int">0</dap-a-select>
+	  <dap-b-select type="int">0</dap-b-select>
+	  <pri-select type="int">0</pri-select>
+	  <alt-select type="int">0</alt-select>
+	  <vrn-select type="int">0</vrn-select>
+	  <znorm-select type="int">0</znorm-select>
+	  <zlow-select type="int">0</zlow-select>
+	  <zhigh-select type="int">0</zhigh-select>
+	  <rot-r-disc type="int">0</rot-r-disc>
+	  <rot-r-pulse type="int">0</rot-r-pulse>
+	  <rot-p-disc type="int">0</rot-p-disc>
+	  <rot-p-pulse type="int">0</rot-p-pulse>
+	  <rot-y-disc type="int">0</rot-y-disc>
+	  <rot-y-pulse type="int">0</rot-y-pulse>
+	  <trans-x-norm type="int">0</trans-x-norm>
+	  <trans-x-pulse type="int">0</trans-x-pulse>
+	  <trans-y-norm type="int">0</trans-y-norm>
+	  <trans-y-pulse type="int">0</trans-y-pulse>
+	  <trans-z-norm type="int">0</trans-z-norm>
+	  <trans-z-pulse type="int">0</trans-z-pulse>
+       </orbital-dap-buttons>
+       <contingency>
+	  <roll-headsup-active type="double">0.0</roll-headsup-active>
+	  <flyout-active type="double">0.0</flyout-active>
+	  <roll-cmd type="double">0.0</roll-cmd>
+	  <init-etsep-active type="int">0</init-etsep-active>
+	  <etsep-mode type="int">4</etsep-mode>
+       </contingency>
+       <entry>
+	  <vspeed-target-fps type="double">0.0</vspeed-target-fps>
+	  <roll-sign type="int">1</roll-sign>
+	  <roll-reversal-init type="int">0</roll-reversal-init>
+	  <reversal-bank-angle-target-deg type="double">0</reversal-bank-angle-target-deg>
+	  <taem-transit-init type="int">0</taem-transit-init>
+	  <drag-management-init type="int">0</drag-management-init>
+	  <low-energy-logic type="int">0</low-energy-logic>
+	  <entry-controller-aileron-cmd-norm type="double">0</entry-controller-aileron-cmd-norm>
+       </entry>
+       <launch>
+	  <kphdot type="double">0.3</kphdot>
+	  <kihdot type="double">0.08</kihdot>
+	  <kdhdot type="double">0.004</kdhdot>
+	  <autolaunch-master type="int">0</autolaunch-master>
+	  <inc-acquire-sign type="int">1</inc-acquire-sign>
+	  <stage type="int">0</stage>
+          <autolaunch-roll-yaw-channel type="int">1</autolaunch-roll-yaw-channel>
+          <autolaunch-pitch-channel type="int">1</autolaunch-pitch-channel>
+          <course-vector type="double">0.0</course-vector>
+          <course-vector type="double" n="1">-1.0</course-vector>
+          <course-vector type="double" n="2">0.0</course-vector>
+	  <launch-azimuth type="double">0.0</launch-azimuth>
+	  <cross-track type="double">0.0</cross-track>
+	  <cross-track-approach-speed type="double">0.0</cross-track-approach-speed>
+	  <pitch-target type="double">90.0</pitch-target>
+	  <pitch-max-rate-norm type="double">0.1</pitch-max-rate-norm>
+	  <inclination-target type="double">28.7</inclination-target>
+	  <asc-node-lon-tgt-flag type="int">0</asc-node-lon-tgt-flag>
+	  <asc-node-lon-tgt type="double">0.0</asc-node-lon-tgt>
+	  <asc-nd-lon-bias type="double">0.0</asc-nd-lon-bias>
+	  <course-target type="double">90.0</course-target>
+	  <hdot-target type="double">0.0</hdot-target>
+	  <variable-pid-min type="double">-10.0</variable-pid-min>
+	  <variable-pid-tal-min type="double">-20.0</variable-pid-tal-min>
+	  <variable-pid-max type="double">30.0</variable-pid-max>
+	  <variable-pid-tal-max type="double">40.0</variable-pid-tal-max>
+	  <gamma-target type="double">0.0</gamma-target>
+	  <initial-stage3-pitch type="double">0.0</initial-stage3-pitch>
+	  <apoapsis-target type="double">320.0</apoapsis-target>
+	  <regular-meco-condition type="int">1</regular-meco-condition>
+	  <droop-pitch-target type="double">72.0</droop-pitch-target>
+	  <droop-guidance-active type="int">0</droop-guidance-active>
+	  <roll-cmd type="double">0.0</roll-cmd>
+	  <rthu-enable type="int">0</rthu-enable>
+	  <rthu-cmd type="int">0</rthu-cmd>
+	  <throttle-down-time-s type="double">18.0</throttle-down-time-s>
+	  <throttle-up-time-s type="double">42.0</throttle-up-time-s>
+	  <throttle-down-to-fraction type="double">0.0</throttle-down-to-fraction>
+	  <oms-assist-burn type="bool">false</oms-assist-burn>
+	  <oms-assist-duration-s type="double">0.0</oms-assist-duration-s>
+	  <srb-climbout-bias-deg type="double">0.0</srb-climbout-bias-deg>
+	  <mps-climbout-bias-deg type="double">0.0</mps-climbout-bias-deg>
+	  <trajectory-loft-ft type="double">0.0</trajectory-loft-ft>
+	  <gamma-meco type="double">0.0</gamma-meco>
+	  <inc-targeting-flag type="int">1</inc-targeting-flag>
+       </launch>
+     <taem>
+	  <auto-taem-master type="int">0</auto-taem-master>
+	  <vspeed-target type="double">200.0</vspeed-target>
+	  <bank-error type="double">0.0</bank-error>
+	  <vspeed-error type="double">0.0</vspeed-error>
+	  <set-bank-target type="double">0.0</set-bank-target>
+	  <hac-turn-init type="int">0</hac-turn-init>
+	  <s-turn-init type="int">0</s-turn-init>
+    <s-turn-treshold type="int">0</s-turn-treshold>
+	  <al-init type="int">0</al-init>
+    <hta-init type="int">0</hta-init>
+     </taem>
+     <rtls>
+	  <powered-pitchdown-active type="int">0</powered-pitchdown-active>
+     </rtls>
+     <grtls>
+	  <pitch-cmd type="double">0.0</pitch-cmd>
+	  <roll-cmd type="double">0.0</roll-cmd>
+	  <roll-tgt-deg type="double">0.0</roll-tgt-deg>
+	  <Nz-hold-active type="int">0.0</Nz-hold-active>
+	  <alpha-transition-active type="int">0</alpha-transition-active>
+	  <taem-transition-init type="int">0</taem-transition-init>
+	  <Nz-tgt type="double">0.0</Nz-tgt>
+     </grtls>
+     <spec20>
+	  <dap-A-PRI-rot-rate type="double">2.5</dap-A-PRI-rot-rate>
+	  <dap-B-PRI-rot-rate type="double">0.5</dap-B-PRI-rot-rate>
+	  <dap-A-VRN-rot-rate type="double">0.1</dap-A-VRN-rot-rate>
+	  <dap-B-VRN-rot-rate type="double">0.05</dap-B-VRN-rot-rate>
+	  <dap-A-PRI-att-db type="double">0.12</dap-A-PRI-att-db>
+	  <dap-B-PRI-att-db type="double">0.15</dap-B-PRI-att-db>
+	  <dap-A-VRN-att-db type="double">0.12</dap-A-VRN-att-db>
+	  <dap-B-VRN-att-db type="double">0.15</dap-B-VRN-att-db>
+	  <dap-A-PRI-rate-db type="double">0.001</dap-A-PRI-rate-db>
+	  <dap-B-PRI-rate-db type="double">0.1</dap-B-PRI-rate-db>
+	  <dap-A-VRN-rate-db type="double">0.001</dap-A-VRN-rate-db>
+	  <dap-B-VRN-rate-db type="double">0.005</dap-B-VRN-rate-db>
+	  <dap-A-ALT-rate-db type="double">0.2</dap-A-ALT-rate-db>
+	  <dap-B-ALT-rate-db type="double">0.2</dap-B-ALT-rate-db>
+	  <dap-A-PRI-rot-pls type="double">0.1</dap-A-PRI-rot-pls>
+	  <dap-B-PRI-rot-pls type="double">0.05</dap-B-PRI-rot-pls>
+	  <dap-A-VRN-rot-pls type="double">0.01</dap-A-VRN-rot-pls>
+	  <dap-B-VRN-rot-pls type="double">0.002</dap-B-VRN-rot-pls>
+	  <dap-A-PRI-comp type="double">0.0</dap-A-PRI-comp>
+	  <dap-B-PRI-comp type="double">0.0</dap-B-PRI-comp>
+	  <dap-A-VRN-comp type="double">0.0</dap-A-VRN-comp>
+	  <dap-B-VRN-comp type="double">0.0</dap-B-VRN-comp>
+	  <dap-A-PRI-p-opt type="int">0</dap-A-PRI-p-opt>
+	  <dap-B-PRI-p-opt type="int">0</dap-B-PRI-p-opt>
+	  <dap-A-PRI-y-opt type="int">0</dap-A-PRI-y-opt>
+	  <dap-B-PRI-y-opt type="int">0</dap-B-PRI-y-opt>
+	  <dap-A-PRI-tran-pls type="double">0.100</dap-A-PRI-tran-pls>
+	  <dap-B-PRI-tran-pls type="double">0.100</dap-B-PRI-tran-pls>
+	  <dap-A-ALT-n-jets type="int">3</dap-A-ALT-n-jets>
+	  <dap-B-ALT-n-jets type="int">3</dap-B-ALT-n-jets>
+      </spec20>
+      <track>
+          <body-vector-selection type="int">1</body-vector-selection>
+	  <trk-om type="double">0.0</trk-om>
+	  <target-vector n="0" type="double">1.0</target-vector>
+	  <target-vector n="1" type="double">0.0</target-vector>
+	  <target-vector n="2" type="double">0.0</target-vector>
+	  <target-sec n="0" type="double">0.0</target-sec>
+	  <target-sec n="1" type="double">0.0</target-sec>
+	  <target-sec n="2" type="double">1.0</target-sec>
+	  <target-trd n="0" type="double">0.0</target-trd>
+	  <target-trd n="1" type="double">1.0</target-trd>
+	  <target-trd n="2" type="double">0.0</target-trd>
+	  <roll-error-deg type="double">0.0</roll-error-deg>
+	  <yaw-error-deg type="double">0.0</yaw-error-deg>
+	  <pitch-error-deg type="double">0.0</pitch-error-deg>
+     </track>
+     <ops201>
+        <mnvr-yaw type="double">0.0</mnvr-yaw>
+        <mnvr-pitch type="double">0.0</mnvr-pitch>
+        <mnvr-roll type="double">0.0</mnvr-roll>
+        <tgt-id type="int">2</tgt-id>
+        <trk-lat type="double">0.0</trk-lat>
+        <trk-lon type="double">0.0</trk-lon>
+        <trk-alt type="double">0.0</trk-alt>
+        <trk-ra type="double">0.0</trk-ra>
+        <trk-dec type="double">0.0</trk-dec>
+        <mnvr-future-flag type="int">0</mnvr-future-flag>
+	<mon-axis type="int">1</mon-axis>
+	<error-option type="int">0</error-option>
+	<flash-ra-dec type="int">0</flash-ra-dec>
+	<flash-lat-lon type="int">0</flash-lat-lon>
+     </ops201>
+     <oms-plan>
+        <burn-mode type="int">1</burn-mode>
+        <burn-plan-available type="int">0</burn-plan-available>
+        <exec-cmd type="int">0</exec-cmd>
+        <oms-ignited type="int">0</oms-ignited>
+        <trim-pitch type="double">0.0</trim-pitch>
+        <trim-yaw-left type="double">0.0</trim-yaw-left>
+        <trim-yaw-right type="double">0.0</trim-yaw-right>	
+        <weight type="double">0.0</weight>
+        <tig-string type="string">000/00:00:00.0</tig-string>
+        <tig-days type="int">0</tig-days>
+        <tig-hours type="int">0</tig-hours>
+        <tig-minutes type="int">0</tig-minutes>
+        <tig-seconds type="int">0</tig-seconds>
+	<rei-nm type="double">0.0</rei-nm>
+        <tig type="int">0</tig>
+        <dvx type="double">0.0</dvx>
+        <dvy type="double">0.0</dvy>
+        <dvz type="double">0.0</dvz>
+	<c1 type="double">0.0</c1>
+	<c2 type="double">0.0</c2>
+	<ht type="double">0.0</ht>
+	<theta-t type="double">0.0</theta-t>
+	<prplt type="double">0.0</prplt>
+	<peg4-entered type="int">0</peg4-entered>
+        <dvtot type="double">0.0</dvtot>
+        <tv-roll type="double">180.0</tv-roll>
+        <burn-solution-flag type="int">0</burn-solution-flag>
+        <state-extrapolated-flag type="int">0</state-extrapolated-flag>
+        <state-extrapolated-x type="double">0.0</state-extrapolated-x>
+        <state-extrapolated-y type="double">0.0</state-extrapolated-y>
+        <state-extrapolated-z type="double">0.0</state-extrapolated-z>
+        <state-extrapolated-vx type="double">0.0</state-extrapolated-vx>
+        <state-extrapolated-vy type="double">0.0</state-extrapolated-vy>
+        <state-extrapolated-vz type="double">0.0</state-extrapolated-vz>
+        <extrapolated-apoapsis type="double">0.0</extrapolated-apoapsis>
+        <extrapolated-periapsis type="double">0.0</extrapolated-periapsis>
+        <tgo-s type="double">0</tgo-s>
+        <tgo-string type="string">00:00</tgo-string>
+        <apoapsis-nm type="double">0.0</apoapsis-nm>
+        <periapsis-nm type="double">0.0</periapsis-nm>
+        <vgo-x type="double">0.0</vgo-x>
+        <vgo-y type="double">0.0</vgo-y>
+        <vgo-z type="double">0.0</vgo-z>
+    </oms-plan>
+    <orbit-tgt>
+	<!--<alpha-hohmann-deg type="double">0.0</alpha-hohmann-deg>
+	<tig-hohmann-s type="double">0.0</tig-hohmann-s>-->
+	<computation-t1 type="int">0</computation-t1>
+	<computation-t2 type="int">0</computation-t2>
+	<t1-dx type="double">0.0</t1-dx>
+	<t1-dy type="double">0.0</t1-dy>
+	<t1-dz type="double">0.0</t1-dz>
+	<t1-el-deg type="double">0.0</t1-el-deg>
+	<t1-dxdot type="double">0.0</t1-dxdot>
+	<t1-dydot type="double">0.0</t1-dydot>
+	<t1-dzdot type="double">0.0</t1-dzdot>
+	<!--<t1-dx-tmp type="double">0.0</t1-dx-tmp>
+	<t1-dy-tmp type="double">0.0</t1-dy-tmp>
+	<t1-dz-tmp type="double">0.0</t1-dz-tmp>
+	<t1-dxdot-tmp type="double">0.0</t1-dxdot-tmp>
+	<t1-dydot-tmp type="double">0.0</t1-dydot-tmp>
+	<t1-dzdot-tmp type="double">0.0</t1-dzdot-tmp>-->
+	<!--<t1-dvx type="double">0.0</t1-dvx>
+	<t1-dvy type="double">0.0</t1-dvy>
+	<t1-dvz type="double">0.0</t1-dvz>-->
+	<t1-tig-d type="double">0.0</t1-tig-d>
+	<t1-tig-h type="double">0.0</t1-tig-h>
+	<t1-tig-m type="double">0.0</t1-tig-m>
+	<t1-tig-s type="double">0.0</t1-tig-s>
+	<t1-tig type="double">0.0</t1-tig>
+	<t1-tig-string type="string">000/00:00:00</t1-tig-string>
+	<!--<t1-tig-s-tmp type="double">0.0</t1-tig-s-tmp>
+	<t1-tig-string-tmp type="string">000/00:00:00</t1-tig-string-tmp>-->
+	<t2-dvx type="double">0.0</t2-dvx>
+	<t2-dvy type="double">0.0</t2-dvy>
+	<t2-dvz type="double">0.0</t2-dvz>
+	<t2-dx type="double">0.0</t2-dx>
+	<t2-dy type="double">0.0</t2-dy>
+	<t2-dz type="double">0.0</t2-dz>
+	<t2-dt type="double">0.0</t2-dt>
+	<t2-tig-d type="double">0.0</t2-tig-d>
+	<t2-tig-h type="double">0.0</t2-tig-h>
+	<t2-tig-m type="double">0.0</t2-tig-m>
+	<t2-tig-s type="double">0.0</t2-tig-s>
+	<t2-tig-string type="string">000/00:00:00</t2-tig-string>
+	<t2-tig type="double">0.0</t2-tig>
+	<pred-match-ft type="double">0.0</pred-match-ft>
+	<!--<last-lateral-error-m type="double">100000.0</last-lateral-error-m>
+	<last-lateral-sign type="int">1</last-lateral-sign>
+	<last-fit-quality type="double">10000000.0</last-fit-quality>
+	<fit-gain-factor type="double">1.0</fit-gain-factor>-->
+	<mnvr-n type="int">0</mnvr-n>
+    </orbit-tgt>
+    </ap>
+    <antenna>
+	<s-pm-power-sel-switch type="int">1</s-pm-power-sel-switch>
+	<s-pm-preamp-sel-switch type="int">1</s-pm-preamp-sel-switch>
+	<s-pm-preamp-standby-switch type="int">1</s-pm-preamp-standby-switch>
+	<s-pm-preamp-operate-switch type="int">1</s-pm-preamp-operate-switch>
+	<s-pm-mode-selection-switch type="int">2</s-pm-mode-selection-switch>
+	<s-fm-power-sel-switch type="int">1</s-fm-power-sel-switch>
+	<s-fm-data-source-switch type="int">0</s-fm-data-source-switch>
+	<xpndr-sel-switch type="int">1</xpndr-sel-switch>
+	<uhf-sel-switch type="int">1</uhf-sel-switch>
+	<uhf-freq-switch type="int">1</uhf-freq-switch>
+	<uhf-string-switch type="int">1</uhf-string-switch>
+    	<ku-antenna-slew-elevation-cmd type="int">0</ku-antenna-slew-elevation-cmd>
+    	<ku-antenna-slew-azimuth-cmd type="int">0</ku-antenna-slew-azimuth-cmd>
+	<ku-antenna-tracking type="int">0</ku-antenna-tracking>
+    	<ku-antenna-search-switch type="int">0</ku-antenna-search-switch>
+	<ku-antenna-searching type="int">0</ku-antenna-searching>
+    </antenna>
+    <circuit-breakers include="circuit_breakers.xml"/>
+    <carrier>
+     	<mark-x-fwd type="double">0.0</mark-x-fwd>
+     	<mark-y-fwd type="double">0.0</mark-y-fwd>
+     	<mark-z-fwd type="double">0.0</mark-z-fwd>
+     	<mark-x-left type="double">0.0</mark-x-left>
+     	<mark-y-left type="double">0.0</mark-y-left>
+     	<mark-z-left type="double">0.0</mark-z-left>
+     	<mark-x-right type="double">0.0</mark-x-right>
+     	<mark-y-right type="double">0.0</mark-y-right>
+     	<mark-z-right type="double">0.0</mark-z-right>
+        <mark-vx-fwd type="double">0.0</mark-vx-fwd>
+     	<mark-vy-fwd type="double">0.0</mark-vy-fwd>
+     	<mark-vz-fwd type="double">0.0</mark-vz-fwd>
+        <mark-vx-left type="double">0.0</mark-vx-left>
+     	<mark-vy-left type="double">0.0</mark-vy-left>
+     	<mark-vz-left type="double">0.0</mark-vz-left>
+        <mark-vx-right type="double">0.0</mark-vx-right>
+     	<mark-vy-right type="double">0.0</mark-vy-right>
+     	<mark-vz-right type="double">0.0</mark-vz-right>
+     	<mark-t type="double">0.0</mark-t>
+	<connected type="int">0</connected>
+	<integrator-off type="int">1</integrator-off>
+	<engines-n1 type="double">80.0</engines-n1>
+    </carrier>
+    <docking>
+	<crash-force-z type="double">0.0</crash-force-z>
+    </docking>
+    <dps>
+	<command-string type="string"></command-string>
+	<command-string n="1" type="string"></command-string>
+	<command-string n="2" type="string"></command-string>
+	<command-string n="3" type="string"></command-string>
+	<error-string type="string"></error-string>
+	<bfs-error-string type="string"></bfs-error-string>
+	<spec type="int">0</spec>
+	<disp type="int">0</disp>
+	<spec-bfs type="int">0</spec-bfs>
+	<disp-bfs type="int">0</disp-bfs>
+	<major-mode-sm type="int">201</major-mode-sm>
+	<spec-sm type="int">0</spec-sm>
+	<disp-sm type="int">0</disp-sm>
+	<idp-power-status type="int" n="0">1</idp-power-status>
+	<idp-power-status type="int" n="1">1</idp-power-status>
+	<idp-power-status type="int" n="2">1</idp-power-status>
+	<idp-power-status type="int" n="3">1</idp-power-status>
+	<idp-function-switch type="int" n="0">1</idp-function-switch>
+	<idp-function-switch type="int" n="1">1</idp-function-switch>
+	<idp-function-switch type="int" n="2">1</idp-function-switch>
+	<idp-function-switch type="int" n="3">1</idp-function-switch>
+	<idp-power-demand-kW type="double" n="0">0.0426</idp-power-demand-kW>
+	<idp-power-demand-kW type="double" n="1">0.0426</idp-power-demand-kW>
+	<idp-power-demand-kW type="double" n="2">0.0426</idp-power-demand-kW>
+	<idp-power-demand-kW type="double" n="3">0.0426</idp-power-demand-kW>
+	<virtual-kb-idp-1-selected type="bool">false</virtual-kb-idp-1-selected>
+	<virtual-kb-idp-2-selected type="bool">false</virtual-kb-idp-2-selected>
+	<virtual-kb-idp-3-selected type="bool">true</virtual-kb-idp-3-selected>
+	<gpc1-power-demand-kW type="double">0.56</gpc1-power-demand-kW>
+	<gpc2-power-demand-kW type="double">0.56</gpc2-power-demand-kW>
+	<gpc3-power-demand-kW type="double">0.56</gpc3-power-demand-kW>
+	<gpc4-power-demand-kW type="double">0.56</gpc4-power-demand-kW>
+	<gpc5-power-demand-kW type="double">0.56</gpc5-power-demand-kW>
+	<gpc1-power-switch type="int">1</gpc1-power-switch>
+	<gpc2-power-switch type="int">1</gpc2-power-switch>
+	<gpc3-power-switch type="int">1</gpc3-power-switch>
+	<gpc4-power-switch type="int">1</gpc4-power-switch>
+	<gpc5-power-switch type="int">1</gpc5-power-switch>
+	<gpc1-mode-switch type="int">1</gpc1-mode-switch>
+	<gpc2-mode-switch type="int">1</gpc2-mode-switch>
+	<gpc3-mode-switch type="int">1</gpc3-mode-switch>
+	<gpc4-mode-switch type="int">1</gpc4-mode-switch>
+	<gpc5-mode-switch type="int">1</gpc5-mode-switch>
+	<gpc1-mode-talkback type="int">1</gpc1-mode-talkback>
+	<gpc2-mode-talkback type="int">1</gpc2-mode-talkback>
+	<gpc3-mode-talkback type="int">1</gpc3-mode-talkback>
+	<gpc4-mode-talkback type="int">1</gpc4-mode-talkback>
+	<gpc5-mode-talkback type="int">1</gpc5-mode-talkback>
+	<gpc1-bus-switch type="int">0</gpc1-bus-switch>
+	<gpc2-bus-switch type="int">0</gpc2-bus-switch>
+	<gpc3-bus-switch type="int">0</gpc3-bus-switch>
+	<gpc4-bus-switch type="int">0</gpc4-bus-switch>
+	<gpc5-bus-switch type="int">1</gpc5-bus-switch>
+	<gpc1-bus-talkback type="int">1</gpc1-bus-talkback>
+	<gpc2-bus-talkback type="int">1</gpc2-bus-talkback>
+	<gpc3-bus-talkback type="int">1</gpc3-bus-talkback>
+	<gpc4-bus-talkback type="int">1</gpc4-bus-talkback>
+	<gpc5-bus-talkback type="int">0</gpc5-bus-talkback>
+    	<crtl-sel type="int">0</crtl-sel>
+    	<crtr-sel type="int">1</crtr-sel>
+	<bfs-in-control type="int">0</bfs-in-control>
+	<valid-output type="int">1</valid-output>
+	<pass>
+		<error-pitch type="float">0.0</error-pitch>
+		<error-yaw type="float">0.0</error-yaw>
+		<error-roll type="float">0.0</error-roll>
+	</pass>
+	<bfs>
+		<bfc-light-status type="int">0</bfc-light-status>
+		<display-switch type="int">0</display-switch>
+		<crt-select-switch type="int">0</crt-select-switch>
+		<disengage-switch type="int">0</disengage-switch>
+		<bfs-transient-error type="int">0</bfs-transient-error>
+	</bfs>
+ 	<cam>
+		<cam-1-1 type="int">0</cam-1-1>
+		<cam-1-2 type="int">0</cam-1-2>
+		<cam-1-3 type="int">0</cam-1-3>
+		<cam-1-4 type="int">0</cam-1-4>
+		<cam-1-5 type="int">0</cam-1-5>
+		<cam-2-1 type="int">0</cam-2-1>
+		<cam-2-2 type="int">0</cam-2-2>
+		<cam-2-3 type="int">0</cam-2-3>
+		<cam-2-4 type="int">0</cam-2-4>
+		<cam-2-5 type="int">0</cam-2-5>
+		<cam-3-1 type="int">0</cam-3-1>
+		<cam-3-2 type="int">0</cam-3-2>
+		<cam-3-3 type="int">0</cam-3-3>
+		<cam-3-4 type="int">0</cam-3-4>
+		<cam-3-5 type="int">0</cam-3-5>
+		<cam-4-1 type="int">0</cam-4-1>
+		<cam-4-2 type="int">0</cam-4-2>
+		<cam-4-3 type="int">0</cam-4-3>
+		<cam-4-4 type="int">0</cam-4-4>
+		<cam-4-5 type="int">0</cam-4-5>
+		<cam-5-1 type="int">0</cam-5-1>
+		<cam-5-2 type="int">0</cam-5-2>
+		<cam-5-3 type="int">0</cam-5-3>
+		<cam-5-4 type="int">0</cam-5-4>
+		<cam-5-5 type="int">0</cam-5-5>
+	</cam>
+    </dps>
+    <dummy>
+     <R1-panel-dummy>
+    <!-- Mainly properties for spring loaded dummy switches in cockpit.xml R1 -->
+    <!--  we do it here to set a specific coherent initial value for talkbacks ( not the case if created directly from cockpit.xml) -->
+  <pl-pri-fc3-pos type="double">0.5</pl-pri-fc3-pos>
+  <pl-pri-mn-b-pos type="double">0.5</pl-pri-mn-b-pos>
+  <pl-pri-mn-c-pos type="double">0.5</pl-pri-mn-c-pos>
+  <h2-man-valve-1-pos type="double">0.5</h2-man-valve-1-pos>
+  <h2-man-valve-2-pos type="double">0.5</h2-man-valve-2-pos>
+  <o2-man-valve-1-pos type="double">0.5</o2-man-valve-1-pos>
+  <o2-man-valve-2-pos type="double">0.5</o2-man-valve-2-pos>
+  <pl-pri-fc3 type="int">0</pl-pri-fc3>
+  <pl-pri-mn-b type="int">1</pl-pri-mn-b>
+  <pl-pri-mn-c type="int">0</pl-pri-mn-c>
+  <h2-man-valve-1 type="int">1</h2-man-valve-1>
+  <h2-man-valve-2 type="int">1</h2-man-valve-2>
+  <o2-man-valve-1 type="int">1</o2-man-valve-1>
+  <o2-man-valve-2 type="int">1</o2-man-valve-2>
+      </R1-panel-dummy>
+    </dummy>
+    <eclss>
+     <gauges>
+	<air-temp-switch type="int">0</air-temp-switch>
+	<h2o-loop-switch type="int">0</h2o-loop-switch>
+	<freon-loop-switch type="int">0</freon-loop-switch>
+	<ppo2-sensor-switch type="int">0</ppo2-sensor-switch>
+	<flow-meter-switch type="int">0</flow-meter-switch>
+	<cryo-tank-switch type="int">0</cryo-tank-switch>
+	<cryo-tank-temp-sensor-switch type="int">0</cryo-tank-temp-sensor-switch>
+     </gauges>
+     <avbay>
+	<fan-A-switch type="int">1</fan-A-switch>
+	<fan-B-switch type="int">0</fan-B-switch>
+	<fan-cooling-transit type="double">1.0</fan-cooling-transit>
+	<imu-fan-A-switch type="int">0</imu-fan-A-switch>
+	<imu-fan-B-switch type="int">1</imu-fan-B-switch>
+	<imu-fan-C-switch type="int">0</imu-fan-C-switch>
+  <imu-temp type="int">0</imu-temp>
+     </avbay>
+     <avbay n="1">
+	<fan-A-switch type="int">0</fan-A-switch>
+	<fan-B-switch type="int">1</fan-B-switch>
+	<fan-cooling-transit type="double">1.0</fan-cooling-transit>
+     </avbay>
+     <avbay n="2">
+	<fan-A-switch type="int">0</fan-A-switch>
+	<fan-B-switch type="int">1</fan-B-switch>
+	<fan-cooling-transit type="double">1.0</fan-cooling-transit>
+     </avbay>
+     <oxygen>
+      	<sys1-o2-supply-valve-status type="int">1</sys1-o2-supply-valve-status>
+     	<sys2-o2-supply-valve-status type="int">0</sys2-o2-supply-valve-status>
+      	<sys1-o2-xovr-valve-status type="int">1</sys1-o2-xovr-valve-status>
+     	<sys2-o2-xovr-valve-status type="int">0</sys2-o2-xovr-valve-status>
+     </oxygen>
+     <nitrogen>
+      	<sys1-n2-supply-valve-status type="int">1</sys1-n2-supply-valve-status>
+     	<sys2-n2-supply-valve-status type="int">0</sys2-n2-supply-valve-status>
+      	<sys1-n2-reg-inlet-valve-status type="int">1</sys1-n2-reg-inlet-valve-status>
+     	<sys2-n2-reg-inlet-valve-status type="int">0</sys2-n2-reg-inlet-valve-status>
+	<sys1-o2-n2-cntrl-valve-status type="int">0</sys1-o2-n2-cntrl-valve-status>
+	<sys2-o2-n2-cntrl-valve-status type="int">0</sys2-o2-n2-cntrl-valve-status>
+     </nitrogen>
+     <cabin>
+	<fan-A-switch type="int">1</fan-A-switch>
+	<fan-B-switch type="int">0</fan-B-switch>
+	<humidity-sep-A-switch type="int">1</humidity-sep-A-switch>
+	<humidity-sep-B-switch type="int">0</humidity-sep-B-switch>
+	<vent-isolation-valve type="int">0</vent-isolation-valve>
+	<vent-valve type="int">0</vent-valve>
+	<loss-rate-lb_h type="double">0.85</loss-rate-lb_h>
+	<leakage-rate-lb_h type="double">0.0</leakage-rate-lb_h>
+	<air-pressure-psi type="double">14.7</air-pressure-psi>
+	<oxygen-fraction type="double">0.235</oxygen-fraction>
+     </cabin>
+    </eclss>
+    <entry_guidance>
+     <guidance-mode type="int">0</guidance-mode>
+     <target-azimuth-deg type="double">0.0</target-azimuth-deg>
+     <remaining-distance-nm type="double">0.0</remaining-distance-nm>
+     <tal-site-iloaded type="int">7</tal-site-iloaded>
+     <vrel-fps type="double">0.0</vrel-fps>
+     <vrel-sign type="int">1</vrel-sign>
+     <v-error-fps type="double">0.0</v-error-fps>
+    </entry_guidance>
+    <failures include="component_condition.xml"/>
+     <orbital>
+      <gm type="double">14.07644180e15</gm>
+      <semimajor-axis-length-ft type="double">0.0</semimajor-axis-length-ft>
+      <eccentricity type="double">0.0</eccentricity>
+      <apoapsis-ft type="double">0.0</apoapsis-ft>
+      <apoapsis-km type="double">0.0</apoapsis-km>
+      <apoapsis-indicated-km type="double">0.0</apoapsis-indicated-km>
+      <apoapsis-hunderds-km type="double">0.0</apoapsis-hunderds-km>
+      <apoapsis-tens-km type="double">0.0</apoapsis-tens-km>
+      <apoapsis-ones-km type="double">0.0</apoapsis-ones-km>
+      <periapsis-ft type="double">0.0</periapsis-ft>
+      <periapsis-km type="double">0.0</periapsis-km>
+      <periapsis-indicated-km type="double">0.0</periapsis-indicated-km>
+      <periapsis-hunderds-km type="double">0.0</periapsis-hunderds-km>
+      <periapsis-tens-km type="double">0.0</periapsis-tens-km>
+      <periapsis-ones-km type="double">0.0</periapsis-ones-km>
+     </orbital>
+     <pointing>
+      <body>
+       <body-x type="double" n="0">1</body-x>
+       <body-x type="double" n="1">0</body-x>
+       <body-x type="double" n="2">0</body-x>
+       <body-y type="double" n="0">0</body-y>
+       <body-y type="double" n="1">1</body-y>
+       <body-y type="double" n="2">0</body-y>
+       <body-z type="double" n="0">0</body-z>
+       <body-z type="double" n="1">0</body-z>
+       <body-z type="double" n="2">1</body-z>
+      </body>
+      <inertial>
+       <delta-lon-rad type="double">0.0</delta-lon-rad>
+      </inertial>
+     </pointing>
+     <fcs>
+      <parachute_reef_pos_norm type="double"> 0 </parachute_reef_pos_norm>
+      <control-mode type="int"> 10 </control-mode>
+      <rcs-pitch-mode type="int">1</rcs-pitch-mode>
+      <rcs-roll-mode type="int">1</rcs-roll-mode>
+      <rcs-yaw-mode type="int">1</rcs-yaw-mode>
+      <sense-X type="int">1</sense-X>
+      <sense-minus-X type="int">0</sense-minus-X>
+      <sense-minus-Z type="int">0</sense-minus-Z>
+      <sense-switch type="int">0</sense-switch>
+      <no-y-jet type="int">0</no-y-jet>
+      <entry-mode-lo-gain type="int">0</entry-mode-lo-gain>
+      <entry-mode-auto type="int">1</entry-mode-auto>
+      <entry-mode-no-y-jet type="int">0</entry-mode-no-y-jet>
+      <entry-mode-switch type="int">0</entry-mode-switch>
+      <entry-mode-sw-auto-switch type="int">0</entry-mode-sw-auto-switch>
+      <bodyflap-manual-switch type="int">0</bodyflap-manual-switch>
+      <rcs-inactive type="double">1.0</rcs-inactive>
+      <rcs-use-pulse type="int">1</rcs-use-pulse>
+      <speedbrake-cmd-norm type="double">0.0</speedbrake-cmd-norm>
+<!-- temporary placeholder for drive rate -->
+      <inboard>
+       <elevon>
+        <drive-rate type="int">0</drive-rate>
+       </elevon>
+      </inboard>
+     </fcs>
+     <rudder-spd-brake-heat-a-status type="int">0</rudder-spd-brake-heat-a-status>
+     <rudder-spd-brake-heat-b-status type="int">0</rudder-spd-brake-heat-b-status>
+     <body-flap-heat-a-status type="int">0</body-flap-heat-a-status>
+     <body-flap-heat-b-status type="int">0</body-flap-heat-b-status>
+     <elevon-heat-a-status type="int">0</elevon-heat-a-status>
+     <elevon-heat-b-status type="int">0</elevon-heat-b-status>
+     <aft-fuselage-heat-a-status type="int">0</aft-fuselage-heat-a-status>
+     <aft-fuselage-heat-b-status type="int">0</aft-fuselage-heat-b-status>
+     <apu>
+      <init-hydraulics-on type="int">0</init-hydraulics-on>
+      <apu n="0">
+       <apu-controller-power type="int">0</apu-controller-power>
+       <apu-rpm-cmd type="double">0.0</apu-rpm-cmd>
+       <fuel-valve-status type="int">0</fuel-valve-status>
+       <apu-speed-select type="int">0</apu-speed-select>
+       <apu-operate type="int">0</apu-operate>
+       <apu-startup type="int">0</apu-startup>
+       <apu-rpm-rnd type="double">1.0</apu-rpm-rnd>
+       <apu-rpm type="double">0.0</apu-rpm>
+       <apu-rpm-target type="double">1.0</apu-rpm-target>
+       <apu-auto-shutdown-select type="int">1</apu-auto-shutdown-select>
+       <hyd-pump-pressure-select type="int">0</hyd-pump-pressure-select>
+       <hyd-circ-pump-cmd type="int">-1</hyd-circ-pump-cmd>
+       <hyd-circ-pump-cmd-dlg type="int">0</hyd-circ-pump-cmd-dlg>
+       <hyd-circ-pump-cmd-gpc type="int">0</hyd-circ-pump-cmd-gpc>
+       <hyd-circ-pump-pwr-sel type="int">1</hyd-circ-pump-pwr-sel>
+       <tvc-isolation-valve-status type="int">1</tvc-isolation-valve-status>
+       <boiler-N2-valve-status type="int">0</boiler-N2-valve-status>
+       <boiler-power-status type="int">0</boiler-power-status>
+       <boiler-heater-status type="int">0</boiler-heater-status>
+       <gg-bed-heater-status type="int">1</gg-bed-heater-status>
+       <fuel-pump-heater-status type="int">1</fuel-pump-heater-status>
+       <lube-line-heater-status type="int">1</lube-line-heater-status>
+       <tank-heater-A-status type="int">1</tank-heater-A-status>
+       <tank-heater-B-status type="int">1</tank-heater-B-status>
+       <gg-bed-T-K type="double">370.0</gg-bed-T-K>
+       <circ-pressure-factor type="double">0.3</circ-pressure-factor>
+       <temp-equalization-factor type="double">1.0</temp-equalization-factor>
+      </apu>
+      <apu n="1">
+       <apu-controller-power type="int">0</apu-controller-power>
+       <apu-rpm-cmd type="double">0.0</apu-rpm-cmd>
+       <fuel-valve-status type="int">0</fuel-valve-status>
+       <apu-speed-select type="int">0</apu-speed-select>
+       <apu-operate type="int">0</apu-operate>
+       <apu-startup type="int">0</apu-startup>
+       <apu-rpm-rnd type="double">1.0</apu-rpm-rnd>
+       <apu-rpm type="double">0.0</apu-rpm>
+       <apu-rpm-target type="double">1.0</apu-rpm-target>
+       <apu-auto-shutdown-select type="int">1</apu-auto-shutdown-select>
+       <hyd-pump-pressure-select type="int">0</hyd-pump-pressure-select>
+       <hyd-circ-pump-cmd type="int">-1</hyd-circ-pump-cmd>
+       <hyd-circ-pump-cmd-dlg type="int">0</hyd-circ-pump-cmd-dlg>
+       <hyd-circ-pump-cmd-gpc type="int">0</hyd-circ-pump-cmd-gpc>
+       <hyd-circ-pump-pwr-sel type="int">1</hyd-circ-pump-pwr-sel>
+       <tvc-isolation-valve-status type="int">1</tvc-isolation-valve-status>
+       <boiler-N2-valve-status type="int">0</boiler-N2-valve-status>
+       <boiler-power-status type="int">0</boiler-power-status>
+       <boiler-heater-status type="int">0</boiler-heater-status>
+       <gg-bed-heater-status type="int">1</gg-bed-heater-status>
+       <fuel-pump-heater-status type="int">1</fuel-pump-heater-status>
+       <lube-line-heater-status type="int">1</lube-line-heater-status>
+       <tank-heater-A-status type="int">1</tank-heater-A-status>
+       <tank-heater-B-status type="int">1</tank-heater-B-status>
+       <gg-bed-T-K type="double">370.0</gg-bed-T-K>
+       <circ-pressure-factor type="double">0.3</circ-pressure-factor>
+       <temp-equalization-factor type="double">1.0</temp-equalization-factor>
+      </apu>
+      <apu n="2">
+       <apu-controller-power type="int">0</apu-controller-power>
+       <apu-rpm-cmd type="double">0.0</apu-rpm-cmd>
+       <fuel-valve-status type="int">0</fuel-valve-status>
+       <apu-speed-select type="int">0</apu-speed-select>
+       <apu-operate type="int">0</apu-operate>
+       <apu-startup type="int">0</apu-startup>
+       <apu-rpm-rnd type="double">1.0</apu-rpm-rnd>
+       <apu-rpm type="double">0.0</apu-rpm>
+       <apu-rpm-target type="double">1.0</apu-rpm-target>
+       <apu-auto-shutdown-select type="int">1</apu-auto-shutdown-select>
+       <hyd-pump-pressure-select type="int">0</hyd-pump-pressure-select>
+       <hyd-circ-pump-cmd type="int">-1</hyd-circ-pump-cmd>
+       <hyd-circ-pump-cmd-dlg type="int">0</hyd-circ-pump-cmd-dlg>
+       <hyd-circ-pump-cmd-gpc type="int">0</hyd-circ-pump-cmd-gpc>
+       <hyd-circ-pump-pwr-sel type="int">1</hyd-circ-pump-pwr-sel>
+       <tvc-isolation-valve-status type="int">1</tvc-isolation-valve-status>
+       <boiler-N2-valve-status type="int">0</boiler-N2-valve-status>
+       <boiler-power-status type="int">0</boiler-power-status>
+       <boiler-heater-status type="int">0</boiler-heater-status>
+       <gg-bed-heater-status type="int">1</gg-bed-heater-status>
+       <fuel-pump-heater-status type="int">1</fuel-pump-heater-status>
+       <lube-line-heater-status type="int">1</lube-line-heater-status>
+       <tank-heater-A-status type="int">1</tank-heater-A-status>
+       <tank-heater-B-status type="int">1</tank-heater-B-status>
+       <gg-bed-T-K type="double">370.0</gg-bed-T-K>
+       <circ-pressure-factor type="double">0.3</circ-pressure-factor>
+       <temp-equalization-factor type="double">1.0</temp-equalization-factor>
+      </apu>
+     </apu>
+     <atcs>
+      <freon-pump-1-status type="int">1</freon-pump-1-status>
+      <freon-pump-2-status type="int">1</freon-pump-2-status>
+      <water-pump-1-status type="int">0</water-pump-1-status>
+      <water-pump-2-status type="int">1</water-pump-2-status>
+      <rad-controller-1-status type="int">0</rad-controller-1-status>
+      <rad-controller-2-status type="int">0</rad-controller-2-status>
+      <out-temp-hi-status type="int">0</out-temp-hi-status>
+      <flow-bypass-1-status type="int">1</flow-bypass-1-status>
+      <flow-bypass-2-status type="int">1</flow-bypass-2-status>
+      <fes-controller-A-status type="int">1</fes-controller-A-status>
+      <fes-controller-B-status type="int">0</fes-controller-B-status>
+      <fes-controller-sec-status type="int">0</fes-controller-sec-status>
+      <fes-hi-load-status type="int">1</fes-hi-load-status>
+      <fes-heater-left-status type="int">0</fes-heater-left-status>
+      <fes-heater-right-status type="int">0</fes-heater-right-status>
+      <fes-heater-hiload-status type="int">0</fes-heater-hiload-status>
+      <fes-fdln-A-heater-status type="int">1</fes-fdln-A-heater-status>
+      <fes-fdln-B-heater-status type="int">-1</fes-fdln-B-heater-status>
+      <topping-duct-heater-switch type="int">0</topping-duct-heater-switch>
+      <hiload-duct-heater-switch type="int">0</hiload-duct-heater-switch>
+      <nh3-controller-A-switch type="int">0</nh3-controller-A-switch>
+      <nh3-controller-B-switch type="int">0</nh3-controller-B-switch>
+     </atcs>
+     <cws>
+      <jet-fail-f1 type="int">0</jet-fail-f1>
+      <jet-fail-f2 type="int">0</jet-fail-f2>
+      <jet-fail-f3 type="int">0</jet-fail-f3>
+      <jet-fail-f4 type="int">0</jet-fail-f4>
+      <jet-fail-f5 type="int">0</jet-fail-f5>
+      <jet-fail-r1 type="int">0</jet-fail-r1>
+      <jet-fail-r2 type="int">0</jet-fail-r2>
+      <jet-fail-r3 type="int">0</jet-fail-r3>
+      <jet-fail-r4 type="int">0</jet-fail-r4>
+      <jet-fail-r5 type="int">0</jet-fail-r5>
+      <jet-fail-l1 type="int">0</jet-fail-l1>
+      <jet-fail-l2 type="int">0</jet-fail-l2>
+      <jet-fail-l3 type="int">0</jet-fail-l3>
+      <jet-fail-l4 type="int">0</jet-fail-l4>
+      <jet-fail-l5 type="int">0</jet-fail-l5>
+      <forward-leak type="int">0</forward-leak>
+      <aft-left-leak type="int">0</aft-left-leak>
+      <aft-right-leak type="int">0</aft-right-leak>
+      <air-data type="int">0</air-data>
+      <imu-dlma type="int">0</imu-dlma>
+      <imu-temp type="int">0</imu-temp>
+      <not-active-placeholder type="int">0</not-active-placeholder>
+      <class-1-sound-on type="int">0</class-1-sound-on>
+      <fire-alarm-sound-on type="int">0</fire-alarm-sound-on>
+      <class-2-sound-on type="int">0</class-2-sound-on>
+      <master-alarm-cdr-on type="int">0</master-alarm-cdr-on>
+      <master-alarm-plt-on type="int">0</master-alarm-plt-on>
+      <master-alarm-aft-on type="int">0</master-alarm-aft-on>
+      <sm-alert-on type="int">0</sm-alert-on>
+      <backup-alarm-on type="int">0</backup-alarm-on>
+      <cw-mode type="int">0</cw-mode>
+     </cws>
+     <electrical>
+      <fc>
+       <reactant-valve-status type="int">1</reactant-valve-status>
+       <reactant-valve-status-pos type="double">0.5</reactant-valve-status-pos>
+       <fc-start-cmd type="int">1</fc-start-cmd>
+       <fc-start-cmd-pos type="double">0.5</fc-start-cmd-pos>
+       <fc-controller-power type="int">1</fc-controller-power>
+       <fc-controller-power-ovhd type="int">1</fc-controller-power-ovhd>
+       <bus-connector-status type="int">1</bus-connector-status>
+       <bus-connector-status-pos type="double">0.5</bus-connector-status-pos>
+       <fc-efficiency type="double">1.0</fc-efficiency>
+       <purge-valve-status type="int">0</purge-valve-status>
+      </fc>
+      <fc n="1">
+       <reactant-valve-status type="int">1</reactant-valve-status>
+       <reactant-valve-status-pos type="double">0.5</reactant-valve-status-pos>
+       <fc-start-cmd type="int">1</fc-start-cmd>
+       <fc-start-cmd-pos type="double">0.5</fc-start-cmd-pos>
+       <fc-controller-power type="int">1</fc-controller-power>
+       <fc-controller-power-ovhd type="int">1</fc-controller-power-ovhd>
+       <bus-connector-status type="int">1</bus-connector-status>
+       <bus-connector-status-pos type="double">0.5</bus-connector-status-pos>
+       <fc-efficiency type="double">1.0</fc-efficiency>
+       <purge-valve-status type="int">0</purge-valve-status>
+      </fc>
+      <fc n="2">
+       <reactant-valve-status type="int">1</reactant-valve-status>
+       <reactant-valve-status-pos type="double">0.5</reactant-valve-status-pos>
+       <fc-start-cmd type="int">1</fc-start-cmd>
+       <fc-start-cmd-pos type="double">0.5</fc-start-cmd-pos>
+       <fc-controller-power type="int">1</fc-controller-power>
+       <fc-controller-power-ovhd type="int">1</fc-controller-power-ovhd>
+       <bus-connector-status type="int">1</bus-connector-status>
+       <bus-connector-status-pos type="double">0.5</bus-connector-status-pos>
+       <fc-efficiency type="double">1.0</fc-efficiency>
+       <purge-valve-status type="int">0</purge-valve-status>
+      </fc>
+      <ac>
+       <inverter-power-switch type="int">1</inverter-power-switch>
+       <inverter-power-switch-pos type="double">0.5</inverter-power-switch-pos>
+       <inv-ac-switch type="int">1</inv-ac-switch>
+       <inv-ac-switch-pos type="double">0.5</inv-ac-switch-pos>
+       <voltage type="double">117.0</voltage>
+       <ac-bus-snsr type="double">-1</ac-bus-snsr>
+       <ac-cont-1a type="bool">false</ac-cont-1a>
+       <ac-cont-1b type="bool">false</ac-cont-1b>
+       <ac-cont-1c type="bool">false</ac-cont-1c>
+      </ac>
+      <ac n="1">
+       <inverter-power-switch type="int">1</inverter-power-switch>
+       <inverter-power-switch-pos type="double">0.5</inverter-power-switch-pos>
+       <inv-ac-switch type="int">1</inv-ac-switch>
+       <inv-ac-switch-pos type="double">0.5</inv-ac-switch-pos>
+       <voltage type="double">117.0</voltage>
+       <ac-bus-snsr type="double">-1</ac-bus-snsr>
+       <ac-cont-2a type="bool">false</ac-cont-2a>
+       <ac-cont-2b type="bool">false</ac-cont-2b>
+       <ac-cont-2c type="bool">false</ac-cont-2c>
+      </ac>
+      <ac n="2">
+       <inverter-power-switch type="int">1</inverter-power-switch>
+       <inverter-power-switch-pos type="double">0.5</inverter-power-switch-pos>
+       <inv-ac-switch type="int">1</inv-ac-switch>
+       <inv-ac-switch-pos type="double">0.5</inv-ac-switch-pos>
+       <voltage type="double">117.0</voltage>
+       <ac-bus-snsr type="double">-1</ac-bus-snsr>
+       <ac-cont-3a type="bool">false</ac-cont-3a>
+       <ac-cont-3b type="bool">false</ac-cont-3b>
+       <ac-cont-3c type="bool">false</ac-cont-3c>
+      </ac>
+      <bus>
+	<rel-power-demand type="double">0.5</rel-power-demand>
+	<power-demand-kW type="double">4.0</power-demand-kW>
+	<voltage type="double">30.0</voltage>
+	<tie-switch type="int">0</tie-switch>
+  <tie-switch-pos type="double">0.5</tie-switch-pos>
+      </bus>
+      <bus n="1">
+	<rel-power-demand type="double">0.5</rel-power-demand>
+	<power-demand-kW type="double">4.0</power-demand-kW>
+	<voltage type="double">30.0</voltage>
+	<tie-switch type="int">0</tie-switch>
+  <tie-switch-pos type="double">0.5</tie-switch-pos>
+      </bus>
+      <bus n="2">
+	<rel-power-demand type="double">0.5</rel-power-demand>
+	<power-demand-kW type="double">4.0</power-demand-kW>
+	<voltage type="double">30.0</voltage>
+	<tie-switch type="int">0</tie-switch>
+  <tie-switch-pos type="double">0.5</tie-switch-pos>
+      </bus>
+      <ess>
+	<ess-power-fc-switch type="int">1</ess-power-fc-switch>
+	<ess-power-buses-switch type="int">1</ess-power-buses-switch>
+      </ess>
+      <ess n="1">
+	<ess-power-fc-switch type="int">1</ess-power-fc-switch>
+	<ess-power-buses-switch type="int">1</ess-power-buses-switch>
+      </ess>
+      <ess n="2">
+	<ess-power-fc-switch type="int">1</ess-power-fc-switch>
+	<ess-power-buses-switch type="int">1</ess-power-buses-switch>
+      </ess>
+      <ties>
+	<demand-tie-ABC-kW type="double">0.0</demand-tie-ABC-kW>
+	<demand-tie-AB-kW type="double">0.0</demand-tie-AB-kW>
+	<demand-tie-AC-kW type="double">0.0</demand-tie-AC-kW>
+	<demand-tie-BC-kW type="double">0.0</demand-tie-BC-kW>
+      </ties>
+      <gauges>
+	<ac-selector-knob type="int">0</ac-selector-knob>
+	<dc-selector-knob type="int">0</dc-selector-knob>
+	<fc-stack-selector-switch type="int">0</fc-stack-selector-switch>
+	
+      </gauges>
+      <init-electrical-on type="double">12.0</init-electrical-on>
+      <h2o-line-heater-switch type="int">0</h2o-line-heater-switch>
+      <h2o-relief-heater-switch type="int">0</h2o-relief-heater-switch>
+      <purge-heater-switch type="int">0</purge-heater-switch>
+      <purge-line-throughput type="double">1.0</purge-line-throughput>
+     <hud>
+      <cmd-pwr-switch type="int">0</cmd-pwr-switch>
+      <plt-pwr-switch type="int">0</plt-pwr-switch>
+      <coas-pwr-aft-switch type="int">0</coas-pwr-aft-switch>
+      <coas-pwr-fwd-switch type="int">0</coas-pwr-fwd-switch>
+     </hud>
+      <display>
+        <L1-pwr-switch type="int">1</L1-pwr-switch>
+        <L2-pwr-switch type="int">1</L2-pwr-switch>
+        <C1-pwr-switch type="int">1</C1-pwr-switch>
+        <C2-pwr-switch type="int">1</C2-pwr-switch>
+        <C3-pwr-switch type="int">1</C3-pwr-switch>
+        <C4-pwr-switch type="int">1</C4-pwr-switch>
+        <C5-pwr-switch type="int">1</C5-pwr-switch>
+        <R1-pwr-switch type="int">1</R1-pwr-switch>
+        <R2-pwr-switch type="int">1</R2-pwr-switch>
+        <A6-pwr-switch type="int">1</A6-pwr-switch>      
+	<R11-pwr-switch type="int">1</R11-pwr-switch>
+	<CDR1-power-demand-kW type="double">0.035</CDR1-power-demand-kW>
+	<CDR2-power-demand-kW type="double">0.035</CDR2-power-demand-kW>
+	<CRT1-power-demand-kW type="double">0.035</CRT1-power-demand-kW>
+	<CRT2-power-demand-kW type="double">0.035</CRT2-power-demand-kW>
+	<CRT3-power-demand-kW type="double">0.035</CRT3-power-demand-kW>
+	<PLT1-power-demand-kW type="double">0.035</PLT1-power-demand-kW>
+	<PLT2-power-demand-kW type="double">0.035</PLT2-power-demand-kW>
+	<MFD1-power-demand-kW type="double">0.035</MFD1-power-demand-kW>
+	<MFD2-power-demand-kW type="double">0.035</MFD2-power-demand-kW>
+	<CRT4-power-demand-kW type="double">0.035</CRT4-power-demand-kW>
+	<AFD1-power-demand-kW type="double">0.035</AFD1-power-demand-kW>
+      </display>
+     </electrical>
+     <fire-suppression>
+	<avbay-1-arm-switch type="int">0</avbay-1-arm-switch>
+	<avbay-2-arm-switch type="int">0</avbay-2-arm-switch>
+	<avbay-3-arm-switch type="int">0</avbay-3-arm-switch>
+	<avbay-1-discharge type="int">0</avbay-1-discharge>
+	<avbay-2-discharge type="int">0</avbay-2-discharge>
+	<avbay-3-discharge type="int">0</avbay-3-discharge>
+	<sd-cabin-light-l type="int">0</sd-cabin-light-l>
+	<sd-payload-light-r type="int">0</sd-payload-light-r>
+	<sd-flightdeck-light-l type="int">0</sd-flightdeck-light-l>
+	<sd-flightdeck-light-r type="int">0</sd-flightdeck-light-r>
+	<sd-avbay1-light-l type="int">0</sd-avbay1-light-l>
+	<sd-avbay1-light-r type="int">0</sd-avbay1-light-r>
+	<sd-avbay2-light-l type="int">0</sd-avbay2-light-l>
+	<sd-avbay2-light-r type="int">0</sd-avbay2-light-r>
+	<sd-avbay3-light-l type="int">0</sd-avbay3-light-l>
+	<sd-avbay3-light-r type="int">0</sd-avbay3-light-r>
+	<sensor-reset-cmd type="int">0</sensor-reset-cmd>
+     </fire-suppression>
+     <landing>
+      <landing-gear-arm-cmd type="int">0</landing-gear-arm-cmd>
+      <brake-mn-A-switch type="int">1</brake-mn-A-switch>
+      <brake-mn-B-switch type="int">1</brake-mn-B-switch>
+      <brake-mn-C-switch type="int">1</brake-mn-C-switch>
+      <brake-isolation-valve-1-status type="int">1</brake-isolation-valve-1-status>
+      <brake-isolation-valve-2-status type="int">1</brake-isolation-valve-2-status>
+      <brake-isolation-valve-3-status type="int">1</brake-isolation-valve-3-status>
+     </landing>
+     <light>
+      <pb-flood-star-fwd-switch type="int">0</pb-flood-star-fwd-switch>
+      <pb-flood-port-fwd-switch type="int">0</pb-flood-port-fwd-switch>
+      <pb-flood-star-mid-switch type="int">0</pb-flood-star-mid-switch>
+      <pb-flood-port-mid-switch type="int">0</pb-flood-port-mid-switch>
+      <pb-flood-star-aft-switch type="int">0</pb-flood-star-aft-switch>
+      <pb-flood-port-aft-switch type="int">0</pb-flood-port-aft-switch>
+      <pb-flood-docking-bright-switch type="int">0</pb-flood-docking-bright-switch>
+      <pb-flood-fwd-bhd-switch type="int">0</pb-flood-fwd-bhd-switch>
+      <cockpit-ambience-r type="float">0.05</cockpit-ambience-r>
+      <cockpit-ambience-g type="float">0.025</cockpit-ambience-g>
+      <cockpit-ambience-b type="float">0.025</cockpit-ambience-b>
+      <console-eff-norm type="float">0.7</console-eff-norm>
+      <console-eff-numeric-intensity type="float">0.5</console-eff-numeric-intensity>
+      <console-eff-aft-numeric-intensity type="float">0.5</console-eff-aft-numeric-intensity>
+      <console-eff-norm-panel-left type="float">0.5</console-eff-norm-panel-left>
+      <console-eff-norm-panel-right type="float">0.5</console-eff-norm-panel-right>
+      <console-eff-norm-panel-center type="float">0.5</console-eff-norm-panel-center>
+      <console-eff-norm-overhead-left type="float">0.5</console-eff-norm-overhead-left>
+      <console-eff-norm-overhead-right type="float">0.5</console-eff-norm-overhead-right>
+      <console-eff-norm-instrument-right type="float">0.5</console-eff-norm-instrument-right>
+      <console-eff-norm-instrument-overhead type="float">0.5</console-eff-norm-instrument-overhead>
+      <console-eff-norm-aft-panel-center type="float">0.5</console-eff-norm-aft-panel-center>
+      <console-eff-norm-aft-panel-right type="float">0.5</console-eff-norm-aft-panel-right>
+      <console-eff-norm-aft-instrument-center type="float">0.5</console-eff-norm-aft-instrument-center>
+      <console-eff-norm-aft-numeric-center type="float">0.5</console-eff-norm-aft-numeric-center>
+      <button-light-intensity type="float">0.5</button-light-intensity>
+      <hud-light-cmd-norm type="float">1.0</hud-light-cmd-norm>
+      <hud-light-plt-norm type="float">1.0</hud-light-plt-norm>
+      <hud-bright-cmd type="int">1</hud-bright-cmd>
+      <hud-bright-plt type="int">1</hud-bright-plt>
+      <hud-dim-cmd type="float">1.0</hud-dim-cmd>
+      <hud-dim-plt type="float">1.0</hud-dim-plt>
+      <hud-dim-coas-out type="float">1.0</hud-dim-coas-out>
+      <cabinlight1r-intensity type="float">0.0</cabinlight1r-intensity>
+      <cabinlight1-intensity type="float">0.0</cabinlight1-intensity>
+      <cabinlight2r-intensity type="float">0.0</cabinlight2r-intensity>
+      <cabinlight2-intensity type="float">0.0</cabinlight2-intensity>
+      <cabinlight3-intensity type="float">0.0</cabinlight3-intensity>
+      <cabinlight4-intensity type="float">0.0</cabinlight4-intensity>
+      <cabinlight5-intensity type="float">0.0</cabinlight5-intensity>
+      <cabinlight36r-intensity type="float">0.0</cabinlight36r-intensity>
+      <cabinlight3-intensity type="float">0.0</cabinlight3-intensity>
+      <cabinlight6-intensity type="float">0.0</cabinlight6-intensity>
+      <cabinlight47r-intensity type="float">0.0</cabinlight47r-intensity>
+      <cabinlight4-intensity type="float">0.0</cabinlight4-intensity>
+      <cabinlight7-intensity type="float">0.0</cabinlight7-intensity>
+      <cabinlight8-intensity type="float">0.0</cabinlight8-intensity>
+      <cabinlight9-intensity type="float">0.0</cabinlight9-intensity>
+      <cabinlight9r-intensity type="float">0.0</cabinlight9r-intensity>
+      <cabinlight10-intensity type="float">0.0</cabinlight10-intensity>
+      <cabinlight10r-intensity type="float">0.0</cabinlight10r-intensity>
+      <cabinlight11-intensity type="float">0.0</cabinlight11-intensity>
+      <cabinlight11r-intensity type="float">0.0</cabinlight11r-intensity>
+      <cabinlight12-intensity type="float">0.0</cabinlight12-intensity>
+      <cabinlight1-mode type="int">0</cabinlight1-mode>
+      <cabinlight2-mode type="int">0</cabinlight2-mode>
+      <cabinlight6-mode type="int">1</cabinlight6-mode>
+      <cabinlight7-mode type="int">1</cabinlight7-mode>
+      <cabinlight9-mode type="int">1</cabinlight9-mode>
+      <cabinlight10-mode type="int">1</cabinlight10-mode>
+      <cabinlight11-mode type="int">1</cabinlight11-mode>
+     </light>
+     <grain>
+        <grain-velcro type="int">180</grain-velcro>
+        <grain-framing type="int">300</grain-framing>
+        <grain-floor type="int">150</grain-floor>
+        <grain-roof type="int">1100</grain-roof>
+        <grain-wall type="int">600</grain-wall>
+        <grain-window type="int">400</grain-window>
+     </grain>
+     <hud>
+      <declutter-level type="int">0</declutter-level>
+      <mode-switch-cdr type="int">1</mode-switch-cdr>
+      <mode-switch-plt type="int">1</mode-switch-plt>	
+      <guidance-string type="string"></guidance-string>
+     </hud>
+     <mechanical>
+      <et-umbilical-door-mode type="int">0</et-umbilical-door-mode>
+      <et-door-cl-latch-cmd type="int">1</et-door-cl-latch-cmd>
+      <et-door-cl-latch-pos type="double">1.0</et-door-cl-latch-pos>
+      <et-door-left-latch-cmd type="int">0</et-door-left-latch-cmd>
+      <et-door-left-latch-pos type="double">0.0</et-door-left-latch-pos>
+      <et-door-right-latch-cmd type="int">0</et-door-right-latch-cmd>
+      <et-door-right-latch-pos type="double">0.0</et-door-right-latch-pos>
+      <et-door-left-cmd type="int">0</et-door-left-cmd>
+      <et-door-left-pos type="double">0.0</et-door-left-pos>
+      <et-door-right-cmd type="int">0</et-door-right-cmd>
+      <et-door-right-pos type="double">0.0</et-door-right-pos>
+      <pb-door-cl1-4-latch-cmd type="int">0</pb-door-cl1-4-latch-cmd>
+      <pb-door-cl1-4-latch-pos type="double">0.0</pb-door-cl1-4-latch-pos>
+      <pb-door-cl5-8-latch-cmd type="int">0</pb-door-cl5-8-latch-cmd>
+      <pb-door-cl5-8-latch-pos type="double">0.0</pb-door-cl5-8-latch-pos>
+      <pb-door-cl9-12-latch-cmd type="int">0</pb-door-cl9-12-latch-cmd>
+      <pb-door-cl9-12-latch-pos type="double">0.0</pb-door-cl9-12-latch-pos>
+      <pb-door-cl13-16-latch-cmd type="int">0</pb-door-cl13-16-latch-cmd>
+      <pb-door-cl13-16-latch-pos type="double">0.0</pb-door-cl13-16-latch-pos>
+      <pb-door-left-fwd-latch-cmd type="int">0</pb-door-left-fwd-latch-cmd>
+      <pb-door-left-fwd-latch-pos type="double">0.0</pb-door-left-fwd-latch-pos>
+      <pb-door-left-aft-latch-cmd type="int">0</pb-door-left-aft-latch-cmd>
+      <pb-door-left-aft-latch-pos type="double">0.0</pb-door-left-aft-latch-pos>
+      <pb-door-right-fwd-latch-cmd type="int">0</pb-door-right-fwd-latch-cmd>
+      <pb-door-right-fwd-latch-pos type="double">0.0</pb-door-right-fwd-latch-pos>
+      <pb-door-right-aft-latch-cmd type="int">0</pb-door-right-aft-latch-cmd>
+      <pb-door-right-aft-latch-pos type="double">0.0</pb-door-right-aft-latch-pos>
+      <pb-door-left-cmd type="int">0</pb-door-left-cmd>
+      <pb-door-left-pos type="double">0.0</pb-door-left-pos>
+      <pb-door-right-cmd type="int">0</pb-door-right-cmd>
+      <pb-door-right-pos type="double">0.0</pb-door-right-pos>
+      <pb-door-sys1-enable type="int">0</pb-door-sys1-enable>
+      <pb-door-sys2-enable type="int">0</pb-door-sys2-enable>
+      <pb-door-software-acpower-enable type="int">0</pb-door-software-acpower-enable>
+      <pb-door-indicator type="double">0</pb-door-indicator>
+      <pb-door-auto-switch type="int">0</pb-door-auto-switch>
+      <pb-door-mode-auto type="int">1</pb-door-mode-auto>
+      <pb-door-software-bypass type="int">0</pb-door-software-bypass>
+      <pb-door-software-switch type="int">-2</pb-door-software-switch>
+      <pb-door-init-open type="int">0</pb-door-init-open>
+      <pb-mechanical-sys1-pwr type="int">0</pb-mechanical-sys1-pwr>
+      <pb-mechanical-sys2-pwr type="int">0</pb-mechanical-sys2-pwr>
+      <ku-antenna-heater-cb type="int">0</ku-antenna-heater-cb>
+      <ku-antenna-elec-cb type="int">0</ku-antenna-elec-cb>
+      <ku-antenna-cable-heater-cb type="int">0</ku-antenna-cable-heater-cb>
+      <ku-antenna-sig-proc-cb type="int">0</ku-antenna-sig-proc-cb>
+      <ku-antenna-deploy-switch type="int">0</ku-antenna-deploy-switch>
+      <ku-antenna-direct-stow-switch type="int">0</ku-antenna-direct-stow-switch>
+      <ku-antenna-arm-switch type="int">0</ku-antenna-arm-switch>
+      <ku-antenna-jett-A-cb type="int">0</ku-antenna-jett-A-cb>
+      <ku-antenna-jett-B-cb type="int">0</ku-antenna-jett-B-cb>
+      <ku-antenna-jett-switch type="int">0</ku-antenna-jett-switch>
+      <ku-antenna-pos type="double">0.0</ku-antenna-pos>
+      <ku-antenna-attached type="double">1.0</ku-antenna-attached>
+      <star-tracker-sys1-switch type="int">0</star-tracker-sys1-switch>
+      <star-tracker-sys2-switch type="int">0</star-tracker-sys2-switch>
+      <star-tracker-y-switch type="int">0</star-tracker-y-switch>
+      <star-tracker-z-switch type="int">0</star-tracker-z-switch>
+      <star-tracker-door-z-pos type="double">0</star-tracker-door-z-pos>
+      <star-tracker-door-y-pos type="double">0</star-tracker-door-y-pos>
+      <vdoor-cmd type="int">1</vdoor-cmd>
+      <vdoor-pos type="double">1</vdoor-pos>
+     </mechanical>
+     <mps>
+      <engine>
+       <controller-A-power-switch-status type="int">1</controller-A-power-switch-status>
+       <controller-B-power-switch-status type="int">1</controller-B-power-switch-status>
+       <run-cmd type="int">0</run-cmd>
+       <electric-lockup type="int">0</electric-lockup>
+       <data-path type="int">1</data-path>
+       <helium-isolation-valve-A-status type="int">1</helium-isolation-valve-A-status>
+       <helium-isolation-valve-B-status type="int">1</helium-isolation-valve-B-status>
+       <helium-interconnect-valve-status type="int">0</helium-interconnect-valve-status>
+       <redline type="int">0</redline>
+       <engine-operational type="int">1</engine-operational>
+      </engine>
+      <engine n="1">
+       <controller-A-power-switch-status type="int">1</controller-A-power-switch-status>
+       <controller-B-power-switch-status type="int">1</controller-B-power-switch-status>
+       <run-cmd type="int">0</run-cmd>
+       <electric-lockup type="int">0</electric-lockup>
+       <data-path type="int">1</data-path>
+       <helium-isolation-valve-A-status type="int">1</helium-isolation-valve-A-status>
+       <helium-isolation-valve-B-status type="int">1</helium-isolation-valve-B-status>
+       <helium-interconnect-valve-status type="int">0</helium-interconnect-valve-status>
+       <redline type="int">0</redline>
+       <engine-operational type="int">1</engine-operational>
+      </engine>
+      <engine n="2">
+       <controller-A-power-switch-status type="int">1</controller-A-power-switch-status>
+       <controller-B-power-switch-status type="int">1</controller-B-power-switch-status>
+       <engine-operational type="int">1</engine-operational>
+       <run-cmd type="int">0</run-cmd>
+       <electric-lockup type="int">0</electric-lockup>
+       <data-path type="int">1</data-path>
+       <helium-isolation-valve-A-status type="int">1</helium-isolation-valve-A-status>
+       <helium-isolation-valve-B-status type="int">1</helium-isolation-valve-B-status>
+       <helium-interconnect-valve-status type="int">0</helium-interconnect-valve-status>
+       <redline type="int">0</redline>
+      </engine>
+      <helium>
+       <pressurized type="double">0.0</pressurized>
+       <pressure-psia type="double">4700.0</pressure-psia>
+      </helium>
+      <helium n="1">
+       <pressurized type="double">0.0</pressurized>
+       <pressure-psia type="double">4700.0</pressure-psia>
+      </helium>
+      <helium n="2">
+       <pressurized type="double">0.0</pressurized>
+       <pressure-psia type="double">4700.0</pressure-psia>
+      </helium>
+      <helium n="3">
+       <pressure-psia type="double">4700.0</pressure-psia>
+      </helium>
+      <helium-isolation-valve-P-status type="int">1</helium-isolation-valve-P-status>
+      <helium-isolation-valve-Px-status type="int">1</helium-isolation-valve-Px-status>
+      <interconnect>
+        <helium-interconnect-est-fraction type="double">0.0</helium-interconnect-est-fraction>
+      </interconnect>
+      <limit-shutdown-enable type="int">1</limit-shutdown-enable>
+      <propellant-dump-cmd type="int">0</propellant-dump-cmd>
+      <backup-LH2-valve-status type="int">0</backup-LH2-valve-status>
+      <LH2-ullage-status type="int">0</LH2-ullage-status>
+      <LH2-manifold-valve-status type="int">0</LH2-manifold-valve-status>
+      <LO2-manifold-valve-status type="int">0</LO2-manifold-valve-status>
+      <propellant-dump-density type="double">0.2</propellant-dump-density>
+      <propellant-dump-force-lb type="double">0.0</propellant-dump-force-lb>
+     </mps>
+     <navigation>
+      <air-data-deploy-left-switch type="int">0</air-data-deploy-left-switch>
+      <air-data-deploy-right-switch type="int">0</air-data-deploy-right-switch>
+      <air-data-stow-left-switch type="int">1</air-data-stow-left-switch>
+      <air-data-stow-right-switch type="int">1</air-data-stow-right-switch>
+      <air-data-left-pos type="double">0.0</air-data-left-pos>
+      <air-data-right-pos type="double">0.0</air-data-right-pos>
+      <radar-altimeter-1-power type="int">0</radar-altimeter-1-power>
+      <radar-altimeter-2-power type="int">0</radar-altimeter-2-power>
+      <rdr-altm type="int">0</rdr-altm>
+      <tacan-sys1-switch type="int">0</tacan-sys1-switch>
+      <tacan-sys2-switch type="int">0</tacan-sys2-switch>
+      <tacan-sys3-switch type="int">0</tacan-sys3-switch>
+      <gps-power-switch type="int">1</gps-power-switch>
+      <gps-preamp-1-switch type="int">1</gps-preamp-1-switch>
+      <gps-preamp-2-switch type="int">1</gps-preamp-2-switch>
+      <mls-sys1-switch type="int">0</mls-sys1-switch>
+      <mls-sys2-switch type="int">0</mls-sys2-switch>
+      <mls-sys3-switch type="int">0</mls-sys3-switch>
+      <mls-channel-set-pos1 type="int">8</mls-channel-set-pos1>
+      <mls-channel-set-pos2 type="int">8</mls-channel-set-pos2>
+      <mls-channel-set-pos3 type="int">8</mls-channel-set-pos3>
+      <gps-1-select type="int">1</gps-1-select>
+      <gps-2-select type="int">1</gps-2-select>
+      <gps-3-select type="int">1</gps-3-select>
+      <imu1-power-demand-kW type="double">0.22</imu1-power-demand-kW>
+      <imu2-power-demand-kW type="double">0.22</imu2-power-demand-kW>
+      <imu3-power-demand-kW type="double">0.22</imu3-power-demand-kW>
+      <imu1-switch type="double">1.0</imu1-switch>
+      <imu2-switch type="double">1.0</imu2-switch>
+      <imu3-switch type="double">1.0</imu3-switch>
+      <acc-int-flag type="int">0</acc-int-flag>
+      <dvx type="double">0.0</dvx>
+      <dvy type="double">0.0</dvy>
+      <dvz type="double">0.0</dvz>
+      <orbital-tgt>
+	<tgt-id type="int">0</tgt-id>
+      </orbital-tgt>
+      <state-vector>
+	<use-realistic-sv type="int">1</use-realistic-sv>
+	<update-pos type="double">0.0</update-pos>
+	<update-vel type="double">0.0</update-vel>
+	<pitch-deg type="double">0.0</pitch-deg>
+	<yaw-deg type="double">0.0</yaw-deg>
+	<roll-deg type="double">0.0</roll-deg>
+	<error-star-tracker>
+	  <pitch-deg type="double">0.0</pitch-deg>
+	  <yaw-deg type="double">0.0</yaw-deg>
+	  <roll-deg type="double">0.0</roll-deg>
+	  <quality-pos type="double">0.1</quality-pos>
+	  <quality-v type="double">0.1</quality-v>
+	  <quality-ang type="double">0.02</quality-ang>
+	</error-star-tracker>
+	<error-coas>
+	  <pitch-deg type="double">0.0</pitch-deg>
+	  <yaw-deg type="double">0.0</yaw-deg>
+	  <roll-deg type="double">0.0</roll-deg>
+	  <quality-pos type="double">0.3</quality-pos>
+	  <quality-v type="double">0.3</quality-v>
+	  <quality-ang type="double">0.2</quality-ang>
+	</error-coas>
+	<error-drag-h>
+	  <quality-pos type="double">0.0</quality-pos>
+	</error-drag-h>
+	<error-gps>
+	  <quality-pos type="double">0.0</quality-pos>
+	</error-gps>
+	<error-rr>
+	  <pitch-deg type="double">0.0</pitch-deg>
+	  <yaw-deg type="double">0.0</yaw-deg>
+	  <roll-deg type="double">0.0</roll-deg>
+	  <rng-m type="double">0.0</rng-m>
+	  <rdot-m_s type="double">0.0</rdot-m_s>
+	  <quality-pos type="double">0.02</quality-pos>
+	  <quality-v type="double">0.02</quality-v>
+	  <quality-ang type="double">0.01</quality-ang>
+	</error-rr>
+	<error-prop>
+	  <pitch-deg type="double">0.0</pitch-deg>
+	  <yaw-deg type="double">0.0</yaw-deg>
+	  <roll-deg type="double">0.0</roll-deg>
+	  <angle-deg type="double">0.0</angle-deg>
+	  <x-m type="double">0.0</x-m>
+	  <y-m type="double">0.0</y-m>
+	  <z-m type="double">0.0</z-m>
+	  <vx-m_s type="double">0.0</vx-m_s>
+	  <vy-m_s type="double">0.0</vy-m_s>
+	  <vz-m_s type="double">0.0</vz-m_s>
+	  <v-m_s type="double">0.0</v-m_s>
+	  <pos-m type="double">0.0</pos-m>
+	  <latitude-deg type="double">0.0</latitude-deg>
+	  <longitude-deg type="double">0.0</longitude-deg>
+	  <altitude-ft type="double">0.0</altitude-ft>
+	</error-prop>
+	<error-tgt>
+	  <pitch-deg type="double">0.0</pitch-deg>
+	  <yaw-deg type="double">0.0</yaw-deg>
+	  <roll-deg type="double">00.0</roll-deg>
+	  <angle-deg type="double">0.0</angle-deg>
+	  <x-m type="double">0.0</x-m>
+	  <y-m type="double">0.0</y-m>
+	  <z-m type="double">0.0</z-m>
+	  <pos-m type="double">0.0</pos-m>
+	  <vx-m_s type="double">0.0</vx-m_s>
+	  <vy-m_s type="double">0.0</vy-m_s>
+	  <vz-m_s type="double">0.0</vz-m_s>
+	  <v-m_s type="double">0.0</v-m_s>
+	</error-tgt>
+	<error-rndz>
+	  <pitch-deg type="double">0.0</pitch-deg>
+	  <yaw-deg type="double">0.0</yaw-deg>
+	  <roll-deg type="double">0.0</roll-deg>
+	  <x-m type="double">0.0</x-m>
+	  <y-m type="double">0.0</y-m>
+	  <z-m type="double">0.0</z-m>
+	  <pos-m type="double">0.0</pos-m>
+	  <vx-m_s type="double">0.0</vx-m_s>
+	  <vy-m_s type="double">0.0</vy-m_s>
+	  <vz-m_s type="double">0.0</vz-m_s>
+	  <v-m_s type="double">0.0</v-m_s>
+	</error-rndz>
+      </state-vector>
+     </navigation>
+     <oms>
+      <oms-dump-cmd type="int">0</oms-dump-cmd>
+      <oms-dump-qty type="int">100</oms-dump-qty>
+      <oms-dump-arm-cmd type="int">0</oms-dump-arm-cmd>
+      <oms-dump-ttg-s type="int">0</oms-dump-ttg-s>
+      <oms-dump-interconnect-cmd type="int">1</oms-dump-interconnect-cmd>
+      <oms-dump-interconnect-complete type="int">0</oms-dump-interconnect-complete>
+      <oms-rcs-dump-cmd type="int">0</oms-rcs-dump-cmd>
+     </oms>
+     <oms-hardware>
+      <oms-kit-installed type="int">0</oms-kit-installed>
+      <oms-kit-num-tanks type="int">0</oms-kit-num-tanks>
+      <helium-left-oms-valve-A-status type="int">1</helium-left-oms-valve-A-status>
+      <helium-left-oms-valve-B-status type="int">1</helium-left-oms-valve-B-status>
+      <helium-right-oms-valve-A-status type="int">1</helium-right-oms-valve-A-status>
+      <helium-right-oms-valve-B-status type="int">1</helium-right-oms-valve-B-status>
+      <helium-kit-oms-valve-A-status type="int">1</helium-kit-oms-valve-A-status>
+      <helium-kit-oms-valve-B-status type="int">1</helium-kit-oms-valve-B-status>
+      <helium-left-oms-pressure-psia type="double">280.0</helium-left-oms-pressure-psia>
+      <helium-right-oms-pressure-psia type="double">280.0</helium-right-oms-pressure-psia>
+      <helium-kit-oms-pressure-psia type="double">280.0</helium-kit-oms-pressure-psia>
+      <tank-left-oms-valve-A-status type="int">1</tank-left-oms-valve-A-status>
+      <tank-left-oms-valve-B-status type="int">1</tank-left-oms-valve-B-status>
+      <tank-right-oms-valve-A-status type="int">1</tank-right-oms-valve-A-status>
+      <tank-right-oms-valve-B-status type="int">1</tank-right-oms-valve-B-status>
+      <tank-kit-oms-valve-A-status type="int">0</tank-kit-oms-valve-A-status>
+      <tank-kit-oms-valve-B-status type="int">0</tank-kit-oms-valve-B-status>
+      <tank-kit-isolation-status type="int">0</tank-kit-isolation-status>
+      <crossfeed-left-oms-valve-A-status type="int">0</crossfeed-left-oms-valve-A-status>
+      <crossfeed-left-oms-valve-B-status type="int">0</crossfeed-left-oms-valve-B-status>
+      <crossfeed-right-oms-valve-A-status type="int">0</crossfeed-right-oms-valve-A-status>
+      <crossfeed-right-oms-valve-B-status type="int">0</crossfeed-right-oms-valve-B-status>
+      <engine-left-arm-cmd type="int">1</engine-left-arm-cmd>
+      <engine-right-arm-cmd type="int">1</engine-right-arm-cmd>
+      <fuel-left-oms-pressure-psia type="double">250.0</fuel-left-oms-pressure-psia>
+      <fuel-right-oms-pressure-psia type="double">250.0</fuel-right-oms-pressure-psia>
+      <fuel-kit-oms-pressure-psia type="double">250.0</fuel-kit-oms-pressure-psia>
+      <oxidizer-left-oms-pressure-psia type="double">250.0</oxidizer-left-oms-pressure-psia>
+      <oxidizer-right-oms-pressure-psia type="double">250.0</oxidizer-right-oms-pressure-psia>
+      <oxidizer-kit-oms-pressure-psia type="double">250.0</oxidizer-kit-oms-pressure-psia>
+      <crossfeed-left-open type="double">0.0</crossfeed-left-open>
+      <tank-left-isolation-status type="double">0.0</tank-left-isolation-status>
+      <crossfeed-right-open type="double">0.0</crossfeed-right-open>
+      <tank-right-isolation-status type="double">0.0</tank-right-isolation-status>
+      <heater-left-A-status type="int">0</heater-left-A-status>
+      <heater-left-B-status type="int">0</heater-left-B-status>
+      <heater-right-A-status type="int">0</heater-right-A-status>
+      <heater-right-B-status type="int">0</heater-right-B-status>
+      <heater-crossfeed-A-status type="int">0</heater-crossfeed-A-status>
+      <heater-crossfeed-B-status type="int">0</heater-crossfeed-B-status>
+      <n2-left-nstarts type="int">20</n2-left-nstarts>
+      <n2-right-nstarts type="int">20</n2-right-nstarts>
+      <gimbal-chk-cmd type="int">0</gimbal-chk-cmd>
+      <gimbal-left-pri-selected type="int">1</gimbal-left-pri-selected>
+      <gimbal-left-sec-selected type="int">0</gimbal-left-sec-selected>
+      <gimbal-right-pri-selected type="int">1</gimbal-right-pri-selected>
+      <gimbal-right-sec-selected type="int">0</gimbal-right-sec-selected>
+      <left-oms-fuel-available type="double">1.0</left-oms-fuel-available>
+      <right-oms-fuel-available type="double">1.0</right-oms-fuel-available>
+      <kit-oms-fuel-available type="double">0.0</kit-oms-fuel-available>
+      <gauges>
+	<tank-selector-switch type="int">0</tank-selector-switch>
+	<pressure-selector-switch type="int">0</pressure-selector-switch>
+      </gauges>
+     </oms-hardware>
+     <propellant>
+      <LO2-inboard-status type="int">0</LO2-inboard-status>
+      <LO2-outboard-status type="int">0</LO2-outboard-status>
+      <LH2-inboard-status type="int">0</LH2-inboard-status>
+      <LH2-outboard-status type="int">0</LH2-outboard-status>
+      <LO2-left-prevalve-status type="int">1</LO2-left-prevalve-status>
+      <LO2-center-prevalve-status type="int">1</LO2-center-prevalve-status>
+      <LO2-right-prevalve-status type="int">1</LO2-right-prevalve-status>
+      <LH2-left-prevalve-status type="int">1</LH2-left-prevalve-status>
+      <LH2-center-prevalve-status type="int">1</LH2-center-prevalve-status>
+      <LH2-right-prevalve-status type="int">1</LH2-right-prevalve-status>
+     </propellant>
+     <rcs>
+      <pod1-up-fire-roll type="double">0.0</pod1-up-fire-roll>
+      <pod1-up-raw-pitch type="double">0.0</pod1-up-raw-pitch>
+      <pod1-up-raw-roll type="double">0.0</pod1-up-raw-roll>
+      <pod1-up-raw type="double">0.0</pod1-up-raw>
+      <thrust-pod1-up type="double">0.0</thrust-pod1-up>
+
+      <pod2-up-fire-roll type="double">0.0</pod2-up-fire-roll>
+      <pod2-up-raw-pitch type="double">0.0</pod2-up-raw-pitch>
+      <pod2-up-raw-roll type="double">0.0</pod2-up-raw-roll>
+      <pod2-up-raw type="double">0.0</pod2-up-raw>
+      <thrust-pod2-up type="double">0.0</thrust-pod2-up>
+
+      <pod1-down-fire-roll type="double">0.0</pod1-down-fire-roll>
+      <pod1-down-raw-pitch type="double">0.0</pod1-down-raw-pitch>
+      <pod1-down-raw-roll type="double">0.0</pod1-down-raw-roll>
+      <pod1-down-raw type="double">0.0</pod1-down-raw>
+      <thrust-pod1-down type="double">0.0</thrust-pod1-down>
+
+      <pod2-down-fire-roll type="double">0.0</pod2-down-fire-roll>
+      <pod2-down-raw-pitch type="double">0.0</pod2-down-raw-pitch>
+      <pod2-down-raw-roll type="double">0.0</pod2-down-raw-roll>
+      <pod2-down-raw type="double">0.0</pod2-down-raw>
+      <thrust-pod2-down type="double">0.0</thrust-pod2-down>
+
+      <nose-up-fire-roll type="double">0.0</nose-up-fire-roll>
+      <nose-up-raw-pitch type="double">0.0</nose-up-raw-pitch>
+      <nose-up-raw-roll type="double">0.0</nose-up-raw-roll>
+      <nose-up-raw type="double">0.0</nose-up-raw>
+      <thrust-nose-up type="double">0.0</thrust-nose-up>
+
+      <nose-down-fire-roll type="double">0.0</nose-down-fire-roll>
+      <nose-down-raw-pitch type="double">0.0</nose-down-raw-pitch>
+      <nose-down-raw-roll type="double">0.0</nose-down-raw-roll>
+      <nose-down-raw type="double">0.0</nose-down-raw>
+      <thrust-nose-down type="double">0.0</thrust-nose-down>
+
+      <fwd-dump-arm-cmd type="int">0</fwd-dump-arm-cmd>
+      <fwd-dump-cmd type="int">0</fwd-dump-cmd>
+      <fwd-dump-time-s type="int">0</fwd-dump-time-s>
+
+      <aft-dump-arm-cmd type="int">0</aft-dump-arm-cmd>
+      <aft-dump-cmd type="int">0</aft-dump-cmd>
+      <aft-dump-time-s type="int">0</aft-dump-time-s>
+
+      <thrust-normalizer type="double">0.0</thrust-normalizer>
+
+      <auto-manf-close type="int">0</auto-manf-close>
+
+      <jet-table include="jet_table.xml"/>
+
+      <F1L-fire-cmd-inh type="double">0.0</F1L-fire-cmd-inh> 
+      <F3L-fire-cmd-inh type="double">0.0</F3L-fire-cmd-inh>  
+      <F2R-fire-cmd-inh type="double">0.0</F2R-fire-cmd-inh>  
+      <F4R-fire-cmd-inh type="double">0.0</F4R-fire-cmd-inh>   
+      <F1U-fire-cmd-inh type="double">0.0</F1U-fire-cmd-inh>
+      <F3U-fire-cmd-inh type="double">0.0</F3U-fire-cmd-inh>
+      <F2U-fire-cmd-inh type="double">0.0</F2U-fire-cmd-inh> 
+      <F1D-fire-cmd-inh type="double">0.0</F1D-fire-cmd-inh>
+      <F3D-fire-cmd-inh type="double">0.0</F3D-fire-cmd-inh> 
+      <F2D-fire-cmd-inh type="double">0.0</F2D-fire-cmd-inh>
+      <F4D-fire-cmd-inh type="double">0.0</F4D-fire-cmd-inh>
+      <F1F-fire-cmd-inh type="double">0.0</F1F-fire-cmd-inh> 
+      <F3F-fire-cmd-inh type="double">0.0</F3F-fire-cmd-inh>   
+      <F2F-fire-cmd-inh type="double">0.0</F2F-fire-cmd-inh> 
+      <F5L-fire-cmd-inh type="double">0.0</F5L-fire-cmd-inh>
+      <F5R-fire-cmd-inh type="double">0.0</F5R-fire-cmd-inh>     
+      <L4L-fire-cmd-inh type="double">0.0</L4L-fire-cmd-inh>     
+      <L2L-fire-cmd-inh type="double">0.0</L2L-fire-cmd-inh>                            
+      <L3L-fire-cmd-inh type="double">0.0</L3L-fire-cmd-inh>         
+      <L1L-fire-cmd-inh type="double">0.0</L1L-fire-cmd-inh>
+      <L4U-fire-cmd-inh type="double">0.0</L4U-fire-cmd-inh>  
+      <L2U-fire-cmd-inh type="double">0.0</L2U-fire-cmd-inh>                                  
+      <L1U-fire-cmd-inh type="double">0.0</L1U-fire-cmd-inh>
+      <L4D-fire-cmd-inh type="double">0.0</L4D-fire-cmd-inh>
+      <L2D-fire-cmd-inh type="double">0.0</L2D-fire-cmd-inh>
+      <L3D-fire-cmd-inh type="double">0.0</L3D-fire-cmd-inh> 
+      <L3A-fire-cmd-inh type="double">0.0</L3A-fire-cmd-inh>
+      <L1A-fire-cmd-inh type="double">0.0</L1A-fire-cmd-inh>
+      <L5L-fire-cmd-inh type="double">0.0</L5L-fire-cmd-inh> 
+      <L5D-fire-cmd-inh type="double">0.0</L5D-fire-cmd-inh>
+      <R4R-fire-cmd-inh type="double">0.0</R4R-fire-cmd-inh> 
+      <R2R-fire-cmd-inh type="double">0.0</R2R-fire-cmd-inh> 
+      <R3R-fire-cmd-inh type="double">0.0</R3R-fire-cmd-inh> 
+      <R1R-fire-cmd-inh type="double">0.0</R1R-fire-cmd-inh> 
+      <R4U-fire-cmd-inh type="double">0.0</R4U-fire-cmd-inh> 
+      <R2U-fire-cmd-inh type="double">0.0</R2U-fire-cmd-inh> 
+      <R1U-fire-cmd-inh type="double">0.0</R1U-fire-cmd-inh>
+      <R4D-fire-cmd-inh type="double">0.0</R4D-fire-cmd-inh>  
+      <R2D-fire-cmd-inh type="double">0.0</R2D-fire-cmd-inh>
+      <R3D-fire-cmd-inh type="double">0.0</R3D-fire-cmd-inh>
+      <R1A-fire-cmd-inh type="double">0.0</R1A-fire-cmd-inh>
+      <R3A-fire-cmd-inh type="double">0.0</R3A-fire-cmd-inh>
+      <R5R-fire-cmd-inh type="double">0.0</R5R-fire-cmd-inh>
+      <R5D-fire-cmd-inh type="double">0.0</R5D-fire-cmd-inh>
+     </rcs>
+     <rcs-hardware>
+      <helium-left-rcs-pressure-1-psia type="double">280.0</helium-left-rcs-pressure-1-psia>
+      <helium-right-rcs-pressure-1-psia type="double">280.0</helium-right-rcs-pressure-1-psia>
+      <helium-fwd-rcs-pressure-1-psia type="double">280.0</helium-fwd-rcs-pressure-1-psia>
+
+      <helium-left-rcs-pressure-2-psia type="double">280.0</helium-left-rcs-pressure-2-psia>
+      <helium-right-rcs-pressure-2-psia type="double">280.0</helium-right-rcs-pressure-2-psia>
+      <helium-fwd-rcs-pressure-2-psia type="double">280.0</helium-fwd-rcs-pressure-2-psia>
+
+      <helium-left-rcs-valve-A-status type="int">1</helium-left-rcs-valve-A-status>
+      <helium-left-rcs-valve-B-status type="int">1</helium-left-rcs-valve-B-status>
+      <helium-right-rcs-valve-A-status type="int">1</helium-right-rcs-valve-A-status>
+      <helium-right-rcs-valve-B-status type="int">1</helium-right-rcs-valve-B-status>
+      <helium-fwd-rcs-valve-A-status type="int">1</helium-fwd-rcs-valve-A-status>
+      <helium-fwd-rcs-valve-B-status type="int">1</helium-fwd-rcs-valve-B-status>
+
+      <fuel-left-rcs-pressure-psia type="double">250.0</fuel-left-rcs-pressure-psia>
+      <fuel-right-rcs-pressure-psia type="double">250.0</fuel-right-rcs-pressure-psia>
+      <fuel-fwd-rcs-pressure-psia type="double">250.0</fuel-fwd-rcs-pressure-psia> 
+      <oxidizer-left-rcs-pressure-psia type="double">250.0</oxidizer-left-rcs-pressure-psia>
+      <oxidizer-right-rcs-pressure-psia type="double">250.0</oxidizer-right-rcs-pressure-psia>
+      <oxidizer-fwd-rcs-pressure-psia type="double">250.0</oxidizer-fwd-rcs-pressure-psia> 
+
+      <tank-right-rcs-valve-12-status type="int">1</tank-right-rcs-valve-12-status>
+      <tank-right-rcs-valve-345A-status type="int">1</tank-right-rcs-valve-345A-status>
+      <tank-right-rcs-valve-345B-status type="int">1</tank-right-rcs-valve-345B-status>
+
+      <tank-left-rcs-valve-12-status type="int">1</tank-left-rcs-valve-12-status>
+      <tank-left-rcs-valve-345A-status type="int">1</tank-left-rcs-valve-345A-status>
+      <tank-left-rcs-valve-345B-status type="int">1</tank-left-rcs-valve-345B-status>
+
+      <tank-fwd-rcs-valve-12-status type="int">1</tank-fwd-rcs-valve-12-status>
+      <tank-fwd-rcs-valve-345-status type="int">1</tank-fwd-rcs-valve-345-status>
+
+      <mfold-right-rcs-valve-1-status type="int">1</mfold-right-rcs-valve-1-status>
+      <mfold-right-rcs-valve-2-status type="int">1</mfold-right-rcs-valve-2-status>
+      <mfold-right-rcs-valve-3-status type="int">1</mfold-right-rcs-valve-3-status>
+      <mfold-right-rcs-valve-4-status type="int">1</mfold-right-rcs-valve-4-status>
+      <mfold-right-rcs-valve-5-status type="int">1</mfold-right-rcs-valve-5-status>
+
+      <mfold-left-rcs-valve-1-status type="int">1</mfold-left-rcs-valve-1-status>
+      <mfold-left-rcs-valve-2-status type="int">1</mfold-left-rcs-valve-2-status>
+      <mfold-left-rcs-valve-3-status type="int">1</mfold-left-rcs-valve-3-status>
+      <mfold-left-rcs-valve-4-status type="int">1</mfold-left-rcs-valve-4-status>
+      <mfold-left-rcs-valve-5-status type="int">1</mfold-left-rcs-valve-5-status>
+
+      <mfold-fwd-rcs-valve-1-status type="int">1</mfold-fwd-rcs-valve-1-status>
+      <mfold-fwd-rcs-valve-2-status type="int">1</mfold-fwd-rcs-valve-2-status>
+      <mfold-fwd-rcs-valve-3-status type="int">1</mfold-fwd-rcs-valve-3-status>
+      <mfold-fwd-rcs-valve-4-status type="int">1</mfold-fwd-rcs-valve-4-status>
+      <mfold-fwd-rcs-valve-5-status type="int">1</mfold-fwd-rcs-valve-5-status>
+
+      <crossfeed-left-rcs-valve-12-status type="int">0</crossfeed-left-rcs-valve-12-status>	 
+      <crossfeed-left-rcs-valve-345-status type="int">0</crossfeed-left-rcs-valve-345-status>	     
+      <crossfeed-right-rcs-valve-12-status type="int">0</crossfeed-right-rcs-valve-12-status>	
+      <crossfeed-right-rcs-valve-345-status type="int">0</crossfeed-right-rcs-valve-345-status>	      
+
+      <!--<heater-left-A-status type="int">0</heater-left-A-status>
+      <heater-left-B-status type="int">0</heater-left-B-status>
+
+      <heater-right-A-status type="int">0</heater-right-A-status>
+      <heater-right-B-status type="int">0</heater-right-B-status>-->
+
+      <!-- we have a three-way switch here -->
+      <heater-fwd-A-status type="int">0</heater-fwd-A-status>
+      <heater-fwd-B-status type="int">0</heater-fwd-B-status>
+      <heater-fwd-status type="int">0</heater-fwd-status>
+
+      <heater-fwd-1-status type="int">0</heater-fwd-1-status>
+      <heater-fwd-2-status type="int">0</heater-fwd-2-status>
+      <heater-fwd-3-status type="int">0</heater-fwd-3-status>
+      <heater-fwd-4-status type="int">0</heater-fwd-4-status>
+      <heater-fwd-5-status type="int">0</heater-fwd-5-status>
+
+      <heater-pod-1-status type="int">0</heater-pod-1-status>
+      <heater-pod-2-status type="int">0</heater-pod-2-status>
+      <heater-pod-3-status type="int">0</heater-pod-3-status>
+      <heater-pod-4-status type="int">0</heater-pod-4-status>
+      <heater-pod-5-status type="int">0</heater-pod-5-status>
+
+      <fuel-left-crossfeed-correction type="double">0.0</fuel-left-crossfeed-correction>
+      <fuel-right-crossfeed-correction type="double">0.0</fuel-right-crossfeed-correction>
+      <oxidizer-left-crossfeed-correction type="double">0.0</oxidizer-left-crossfeed-correction>
+      <oxidizer-right-crossfeed-correction type="double">0.0</oxidizer-right-crossfeed-correction>
+
+      <oms-left-xfeed-qty-enable type="int">0</oms-left-xfeed-qty-enable>
+      <oms-right-xfeed-qty-enable type="int">0</oms-right-xfeed-qty-enable>
+
+      <F1L-fire type="double">0.0</F1L-fire>    
+      <F3L-fire type="double">0.0</F3L-fire> 
+      <F2R-fire type="double">0.0</F2R-fire>  
+      <F4R-fire type="double">0.0</F4R-fire>   
+      <F1U-fire type="double">0.0</F1U-fire>  
+      <F3U-fire type="double">0.0</F3U-fire>                                                     
+      <F2U-fire type="double">0.0</F2U-fire>   
+      <F1D-fire type="double">0.0</F1D-fire>
+      <F3D-fire type="double">0.0</F3D-fire>
+      <F2D-fire type="double">0.0</F2D-fire>                                     
+      <F4D-fire type="double">0.0</F4D-fire>
+      <F1F-fire type="double">0.0</F1F-fire>  
+      <F3F-fire type="double">0.0</F3F-fire> 
+      <F2F-fire type="double">0.0</F2F-fire> 
+      <F5L-fire type="double">0.0</F5L-fire>
+      <F5R-fire type="double">0.0</F5R-fire>                   
+      <L4L-fire type="double">0.0</L4L-fire>                                      
+      <L2L-fire type="double">0.0</L2L-fire>
+      <L3L-fire type="double">0.0</L3L-fire>
+      <L1L-fire type="double">0.0</L1L-fire>
+      <L4U-fire type="double">0.0</L4U-fire>
+      <L2U-fire type="double">0.0</L2U-fire>
+      <L1U-fire type="double">0.0</L1U-fire>
+      <L4D-fire type="double">0.0</L4D-fire>
+      <L2D-fire type="double">0.0</L2D-fire>
+      <L3D-fire type="double">0.0</L3D-fire>
+      <L3A-fire type="double">0.0</L3A-fire>
+      <L1A-fire type="double">0.0</L1A-fire>
+      <L5L-fire type="double">0.0</L5L-fire>
+      <L5D-fire type="double">0.0</L5D-fire>
+      <R4R-fire type="double">0.0</R4R-fire>
+      <R2R-fire type="double">0.0</R2R-fire>
+      <R3R-fire type="double">0.0</R3R-fire>
+      <R1R-fire type="double">0.0</R1R-fire>
+      <R4U-fire type="double">0.0</R4U-fire>
+      <R2U-fire type="double">0.0</R2U-fire>
+      <R1U-fire type="double">0.0</R1U-fire>
+      <R4D-fire type="double">0.0</R4D-fire>
+      <R2D-fire type="double">0.0</R2D-fire>
+      <R3D-fire type="double">0.0</R3D-fire>
+      <R1A-fire type="double">0.0</R1A-fire>
+      <R3A-fire type="double">0.0</R3A-fire>
+      <R5R-fire type="double">0.0</R5R-fire>
+      <R5D-fire type="double">0.0</R5D-fire>
+     </rcs-hardware>	
+     <rendezvous>
+	<rel-nav-enable type="int">0</rel-nav-enable>
+	<sv-select type="int">0</sv-select>
+	<ku-enable type="int">0</ku-enable>
+	<meas-enable type="int">0</meas-enable>
+	<angle-sensor-selection type="int">0</angle-sensor-selection>
+	<filter-update type="int">1</filter-update>
+	<target>
+	   <Y-m type="double">0.0</Y-m>
+	   <Y-prop-m type="double">0.0</Y-prop-m>
+	   <Ydot-m_s type="double">0.0</Ydot-m_s>
+	   <Ydot-prop-m_s type="double">0.0</Ydot-prop-m_s>
+	   <theta type="double">0.0</theta>
+	   <theta-prop type="double">0.0</theta-prop>
+	   <distance-m type="double">0.0</distance-m>
+	   <ddot-m_s type="double">0.0</ddot-m_s>
+	   <distance-prop-m type="double">0.0</distance-prop-m>
+	   <ddot-prop-m_s type="double">0.0</ddot-prop-m_s>
+	</target>
+     </rendezvous>
+     <rms>
+      <shoulder-brace-release-switch type="int">0</shoulder-brace-release-switch>
+      <shoulder-brace-pos type="double">1.0</shoulder-brace-pos>
+      <mpm-deploy-switch type="int">0</mpm-deploy-switch>
+      <mpm-deploy-pos type="double">1.0</mpm-deploy-pos>
+      <mpm-release-switch type="int">1</mpm-release-switch>
+      <mpm-latch-pos type="double">1.0</mpm-latch-pos>
+      <rms-power-switch type="int">0</rms-power-switch>
+      <rms-brake-switch type="int">0</rms-brake-switch>
+      <rms-save-switch type="int">0</rms-save-switch>
+      <joint-selection-mode type="int">1</joint-selection-mode>
+      <parameter-selection-mode type="int">0</parameter-selection-mode>
+      <joint-selection-string type="string">SHOULDER YAW</joint-selection-string>
+      <drive-selection-mode type="int">1</drive-selection-mode>
+      <drive-selection-string type="string">SINGLE</drive-selection-string>
+      <drive-selection-switch type="int">10</drive-selection-switch>
+      <drive-selection-actual type="int">10</drive-selection-actual>
+      <auto-sequence-slot type="int">0</auto-sequence-slot>
+      <parameter-selection-string type="string">TEST</parameter-selection-string>
+      <payload-selection-string type="string">Payload 1</payload-selection-string>
+      <direct-drive-switch type="int">0</direct-drive-switch>
+      <shoulder-x type="double">0.0</shoulder-x>
+      <shoulder-y type="double">0.0</shoulder-y>
+      <shoulder-z type="double">0.0</shoulder-z>
+      <null type="double">0.0</null>
+      <ready-to-latch type="double">1.0</ready-to-latch>
+      <effector-attached type="double">0.0</effector-attached>
+      <effector-closed type="double">0.0</effector-closed>
+      <effector-rigid type="double">0.0</effector-rigid>
+      <attached-from-orbit type="int">0</attached-from-orbit>
+      <retention-power-1-switch type="int">0</retention-power-1-switch>
+      <retention-power-2-switch type="int">0</retention-power-2-switch>
+      <retention-selector-mode type="int">1</retention-selector-mode>
+      <retention-release-1-switch type="int">0</retention-release-1-switch>
+      <retention-release-2-switch type="int">0</retention-release-2-switch>
+      <retention-release-3-switch type="int">0</retention-release-3-switch>
+      <retention-release-4-switch type="int">0</retention-release-4-switch>
+      <retention-release-5-switch type="int">0</retention-release-5-switch>
+      <retention-latch-1-pos type="double">0.0</retention-latch-1-pos>
+      <retention-latch-2-pos type="double">0.0</retention-latch-2-pos>
+      <retention-latch-3-pos type="double">0.0</retention-latch-3-pos>
+      <retention-latch-4-pos type="double">0.0</retention-latch-4-pos>
+      <retention-latch-5-pos type="double">0.0</retention-latch-5-pos>
+      <vernier-switch type="int">0</vernier-switch>
+      <auto-switch type="int">1</auto-switch>
+      <payload-ready-to-latch type="double">1.0</payload-ready-to-latch>
+      <sum-wrist-pitch-deg type="double">0.0</sum-wrist-pitch-deg>
+      <sum-wrist-yaw-deg type="double">0.0</sum-wrist-yaw-deg>
+      <sum-wrist-yaw-pitch-deg type="double">0.0</sum-wrist-yaw-pitch-deg>
+      <rms-drivable type="double">1.0</rms-drivable>
+      <wrist-x type="double">0.0</wrist-x>
+      <wrist-y type="double">0.0</wrist-y>
+      <wrist-z type="double">0.0</wrist-z>
+      <ang-wrist-yaw-deg type="double">0.0</ang-wrist-yaw-deg>
+      <ang-wrist-pitch-deg type="double">0.0</ang-wrist-pitch-deg>
+      <ang-wrist-roll-deg type="double">0.0</ang-wrist-roll-deg>	
+      <effector-x type="double">0.0</effector-x>
+      <effector-y type="double">0.0</effector-y>
+      <effector-z type="double">0.0</effector-z>
+      <soft-stop type="double">0.0</soft-stop>
+      <payload>
+       <payload-attach-x type="double">0</payload-attach-x>
+       <payload-attach-y type="double">0</payload-attach-y>
+       <payload-attach-z type="double">0</payload-attach-z>
+       <payload-attach-pitch type="double">0</payload-attach-pitch>
+       <payload-attach-yaw type="double">0</payload-attach-yaw>
+       <payload-attach-roll type="double">0</payload-attach-roll>
+      </payload>
+      <rms-port-jett-arm-switch type="int">0</rms-port-jett-arm-switch>		    
+      <rms-port-jett-shl-switch type="int">0</rms-port-jett-shl-switch>
+      <rms-port-jett-fwd-switch type="int">0</rms-port-jett-fwd-switch>
+      <rms-port-jett-mid-switch type="int">0</rms-port-jett-mid-switch>
+      <rms-port-jett-aft-switch type="int">0</rms-port-jett-aft-switch>
+      <software>
+	<io-enable type="int">0</io-enable>
+	<soft-stop-enable type="int">1</soft-stop-enable>
+	<autobrake-enable type="int">1</autobrake-enable>
+	<autobrake-check type="int">0</autobrake-check>
+	<pohs-cntl-enable type="int">1</pohs-cntl-enable>
+	<pos-enc-ck-enable type="int">1</pos-enc-ck-enable>
+	<tgt-pos-x type="double">0.0</tgt-pos-x>
+	<tgt-pos-y type="double">0.0</tgt-pos-y>
+	<tgt-pos-z type="double">0.0</tgt-pos-z>
+	<tgt-att-p type="double">0.0</tgt-att-p>
+	<tgt-att-y type="double">0.0</tgt-att-y>
+	<tgt-att-r type="double">0.0</tgt-att-r>
+	<pl-id type="int">0</pl-id>
+	<pl-init-id type="int">0</pl-init-id>
+	<reach-limit-string type="string"> </reach-limit-string>
+	<joint-sw-override type="int">0</joint-sw-override>
+	<mode-sw-override type="int">0</mode-sw-override>
+	<rate-sw-override type="int">0</rate-sw-override>
+	<auto-sw-override type="int">0</auto-sw-override>
+	<sw-drive-mode-select type="int">0</sw-drive-mode-select>
+      </software>
+      <thermal>
+        <port-heater-A-switch type="int">0</port-heater-A-switch>
+        <port-heater-B-switch type="int">0</port-heater-B-switch>
+	    <heater-A-power-demand-kW type="double">0.0</heater-A-power-demand-kW>
+	    <heater-B-power-demand-kW type="double">0.0</heater-B-power-demand-kW>
+	    <joint-temp-K type="double">270.0</joint-temp-K>
+      </thermal>
+        <drive-sel-exe type="int">0</drive-sel-exe>
+        <drive-sel-exe-ss type="int">0</drive-sel-exe-ss>
+     </rms>
+     <taem-guidance>
+      <approach-mode-string type="string">OVHD</approach-mode-string>
+      <entry-point-string type="string">NEP</entry-point-string>
+      <distance-to-runway-nm type="double">0.0</distance-to-runway-nm>
+      <glideslope-deviation-ft type="double">0.0</glideslope-deviation-ft>
+      <delta-azimuth-deg type="double">0.0</delta-azimuth-deg>
+      <radial-error-nm type="double">0.0</radial-error-nm>
+      <rdot-fps type="double">0.0</rdot-fps>
+      <Dxdot type="double">0.0</Dxdot>
+      <Dydot type="double">0.0</Dydot>
+      <Dzdot type="double">0.0</Dzdot>
+      <Dx type="double">0.0</Dx>
+      <Dy type="double">0.0</Dy>
+      <Dz type="double">0.0</Dz>
+      <tacan-abs type="int">0</tacan-abs>
+      <tacan1-des type="int">0</tacan1-des>
+      <tacan2-des type="int">0</tacan2-des>
+      <tacan3-des type="int">0</tacan3-des>
+      <energy-ratio type="double">0.0</energy-ratio>
+      <dH-equiv-ft type="double">0.0</dH-equiv-ft>
+      <turn-hac-degrees type="double">270.0</turn-hac-degrees>
+     </taem-guidance>
+     <approach-guidance>
+      <vertical-aim-angle-deg type="double">0.0</vertical-aim-angle-deg>
+      <vertical-threshold-angle-deg type="double">0.0</vertical-threshold-angle-deg>
+      <horizontal-aim-angle-deg type="double">0.0</horizontal-aim-angle-deg>
+      <horizontal-threshold-angle-deg type="double">0.0</horizontal-threshold-angle-deg>
+      <glideslope type="double">17.0</glideslope>
+      <aim-point-string type="string">NOM</aim-point-string>
+      <speedbrake-mode-string type="string">NOM</speedbrake-mode-string>
+     </approach-guidance>
+     <thermal-distribution>
+      <freon-loop-switch type="double">0.4</freon-loop-switch>
+      <water-loop-switch type="int">1</water-loop-switch>
+      <spray-boiler-1-switch type="double">0.0</spray-boiler-1-switch>
+      <spray-boiler-2-switch type="double">0.0</spray-boiler-2-switch>
+      <spray-boiler-3-switch type="double">0.0</spray-boiler-3-switch>
+      <interior-set-temperature-K type="double">293.0</interior-set-temperature-K>
+      <interior-temperature-K type="double">293.0</interior-temperature-K>
+      <freon-out-temperature-K type="double">200.0</freon-out-temperature-K>
+      <computation-timestep-s type="double">10.0</computation-timestep-s>
+      <nose-temperature-K type="double">310</nose-temperature-K>
+      <cabin-temperature-K type="double">310</cabin-temperature-K>
+      <left-temperature-K type="double">310</left-temperature-K>
+      <right-temperature-K type="double">310</right-temperature-K>
+      <payload-bay-temperature-K type="double">310</payload-bay-temperature-K>
+      <tps-temperature-K type="double">310</tps-temperature-K>
+      <left-pod-temperature-K type="double">310</left-pod-temperature-K>
+      <right-pod-temperature-K type="double">310</right-pod-temperature-K>
+      <aft-temperature-K type="double">310</aft-temperature-K>
+      <avionics-temperature-K type="double">310</avionics-temperature-K>
+      <interior-temperature-K type="double">310</interior-temperature-K>
+      <hyd-reservoir-temperature-K type="double">310</hyd-reservoir-temperature-K>
+      <apu1-temperature-K type="double">310</apu1-temperature-K>
+      <apu2-temperature-K type="double">310</apu2-temperature-K>
+      <apu3-temperature-K type="double">310</apu3-temperature-K>
+     </thermal-distribution>
+     <throttle>
+      <throttle-mode type="int">3</throttle-mode>
+      <throttle-nominal type="double">1.0</throttle-nominal>
+     </throttle>
+     <timer>
+      <time-display-flag type="int">0</time-display-flag>
+      <MET-string type="string">000/00:00:00</MET-string>
+      <MET-timer-string type="string">00:00:00:00</MET-timer-string>
+      <delta-GMT-days type="int">0</delta-GMT-days>
+      <delta-GMT-hours type="int">0</delta-GMT-hours>
+      <delta-GMT-minutes type="int">0</delta-GMT-minutes>
+      <delta-GMT-seconds type="int">0</delta-GMT-seconds>
+      <delta-GMT type="int">0</delta-GMT>
+      <delta-GMT-string type="string"></delta-GMT-string>
+      <delta-MET-days type="int">0</delta-MET-days>
+      <delta-MET-hours type="int">0</delta-MET-hours>
+      <delta-MET-minutes type="int">0</delta-MET-minutes>
+      <delta-MET-seconds type="int">0</delta-MET-seconds>
+      <delta-MET type="int">0</delta-MET>
+      <delta-MET-string type="string"></delta-MET-string>
+      <timer-MET-1-hours type="int">0</timer-MET-1-hours>
+      <timer-MET-1-minutes type="int">0</timer-MET-1-minutes>
+      <timer-MET-1-seconds type="int">0</timer-MET-1-seconds>
+      <timer-MET-1 type="int">0</timer-MET-1>
+      <timer-MET-1-string type="string"></timer-MET-1-string>
+      <timer-MET-2-hours type="int">0</timer-MET-2-hours>
+      <timer-MET-2-minutes type="int">0</timer-MET-2-minutes>
+      <timer-MET-2-seconds type="int">0</timer-MET-2-seconds>
+      <timer-MET-2 type="int">0</timer-MET-2>
+      <timer-MET-2-string type="string"></timer-MET-2-string>
+      <timer-CRT-hours type="int">0</timer-CRT-hours>
+      <timer-CRT-minutes type="int">0</timer-CRT-minutes>
+      <timer-CRT-seconds type="int">0</timer-CRT-seconds>
+      <timer-CRT type="int">0</timer-CRT>
+      <time-tone-duration type="int">1</time-tone-duration>
+      <timer-CRT-string type="string"></timer-CRT-string>
+      <crt-timer-hours type="int">0</crt-timer-hours>
+      <crt-timer-minutes type="int">0</crt-timer-minutes>
+      <crt-timer-seconds type="int">0</crt-timer-seconds>
+      <crt-timer type="int">0</crt-timer>
+      <crt-timer-string type="string">00:00:00</crt-timer-string>
+      <crt-timer-flag type="int">0</crt-timer-flag>
+      <CRT-string type="string">000/00:00:00</CRT-string>
+      <start-at-hours type="int">0</start-at-hours>
+      <start-at-minutes type="int">0</start-at-minutes>
+      <start-at-seconds type="int">0</start-at-seconds>
+      <start-at type="int">0</start-at>
+      <start-at-string type="string"></start-at-string>
+      <count-to-hours type="int">0</count-to-hours>
+      <count-to-minutes type="int">0</count-to-minutes>
+      <count-to-seconds type="int">0</count-to-seconds>
+      <count-to type="int">0</count-to>
+      <count-to-string type="string"></count-to-string>
+      <up-mnvr-time-days type="int">0</up-mnvr-time-days>
+      <up-mnvr-time-hours type="int">0</up-mnvr-time-hours>
+      <up-mnvr-time-minutes type="int">0</up-mnvr-time-minutes>
+      <up-mnvr-time-seconds type="int">0</up-mnvr-time-seconds>
+      <up-mnvr-time type="int">0</up-mnvr-time>
+      <up-mnvr-time-string type="string">000/00:00:00</up-mnvr-time-string>
+      <timer-set-sec type="int">0</timer-set-sec>
+      <timer-set-pos1 type="int">0</timer-set-pos1>
+      <timer-set-pos2 type="int">0</timer-set-pos2>
+      <timer-set-pos3 type="int">0</timer-set-pos3>
+      <timer-set-pos4 type="int">0</timer-set-pos4>
+     </timer>
+     <various>
+      <debris-separation-target type="double">0.0</debris-separation-target>
+      <ssme-flame-r-low-target type="double">0.8</ssme-flame-r-low-target>
+      <ssme-flame-g-low-target type="double">0.25</ssme-flame-g-low-target>
+      <ssme-flame-b-low-target type="double">0.2</ssme-flame-b-low-target>
+      <ssme-flame-r-high-target type="double">1.0</ssme-flame-r-high-target>
+      <ssme-flame-g-high-target type="double">0.4</ssme-flame-g-high-target>
+      <ssme-flame-b-high-target type="double">0.2</ssme-flame-b-high-target>
+      <ssme-flame-r-base-target type="double">1.0</ssme-flame-r-base-target>
+      <ssme-flame-g-base-target type="double">0.4</ssme-flame-g-base-target>
+      <ssme-flame-b-base-target type="double">0.2</ssme-flame-b-base-target>
+      <ssme-ignition-density-target type="double">0.0</ssme-ignition-density-target>
+      <ssme-noise-strength-target type="double">0.7</ssme-noise-strength-target>
+      <ssme-flame-base-density-target type="double">0.0</ssme-flame-base-density-target>
+      <ssme-flame-r-low-target1 type="double">0.8</ssme-flame-r-low-target1>
+      <ssme-flame-g-low-target1 type="double">0.25</ssme-flame-g-low-target1>
+      <ssme-flame-b-low-target1 type="double">0.2</ssme-flame-b-low-target1>
+      <ssme-flame-r-high-target1 type="double">1.0</ssme-flame-r-high-target1>
+      <ssme-flame-g-high-target1 type="double">0.4</ssme-flame-g-high-target1>
+      <ssme-flame-b-high-target1 type="double">0.2</ssme-flame-b-high-target1>
+      <ssme-flame-r-base-target1 type="double">1.0</ssme-flame-r-base-target1>
+      <ssme-flame-g-base-target1 type="double">0.4</ssme-flame-g-base-target1>
+      <ssme-flame-b-base-target1 type="double">0.2</ssme-flame-b-base-target1>
+      <ssme-ignition-density-target1 type="double">0.0</ssme-ignition-density-target1>
+      <ssme-noise-strength-target1 type="double">0.7</ssme-noise-strength-target1>
+      <ssme-flame-base-density-target1 type="double">0.0</ssme-flame-base-density-target1>
+      <ssme-flame-r-low-target2 type="double">0.8</ssme-flame-r-low-target2>
+      <ssme-flame-g-low-target2 type="double">0.25</ssme-flame-g-low-target2>
+      <ssme-flame-b-low-target2 type="double">0.2</ssme-flame-b-low-target2>
+      <ssme-flame-r-high-target2 type="double">1.0</ssme-flame-r-high-target2>
+      <ssme-flame-g-high-target2 type="double">0.4</ssme-flame-g-high-target2>
+      <ssme-flame-b-high-target2 type="double">0.2</ssme-flame-b-high-target2>
+      <ssme-flame-r-base-target2 type="double">1.0</ssme-flame-r-base-target2>
+      <ssme-flame-g-base-target2 type="double">0.4</ssme-flame-g-base-target2>
+      <ssme-flame-b-base-target2 type="double">0.2</ssme-flame-b-base-target2>
+      <ssme-ignition-density-target2 type="double">0.0</ssme-ignition-density-target2>
+      <ssme-noise-strength-target2 type="double">0.7</ssme-noise-strength-target2>
+      <ssme-flame-base-density-target2 type="double">0.0</ssme-flame-base-density-target2>
+     </various>
+     <vectoring>
+      <ssme-repos-enable type="int">1</ssme-repos-enable>
+      <OMS-trim-flag type="int">0</OMS-trim-flag>
+     </vectoring>
+    </systems>
+   </jsbsim>
+  </fdm>
+
+  <instrumentation>
+     <comm>
+       <serviceable type="bool">false</serviceable>
+     </comm>
+     <comm n="1">
+       <serviceable type="bool">false</serviceable>
+     </comm>
+  </instrumentation>
+
+ <mission>
+   <filename type="string">mission.xml</filename>
+ </mission>
+
+
+ <scenario>
+   <filename type="string">empty.xml</filename>
+ </scenario>
+
+ <mission-control include="mission_control.xml"/>
+
+
+  <controls>
+   <gear>
+     <gear-down-cmd type="double">0</gear-down-cmd>
+   </gear>
+   <shuttle>
+    <Hud-cover-cmd-show type="bool">true</Hud-cover-cmd-show>
+    <Hud-cover-plt-show type="bool">true</Hud-cover-plt-show>
+    <ku-function type="int">0</ku-function>
+    <ku-mode type="int">-1</ku-mode>
+    <external-fuel-tank type="int">1</external-fuel-tank>
+    <solid-rocket-boosters type="int">1</solid-rocket-boosters>
+    <parachute type="int">0</parachute>
+    <drag-chute-arm type="int">0</drag-chute-arm>
+    <drag-chute-deploy type="int">0</drag-chute-deploy>
+    <drag-chute-jettison type="int">0</drag-chute-jettison>
+    <drag-chute-deploy-timer type="double">0.0</drag-chute-deploy-timer>
+    <drag-chute-jettison-timer type="double">0.0</drag-chute-jettison-timer>
+    <drag-chute-string type="string">in</drag-chute-string>
+    <drag-chute-fold type="float">0.0</drag-chute-fold>
+    <drag-chute-bend type="float">0.0</drag-chute-bend>
+    <drag-chute-slant type="float">0.0</drag-chute-slant>
+    <drag-chute-dist type="float">0.0</drag-chute-dist>
+    <drag-chute-down type="float">0.0</drag-chute-down>
+    <button_bf_mode type="int">0</button_bf_mode>
+    <bf-mps-indicator type="int">0</bf-mps-indicator>
+    <bf-mps-override type="int">0</bf-mps-override>
+    <man-sb-thrust-select type="int">0</man-sb-thrust-select>
+    <man-sb-thrust-norm type="int">0</man-sb-thrust-norm>
+    <control-system-string type="string">Thrust Vectoring</control-system-string>
+    <hud-mode type="int">0</hud-mode>
+    <gear-string type="string">up</gear-string>
+    <speedbrake-string type="string">in</speedbrake-string>
+    <speedbrake type="double">0.0</speedbrake>
+    <SRB-static-model type="bool">true</SRB-static-model>	    
+    <ET-static-model type="bool">true</ET-static-model>
+    <spark-flag type="bool">false</spark-flag>
+    <SRB-sound-veto type="bool">false</SRB-sound-veto>
+    <ET-sound-veto type="bool">false</ET-sound-veto>
+    <etsep-in-progress type="int">0</etsep-in-progress>
+    <bodyflap-pos-rad type="double">0.0</bodyflap-pos-rad>
+    <ku-antenna-beta-deg type="double">0.0</ku-antenna-beta-deg>
+    <ku-antenna-alpha-deg type="double">0.0</ku-antenna-alpha-deg>
+    <ku-antenna-beta-deg-cmd type="double">0.0</ku-antenna-beta-deg-cmd>
+    <ku-antenna-alpha-deg-cmd type="double">0.0</ku-antenna-alpha-deg-cmd>
+    <ku-antenna-slew-rate-degs type="double">5.0</ku-antenna-slew-rate-degs>
+    <srb-separation-mode type="bool">false</srb-separation-mode>
+    <srb-separation type="bool">false</srb-separation>
+    <et-separation-mode type="bool">false</et-separation-mode>
+    <et-separation-auto-sw type="int">0</et-separation-auto-sw>
+    <et-separation type="bool">false</et-separation>
+    <view-manager-flag tyle="int">0</view-manager-flag>
+    <forces>
+     <srb1>
+      <force-azimuth-deg type="double">0.0</force-azimuth-deg>
+      <force-elevation-deg type="double">0.0</force-elevation-deg>
+      <force-lb type="double">0.0</force-lb>
+     </srb1>
+     <srb2>
+      <force-azimuth-deg type="double">0.0</force-azimuth-deg>
+      <force-elevation-deg type="double">0.0</force-elevation-deg>
+      <force-lb type="double">0.0</force-lb>
+     </srb2>
+    </forces>
+    <ISS>
+      <docking-flag type="int">0</docking-flag>
+      <docking-veto type="int">0</docking-veto>
+    </ISS>
+	<button_bf_cmd-ss type="int">0</button_bf_cmd-ss>
+	<button_sb_cmd-ss type="int">0</button_sb_cmd-ss>
+	<button_bf_plt-ss type="int">0</button_bf_plt-ss>
+	<button_sb_plt-ss type="int">0</button_sb_plt-ss>
+	<button_pitch_css_cmd-ss type="int">0</button_pitch_css_cmd-ss>
+	<button_pitch_auto_cmd-ss type="int">0</button_pitch_auto_cmd-ss>
+	<button_pitch_css_plt-ss type="int">0</button_pitch_css_plt-ss>
+	<button_pitch_auto_plt-ss type="int">0</button_pitch_auto_plt-ss>
+	<button_roll-yaw_css_cmd-ss type="int">0</button_roll-yaw_css_cmd-ss>
+	<button_roll-yaw_auto_cmd-ss type="int">0</button_roll-yaw_auto_cmd-ss>
+	<button_roll-yaw_css_plt-ss type="int">0</button_roll-yaw_css_plt-ss>
+	<button_roll-yaw_auto_plt-ss type="int">0</button_roll-yaw_auto_plt-ss>
+  <button_master-alarm_cmd-ss type="int">0</button_master-alarm_cmd-ss>
+	<button_master-alarm_plt-ss type="int">0</button_master-alarm_plt-ss>
+	<button_master-alarm_pbs-ss type="int">0</button_master-alarm_pbs-ss>
+	<button_chute_arm_cmd-ss type="int">0</button_chute_arm_cmd-ss>
+	<button_chute_dpy_cmd-ss type="int">0</button_chute_dpy_cmd-ss>
+	<button_chute_arm_plt-ss type="int">0</button_chute_arm_plt-ss>
+	<button_chute_dpy_plt-ss type="int">0</button_chute_dpy_plt-ss>
+	<button_chute_jett_cmd-ss type="int">0</button_chute_jett_cmd-ss>
+	<button_chute_jett_plt-ss type="int">0</button_chute_jett_plt-ss>
+	<button_landing_gear_arm_cmd-ss type="int">0</button_landing_gear_arm_cmd-ss>
+	<button_landing_gear_down_cmd-ss type="int">0</button_landing_gear_down_cmd-ss>
+	<button_landing_gear_arm_plt-ss type="int">0</button_landing_gear_arm_plt-ss>
+	<button_landing_gear_down_plt-ss type="int">0</button_landing_gear_down_plt-ss>
+	<button_main_eng_sd_left-ss type="int">0</button_main_eng_sd_left-ss>
+	<button_main_eng_sd_center-ss type="int">0</button_main_eng_sd_center-ss>
+	<button_main_eng_sd_right-ss type="int">0</button_main_eng_sd_right-ss>
+	<button_srb_sep-ss type="int">0</button_srb_sep-ss>
+	<button_et_sep-ss type="int">0</button_et_sep-ss>
+  <button_fire_supp_avbay1-ss type="int">0</button_fire_supp_avbay1-ss>
+  <button_fire_supp_avbay2-ss type="int">0</button_fire_supp_avbay2-ss>
+  <button_fire_supp_avbay3-ss type="int">0</button_fire_supp_avbay3-ss>
+	<button_cmd_od_control_select_a-ss type="int">0</button_cmd_od_control_select_a-ss>
+	<button_cmd_od_control_select_b-ss type="int">0</button_cmd_od_control_select_b-ss>
+	<button_cmd_od_control_auto-ss type="int">0</button_cmd_od_control_auto-ss>
+	<button_cmd_od_control_inrtl-ss type="int">0</button_cmd_od_control_inrtl-ss>
+	<button_cmd_od_control_lvlh-ss type="int">0</button_cmd_od_control_lvlh-ss>
+	<button_cmd_od_control_free-ss type="int">0</button_cmd_od_control_free-ss>
+	<button_cmd_mm_xblank-ss type="int">0</button_cmd_mm_xblank-ss>
+	<button_cmd_mm_lowz-ss type="int">0</button_cmd_mm_lowz-ss>
+	<button_cmd_mm_highz-ss type="int">0</button_cmd_mm_highz-ss>
+	<button_cmd_mm_pri-ss type="int">0</button_cmd_mm_pri-ss>
+	<button_cmd_mm_alt-ss type="int">0</button_cmd_mm_alt-ss>
+	<button_cmd_mm_vern-ss type="int">0</button_cmd_mm_vern-ss>
+	<button_cmd_mm_x_norm-ss type="int">0</button_cmd_mm_x_norm-ss>
+	<button_cmd_mm_y_norm-ss type="int">0</button_cmd_mm_y_norm-ss>
+	<button_cmd_mm_z_norm-ss type="int">0</button_cmd_mm_z_norm-ss>
+	<button_cmd_mm_roll_dr-ss type="int">0</button_cmd_mm_roll_dr-ss>
+	<button_cmd_mm_pitch_dr-ss type="int">0</button_cmd_mm_pitch_dr-ss>
+	<button_cmd_mm_yaw_dr-ss type="int">0</button_cmd_mm_yaw_dr-ss>
+	<button_cmd_mm_x_pulse-ss type="int">0</button_cmd_mm_x_pulse-ss>
+	<button_cmd_mm_y_pulse-ss type="int">0</button_cmd_mm_y_pulse-ss>
+	<button_cmd_mm_z_pulse-ss type="int">0</button_cmd_mm_z_pulse-ss>
+	<button_cmd_mm_roll_pulse-ss type="int">0</button_cmd_mm_roll_pulse-ss>
+	<button_cmd_mm_pitch_pulse-ss type="int">0</button_cmd_mm_pitch_pulse-ss>
+	<button_cmd_mm_yaw_pulse-ss type="int">0</button_cmd_mm_yaw_pulse-ss>
+	<button_cmd_od_control_select_a.001-ss type="int">0</button_cmd_od_control_select_a.001-ss>
+	<button_cmd_od_control_select_b.001-ss type="int">0</button_cmd_od_control_select_b.001-ss>
+	<button_cmd_od_control_auto.001-ss type="int">0</button_cmd_od_control_auto.001-ss>
+	<button_cmd_od_control_inrtl.001-ss type="int">0</button_cmd_od_control_inrtl.001-ss>
+	<button_cmd_od_control_lvlh.001-ss type="int">0</button_cmd_od_control_lvlh.001-ss>
+	<button_cmd_od_control_free.001-ss type="int">0</button_cmd_od_control_free.001-ss>
+	<button_cmd_mm_xblank.001-ss type="int">0</button_cmd_mm_xblank.001-ss>
+	<button_cmd_mm_lowz.001-ss type="int">0</button_cmd_mm_lowz.001-ss>
+	<button_cmd_mm_highz.001-ss type="int">0</button_cmd_mm_highz.001-ss>
+	<button_cmd_mm_pri.001-ss type="int">0</button_cmd_mm_pri.001-ss>
+	<button_cmd_mm_alt.001-ss type="int">0</button_cmd_mm_alt.001-ss>
+	<button_cmd_mm_vern.001-ss type="int">0</button_cmd_mm_vern.001-ss>
+	<button_cmd_mm_x_norm.001-ss type="int">0</button_cmd_mm_x_norm.001-ss>
+	<button_cmd_mm_y_norm.001-ss type="int">0</button_cmd_mm_y_norm.001-ss>
+	<button_cmd_mm_z_norm.001-ss type="int">0</button_cmd_mm_z_norm.001-ss>
+	<button_cmd_mm_roll_dr.001-ss type="int">0</button_cmd_mm_roll_dr.001-ss>
+	<button_cmd_mm_pitch_dr.001-ss type="int">0</button_cmd_mm_pitch_dr.001-ss>
+	<button_cmd_mm_yaw_dr.001-ss type="int">0</button_cmd_mm_yaw_dr.001-ss>
+	<button_cmd_mm_x_pulse.001-ss type="int">0</button_cmd_mm_x_pulse.001-ss>
+	<button_cmd_mm_y_pulse.001-ss type="int">0</button_cmd_mm_y_pulse.001-ss>
+	<button_cmd_mm_z_pulse.001-ss type="int">0</button_cmd_mm_z_pulse.001-ss>
+	<button_cmd_mm_roll_pulse.001-ss type="int">0</button_cmd_mm_roll_pulse.001-ss>
+	<button_cmd_mm_pitch_pulse.001-ss type="int">0</button_cmd_mm_pitch_pulse.001-ss>
+	<button_cmd_mm_yaw_pulse.001-ss type="int">0</button_cmd_mm_yaw_pulse.001-ss>
+    <button_key_plus-ss type="int">0</button_key_plus-ss>
+    <button_key_--ss type="int">0</button_key_--ss>
+    <button_key_.-ss type="int">0</button_key_.-ss>
+    <button_key_0-ss type="int">0</button_key_0-ss>
+    <button_key_1-ss type="int">0</button_key_1-ss>
+    <button_key_2-ss type="int">0</button_key_2-ss>
+    <button_key_3-ss type="int">0</button_key_3-ss>
+    <button_key_4-ss type="int">0</button_key_4-ss>
+    <button_key_5-ss type="int">0</button_key_5-ss>
+    <button_key_6-ss type="int">0</button_key_6-ss>
+    <button_key_7-ss type="int">0</button_key_7-ss>
+    <button_key_8-ss type="int">0</button_key_8-ss>
+    <button_key_9-ss type="int">0</button_key_9-ss>
+    <button_key_a-ss type="int">0</button_key_a-ss>
+    <button_key_b-ss type="int">0</button_key_b-ss>
+    <button_key_c-ss type="int">0</button_key_c-ss>
+    <button_key_d-ss type="int">0</button_key_d-ss>
+    <button_key_e-ss type="int">0</button_key_e-ss>
+    <button_key_f-ss type="int">0</button_key_f-ss>
+    <button_key_ack-ss type="int">0</button_key_ack-ss>
+    <button_key_clear-ss type="int">0</button_key_clear-ss>
+    <button_key_exec-ss type="int">0</button_key_exec-ss>
+    <button_key_fault-ss type="int">0</button_key_fault-ss>
+    <button_key_gpc-ss type="int">0</button_key_gpc-ss>
+    <button_key_io_rst-ss type="int">0</button_key_io_rst-ss>
+    <button_key_item-ss type="int">0</button_key_item-ss>
+    <button_key_msg-ss type="int">0</button_key_msg-ss>
+    <button_key_ops-ss type="int">0</button_key_ops-ss>
+    <button_key_pro-ss type="int">0</button_key_pro-ss>
+    <button_key_rsm-ss type="int">0</button_key_rsm-ss>
+    <button_key_spec-ss type="int">0</button_key_spec-ss>
+    <button_key_sys-ss type="int">0</button_key_sys-ss>
+    <button_key_plus.001-ss type="int">0</button_key_plus.001-ss>
+    <button_key_-.001-ss type="int">0</button_key_-.001-ss>
+    <button_key_..001-ss type="int">0</button_key_..001-ss>
+    <button_key_0.001-ss type="int">0</button_key_0.001-ss>
+    <button_key_1.001-ss type="int">0</button_key_1.001-ss>
+    <button_key_2.001-ss type="int">0</button_key_2.001-ss>
+    <button_key_3.001-ss type="int">0</button_key_3.001-ss>
+    <button_key_4.001-ss type="int">0</button_key_4.001-ss>
+    <button_key_5.001-ss type="int">0</button_key_5.001-ss>
+    <button_key_6.001-ss type="int">0</button_key_6.001-ss>
+    <button_key_7.001-ss type="int">0</button_key_7.001-ss>
+    <button_key_8.001-ss type="int">0</button_key_8.001-ss>
+    <button_key_9.001-ss type="int">0</button_key_9.001-ss>
+    <button_key_a.001-ss type="int">0</button_key_a.001-ss>
+    <button_key_b.001-ss type="int">0</button_key_b.001-ss>
+    <button_key_c.001-ss type="int">0</button_key_c.001-ss>
+    <button_key_d.001-ss type="int">0</button_key_d.001-ss>
+    <button_key_e.001-ss type="int">0</button_key_e.001-ss>
+    <button_key_f.001-ss type="int">0</button_key_f.001-ss>
+    <button_key_ack.001-ss type="int">0</button_key_ack.001-ss>
+    <button_key_clear.001-ss type="int">0</button_key_clear.001-ss>
+    <button_key_exec.001-ss type="int">0</button_key_exec.001-ss>
+    <button_key_fault.001-ss type="int">0</button_key_fault.001-ss>
+    <button_key_gpc.001-ss type="int">0</button_key_gpc.001-ss>
+    <button_key_io_rst.001-ss type="int">0</button_key_io_rst.001-ss>
+    <button_key_item.001-ss type="int">0</button_key_item.001-ss>
+    <button_key_msg.001-ss type="int">0</button_key_msg.001-ss>
+    <button_key_ops.001-ss type="int">0</button_key_ops.001-ss>
+    <button_key_pro.001-ss type="int">0</button_key_pro.001-ss>
+    <button_key_rsm.001-ss type="int">0</button_key_rsm.001-ss>
+    <button_key_spec.001-ss type="int">0</button_key_spec.001-ss>
+    <button_key_sys.001-ss type="int">0</button_key_sys.001-ss>
+    <button_key_plus.002-ss type="int">0</button_key_plus.002-ss>
+    <button_key_-.002-ss type="int">0</button_key_-.002-ss>
+    <button_key_..002-ss type="int">0</button_key_..002-ss>
+    <button_key_0.002-ss type="int">0</button_key_0.002-ss>
+    <button_key_1.002-ss type="int">0</button_key_1.002-ss>
+    <button_key_2.002-ss type="int">0</button_key_2.002-ss>
+    <button_key_3.002-ss type="int">0</button_key_3.002-ss>
+    <button_key_4.002-ss type="int">0</button_key_4.002-ss>
+    <button_key_5.002-ss type="int">0</button_key_5.002-ss>
+    <button_key_6.002-ss type="int">0</button_key_6.002-ss>
+    <button_key_7.002-ss type="int">0</button_key_7.002-ss>
+    <button_key_8.002-ss type="int">0</button_key_8.002-ss>
+    <button_key_9.002-ss type="int">0</button_key_9.002-ss>
+    <button_key_a.002-ss type="int">0</button_key_a.002-ss>
+    <button_key_b.002-ss type="int">0</button_key_b.002-ss>
+    <button_key_c.002-ss type="int">0</button_key_c.002-ss>
+    <button_key_d.002-ss type="int">0</button_key_d.002-ss>
+    <button_key_e.002-ss type="int">0</button_key_e.002-ss>
+    <button_key_f.002-ss type="int">0</button_key_f.002-ss>
+    <button_key_ack.002-ss type="int">0</button_key_ack.002-ss>
+    <button_key_clear.002-ss type="int">0</button_key_clear.002-ss>
+    <button_key_exec.002-ss type="int">0</button_key_exec.002-ss>
+    <button_key_fault.002-ss type="int">0</button_key_fault.002-ss>
+    <button_key_gpc.002-ss type="int">0</button_key_gpc.002-ss>
+    <button_key_io_rst.002-ss type="int">0</button_key_io_rst.002-ss>
+    <button_key_item.002-ss type="int">0</button_key_item.002-ss>
+    <button_key_msg.002-ss type="int">0</button_key_msg.002-ss>
+    <button_key_ops.002-ss type="int">0</button_key_ops.002-ss>
+    <button_key_pro.002-ss type="int">0</button_key_pro.002-ss>
+    <button_key_rsm.002-ss type="int">0</button_key_rsm.002-ss>
+    <button_key_spec.002-ss type="int">0</button_key_spec.002-ss>
+    <button_key_sys.002-ss type="int">0</button_key_sys.002-ss>
+   </shuttle>
+   <armament>
+    <trigger type="int">0</trigger>
+   </armament>
+   <engines>
+    <engine n="0">
+     <status-hud type="string">O</status-hud>
+     <ignited-hud type="string"> </ignited-hud>
+     <ap-throttle-cmd type="double">0.0</ap-throttle-cmd>
+    </engine>
+    <engine n="1">
+     <status-hud type="string">O</status-hud>
+     <ignited-hud type="string"> </ignited-hud>
+     <ap-throttle-cmd type="double">0.0</ap-throttle-cmd>
+    </engine>
+    <engine n="2">
+     <status-hud type="string">O</status-hud>
+     <ignited-hud type="string"> </ignited-hud>
+     <ap-throttle-cmd type="double">0.0</ap-throttle-cmd>
+    </engine>
+    <engine n="3">
+     <status-hud type="string">O</status-hud>
+     <ignited-hud type="string"> </ignited-hud>
+    </engine>
+    <engine n="4">
+     <status-hud type="string">O</status-hud>
+     <ignited-hud type="string"> </ignited-hud>
+    </engine>
+    <engine n="5">
+     <status-hud type="string">o</status-hud>
+     <ignited-hud type="string"> </ignited-hud>
+    </engine>
+    <engine n="6">
+     <status-hud type="string">o</status-hud>
+     <ignited-hud type="string"> </ignited-hud>
+    </engine>
+   </engines>
+  </controls>
+
+  
+  <!-- create the node at startup, will be overwritten later -->
+  <position>
+   <sea-level-radius-ft>26000000.0</sea-level-radius-ft>
+  </position>
+
+ <lighting>
+    <effects>
+        <color-1 type="float">0.1</color-1>
+        <color-2 type="float">0.2</color-2>
+        <color-3 type="float">0.3</color-3>
+        <color-4 type="float">0.4</color-4>
+        <color-5 type="float">0.5</color-5>
+        <color-6 type="float">0.6</color-6>
+        <color-7 type="float">0.7</color-7>
+        <color-8 type="float">0.8</color-8>
+        <color-9 type="float">0.9</color-9>
+        <color-10 type="float">1.0</color-10>
+
+      <!-- geometry-based lighting effect -->
+ 
+      <geo-red type="float">0.0</geo-red>  
+      <geo-green type="float">0.0</geo-green>          
+      <geo-blue type="float">0.0</geo-blue> 
+      <geo-srb-red type="float">0.0</geo-srb-red>  
+      <geo-srb-green type="float">0.0</geo-srb-green>          
+      <geo-srb-blue type="float">0.0</geo-srb-blue>
+      <geo-ambience type="float">0.0</geo-ambience> 
+      <geo-x type="double">0.0</geo-x>
+      <geo-y type="double">0.0</geo-y>
+      <geo-z type="double">0.0</geo-z>
+      <geo-z1 type="double">0.0</geo-z1>
+      <geo-r type="double">0.0</geo-r>
+      <geo-srb-r type="double">0.0</geo-srb-r>
+      <geo-et-x type="double">0.0</geo-et-x>
+      <geo-et-y type="double">0.0</geo-et-y>
+      <geo-et-z type="double">0.0</geo-et-z>
+      <geo-et-z1 type="double">0.0</geo-et-z1>
+      <!--<payload-red type="double">0.0</payload-red>
+      <payload-green type="double">0.0</payload-green>
+      <payload-blue type="double">0.0</payload-blue>-->
+      <payload-x type="double">0.0</payload-x>
+      <payload-y type="double">0.0</payload-y>
+      <payload-z type="double">0.0</payload-z>
+      <payload-r type="double">0.0</payload-r>
+      <payload-ambience type="double">0.0</payload-ambience>
+
+      <!-- interior ambience in space corrections -->
+
+      <interior-ambience-force type="float">0.0</interior-ambience-force>
+      <interior-ambience-red type="float">0.0</interior-ambience-red>
+      <interior-ambience-green type="float">0.0</interior-ambience-green>
+      <interior-ambience-blue type="float">0.0</interior-ambience-blue>
+    </effects>
+ </lighting>
+
+  <sim>
+   <description>NASA Space Shuttle Atlantis</description>
+   <flight-model>jsb</flight-model>
+   <aero>shuttle</aero>
+   <author>Thorsten Renk (flight dynamics), Richard Harrison (cockpit and avionics), Gijs de Rooy (avionics), Chris Kuhn (cockpit), NASA, Jorge Pareja, Wayne Bragg and Herbert Wagner (3D)</author>
+   <status>beta</status>
+   <rating>
+    <FDM type="int">4</FDM>
+    <systems type="int">5</systems>
+    <cockpit type="int">5</cockpit>
+    <model type="int">4</model>
+   </rating>
+   <tags>
+     <tag>spaceship</tag>
+     <tag>glider</tag>
+     <tag>1980s</tag>
+     <tag>1990s</tag>
+     <tag>2000s</tag>
+     <tag>delta</tag>
+     <tag>supersonic</tag>
+     <tag>glass-cockpit</tag>
+     <tag>pressurized</tag>
+     <tag>rocket</tag>
+     <tag>3-engine</tag>
+   </tags>
+
+   <presets>
+	<ISS-prox-x type="double">0.0</ISS-prox-x>
+	<ISS-prox-y type="double">0.0</ISS-prox-y>
+	<ISS-prox-z type="double">0.0</ISS-prox-z>
+   	<scenario-file type="string">empty.xml</scenario-file>
+   </presets>
+
+    <!-- disable most generic  instruments, the Shuttle has its own -->
+
+    <instrumentation>
+      <path>Aircraft/SpaceShuttle/Systems/shuttle-instruments.xml</path>
+    </instrumentation>
+
+
+
+   <!-- only SSME can be throttled initially, later throttle control is transferred to OMS -->
+   <input>
+    <selected>
+     <engine n = "0" type="bool">1</engine>
+     <engine n = "1" type="bool">1</engine>
+     <engine n = "2" type="bool">1</engine>
+     <engine n = "3" type="bool">0</engine>
+     <engine n = "4" type="bool">0</engine>
+     <engine n = "5" type="bool">0</engine>
+     <engine n = "6" type="bool">0</engine>
+     <engine n = "7" type="bool">0</engine>
+     <engine n = "8" type="bool">0</engine>
+     <engine n = "9" type="bool">0</engine>
+     <engine n = "10" type="bool">0</engine>
+     <engine n = "11" type="bool">0</engine>
+     <engine n = "12" type="bool">0</engine>
+     <engine n = "13" type="bool">0</engine>
+     <engine n = "14" type="bool">0</engine>
+     <engine n = "15" type="bool">0</engine>
+     <engine n = "16" type="bool">0</engine>
+     <engine n = "17" type="bool">0</engine>
+     <engine n = "18" type="bool">0</engine>
+     <engine n = "19" type="bool">0</engine>
+     <engine n = "20" type="bool">0</engine>
+     <engine n = "21" type="bool">0</engine>
+     <engine n = "22" type="bool">0</engine>
+     <engine n = "23" type="bool">0</engine>
+     <engine n = "24" type="bool">0</engine>
+     <engine n = "25" type="bool">0</engine>
+     <engine n = "26" type="bool">0</engine>
+     <engine n = "27" type="bool">0</engine>
+     <engine n = "28" type="bool">0</engine>
+     <engine n = "29" type="bool">0</engine>
+     <engine n = "30" type="bool">0</engine>
+     <engine n = "31" type="bool">0</engine>
+     <engine n = "32" type="bool">0</engine>
+     <engine n = "33" type="bool">0</engine>
+     <engine n = "34" type="bool">0</engine>
+     <engine n = "35" type="bool">0</engine>
+    </selected>
+   </input>
+
+   <multiplay>
+    <chat_display>1</chat_display>
+    <generic>
+     <float n="1" alias="/engines/engine[3]/thrust_lb" />
+     <float n="2" alias="/engines/engine[1]/thrust_lb" />
+     <float n="4" alias="/consumables/fuel/tank/level-lbs" />
+     <float n="5" alias="/consumables/fuel/tank[1]/level-lbs" />
+     <float n="6" alias="/consumables/fuel/tank[2]/level-lbs" />
+     <float n="7" alias="/engines/engine[4]/thrust_lb" />
+     <float n="8" alias="/engines/engine[5]/thrust_lb" />
+     <float n="9" alias="/engines/engine[6]/thrust_lb" />
+     <float n="10" alias="/consumables/fuel/tank[3]/level-lbs" />
+     <float n="11" alias="/consumables/fuel/tank[4]/level-lbs" />
+     <float n="12" alias="/engines/engine[0]/thrust_lb" />
+     <float n="13" alias="/velocities/mach" />
+     <float n="15" alias="/engines/engine[9]/thrust_lb" />
+     <float n="16" alias="/engines/engine[10]/thrust_lb" />
+     <float n="17" alias="/engines/engine[11]/thrust_lb" />
+     <float n="18" alias="/engines/engine[2]/thrust_lb" />
+     <float n="0" alias="/gear/gear/rollspeed-ms" />
+
+     <int type="int" n="3" alias="/controls/shuttle/parachute"/>
+     <int type="int" n="6" alias="/controls/shuttle/external-fuel-tank"/>
+     <int type="int" n="7" alias="/controls/shuttle/solid-rocket-boosters"/>
+     <int type="int" n="8" alias="/controls/lighting/nav-lights"/>
+     <int type="int" n="9" alias="/controls/armament/trigger"/>
+    </generic>
+   </multiplay>
+
+   <startup>
+    <splash-texture>Aircraft/SpaceShuttle/SpaceShuttle-splash.png</splash-texture>
+   </startup>
+
+   <approach-trainer>
+	<touchdown-hspeed type="double">0.0</touchdown-hspeed>
+	<touchdown-vspeed type="double">0.0</touchdown-vspeed>
+	<rollout-distance type="double">0.0</rollout-distance>
+   </approach-trainer>
+
+   <model>
+    <path>Aircraft/SpaceShuttle/Models/SpaceShuttle.xml</path>
+    <livery>
+      <name type="string">Orange Foam ET</name>
+    </livery>
+    <shuttle>
+     <controls>
+      <PFD>
+        <mode1 type="int">10</mode1>
+        <mode2 type="int">10</mode2>
+        <mode3 type="int">10</mode3>
+        <mode4 type="int">10</mode4>
+        <mode5 type="int">10</mode5>
+        <mode6 type="int">10</mode6>
+        <mode7 type="int">10</mode7>
+        <mode8 type="int">10</mode8>
+        <mode9 type="int">10</mode9>
+        <mode10 type="int">10</mode10>
+        <mode11 type="int">10</mode11>
+        <button-pressed1 type="int">0</button-pressed1>
+        <button-pressed2 type="int">0</button-pressed2>
+        <button-pressed3 type="int">0</button-pressed3>
+        <button-pressed4 type="int">0</button-pressed4>
+        <button-pressed5 type="int">0</button-pressed5>
+        <button-pressed6 type="int">0</button-pressed6>
+        <button-pressed7 type="int">0</button-pressed7>
+        <button-pressed8 type="int">0</button-pressed8>
+        <button-pressed9 type="int">0</button-pressed9>
+        <button-pressed10 type="int">0</button-pressed10>
+      </PFD>
+     </controls>
+     <lighting>
+      <!-- base RGB for all CRT emissions (normally full brightness is 10x this value)-->
+	
+      <displays-red type="double">0.1</displays-red>
+      <displays-green type="double">0.1</displays-green>
+      <displays-blue type="double">0.1</displays-blue>
+      <!-- base colors for the CRT-emulated DPS pages -->
+      <dps-red type="double">0.2</dps-red>
+      <dps-green type="double">1.0</dps-green>
+      <dps-blue type="double">0.2</dps-blue>         
+     </lighting>
+     <sound>
+		<click-avionics type="bool">false</click-avionics>
+		<click-button-down type="bool">false</click-button-down>
+		<click-button-up type="bool">false</click-button-up>
+		<click-knob type="bool">false</click-knob>
+		<click-cover type="bool">false</click-cover>
+		<click-pos-x type="double">-12.21132</click-pos-x>
+		<click-pos-y type="double"> -0.03679</click-pos-y>
+		<click-pos-z type="double"> -0.83401</click-pos-z>
+     </sound>
+    </shuttle>
+    <effects>
+     <launch-smoke type="int">0</launch-smoke>
+     <explosion-flame type="int">0</explosion-flame>
+     <explosion-smoke type="int">0</explosion-smoke>
+     <entry-debris type="int">0</entry-debris>
+    </effects>
+    <panel>
+     <cover>
+      <landing-gear-arm-cmd-cvr type="bool">false</landing-gear-arm-cmd-cvr>
+      <landing-gear-down-cmd-cvr type="bool">false</landing-gear-down-cmd-cvr>
+      <landing-gear-arm-plt-cvr type="bool">false</landing-gear-arm-plt-cvr>
+      <landing-gear-down-plt-cvr type="bool">false</landing-gear-down-plt-cvr>
+      <chute-arm-cmd-cvr type="bool">false</chute-arm-cmd-cvr>
+      <chute-dpy-cmd-cvr type="bool">false</chute-dpy-cmd-cvr>
+      <chute-jett-cmd-cvr type="bool">false</chute-jett-cmd-cvr>
+      <chute-arm-plt-cvr type="bool">false</chute-arm-plt-cvr>
+      <chute-dpy-plt-cvr type="bool">false</chute-dpy-plt-cvr>
+      <chute-jett-plt-cvr type="bool">false</chute-jett-plt-cvr>
+      <bfc-engage-cvr type="bool">false</bfc-engage-cvr>
+      <C3-covers-visible type="bool">true</C3-covers-visible>
+      <L1-covers-visible type="bool">true</L1-covers-visible>
+      <R1-covers-visible type="bool">true</R1-covers-visible>
+      <R2-covers-visible type="bool">true</R2-covers-visible>
+      <O7-covers-visible type="bool">true</O7-covers-visible>
+      <O8-covers-visible type="bool">true</O8-covers-visible>
+      <A1-covers-visible type="bool">true</A1-covers-visible>
+      <A7-covers-visible type="bool">true</A7-covers-visible>
+      <st-ctrl-sys1-cvr type="bool">false</st-ctrl-sys1-cvr>
+      <st-ctrl-sys2-cvr type="bool">false</st-ctrl-sys2-cvr>
+      <gpc-pwr1-cvr type="bool">false</gpc-pwr1-cvr>
+      <gpc-pwr2-cvr type="bool">false</gpc-pwr2-cvr>
+      <gpc-pwr3-cvr type="bool">false</gpc-pwr3-cvr>
+      <gpc-pwr4-cvr type="bool">false</gpc-pwr4-cvr>
+      <gpc-pwr5-cvr type="bool">false</gpc-pwr5-cvr>
+      <gpc-bus1-cvr type="bool">false</gpc-bus1-cvr>
+      <gpc-bus2-cvr type="bool">false</gpc-bus2-cvr>
+      <gpc-bus3-cvr type="bool">false</gpc-bus3-cvr>
+      <gpc-bus4-cvr type="bool">false</gpc-bus4-cvr>
+      <gpc-bus5-cvr type="bool">false</gpc-bus5-cvr>
+      <fs-bay1-safe-cvr type="bool">false</fs-bay1-safe-cvr>
+      <fs-bay2-safe-cvr type="bool">false</fs-bay2-safe-cvr>
+      <fs-bay3-safe-cvr type="bool">false</fs-bay3-safe-cvr>
+     </cover>
+    </panel>
+   </model>
+
+   <sound>
+    <path>Aircraft/SpaceShuttle/Sounds/SpaceShuttle-Sounds.xml</path>
+   </sound>
+
+   <submodels>
+    <serviceable type="bool">true</serviceable>
+    <path>Aircraft/SpaceShuttle/Models/submodels.xml</path>
+   </submodels>
+
+   <checklists include="SpaceShuttle-checklists.xml"/>
+
+   <view n="0">
+    <internal archive="y">true</internal>
+    <config>
+     <x-offset-m archive="y" type="double">-0.6 </x-offset-m>
+     <y-offset-m archive="y" type="double">-0.13</y-offset-m>
+     <z-offset-m archive="y" type="double">-11.85</z-offset-m>
+     <pitch-offset-deg archive="y" type="double">-10.0</pitch-offset-deg>
+     <default-field-of-view-deg>75</default-field-of-view-deg>
+     <limits>
+      <enabled type="bool">false</enabled>
+     </limits>
+    </config>
+   </view>
+
+   <view n="1">
+    <config>
+     <z-offset-m archive="y" type="double">-140.0</z-offset-m>
+     <default-field-of-view-deg>65</default-field-of-view-deg>
+    </config>
+   </view>
+
+   <view n="100">
+    <name>EVA</name>
+    <type>lookfrom</type>
+    <internal archive="y">true</internal>
+    <config>
+     <from-model type="bool">true</from-model>
+     <x-offset-m archive="y" type="double"> 0.0</x-offset-m>
+     <y-offset-m archive="y" type="double">-3.5</y-offset-m>
+     <z-offset-m archive="y" type="double">-7.5</z-offset-m>
+     <heading-offset-deg archive="y" type="double">180.0</heading-offset-deg>
+    </config>
+   </view>
+
+    <view n="101">
+    <name>Mission specialist station</name>
+    <type>lookfrom</type>
+    <internal archive="y">true</internal>
+    <config>
+     <from-model type="bool">true</from-model>
+     <x-offset-m archive="y" type="double"> 0.4 </x-offset-m>
+     <y-offset-m archive="y" type="double"> 0.2</y-offset-m>
+     <z-offset-m archive="y" type="double">-10.9 </z-offset-m>
+     <heading-offset-deg archive="y" type="double">180.0</heading-offset-deg>
+    </config>
+   </view>
+
+   <view n="102">
+    <name>Payload specialist station</name>
+    <type>lookfrom</type>
+    <internal archive="y">true</internal>
+    <config>
+     <from-model type="bool">true</from-model>
+     <x-offset-m archive="y" type="double"> -0.4 </x-offset-m>
+     <y-offset-m archive="y" type="double">  0.2 </y-offset-m>
+     <z-offset-m archive="y" type="double">-10.9 </z-offset-m>
+     <heading-offset-deg archive="y" type="double">180.0</heading-offset-deg>
+    </config>
+   </view>
+
+   <!--<view n="103">
+    <name>COAS Fwd</name>
+    <type>lookfrom</type>
+    <internal archive="y">true</internal>
+    <config>
+     <from-model type="bool">true</from-model>
+     <x-offset-m archive="y" type="double">-0.7927</x-offset-m>
+     <y-offset-m archive="y" type="double">-0.154</y-offset-m>
+     <z-offset-m archive="y" type="double">-12.154</z-offset-m>
+    </config>
+   </view>
+
+   <view n="104">
+    <name>COAS Aft</name>
+    <type>lookfrom</type>
+    <internal archive="y">true</internal>
+    <config>
+     <from-model type="bool">true</from-model>
+     <x-offset-m archive="y" type="double"> 0.269 </x-offset-m>
+     <y-offset-m archive="y" type="double"> 0.228</y-offset-m>
+     <z-offset-m archive="y" type="double">-10.86 </z-offset-m>
+     <heading-offset-deg archive="y" type="double">180.0</heading-offset-deg>
+     <pitch-offset-deg archive="y" type="double">90.0</pitch-offset-deg>
+    </config>
+   </view>-->
+
+   <view n="103">
+    <name>HUD only</name>
+    <type>lookfrom</type>
+    <internal archive="y">true</internal>
+    <config>
+     <from-model type="bool">true</from-model>
+     <x-offset-m archive="y" type="double">  0.0 </x-offset-m>
+     <y-offset-m archive="y" type="double">  4.94</y-offset-m>
+     <z-offset-m archive="y" type="double">-32.5 </z-offset-m>
+    </config>
+   </view>
+
+   <view n="104">
+    <name>Pilot</name>
+    <type>lookfrom</type>
+    <internal archive="y">true</internal>
+    <config>
+     <from-model type="bool">true</from-model>
+     <x-offset-m archive="y" type="double">  0.7</x-offset-m>
+     <y-offset-m archive="y" type="double"> -0.13</y-offset-m>
+     <z-offset-m archive="y" type="double">-11.85 </z-offset-m>
+     <pitch-offset-deg archive="y" type="double">-10.0</pitch-offset-deg>
+    </config>
+   </view>
+
+   <view n="105">
+     <name>SRMS</name>
+     <type>lookfrom</type>
+     <internal archive="y">true</internal>
+     <config>
+       <from-model type="bool">true</from-model>
+       <!--xyz view matches yzx rms coordinates, mind the translation to the
+	   shoulder origin + the camera offset w.r.t the end effector -->
+       <!-- 0.0 - 2.1 -->
+       <x-offset-m archive="y" type="double">-2.1</x-offset-m>
+       <!-- 0.28 - 1.1 -->
+       <y-offset-m archive="y" type="double">-0.82</y-offset-m>
+       <!-- 14.78 - 8.5 -->
+       <z-offset-m archive="y" type="double">6.28</z-offset-m>
+       <heading-offset-deg archive="y" type="double">-180.0</heading-offset-deg>
+     </config>
+   </view>
+   
+   
+   <menubar>
+    <default>
+     <menu n="50">
+        
+      <label>Space Shuttle</label>
+            
+      <item>
+       <label>--- Systems ---</label>
+       <enabled>false</enabled>
+      </item>
+
+      <item>
+       <label>APU and Hydraulics</label>
+       <binding>
+        <command>nasal</command>
+        <script>SpaceShuttle.apu_dlg.open()</script>
+       </binding>
+      </item>
+      <item>
+       <label>Active Thermal Control System</label>
+       <binding>
+        <command>nasal</command>
+        <script>SpaceShuttle.atcs_dlg.open()</script>
+       </binding>
+      </item>
+      <item>
+       <label>Electrical Power</label>
+       <binding>
+        <command>nasal</command>
+        <script>SpaceShuttle.electrical_dlg.open()</script>
+       </binding>
+      </item>
+      <item>
+       <label>Communication</label>
+       <binding>
+        <command>nasal</command>
+        <script>SpaceShuttle.ku_dlg.open()</script>
+       </binding>
+      </item>
+      <item>
+       <label>Main Propulsion System</label>
+       <binding>
+        <command>nasal</command>
+        <script>SpaceShuttle.mps_dlg.open()</script>
+       </binding>
+      </item>
+      <item>
+       <label>Mechanical Systems</label>
+       <binding>
+        <command>nasal</command>
+        <script>SpaceShuttle.mechanical_dlg.open()</script>
+       </binding>
+      </item>
+      <item>
+       <label>Propellant Fill/Drain</label>
+       <binding>
+        <command>nasal</command>
+        <script>SpaceShuttle.propellant_fd_dlg.open()</script>
+       </binding>
+      </item>
+      <item>
+       <label>RCS/OMS propellant flow</label>
+       <binding>
+        <command>nasal</command>
+        <script>SpaceShuttle.rcs_dlg.open()</script>
+       </binding>
+      </item>
+      <item>
+       <label>OMS propellant flow (new)</label>
+       <binding>
+        <command>nasal</command>
+        <script>SpaceShuttle.cdlg_oms_propellant.init()</script>
+       </binding>
+      </item>
+      <item>
+       <label>RCS and OMS thermal control</label>
+       <binding>
+        <command>nasal</command>
+        <script>SpaceShuttle.rcs_oms_thermal_dlg.open()</script>
+       </binding>
+      </item>
+      <item>
+       <label>Co-Pilot</label>
+       <binding>
+        <command>nasal</command>
+        <script>SpaceShuttle.cdlg_eileen.init()</script>
+       </binding>
+      </item>
+
+      <item>
+       <label>--- Avionics ---</label>
+       <enabled>false</enabled>
+      </item>
+
+      <item>
+       <label>Flight Controls</label>
+       <binding>
+        <command>nasal</command>
+        <script>SpaceShuttle.flight_controls_dlg.open()</script>
+       </binding>
+      </item>
+
+      <item>
+       <label>Orbital DAP</label>
+       <binding>
+        <command>nasal</command>
+        <script>SpaceShuttle.cdlg_orbital_dap.init()</script>
+       </binding>
+      </item>
+
+      <item>
+       <label>Launch Guidance</label>
+       <binding>
+        <command>nasal</command>
+	<script>SpaceShuttle.update_inclination()</script>
+       </binding>
+       <binding>
+        <command>nasal</command>
+        <script>SpaceShuttle.autolaunch_dlg.open()</script>
+       </binding>
+      </item>
+
+      <item>
+       <label>Entry Guidance</label>
+       <binding>
+        <command>nasal</command>
+        <script>SpaceShuttle.entry_guidance_dlg.open()</script>
+       </binding>
+      </item>
+      <item>
+       <label>Orbiter Temperature Distribution</label>
+       <binding>
+        <command>nasal</command>
+        <!--<script>SpaceShuttle.temperature_dlg.open()</script>-->
+	<script>SpaceShuttle.cdlg_temperature.init()</script>
+       </binding>
+      </item>
+      <item>
+       <label>Cabin Lighting</label>
+       <binding>
+        <command>nasal</command>
+        <script>SpaceShuttle.cabin_lighting_dlg.open()</script>
+       </binding>
+      </item>
+
+      <item>
+       <label>--- Configuration ---</label>
+       <enabled>false</enabled>
+      </item>
+
+      <item>
+       <label>Simulation Options</label>
+       <binding>
+        <command>nasal</command>
+        <script>SpaceShuttle.options_dlg.open()</script>
+       </binding>
+      </item>
+
+      <item>
+       <label>Limits and Failures</label>
+       <binding>
+        <command>nasal</command>
+        <script>SpaceShuttle.limits_dlg.open()</script>
+       </binding>
+      </item>
+
+      <item>
+        <label>Switch Covers</label>
+        <binding>
+            <command>nasal</command>
+            <script>SpaceShuttle.switch_covers_dlg.open()</script>
+        </binding>
+      </item>
+
+      <item>
+        <label>ET Foam Type</label>
+        <binding>
+            <command>nasal</command>
+            <script>aircraft.livery.dialog.toggle()</script>
+        </binding>
+      </item>
+      
+     </menu>
+
+     <menu n="52">
+      <label>Data Processing System</label>
+
+      <item>
+       <label>Keyboard</label>
+       <binding>
+        <command>nasal</command>
+        <script>SpaceShuttle.dps_keyboard_dlg.open()</script>
+       </binding>
+      </item>
+
+      <item>
+       <label>Keyboard (new)</label>
+       <binding>
+        <command>nasal</command>
+        <script>SpaceShuttle.cdlg_keyboard.init()</script>
+       </binding>
+      </item>
+
+      <item>
+       <label>Display processor</label>
+       <binding>
+        <command>nasal</command>
+        <script>SpaceShuttle.idp_dlg.open()</script>
+       </binding>
+      </item>
+
+      <item>
+       <label>Replicate CDR1 MDU</label>
+       <binding>
+        <command>nasal</command>
+        <script>SpaceShuttle.create_MDU_clone(0)</script>
+       </binding>
+      </item>
+      <item>
+       <label>Replicate CDR2 MDU</label>
+       <binding>
+        <command>nasal</command>
+        <script>SpaceShuttle.create_MDU_clone(1)</script>
+       </binding>
+      </item>
+      <item>
+       <label>Replicate CRT1 MDU</label>
+       <binding>
+        <command>nasal</command>
+        <script>SpaceShuttle.create_MDU_clone(2)</script>
+       </binding>
+      </item>
+      <item>
+       <label>Replicate MFD1 MDU</label>
+       <binding>
+        <command>nasal</command>
+        <script>SpaceShuttle.create_MDU_clone(3)</script>
+       </binding>
+      </item>
+     <!--<item>
+       <label>Replicate HUD</label>
+       <binding>
+        <command>nasal</command>
+        <script>SpaceShuttle.cdlg_HUD_clone.init();</script>
+       </binding>
+      </item>-->
+     </menu>
+
+     <menu n="53">
+      <label>Cue cards</label>
+
+      <item>
+       <label>In-cockpit cue cards</label>
+       <binding>
+        <command>nasal</command>
+        <script>SpaceShuttle.cdlg_cuecards.init()</script>
+       </binding>
+      </item>
+
+      <item>
+       <label>Ascent ADI nominal</label>
+       <binding>
+        <command>nasal</command>
+        <script>SpaceShuttle.show_cue_card("Cuecards/ascent_nominal.png")</script>
+       </binding>
+      </item>
+
+      <item>
+       <label>RTLS Commander</label>
+       <binding>
+        <command>nasal</command>
+        <script>SpaceShuttle.show_cue_card("Cuecards/rtls_cdr.png")</script>
+       </binding>
+      </item>
+
+      <item>
+       <label>RTLS Pilot</label>
+       <binding>
+        <command>nasal</command>
+        <script>SpaceShuttle.show_cue_card("Cuecards/rtls_plt.png")</script>
+       </binding>
+      </item>
+
+      <item>
+       <label>Contingency Aborts</label>
+       <binding>
+        <command>nasal</command>
+        <script>SpaceShuttle.show_cue_card("Cuecards/contingency_abort.png")</script>
+       </binding>
+      </item>
+
+      <item>
+       <label>RTLS Contingency</label>
+       <binding>
+        <command>nasal</command>
+        <script>SpaceShuttle.show_cue_card("Cuecards/rtls_contingency.png")</script>
+       </binding>
+      </item>
+
+      <item>
+       <label>ZZA TAL</label>
+       <binding>
+        <command>nasal</command>
+        <script>SpaceShuttle.show_cue_card("Cuecards/tal_redesignation_zza.png")</script>
+       </binding>
+      </item>
+
+      <item>
+       <label>OMS Part 1</label>
+       <binding>
+        <command>nasal</command>
+        <script>SpaceShuttle.show_cue_card("Cuecards/oms_part1.png")</script>
+       </binding>
+      </item>
+
+      <item>
+       <label>OMS Part 2</label>
+       <binding>
+        <command>nasal</command>
+        <script>SpaceShuttle.show_cue_card("Cuecards/oms_part2.png")</script>
+       </binding>
+      </item>
+
+      <item>
+       <label>Entry ADI Nominal</label>
+       <binding>
+        <command>nasal</command>
+        <script>SpaceShuttle.show_cue_card("Cuecards/entry_nominal.png")</script>
+       </binding>
+      </item>
+
+
+     </menu>
+
+     <menu n="54">
+      <label>Save/Resume</label>
+
+      <item>
+       <label>Save/Resume</label>
+       <binding>
+        <command>nasal</command>
+        <script>SpaceShuttle.save_dlg.open()</script>
+       </binding>
+      </item>
+
+      <item>
+       <label>Scenario</label>
+       <binding>
+        <command>nasal</command>
+        <script>SpaceShuttle.cdlg_scenario.init()</script>
+       </binding>
+      </item>
+
+      <item>
+       <label>Failure training</label>
+       <binding>
+        <command>nasal</command>
+        <script>SpaceShuttle.cdlg_training.init()</script>
+       </binding>
+      </item>
+     </menu>
+
+     <menu n="55">
+      <label>Mission Control</label>
+
+      <item>
+       <label>MCC status</label>
+       <binding>
+        <command>nasal</command>
+        <script>SpaceShuttle.mcc_status_dlg.open()</script>
+       </binding>
+      </item>
+      <item>
+       <label>MCC communication</label>
+       <binding>
+        <command>nasal</command>
+        <script>SpaceShuttle.mcc_comm_dlg.open()</script>
+       </binding>
+      </item>
+      <!--<item>
+       <label>Trajectory Map</label>
+       <binding>
+        <command>nasal</command>
+        <script>SpaceShuttle.create_map()</script>
+       </binding>
+      </item>-->
+      <item>
+       <label>Trajectory Map</label>
+       <binding>
+        <command>nasal</command>
+        <script>SpaceShuttle.cdlg_traj_map.init()</script>
+       </binding>
+      </item>
+      <item>
+       <label>Rendezvous Planning</label>
+       <binding>
+        <command>nasal</command>
+        <script>SpaceShuttle.cdlg_rendezvous.init()</script>
+       </binding>
+      </item>
+      <item>
+       <label>ECAL Map</label>
+       <binding>
+        <command>nasal</command>
+        <script>SpaceShuttle.create_ecal_map()</script>
+       </binding>
+      </item>
+      <item>
+       <label>Notepad</label>
+       <binding>
+        <command>nasal</command>
+        <script>SpaceShuttle.cdlg_notepad.init()</script>
+       </binding>
+      </item>
+     </menu>
+
+
+    </default>
+   </menubar>
+
+   <chase-distance-m type="double" archive="y">-65.0</chase-distance-m>
+
+   <help>
+    <title>Space Shuttle</title>
+
+    <key>
+     <name>Ctrl-q</name>
+     <desc>left engine cutoff switch</desc>
+    </key>
+
+    <key>
+     <name>Ctrl-w</name>
+     <desc>center engine cutoff switch</desc>
+    </key>
+
+    <key>
+     <name>Ctrl-e</name>
+     <desc>right engine cutoff switch</desc>
+    </key>
+
+    <key>
+     <name>Shift-c</name>
+     <desc>deploy drag chute</desc>
+    </key>
+    <key>
+     <name>d</name>
+     <desc>drop external tank</desc>
+    </key>
+    <key>
+     <name>Ctrl-d</name>
+     <desc>force drop external tank</desc>
+    </key>
+
+    <key>
+     <name>e</name>
+     <desc>RMS end effector grab payload</desc>
+    </key>
+
+    <key>
+     <name>f</name>
+     <desc>trim body-flap upward</desc>
+    </key>
+    <key>
+     <name>Shift-f</name>
+     <desc>trim body-flap downward</desc>
+    </key>
+    <!--<key>
+     <name>Ctrl-f</name>
+     <desc>toggle forward RCS pod fuel dump</desc>
+    </key>-->
+    <!--<key>
+     <name>Ctrl-o</name>
+     <desc>toggle OMS fuel dump</desc>
+    </key>-->
+    <key>
+     <name>Ctrl-g</name>
+     <desc>arm landing gear</desc>
+    </key>
+    <key>
+     <name>Shift-i</name>
+     <desc>main engine ignition command</desc>
+    </key>
+    <key>
+     <name>m</name>
+     <desc>toggle controls from RHC to THC</desc>
+    </key>
+    <!--<key>
+     <name>M</name>
+     <desc>switch RCS DAP modes</desc>
+    </key>-->
+    <key>
+     <name>Ctrl-m</name>
+     <desc>override FCS mode selection</desc>
+    </key>
+    <key>
+     <name>Ctrl-b</name>
+     <desc>emgage Backup Flight System (BFS)</desc>
+    </key>
+    <key>
+     <name>Ctrl-a</name>
+     <desc>COAS attitude reference</desc>
+    </key>
+    <key>
+     <name>Ctrl-u</name>
+     <desc>Undock from space station</desc>
+    </key>
+    <key>
+     <name>Ctrl-v</name>
+     <desc>Open View Manager</desc>
+    </key>
+    <key>
+     <name>Shift-e</name>
+     <desc>Initiate spacewalk (from EVA view)</desc>
+    </key>
+    <key>
+     <name>Shift-h</name>
+     <desc>Cycle HUD declutter level</desc>
+    </key>
+    <!--<key>
+     <name>s</name>
+     <desc>deploy speed brake</desc>
+    </key>
+    <key>
+     <name>shift-s</name>
+     <desc>retract speed brake</desc>
+    </key>-->
+    <key>
+     <name>Keypad 4</name>
+     <desc>RCS roll left</desc>
+    </key>
+    <key>
+     <name>Keypad 6</name>
+     <desc>RCS roll right</desc>
+    </key>
+    <key>
+     <name>Keypad 8</name>
+     <desc>RCS pitch down</desc>
+    </key>
+    <key>
+     <name>Keypad 2</name>
+     <desc>RCS pitch up</desc>
+    </key>
+    <key>
+     <name>Keypad 5</name>
+     <desc>RCS off</desc>
+    </key>
+    <key>
+     <name>[</name>
+     <desc>RCS yaw left</desc>
+    </key>
+    <key>
+     <name>]</name>
+     <desc>RCS yaw right</desc>
+    </key>
+    <text>
+
+A short in-sim help text can not explain how to operate a machine as complex as the Space Shuttle. The ultimate resource is the NASA 'Space Shuttle Crew Operations Manual' (SCOM, USA007587) which is in public domain. A copy of this is in the Shuttle's Documentation/ folder and browsing through the SCOM is highly recommended if you want to get most out of the Shuttle experience.
+
+Specifically for the avionics and the meaning of all displayed parameters, the original NASA DPS Dictionary is also available in the Documentation/ folder as reference. Since the SCOM and the DPS Dictionary are the primary documents which have been used to model the Shuttle's systems, they're fairly accurate for the simulated version as well. The same holds for other NASA resources which can be obtained from the NASA document server, for instance mission-specific cue card sets (as long as your mission design adheres to the original).
+
+A dedicated 'Flightgear Space Shuttle Flight Manual' containing detailed systems descriptions, tutorial series and simulation reference material can be obtained via
+
+http://www.science-and-fiction.org/bookstore.html
+
+free of charge for Flightgear users. You will also find a FlightGear focused overview on the FG Wiki
+
+http://wiki.flightgear.org/Space_Shuttle
+
+and this page also links to descriptions and tutorials explaining the various phases of flight.
+
+In addition, there are in-sim checklists available to guide you through specific procedures. To avoid frustration, always follow the checklists for the various mission phases. They are written to ensure that the systems of the Shuttle are set up in the correct state for subsequent operations.
+
+Note that devlopment is ongoing and not all features are documented.
+
+
+    </text>
+   </help>
+
+   <systems>
+    <path>Aircraft/SpaceShuttle/Systems/shuttle-generic-systems.xml</path>
+    <property-rule n="100"> 
+     <name>ssme-flame-computation</name> 	
+     <path>Systems/ssme-flame-computation.xml</path>  
+    </property-rule>
+    <property-rule n="101">
+     <path>Systems/ground-effects-filters.xml</path>
+    </property-rule>
+    <property-rule n="102">
+     <path>Systems/cabin-lighting-filters.xml</path>
+    </property-rule>
+   </systems>
+   <config>
+    <shuttle>
+     <approach-and-landing-test-config type="int">0</approach-and-landing-test-config>
+     <thermal-system-computation-speed type="int">0</thermal-system-computation-speed>
+     <place-gantry type="int">0</place-gantry>
+     <display-effect type="int">0</display-effect>
+     <dust-level type="float">3.0</dust-level>
+     <velcro-effect type="int">0</velcro-effect>
+     <mdu-groups type="int">4</mdu-groups>
+     <mdu-update-speed type="int">1</mdu-update-speed>
+     <dps-detail-level type="int">0</dps-detail-level>
+     <sm-detail-level type="int">0</sm-detail-level>
+     <cws-detail-level type="int">0</cws-detail-level>
+     <center-cull-level type="int">1</center-cull-level>
+     <ET-config type="string">super lightweight</ET-config>
+     <TC-config type="string">none</TC-config>
+     <OMS-kit-config type="string">none</OMS-kit-config>
+     <COAS-config type="string">none</COAS-config>
+     <PL-selection type="string">none</PL-selection>
+     <PL-selection-flag type="int">0</PL-selection-flag>
+     <PL-pallet-flag type="int">0</PL-pallet-flag>
+     <detailed-flightdeck type="int">0</detailed-flightdeck>
+     <srb-shake type="int">0</srb-shake>
+     <loose-items type="int">0</loose-items>
+     <cuecards>
+ 	<cdr-center-left type="int">0</cdr-center-left>
+  	<cdr-center-right type="int">0</cdr-center-right>
+	<plt-center-left type="int">0</plt-center-left>
+	<plt-center-right type="int">0</plt-center-right>
+     </cuecards>
+     <show-floating-scom type="int">0</show-floating-scom>
+     <on-carrier-init type="int">1</on-carrier-init>
+     <font-selection type="int">0</font-selection>
+     <font_A type="string">SSU_Font_A_mod.ttf</font_A>
+     <font_B type="string">SSU_Font_B_mod.ttf</font_B>
+     <show-coas-for type="int">0</show-coas-for>
+     <show-coas-aft type="int">0</show-coas-aft>
+     <rendering>
+      <use-earthview type="int" userarchive="y">0</use-earthview>
+      <earthview-transition-alt-ft type="double" userarchive="y">85000.0</earthview-transition-alt-ft>
+      <orbital-target-lod-m type="double" userarchive="y">5000.0</orbital-target-lod-m>	
+     </rendering>
+     <callouts>
+ 	<help type="int">1</help>
+ 	<info type="int">1</info>
+ 	<limit type="int">1</limit>
+ 	<failure type="int">1</failure>
+ 	<real type="int">1</real>
+ 	<essential type="int">1</essential>
+     </callouts>
+    </shuttle>
+   </config>
+
+  <flight-recorder>
+   <replay-config type="int">0</replay-config>
+   <config n="0" include="Systems/flight-recorder/flight-recorder.xml">
+    <name type="string">Space Shuttle Flight Recorder</name>
+   </config>
+  </flight-recorder>
+
+  <gui>
+    <dialogs>
+	<SpaceShuttle>
+	   <auto_launch>
+		<inclination>0.0</inclination>
+		<apoapsis-target-miles>170.0</apoapsis-target-miles>
+	  	<select-north type="int">1</select-north>
+	  	<select-south type="int">0</select-south>
+	   </auto_launch>
+	   <save>
+		<filename type="string">save1.xml</filename>
+	  </save>
+	</SpaceShuttle>
+    </dialogs>
+  </gui>
+
+  <aircraft-data>
+    <path>/sim/config/shuttle/rendering/use-earthview</path>
+    <path>/sim/config/shuttle/rendering/earthview-transition-alt-ft</path>
+    <path>/sim/model/panel/cover/C3-covers-visible</path>
+    <path>/sim/model/panel/cover/L1-covers-visible</path>
+    <path>/sim/model/panel/cover/R1-covers-visible</path>
+    <path>/sim/model/panel/cover/R2-covers-visible</path>
+    <path>/sim/model/panel/cover/O7-covers-visible</path>
+    <path>/sim/model/panel/cover/O8-covers-visible</path>
+    <path>/sim/model/panel/cover/A1-covers-visible</path>
+    <path>/sim/config/shuttle/mdu-update-speed</path>
+    <path>/fdm/jsbsim/systems/adi/quality-level</path>
+    <path>/sim/config/shuttle/detailed-flightdeck</path>
+    <path>/sim/config/shuttle/srb-shake</path>
+    <path>/sim/config/shuttle/hud-filter</path>
+    <path>/sim/config/shuttle/place-gantry</path>
+    <path>/sim/config/shuttle/display-effect</path>
+    <path>/sim/config/shuttle/dust-level</path>
+    <path>/sim/config/shuttle/velcro-effect</path>
+    <path>/sim/config/shuttle/callouts/info</path>
+    <path>/sim/config/shuttle/callouts/help</path>
+    <path>/sim/config/shuttle/callouts/limit</path>
+    <path>/sim/config/shuttle/callouts/failure</path>
+    <path>/sim/config/shuttle/callouts/real</path>
+    <path>/sim/config/shuttle/callouts/essential</path>
+    <path>/sim/config/shuttle/dps-detail-level</path>
+    <path>/sim/config/shuttle/sm-detail-level</path>
+    <path>/sim/config/shuttle/cws-detail-level</path>
+  </aircraft-data>
+
+
+ </sim>
+
+
+
+ <save>
+   <valid-flag type="bool">false</valid-flag>
+   <latitude-deg type="double">0.0</latitude-deg>
+   <longitude-deg type="double">0.0</longitude-deg>
+   <altitude-ft type="double">0.0</altitude-ft>
+   <pitch-deg type="double">0.0</pitch-deg>
+   <heading-deg type="double">0.0</heading-deg>
+   <roll-deg type="double">0.0</roll-deg>
+   <uBody-fps type="double">0.0</uBody-fps>
+   <vBody-fps type="double">0.0</vBody-fps>
+   <wBody-fps type="double">0.0</wBody-fps>
+ </save>
+
+ <!-- Key mapping -->
+
+ <input include="key_bindings.xml"/>
+ 
+
+ <payload>
+  <weight>
+   <name type="string">Pilot</name>
+   <weight-lb alias="/fdm/jsbsim/inertia/pointmass-weight-lbs[0]"/>
+   <min-lb type="double">0.0</min-lb>
+   <max-lb type="double">1200000.0</max-lb>
+  </weight>
+ </payload>
+
+ <nasal>
+  <SpaceShuttle>	
+   <file>Aircraft/SpaceShuttle/Nasal/canvas/canvas_draw.nas</file>
+   <file>Aircraft/SpaceShuttle/Nasal/callouts.nas</file>
+   <file>Aircraft/SpaceShuttle/Nasal/rel_orbital.nas</file>
+   <file>Aircraft/SpaceShuttle/Nasal/orbital_planning.nas</file>
+   <file>Aircraft/SpaceShuttle/Nasal/orbital_targeting.nas</file>
+   <file>Aircraft/SpaceShuttle/Nasal/coordinates.nas</file>
+   <file>Aircraft/SpaceShuttle/Nasal/oms_burn_logic.nas</file>
+   <file>Aircraft/SpaceShuttle/Nasal/state_vector.nas</file>
+   <file>Aircraft/SpaceShuttle/Nasal/vertical_traj.nas</file>
+   <file>Aircraft/SpaceShuttle/Nasal/stages.nas</file>
+   <file>Aircraft/SpaceShuttle/Nasal/auto_launch.nas</file>
+   <file>Aircraft/SpaceShuttle/Nasal/housekeeping.nas</file>
+   <file>Aircraft/SpaceShuttle/Nasal/dialogs.nas</file>
+   <file>Aircraft/SpaceShuttle/Nasal/limits.nas</file>
+   <file>Aircraft/SpaceShuttle/Nasal/entry_guidance.nas</file>
+   <file>Aircraft/SpaceShuttle/Nasal/TAEM_guidance.nas</file>
+   <file>Aircraft/SpaceShuttle/Nasal/map.nas</file>
+   <file>Aircraft/SpaceShuttle/Nasal/failures.nas</file>
+   <file>Aircraft/SpaceShuttle/Nasal/cws.nas</file>
+   <file>Aircraft/SpaceShuttle/Nasal/thermal_balance.nas</file>
+   <file>Aircraft/SpaceShuttle/Nasal/launchpad.nas</file>
+   <file>Aircraft/SpaceShuttle/Nasal/payload.nas</file>
+   <file>Aircraft/SpaceShuttle/Nasal/dps_command_parser.nas</file>
+   <file>Aircraft/SpaceShuttle/Nasal/dps_hardware.nas</file>
+   <file>Aircraft/SpaceShuttle/Nasal/communications.nas</file>
+   <file>Aircraft/SpaceShuttle/Nasal/sensors.nas</file>
+   <file>Aircraft/SpaceShuttle/Nasal/sound.nas</file>
+   <file>Aircraft/SpaceShuttle/Nasal/save.nas</file>
+   <file>Aircraft/SpaceShuttle/Nasal/mission.nas</file>
+   <file>Aircraft/SpaceShuttle/Nasal/scenario.nas</file>
+   <file>Aircraft/SpaceShuttle/Nasal/training.nas</file>
+   <file>Aircraft/SpaceShuttle/Nasal/rtls.nas</file>
+   <file>Aircraft/SpaceShuttle/Nasal/contingency_abort.nas</file>
+   <file>Aircraft/SpaceShuttle/Nasal/cue_cards.nas</file>
+   <file>Aircraft/SpaceShuttle/Nasal/aborts.nas</file>
+   <file>Aircraft/SpaceShuttle/Nasal/light_manager.nas</file>
+   <file>Aircraft/SpaceShuttle/Nasal/orbital_dap_selection.nas</file>
+   <file>Aircraft/SpaceShuttle/Nasal/liveries.nas</file>
+   <file>Aircraft/SpaceShuttle/Nasal/mcc.nas</file>
+   <file>Aircraft/SpaceShuttle/Nasal/zero_g.nas</file>
+   <file>Aircraft/SpaceShuttle/Nasal/carrier.nas</file>
+   <file>Aircraft/SpaceShuttle/Nasal/approach_trainer.nas</file>
+   <file>Aircraft/SpaceShuttle/Nasal/leakage.nas</file>
+   <file>Aircraft/SpaceShuttle/Nasal/fire.nas</file>
+   <file>Aircraft/SpaceShuttle/Nasal/coas.nas</file>
+   <file>Aircraft/SpaceShuttle/Nasal/lambert_manager.nas</file>
+   <file>Aircraft/SpaceShuttle/Nasal/eileen.nas</file>
+   <file>Aircraft/SpaceShuttle/Nasal/payload_manager.nas</file>
+   <file>Nasal/PFD/PFD_main.nas</file>
+   <file>Nasal/HUD/HUD_main.nas</file>
+   <file>Nasal/canvas/canvas_dialogs.nas</file>
+  </SpaceShuttle>
+  <tyresmoke>
+   <file>Nasal/tyresmoke.nas</file>
+  </tyresmoke>
+ </nasal>
+
+ <import>
+  <path>Huds/Sets/controls.xml</path>
+  <x-offset>-100</x-offset>
+  <y-offset>70</y-offset>
+ </import>
+
+	<gear>
+		<gear n="0">
+		  <tyre-smoke type="int">0</tyre-smoke>
+		  <sprayspeed-ms type="double">0</sprayspeed-ms>
+		  <spray-density type="double">0</spray-density>
+		</gear>
+		<gear n="1">
+		  <tyre-smoke type="int">0</tyre-smoke>
+		  <sprayspeed-ms type="double">0</sprayspeed-ms>
+		  <spray-density type="double">0</spray-density>
+		</gear>
+		<gear n="2">
+		  <tyre-smoke type="int">0</tyre-smoke>
+		  <sprayspeed-ms type="double">0</sprayspeed-ms>
+		  <spray-density type="double">0</spray-density>
+		</gear>
+	</gear>
+
+  <environment>
+    <aircraft-effects>
+      <exterior-plasma-burn type="float">0</exterior-plasma-burn>
+    </aircraft-effects>
+  </environment>
+
+  <!--<mission include="Mission/mission.xml"/>-->
+
+</PropertyList>
+

@@ -1,0 +1,32 @@
+<?xml version="1.0" ?>
+
+<PropertyList>
+
+
+<metadata>
+	<mission-stage type="int">2</mission-stage>
+	<title type="string">Low energy entry to KSC</title>
+</metadata>
+
+
+<state>
+	<lat>-22.6063</lat>
+	<lon>-132.5767</lon>
+	<alt>400000.0</alt>
+	<u-body>23523.33</u-body>
+	<v-body>-4.938</v-body>
+	<w-body>942.89</w-body>
+	<heading>44.821</heading>
+	<pitch>0.96</pitch>
+	<roll>0.0</roll>
+</state>
+
+<guidance>
+	<landing-site-index>1</landing-site-index>
+	<entry-guidance-on>1</entry-guidance-on>
+</guidance>
+
+
+
+
+</PropertyList>

@@ -1,0 +1,60 @@
+<?xml version="1.0" ?>
+
+<PropertyList>
+
+
+<metadata>
+	<mission-stage type="int">6</mission-stage>
+	<title type="string">De-orbit</title>
+</metadata>
+
+<state>
+	<lat>-7.1829</lat>
+	<lon>50.2511</lon>
+	<alt>1050068.5</alt>
+	<u-body>24000.64</u-body>
+	<v-body>-2.07</v-body>
+	<w-body>304.0531</w-body>
+	<heading>125.96</heading>
+	<pitch>0.7318</pitch>
+	<roll>0.0</roll>
+</state>
+
+<guidance>
+	<landing-site-index>1</landing-site-index>
+</guidance>
+
+
+<notepad>
+	<line1 type="string">De-orbit burn parameters</line1>
+	<line2 type="string">TIG 2/7:47:21</line2>
+	<line3 type="string">DVX -279</line3>
+	<line4 type="string">DVY +150</line4>
+</notepad>
+
+<settings>
+	<num-settings type="int">10</num-settings>
+	<property type="string">/consumables/fuel/tank[4]/level-lbs</property>
+	<value type="int">3109.0</value>
+	<property type="string">/consumables/fuel/tank[5]/level-lbs</property>
+	<value type="int">1887.0</value>
+	<property type="string">/consumables/fuel/tank[6]/level-lbs</property>
+	<value type="int">3109.0</value>
+	<property type="string">/consumables/fuel/tank[7]/level-lbs</property>
+	<value type="int">1887.0</value>
+	<property type="string">/consumables/fuel/tank[8]/level-lbs</property>
+	<value type="int">738.5</value>
+	<property type="string">/consumables/fuel/tank[9]/level-lbs</property>
+	<value type="int">464.0</value>
+	<property type="string">/consumables/fuel/tank[10]/level-lbs</property>
+	<value type="int">738.5</value>
+	<property type="string">/consumables/fuel/tank[11]/level-lbs</property>
+	<value type="int">464.0</value>
+	<property type="string">/consumables/fuel/tank[12]/level-lbs</property>
+	<value type="int">738.5</value>
+	<property type="string">/consumables/fuel/tank[13]/level-lbs</property>
+	<value type="int">464.0</value>
+</settings>
+
+
+</PropertyList>

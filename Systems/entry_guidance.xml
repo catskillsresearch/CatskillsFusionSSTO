@@ -1,0 +1,1236 @@
+<?xml version="1.0"?>
+
+<system>
+
+	<channel name="Entry and TAEM guidance management">
+
+		<switch name="systems/entry_guidance/entry-guidance-activation">
+			<default value="0.0"/>
+			<test logic="OR" value="1.0">
+				systems/ap/auto-entry-active == 1
+				systems/dps/ops == 6
+			</test>
+		</switch>
+
+		<switch name="systems/entry_guidance/taem-guidance-activation">
+			<default value="0.0"/>
+			<test value="1.0">
+				systems/ap/auto-taem-active == 1
+			</test>
+		</switch>
+
+		<switch name="systems/entry_guidance/pfd-entry-cues-activation">
+			<default value="0.0"/>
+			<test logic="OR" value="1.0">
+				systems/dps/major-mode == 304
+				systems/dps/major-mode == 305
+				systems/dps/major-mode == 602
+				systems/dps/major-mode == 603
+			</test>
+		</switch>
+
+	</channel>
+
+	<channel name="Entry groundtrack guidance" execute="systems/entry_guidance/entry-guidance-activation">
+
+	<switch name="systems/entry_guidance/guidance-active">
+			<default value="0.0"/>
+			<test logic="OR" value="1.0">
+				systems/entry_guidance/guidance-mode == 1
+				systems/entry_guidance/guidance-mode == 2
+				systems/entry_guidance/guidance-mode == 3
+			</test>
+	</switch>
+
+	
+	<fcs_function name="systems/entry_guidance/aero-deceleration-g">
+		<function>
+		<quotient>
+			<pow>
+				<sum>
+				<pow>
+					<property>forces/fbx-aero-lbs</property>
+					<value>2.0</value>				
+				</pow>
+				<pow>
+					<property>forces/fby-aero-lbs</property>
+					<value>2.0</value>				
+				</pow>
+				<pow>
+					<property>forces/fbz-aero-lbs</property>
+					<value>2.0</value>				
+				</pow>
+				</sum>
+				<value>0.5</value>
+			</pow>			
+			<property>inertia/weight-lbs</property>
+		</quotient>
+		</function>		
+	</fcs_function>
+
+<!-- Actual Drag -->
+
+	<fcs_function name="systems/entry_guidance/aero-drag-deceleration-fts">
+		<function>
+			<product>
+				<value>32.2</value>
+				<quotient>
+					<property>forces/fwx-aero-lbs</property>
+					<property>inertia/weight-lbs</property>
+				</quotient>
+			</product>
+		</function>		
+	</fcs_function>
+
+
+<!-- Equilibrium Drag -->
+
+	<fcs_function name="systems/entry_guidance/aero-drag-equilibrium-fts">
+		<function>
+			<quotient>
+				<product>
+					<value>32.2</value>
+					<difference>
+						<value>1.0</value>
+						<quotient>
+							<pow>
+								<property>velocities/eci-velocity-mag-fps</property>
+								<value>2.0</value>				
+							</pow>
+							<pow>
+								<value>26000</value>
+								<value>2.0</value>				
+							</pow>
+						</quotient>
+					</difference>
+				</product>
+				<product>
+					<quotient>
+						<property>aero/coefficient/CL-basic</property>
+						<property>aero/coefficient/CD-basic</property>
+					</quotient>
+					<cos>
+						<product>
+							<value>0.01745</value>
+							<property>systems/ap/entry/roll-abs-deg</property>
+						</product>
+					</cos>
+				</product>
+			</quotient>
+		</function>		
+	</fcs_function>
+
+	<fcs_function name="systems/entry_guidance/aero-drag-equilibrium-bank-0">
+		<function>
+			<quotient>
+				<product>
+					<value>32.2</value>
+					<difference>
+						<value>1.0</value>
+						<quotient>
+							<pow>
+								<property>velocities/eci-velocity-mag-fps</property>
+								<value>2.0</value>				
+							</pow>
+							<pow>
+								<value>26000</value>
+								<value>2.0</value>				
+							</pow>
+						</quotient>
+					</difference>
+				</product>
+				<product>
+					<quotient>
+						<property>aero/coefficient/CL-basic</property>
+						<property>aero/coefficient/CD-basic</property>
+					</quotient>
+					<cos>
+						<product>
+							<value>0.01745</value>
+							<value>0</value>
+						</product>
+					</cos>
+				</product>
+			</quotient>
+		</function>		
+	</fcs_function>
+
+	<fcs_function name="systems/entry_guidance/aero-drag-equilibrium-bank-20">
+		<function>
+			<quotient>
+				<product>
+					<value>32.2</value>
+					<difference>
+						<value>1.0</value>
+						<quotient>
+							<pow>
+								<property>velocities/eci-velocity-mag-fps</property>
+								<value>2.0</value>				
+							</pow>
+							<pow>
+								<value>26000</value>
+								<value>2.0</value>				
+							</pow>
+						</quotient>
+					</difference>
+				</product>
+				<product>
+					<quotient>
+						<property>aero/coefficient/CL-basic</property>
+						<property>aero/coefficient/CD-basic</property>
+					</quotient>
+					<cos>
+						<product>
+							<value>0.01745</value>
+							<value>20</value>
+						</product>
+					</cos>
+				</product>
+			</quotient>
+		</function>		
+	</fcs_function>
+
+	<fcs_function name="systems/entry_guidance/aero-drag-equilibrium-bank-37">
+		<function>
+			<quotient>
+				<product>
+					<value>32.2</value>
+					<difference>
+						<value>1.0</value>
+						<quotient>
+							<pow>
+								<property>velocities/eci-velocity-mag-fps</property>
+								<value>2.0</value>				
+							</pow>
+							<pow>
+								<value>26000</value>
+								<value>2.0</value>				
+							</pow>
+						</quotient>
+					</difference>
+				</product>
+				<product>
+					<quotient>
+						<property>aero/coefficient/CL-basic</property>
+						<property>aero/coefficient/CD-basic</property>
+					</quotient>
+					<cos>
+						<product>
+							<value>0.01745</value>
+							<value>37</value>
+						</product>
+					</cos>
+				</product>
+			</quotient>
+		</function>		
+	</fcs_function>
+
+	<fcs_function name="systems/entry_guidance/ground-relative-velocity-fps">
+		<function>
+		<pow>
+			<sum>
+				<pow>
+					<property>velocities/v-east-fps</property>
+					<value>2.0</value>
+				</pow>
+				<pow>
+					<property>velocities/v-north-fps</property>
+					<value>2.0</value>
+				</pow>
+			</sum>
+			<value>0.5</value>
+		</pow>
+		</function>
+	</fcs_function>
+
+	<fcs_function name="systems/entry_guidance/site-relative-velocity-fps">
+		<function>
+			<product>
+				<property>systems/entry_guidance/vrel-sign</property>
+				<property>systems/entry_guidance/ground-relative-velocity-fps</property>
+			</product>
+		</function>
+	</fcs_function>
+
+	<fcs_function name="systems/entry_guidance/groundtrack-course-deg-raw">
+		<function>
+		<product>
+			<atan2>
+					<property>velocities/v-east-fps</property>
+					<property>velocities/v-north-fps</property>
+			</atan2>
+		<value>57.2957</value>
+		</product>
+		</function>
+	</fcs_function>
+
+	<switch name="systems/entry_guidance/groundtrack-course-adjust">
+			<default value="0.0"/>
+			<test  value="360.0">
+				systems/entry_guidance/groundtrack-course-deg-raw LT 0
+			</test>
+	</switch>
+	
+	<fcs_function name="systems/entry_guidance/groundtrack-course-deg">
+		<function>
+			<sum>
+				<property>systems/entry_guidance/groundtrack-course-adjust</property>
+				<property>systems/entry_guidance/groundtrack-course-deg-raw</property>
+			</sum>
+		</function>
+	</fcs_function>
+
+
+	<!--<fcs_function name="systems/entry_guidance/target-deceleration-g">
+		<function>
+		<product>
+			<quotient>
+			<difference>
+			<quotient>
+			<product>
+				<difference>
+					<property>systems/entry_guidance/ground-relative-velocity-fps</property>
+					<value>2500.0</value>
+				</difference>
+				<property>systems/entry_guidance/ground-relative-velocity-fps</property>
+			</product>
+			<max>
+				<product>
+				<difference>
+					<property>systems/entry_guidance/remaining-distance-nm</property>
+					<value>60.0</value>
+				</difference>
+				<value>6080.0</value>
+				</product>
+				<value>100.0</value>
+			</max>
+			</quotient>
+			<quotient>
+			<pow>
+				<difference>
+					<property>systems/entry_guidance/ground-relative-velocity-fps</property>
+					<value>2500.0</value>
+				</difference>
+				<value>2.0</value>
+			</pow>
+			<max>
+				<product>
+				<difference>
+					<property>systems/entry_guidance/remaining-distance-nm</property>
+					<value>60.0</value>
+				</difference>
+				<value>6080.0</value>
+				<value>2.0</value>
+				</product>
+				<value>100.0</value>
+			</max>
+			</quotient>
+			</difference>
+			<value>29.90088</value>
+			</quotient>
+			<property>systems/entry_guidance/guidance-active</property>
+		</product>
+		</function>
+	</fcs_function>-->
+
+	<fcs_function name="systems/entry_guidance/delta-azimuth-deg-raw">
+		<function>
+			<product>
+			<difference>
+				<property>systems/entry_guidance/groundtrack-course-deg</property>
+				<property>systems/entry_guidance/target-azimuth-deg</property>
+			</difference>
+			<property>systems/entry_guidance/guidance-active</property>
+			</product>
+		</function>
+	</fcs_function>
+
+	<switch name="systems/entry_guidance/delta-azimuth-adjust">
+			<default value="0.0"/>
+			<test  value="360.0">
+				systems/entry_guidance/delta-azimuth-deg-raw LT -180.0
+			</test>
+			<test  value="-360.0">
+				systems/entry_guidance/delta-azimuth-deg-raw GT 180.0
+			</test>
+	</switch>
+
+	<fcs_function name="systems/entry_guidance/delta-azimuth-deg">
+		<function>
+			<sum>
+				<property>systems/entry_guidance/delta-azimuth-deg-raw</property>
+				<property>systems/entry_guidance/delta-azimuth-adjust</property>
+			</sum>
+		</function>
+	</fcs_function>
+
+	<fcs_function name="systems/entry_guidance/nominal-alpha-deg">
+		<function>
+			<table>
+        		<independentVar lookup="row">velocities/vtrue-fps</independentVar>
+         		<tableData>
+           		2500		14.0
+				3000		16.0
+				4000		19.0		
+				5000		23.0
+				7000		30.0
+				8000		34.0
+				9000		36.0
+				10000		38.0	
+				11000		39.0
+				12000		40.0
+				15000		40.0
+				25000		40.0
+         		</tableData>
+      			</table>
+		</function>
+	</fcs_function>
+
+	<fcs_function name="systems/entry_guidance/nominal-alpha-rad">
+		<function>
+			<product>
+				<property>systems/entry_guidance/nominal-alpha-deg</property>
+				<value>0.01745</value>
+			</product>
+		</function>
+	</fcs_function>
+
+	<fcs_function name="systems/entry_guidance/delta-alpha-deg">
+		<function>
+			<difference>
+				<property>aero/alpha-deg</property>
+				<property>systems/entry_guidance/nominal-alpha-deg</property>
+			</difference>
+		</function>
+	</fcs_function>
+
+
+<!-- Nominal profile Hdot Hdot = f(Range) -->
+
+	<!-- Hdot cue card used for Href display -->
+	<fcs_function name="systems/entry_guidance/nominal-hdot-target-href">
+		<function>
+			<table>
+        		<independentVar lookup="row">systems/entry_guidance/remaining-distance-nm</independentVar>
+         		<tableData>
+				55.0	246
+				70.0	247
+				95.0	262	
+				130.0	274
+				180.0	273
+				220.0	266	
+				270.0	239
+				310.0	207
+				370.0	203	
+				420.0	193		
+				470.0	152
+				540.0	137
+				600.0	127	
+				680		118
+				760		197
+				860		186
+				980		166
+				1110	144
+				1300	122
+				1520	105
+				1800	82
+				2140	63
+				2640	46
+				3500	0
+         		</tableData>
+      		</table>
+		</function>
+	</fcs_function>
+
+	<!-- Nominal profile Hdot used by guidance -->
+	<fcs_function name="systems/entry_guidance/nominal-hdot-target">
+		<function>
+			<table>
+        		<independentVar lookup="row">systems/entry_guidance/remaining-distance-nm</independentVar>
+         		<tableData>	
+				55.0	226
+				70.0 	227
+				95.0 	222	
+				130.0	234
+				180.0	233
+				220.0	256	
+				270.0	239
+				310.0	207
+				370.0	203	
+				420.0	193		
+				470.0	152
+				540.0	137
+				600.0	127	
+				680.0	118
+				760.0	197
+				860.0	186
+				980.0	166
+				1110	144
+				1300	122
+				1520	105
+				1800	82
+				2140	73
+				2640	66
+				3500	66
+				3501	0
+         		</tableData>
+      		</table>
+		</function>
+	</fcs_function>
+
+	<!-- Nominal profile Hdot switch to have a zero degree path targeted for low energy case (EI > 5500 Nm) // 0° Bank equilibrium targeted -->
+	<!--switch name="systems/entry_guidance/nominal-hdot-target">
+			<default value="0.0"/>
+			<test  value="systems/entry_guidance/nominal-hdot-target-function">
+				systems/entry_guidance/remaining-distance-nm LT 3500
+			</test>
+	</switch-->
+
+
+<!-- Nominal profile Drag (Dref = f(Vrel)) -->
+<!-- Drag  useful only if close to the nominal path // used for Dref display only -->
+
+	<fcs_function name="systems/entry_guidance/nominal-dref">
+		<function>
+			<table>
+        		<independentVar lookup="row">velocities/vtrue-fps</independentVar>
+         		<tableData>
+				 2500	18
+				 3000	19.7	
+				 3500	20.0
+				 4000	21.4
+				 4500	22.2
+				 5000	23
+				 5500	23.8
+				 6000	24.7
+				 6500	26.5
+				 7000	27.2
+				 7500	28.0
+				 8000	28.8
+				 8500	29.7
+				 9000	30.3
+				 9500	31.0
+				 10000	31.1		
+				 10500	33.0
+				 14500	33.0
+				 15000	31.7
+				 15500	30.4
+				 15900	29.3
+				 16700	27.1
+				 17000	26.3
+				 17500	24.9
+				 18000	23.5
+				 18500	22.2
+				 19000	20.8
+				 19500	19.4
+				 20000	18.0
+				 20500	16.6
+				 20730	16.0
+				 21100	15.0
+				 21470	14.0
+				 21840	13.0
+				 22200	12.0
+				 22560	11.0
+				 22930	10.0
+				 23240	9.0
+				 23650	8.0
+				 24000	7.0
+				 24400	3.0
+				 25000  0.0
+				 <!--24430	6.0
+				 24970	4.3
+				 25000	0.0-->
+         		</tableData>
+      		</table>
+		</function>
+	</fcs_function>
+
+
+
+<!-- Drag needed to make it to the runway as a function of distance and Vrel covering the 5 entry traj -->
+<!-- Datas extrapolated from Deorbit FDO Handbook / STS1 post flight datas / Entry Handbook -->
+<!-- Drag required = f (Range,Vrel)-->
+
+	<!-- Entry traj 1  -->
+	
+	<fcs_function name="systems/entry_guidance/drag-entry-traj1">
+		<function>
+			<table>
+				<independentVar lookup="row">velocities/vtrue-fps</independentVar>
+				<independentVar lookup="column">systems/entry_guidance/remaining-distance-nm</independentVar>
+				<tableData>
+						700		860		980		1120	1300	1520	1800	2160	2640	4300   
+				17000	36		26.5	21.5	17		12		6		0		0		0		0		
+				18000	27.0	27.0	23.6	19		13		9		0		0		0		0		
+				19000	25		25		25		21		14		12		7		0		0		0		
+				20000	23		23		23		23		18.1	13		11		7		0		0		
+				21000	20		20		20		20		20		15.3	12.6	10		0		0		
+				22000	17		17		17		17		17		17		12.6	10		3		0		
+				23000	14		14		14		14		14		14		14		10		5		0		
+				24000	12		12		12		12		12		12		12		12		7		0		
+				</tableData>
+			</table>
+		</function>
+	</fcs_function> 
+
+
+	<!-- Entry traj 2  -->
+	
+	<fcs_function name="systems/entry_guidance/drag-entry-traj2">
+		<function>
+			<table>
+				<independentVar lookup="row">velocities/vtrue-fps</independentVar>
+				<independentVar lookup="column">systems/entry_guidance/remaining-distance-nm</independentVar>
+				<tableData>
+						480		610		680		760		860		1200	
+				14000	44		33		26		21		17		0
+				15000	44		37		31.8	25		20		8
+				16000	44		44		35		28		23		11
+				17000	44		44		36		32.4	26.5	15.3	
+				</tableData>
+			</table>
+		</function>
+	</fcs_function> 
+
+
+
+	<!-- Entry traj 3  -->
+	
+	<fcs_function name="systems/entry_guidance/drag-entry-traj3">
+		<function>
+			<table>
+				<independentVar lookup="row">velocities/vtrue-fps</independentVar>
+				<independentVar lookup="column">systems/entry_guidance/remaining-distance-nm</independentVar>
+				<tableData>
+						300		380		420		470		540		610		800
+				10500	44		33		29		25		22		18		4.5	
+				11000	44		37		33		28.0	24.0	21.5	7
+				12000	44		44		37		33		26.0	24		12
+				13000	44		44		44		37		33		25.0	15
+				14000	44		44		44		44		39		33		20.5
+				</tableData>
+			</table>
+		</function>
+	</fcs_function> 
+
+
+
+	<!-- Entry traj 4  -->
+	
+	<fcs_function name="systems/entry_guidance/drag-entry-traj4">
+		<function>
+			<table>
+				<independentVar lookup="row">velocities/vtrue-fps</independentVar>
+				<independentVar lookup="column">systems/entry_guidance/remaining-distance-nm</independentVar>
+				<tableData>
+						140		180		220		270		310		380		480
+				6000	32		24.7	17		6		0		0		0
+				7000	35		35		27.3	21		16.0	5		0
+				8000	37		37		33		29		24		18		5
+				9000	39		39		39		35		30		26		17
+				10500	42		42		42		42		42		33		24.5
+				</tableData>
+			</table>
+		</function>
+	</fcs_function> 
+
+
+	<!-- Entry traj 5  -->
+	
+	<fcs_function name="systems/entry_guidance/drag-entry-traj5">
+		<function>
+			<table>
+				<independentVar lookup="row">velocities/vtrue-fps</independentVar>
+				<independentVar lookup="column">systems/entry_guidance/remaining-distance-nm</independentVar>
+				<tableData>
+							50		67		95		130		180		220
+				2500		18		10		0		0		0		0
+				3000		30		19.7	5		0		0		0
+				4000		31		31		21.4	7		0		0
+				5000		31.5	31.5	31.5	23		12		0
+				6000		32		32		32		32		24.7	17
+				</tableData>
+			</table>
+		</function>
+	</fcs_function> 
+
+<switch name="systems/entry_guidance/drag-required">
+	<default value="systems/entry_guidance/drag-entry-traj1"/>
+	<test logic="AND" value="systems/entry_guidance/drag-entry-traj2">
+		velocities/vtrue-fps LT 17000
+		velocities/vtrue-fps GT 14000
+	</test>
+	<test logic="AND" value="systems/entry_guidance/drag-entry-traj3">
+		velocities/vtrue-fps LT 14000
+		velocities/vtrue-fps GT 10500
+	</test>
+	<test logic="AND" value="systems/entry_guidance/drag-entry-traj4">
+		velocities/vtrue-fps LT 10500
+		velocities/vtrue-fps GT 6000
+	</test>
+	<test value="systems/entry_guidance/drag-entry-traj5">
+		velocities/vtrue-fps LT 6000
+	</test>
+</switch>
+
+<!-- Guidance box range factor based on drag error = 1 + (Da - Dr)/(Da + Dr)-->
+<fcs_function name="systems/entry_guidance/drag-guidance-box">
+		<function>
+			<sum>
+			<value>1.0</value>
+			<quotient>
+				<difference>
+					<property>systems/entry_guidance/aero-drag-deceleration-fts</property>
+					<property>systems/entry_guidance/drag-required</property>
+				</difference>
+				<sum>
+					<property>systems/entry_guidance/aero-drag-deceleration-fts</property>
+					<property>systems/entry_guidance/drag-required</property>
+				</sum>
+			</quotient>
+			</sum>
+		</function>		
+</fcs_function>
+
+<!-- Hdot correction when Drag is different than Drequired (based on Entry workbook Hdot bias 20 x (D - D req)) -->
+
+<fcs_function name="systems/entry_guidance/drag-bias-factor">
+		<function>
+			<table>
+        		<independentVar lookup="row">velocities/vtrue-fps</independentVar>
+         		<tableData>
+				 17000	0
+				 19000	-10
+				 21000	-20
+				 25000	-20
+         		</tableData>
+      		</table>
+		</function>
+	</fcs_function>
+
+	<fcs_function name="systems/entry_guidance/delta-drag-bias-func">
+		<function>
+			<product>
+				 <!--property>systems/entry_guidance/drag-bias-factor</property-->
+				<value>-20</value>
+				<difference>
+					<property>systems/entry_guidance/aero-drag-deceleration-fts</property>
+					<property>systems/entry_guidance/nominal-dref</property>
+				</difference>
+			</product>
+		</function>
+	</fcs_function>
+
+	<fcs_function name="systems/entry_guidance/delta-drag-bias-equilibrium-func">
+		<function>
+			<product>
+				 <property>systems/entry_guidance/drag-bias-factor</property>
+				<value>-20</value>
+				<difference>
+					<property>systems/entry_guidance/aero-drag-deceleration-fts</property>
+					<property>systems/entry_guidance/aero-drag-equilibrium-bank-0</property>
+				</difference>
+			</product>
+		</function>
+	</fcs_function>
+
+<!--Drag Bias using Drag required (02/2021)-->
+
+	<fcs_function name="systems/entry_guidance/delta-drag-required-bias-func">
+		<function>
+			<product>
+				 <!--property>systems/entry_guidance/drag-bias-factor</property-->
+				<value>-20</value>
+				<difference>
+					<property>systems/entry_guidance/aero-drag-deceleration-fts</property>
+					<property>systems/entry_guidance/drag-required</property>
+				</difference>
+			</product>
+		</function>
+	</fcs_function>
+
+
+<!-- Bias will chase equilibrium Drag for 0° of Bank first for Low energy case, then the nominal Dref once back on the track(12/202)-->
+
+	<switch name="systems/entry_guidance/delta-drag-bias">
+			<default value="systems/entry_guidance/delta-drag-bias-equilibrium-func"/>
+			<test  value="systems/entry_guidance/delta-drag-required-bias-func">
+				systems/entry_guidance/remaining-distance-nm LT 4300
+			</test>
+	</switch>
+	</channel>
+
+	<channel name="TAEM guidance" execute="systems/entry_guidance/taem-guidance-activation">
+
+	<!-- TAEM parameters -->
+
+
+	<!-- Nominal EAS on vert traj / STS 135 profile -->
+	<fcs_function name="systems/entry_guidance/taem-nominal-eas-kts">
+			<function>
+				<table>
+					<independentVar lookup="row">systems/taem-guidance/distance-to-runway-nm</independentVar>
+					<tableData>
+					0 	  0
+					2    300
+					6    300
+					11	  280
+					16   270
+					30	  258
+					60	  270 
+					70	  270
+					</tableData>
+				</table>
+			</function>
+	</fcs_function>
+
+
+	<!-- Actual E/W = Alt + V²/2g  -->
+	<fcs_function name="systems/entry_guidance/taem-EW-actual-ratio-ft">
+			<function>
+				<sum>
+					<property>/position/altitude-ft</property>
+					<quotient>
+						<pow>
+							<property>velocities/vtrue-fps</property>
+							<value>2.0</value>	
+						</pow>
+						<value>64.34</value>	
+					</quotient>	
+				</sum>
+			</function>		
+	</fcs_function>
+
+	<!-- Nominal E/W -->
+
+	<!--Nominal datas from STS 135 sim session-->
+	<!--fcs_function name="systems/entry_guidance/taem-EW-nominal-ratio-ft">
+			<function>
+				<table>
+					<independentVar lookup="row">systems/taem-guidance/distance-to-runway-nm</independentVar>
+					<tableData>
+					10	22595
+					12	26566
+					15	35057
+					20	47197
+					25	60623
+					30 77133
+					35	94585
+					40	111971
+					45 123620
+					50 139956
+					55	156089
+					58 168023
+					70 200000
+					</tableData>
+				</table>
+			</function>
+	</fcs_function-->
+
+	<!--Nominal datas from Post flight datas STS 135-->
+	<fcs_function name="systems/entry_guidance/taem-EW-nominal-ratio-ft">
+			<function>
+				<table>
+					<independentVar lookup="row">systems/taem-guidance/distance-to-runway-nm</independentVar>
+					<tableData>
+					10	22595
+					12	26566
+					15	35057
+					20	50000
+					25	60623
+					30 77133
+					35	94585
+					40	111971
+					45 123620
+					50 142000
+					55	156089
+					60 175000
+					70 215000
+					80 245000
+					90  270000
+					100 300000
+					131 390000
+					</tableData>
+				</table>
+			</function>
+	</fcs_function>
+
+	<!-- S-turn E/W -->
+
+	<!-- S-turn E/W from STS 1 post flight datas-->
+	<!--fcs_function name="systems/entry_guidance/taem-EW-sturn-ratio-ft">
+			<function>
+				<table>
+					<independentVar lookup="row">systems/taem-guidance/distance-to-runway-nm</independentVar>
+					<tableData>
+					13.2	42285
+					19.7 	65714
+					26.3	92571
+					32.9	117147
+					39.5 	140000
+					46 	165714
+					53		191764
+					60 	218000
+					70 	250000
+					</tableData>
+				</table>
+			</function>
+	</fcs_function-->
+
+	<fcs_function name="systems/entry_guidance/taem-EW-sturn-ratio-ft">
+			<function>
+				<table>
+					<independentVar lookup="row">systems/taem-guidance/distance-to-runway-nm</independentVar>
+					<tableData>
+					11.0	32000
+					13.2	42285
+					20		60000
+					30		100000
+					40		132000
+					50		170000
+					60 	205000
+					70 	240000
+					80		260000
+					90		295000
+					100	330000
+					131	430000
+					</tableData>
+				</table>
+			</function>
+	</fcs_function>
+
+	<!-- MEP E/W -->
+
+	<!-- MEP E/W from lessons learned post flight datas-->
+	<fcs_function name="systems/entry_guidance/taem-EW-mep-ratio-ft">
+			<function>
+				<table>
+					<independentVar lookup="row">systems/taem-guidance/distance-to-runway-nm</independentVar>
+					<tableData>
+					11.0	20000
+					13.2	23857
+					19.7 	40000
+					26.3	50000
+					32.9	64571
+					39.5 	82285
+					46 	100285
+					53		115285
+					60 	127714
+					70 	147714
+					80		180000
+					90		210000
+					100	240000
+					131	325000
+					</tableData>
+				</table>
+			</function>
+	</fcs_function>
+
+	<!-- MEP E/W from STS 1 post flight datas-->
+	<!--fcs_function name="systems/entry_guidance/taem-EW-mep-ratio-ft">
+			<function>
+				<table>
+					<independentVar lookup="row">systems/taem-guidance/distance-to-runway-nm</independentVar>
+					<tableData>
+					13.2	26857
+					19.7 	38285
+					26.3	50000
+					32.9	64571
+					39.5 	82285
+					46 	100000
+					53		115000
+					60 	137714
+					70 	155000
+					</tableData>
+				</table>
+			</function>
+	</fcs_function-->
+
+	<!-- MEP E/W from Deorbit Handbook ( extrapolated from qmin boundary)-->
+	<!--fcs_function name="systems/entry_guidance/taem-EW-mep-ratio-ft">
+			<function>
+				<table>
+					<independentVar lookup="row">systems/taem-guidance/distance-to-runway-nm</independentVar>
+					<tableData>
+					13.2	20000
+					19.7 	35000
+					26.3	45000
+					32.9	54000
+					39.5 	72000
+					46 	92000
+					53		112000
+					60 	127000
+					70 	147000
+					</tableData>
+				</table>
+			</function>
+	</fcs_function-->
+
+	<!-- Straight in reverting E/W for CWS OTT (Optionnal Taem Targeting) message up to 45 Nm from Deorbit FDO-->
+	<fcs_function name="systems/entry_guidance/taem-EW-stin-ratio-ft">
+			<function>
+				<table>
+					<independentVar lookup="row">systems/taem-guidance/distance-to-runway-nm</independentVar>
+					<tableData>
+					45 	102285
+					50		117424
+					60 	145454
+					70		150000
+					76 	186363
+					</tableData>
+				</table>
+			</function>
+	</fcs_function>
+
+
+	<!-- Flight Path Angle and Vrel as a function of Distance (v-target initial value)-->
+
+	<fcs_function name="systems/entry_guidance/taem-gamma-deg">
+			<function>
+				<table>
+					<independentVar lookup="row">systems/taem-guidance/distance-to-runway-nm</independentVar>
+					<tableData>
+					0			0
+					1.23		1.5
+					1.5			18
+					10			18
+					16.1		17.5
+					19.7		17.5
+					24.8		15.8
+					29.6		14
+					39.5		10
+					49.3		6
+					59.2		4
+					70			4
+					80			3
+					</tableData>
+				</table>
+			</function>
+	</fcs_function>
+
+	<fcs_function name="systems/entry_guidance/taem-vrel-fts">
+			<function>
+				<table>
+					<independentVar lookup="row">systems/taem-guidance/distance-to-runway-nm</independentVar>
+					<tableData>
+					0			350
+					10			600
+					16.1		700
+					19.7		800
+					24.8		910
+					29.6		1200
+					39.5		1680	
+					49.3		2050
+					59.2		2450
+					70			2900
+					</tableData>
+				</table>
+			</function>
+	</fcs_function>
+
+		<!-- Hdot ref TAEM = Tan(gamma rad) x Vrel-->
+
+	<fcs_function name="systems/entry_guidance/taem-hdot-ref">
+			<function>
+				<product>
+					<!--property>systems/entry_guidance/taem-vrel-fts</property-->
+					<property>velocities/vtrue-fps</property>
+					<tan>
+						<product>
+							<property>systems/entry_guidance/taem-gamma-deg</property>
+							<value>0.01745</value>
+						</product>
+					</tan>
+				</product>
+			</function>
+	</fcs_function>
+
+	<!-- Theta limits ( Pitch scale OPS 305 display) as a function of Bank angle and SB position -->
+
+	<fcs_function name="systems/entry_guidance/taem-theta-max">
+			<function>
+				<table>
+					<independentVar lookup="row">/orientation/roll-deg</independentVar>
+					<independentVar lookup="column">fcs/speedbrake-pos-norm</independentVar>
+					<tableData>
+							0.15	1.0
+					-62		-19		-25
+					-57.5	-14		-18.5
+					-50		-9.5	-14.5
+					-40		-5.8	-12.0
+					-30		-3.9	-10.5
+					-20		-3.4	-9.0	
+					-10		-2.9	-8.3
+					0		-2.9	-8.3
+					10		-2.9	-8.3
+					20		-3.4	-9.0
+					30		-3.9	-10.5
+					40		-5.8	-12.0
+					50		-9.5	-14.5
+					57.5	-14		-18.5
+					62		-19		-25
+					</tableData>
+				</table>
+			</function>
+	</fcs_function>
+
+	<fcs_function name="systems/entry_guidance/taem-theta-min">
+			<function>
+				<table>
+					<independentVar lookup="row">/orientation/roll-deg</independentVar>
+					<independentVar lookup="column">fcs/speedbrake-pos-norm</independentVar>
+					<tableData>
+							0.15	1.0
+					-62		-14.5	-25
+					-57.5	-14		-24.5	
+					-50		-13		-24
+					-40		-13		-23.3
+					-30		-13		-23.3
+					-20		-13		-23.3
+					-10		-13		-23.3	
+					0		-13		-23.3
+					10		-13		-23.3
+					20		-13		-23.3	
+					30		-13		-23.3
+					40		-13		-23.3
+					50		-13		-24
+					57.5	-14		-24.5
+					62		-14.5	-25
+					</tableData>
+				</table>
+			</function>
+	</fcs_function>
+
+
+	<!-- Speedbrakes E/W management ( M < 0.95 and altitude > 15000 ft)-->
+
+	<fcs_function name="systems/entry_guidance/taem-Delta-EW">
+			<function>
+				<difference>
+					<property>systems/entry_guidance/taem-EW-actual-ratio-ft</property>
+					<property>systems/entry_guidance/taem-EW-nominal-ratio-ft</property>
+				</difference>
+			</function>
+	</fcs_function>
+
+	<fcs_function name="systems/entry_guidance/taem-SB-EW-management">
+			<function>
+				<table>
+					<independentVar lookup="row">systems/entry_guidance/taem-Delta-EW</independentVar>
+					<tableData>
+					-2000		0.15
+					0			0.65
+					2000		1.0
+					</tableData>
+				</table>
+			</function>
+	</fcs_function>
+
+
+	<!-- Speedbrakes EAS management ( Altitude < 15000 ft EAS targeted between 280 and 300 kts )-->
+
+	<fcs_function name="systems/entry_guidance/taem-SB-eas-management">
+			<function>
+				<table>
+					<independentVar lookup="row">velocities/ve-kts</independentVar>
+					<tableData>
+					270		0.15
+					280		0.25
+					285		0.4
+					290		0.6
+					300		0.9
+					305		1.0
+					</tableData>
+				</table>
+			</function>
+	</fcs_function>
+
+	<!-- Speedbrakes EAS management ( Altitude < 3000 ft // fix setting depending on IAS at 3000 ft QFE )-->
+
+	<fcs_function name="systems/entry_guidance/taem-SB-eas-flare-management">
+			<function>
+				<table>
+					<independentVar lookup="row">velocities/ve-kts</independentVar>
+					<tableData>
+					290	0.15
+					300	0.2	
+					310	0.275
+					320	0.35
+					330	0.4
+					340	0.6	
+					</tableData>
+				</table>
+			</function>
+	</fcs_function>
+
+	</channel>
+
+	<channel name="PFD aoa cues" execute="systems/entry_guidance/pfd-entry-cues-activation">
+
+	<!-- Max L/D alpha for TAEM ( AP guidance and PFD max L/D Diamond)-->
+
+	<fcs_function name="systems/entry_guidance/taem-max-LD">
+			<function>
+				<table>
+					<independentVar lookup="row">velocities/mach</independentVar>
+					<tableData>
+					0.95		10.5
+					1			12	
+					2			15
+					3			17
+					</tableData>
+				</table>
+			</function>
+	</fcs_function>
+
+
+	<!-- AOA boundaries mm 304 and mm 305 // PFD green bar for alpha-->
+
+	<fcs_function name="systems/entry_guidance/aoa-max">
+			<function>
+				<table>
+					<independentVar lookup="row">velocities/mach</independentVar>
+					<tableData>
+					0.6		20
+					0.8		15
+					1.1		15
+					2.0		15
+					2.5		18
+					3.2		20.8
+					3.5		22
+					5.0		28
+					8.0		40
+					9.6		44
+					</tableData>
+				</table>
+			</function>
+	</fcs_function>
+
+	<fcs_function name="systems/entry_guidance/aoa-min">
+			<function>
+				<table>
+					<independentVar lookup="row">velocities/mach</independentVar>
+					<tableData>
+					0.0		-4
+					0.2		-4				
+					0.4		0
+					0.6		0
+					0.8		0
+					1.1		4
+					2.0		4
+					2.5		6
+					3.2		8.2
+					3.5		12
+					5.0		16
+					8.0		28.9
+					9.6		33
+					11.4	36
+					</tableData>
+				</table>
+			</function>
+	</fcs_function>
+
+	</channel>
+
+</system>
+

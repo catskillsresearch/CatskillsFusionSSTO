@@ -1,0 +1,1045 @@
+<?xml version="1.0"?>
+
+<!--###################################################################################
+    This file is licenced under the terms of the GNU General Public Licence V3 or later
+    ###################################################################################
+-->
+
+<!--
+Author: Slavutinsky Victor  from Vostok-1 modified by HerbyW for SpaceShuttle
+adapted and extended by Thorsten Renk 2015-16
+-->
+
+<PropertyList>
+
+<!-- Sounds -->
+
+	<fx>
+	  
+	 
+	<!-- Startup on Runway, environment wind -->
+
+	<wind>
+		<name>wind</name>
+		<mode>looped</mode>
+		<path>Sounds/wind-8khz.wav</path>
+		<volume>
+			<property>environment/wind-speed-kt</property>
+			<factor>0.04</factor>
+			<offset>0.0</offset>
+			<min>0.0</min>
+			<max>0.10</max>
+		</volume>
+		<pitch>
+			<property>environment/wind-speed-kt</property>
+			<factor>0.04</factor>
+			<offset>0.0</offset>
+			<min>0.0</min>
+			<max>1.0</max>
+		</pitch>
+		<condition>
+		     <and>
+				<less-than>
+		           <property>/position/altitude-agl-ft</property>
+		           <value>1000</value>
+		        </less-than>
+				<not>
+					<property>/sim/current-view/internal</property>
+				</not>
+		     </and>
+        </condition>
+		<delay-sec>1</delay-sec>
+	</wind> 
+
+	<!-- dynamical pressure consists of two components - a low rumble for turbulence and a generic wind -->
+	
+	<qbar>
+		<name>qbar</name>
+		<mode>looped</mode>
+		<path>Sounds/rumble-rough.wav</path>
+		<condition>
+			<greater-than>
+				<property>/fdm/jsbsim/aero/qbar-psf</property>
+				<value>10.0</value>
+			</greater-than>
+		</condition>
+		<volume>
+			<property>fdm/jsbsim/systems/various/wind-volume</property>
+			<factor>5.0</factor>
+			<offset>0.0</offset>
+			<min>0.0</min>
+			<max>1.0</max>
+		</volume>
+		<pitch>
+			<property>fdm/jsbsim/systems/various/wind-volume</property>
+			<factor>0.01</factor>
+			<offset>0.8</offset>
+		</pitch>
+	</qbar>  
+	
+	<qbar_alt>
+		<name>qbar_alt</name>
+		<mode>looped</mode>
+		<path>Sounds/wind.wav</path>
+		<condition>
+			<greater-than>
+				<property>/fdm/jsbsim/aero/qbar-psf</property>
+				<value>10.0</value>
+			</greater-than>
+		</condition>
+		<volume>
+			<property>fdm/jsbsim/systems/various/wind-volume</property>
+			<factor>0.2</factor>
+			<offset>0.0</offset>
+			<min>0.0</min>
+			<max>1.0</max>
+		</volume>
+		<pitch>
+			<property>fdm/jsbsim/systems/various/wind-volume</property>
+			<factor>0.01</factor>
+			<offset>0.15</offset>
+		</pitch>
+	</qbar_alt>
+
+	<!-- fan inside the cabin -->
+
+	<fan>
+		<name>fan</name>
+		<mode>looped</mode>
+		<path>Sounds/fan.wav</path>
+		<condition>
+			<and>
+			<property>/sim/current-view/internal</property>
+			<or>			
+				<equals>
+				<property>/fdm/jsbsim/systems/eclss/cabin/fan-A-operational</property>
+				<value>1.0</value>
+				</equals>
+					<equals>
+				<property>/fdm/jsbsim/systems/eclss/cabin/fan-B-operational</property>
+				<value>1.0</value>
+				</equals>
+			</or>
+			<not-equals>
+				<property>/sim/current-view/view-number</property>
+				<value>8</value>
+			</not-equals>
+			</and>
+		</condition>
+		<volume>
+			<property>/fdm/jsbsim/systems/various/cabin-sound-transmission</property>
+			<factor>0.1</factor>
+			<offset>0.0</offset>
+			<min>0.0</min>
+			<max>0.1</max>
+		</volume>
+	</fan>
+
+	<!-- hiss of air streaming in and out of the cabin -->
+
+	<atmosphere>
+		<name>atmosphere</name>
+		<mode>looped</mode>
+		<path>Sounds/wind-8khz.wav</path>
+		<condition>
+			<and>
+			<property>/sim/current-view/internal</property>
+			<or>			
+				<greater-than>
+					<property>/fdm/jsbsim/systems/eclss/cabin/air-loss-rate-lb_h</property>
+					<value>5.0</value>
+				</greater-than>
+				<greater-than>
+					<property>/fdm/jsbsim/systems/eclss/cabin/air-gain-rate-lb_h</property>
+					<value>5.0</value>
+				</greater-than>
+			</or>
+			<not-equals>
+				<property>/sim/current-view/view-number</property>
+				<value>8</value>
+			</not-equals>
+			</and>
+		</condition>
+		<volume>
+			<property>/fdm/jsbsim/systems/various/cabin-airflow-volume</property>
+			<factor>0.3</factor>
+			<offset>0.0</offset>
+		</volume>
+		<pitch>
+			<min>5.0</min>
+			<max>5.0</max>
+		</pitch>
+	</atmosphere>
+
+	<!-- MMU thrusters -->
+
+	<mmu>
+		<name>mmu</name>
+		<mode>looped</mode>
+		<path>Sounds/wind-8khz.wav</path>
+		<condition>
+			<equals>
+				<property>/sim/current-view/view-number</property>
+				<value>8</value>
+			</equals>
+		</condition>
+		<volume>
+			<property>/fdm/jsbsim/systems/various/MMU-thruster-volume</property>
+			<factor>1.0</factor>
+			<offset>0.0</offset>
+		</volume>
+		<pitch>
+			<min>5.0</min>
+			<max>5.0</max>
+		</pitch>
+	</mmu>
+
+	<!-- breathing in EVA view -->
+
+	<breathing>
+		<name>breathing</name>
+		<mode>looped</mode>
+		<path>Sounds/breathing.wav</path>
+		<condition>
+			<equals>
+				<property>/sim/current-view/view-number</property>
+				<value>8</value>
+			</equals>
+		</condition>
+		<volume>
+			<factor>1.0</factor>
+			<offset>0.0</offset>
+		</volume>
+	</breathing>
+
+	
+	<!-- Booster  -->
+
+	<booster>
+		<name>booster</name>
+		<mode>looped</mode>
+		<path>Aircraft/SpaceShuttle/Sounds/real_launch.wav</path>
+		<condition>
+			<and>
+			<property>/sim/current-view/internal</property>
+			<equals>
+				<property>/controls/shuttle/SRB-static-model</property>
+				<value>1.0</value>
+			</equals>
+			</and>
+		</condition>
+		<volume>
+			<property>/engines/engine[3]/thrust_lb</property>
+			<factor>0.0001</factor>
+			<offset>0.0</offset>
+			<min>0.0</min>
+			<max>1.0</max>
+		</volume>
+		<pitch>
+			<property>/controls/engines/engine[3]/throttle</property>
+			<factor>0.14</factor>
+		</pitch>
+	</booster>
+	
+	<booster-external>
+		<name>booster-external</name>
+		<mode>looped</mode>
+		<path>Aircraft/SpaceShuttle/Sounds/real_launch.wav</path>
+		<condition>
+			<and>
+			<not>
+			<property>/sim/current-view/internal</property>
+			</not>
+			<equals>
+				<property>/controls/shuttle/SRB-static-model</property>
+				<value>1.0</value>
+			</equals>
+			</and>
+		</condition>
+		<volume>
+			<property>/fdm/jsbsim/systems/various/SRB-external-volume</property>
+			<offset>0.0</offset>
+			<min>0.0</min>
+			<max>1.0</max>
+		</volume>
+		<pitch>
+			<property>/controls/engines/engine[3]/throttle</property>
+			<factor>0.14</factor>
+		</pitch>
+	</booster-external>
+	
+	<!-- Main Engines -->
+	
+	<main>
+		<name>main</name>
+		<mode>looped</mode>
+		<path>Sounds/exhaust_loop.wav</path>
+		<condition>
+			<property>/sim/current-view/internal</property>
+		</condition>
+		<volume>
+			<property>/fdm/jsbsim/systems/various/SSME-base-volume</property>
+			<factor>0.01</factor>
+			<offset>0.0</offset>
+			<min>0.0</min>
+			<max>1.0</max>
+		</volume>	
+		<pitch>
+			<min>0.005</min>
+			<max>0.005</max>
+		</pitch>
+	</main>
+	
+		<main-external>
+		<name>main-external</name>
+		<mode>looped</mode>
+		<path>Sounds/exhaust_loop.wav</path>
+		<condition>
+		    <not>
+			<property>/sim/current-view/internal</property>
+			</not>
+		</condition>
+		<volume>
+			<property>/fdm/jsbsim/systems/various/SSME-external-volume</property>
+			<offset>0.0</offset>
+			<min>0.0</min>
+			<max>1.0</max>
+		</volume>	
+		<pitch>
+			<min>0.005</min>
+			<max>0.005</max>
+		</pitch>
+	</main-external>
+
+	<!-- Booster separation-->
+	
+	<booster-separation>
+		<name>booster-separation</name>
+		<mode>once</mode>
+		<path>Aircraft/SpaceShuttle/Sounds/Vostok-1-Fairings-Separation.wav</path>		
+		  <condition>
+		    <and>
+		    <equals>
+			<property>/controls/shuttle/SRB-static-model</property>
+			<value>0</value>
+		    </equals>
+			<equals>
+			 <property>/sim/presets/stage</property>
+			 <value>0</value>
+			</equals>
+			<not>
+			  <property>/controls/shuttle/SRB-sound-veto</property>
+			</not>
+			<property>/sim/current-view/internal</property>
+			</and>
+		  </condition>
+		  <volume>
+			<factor>1.0</factor>
+			<offset>0.0</offset>
+			<min>0.7</min>
+			<max>0.7</max>
+		</volume>
+	</booster-separation>
+	
+	<!-- External Tank separation-->
+	
+	<tank-separation>
+		<name>tank-separation</name>
+		<mode>once</mode>
+		<path>Aircraft/SpaceShuttle/Sounds/Vostok-1-Stage-1-Separation.wav</path>		
+		  <condition>
+		    <and>
+		    <equals>
+			<property>/controls/shuttle/ET-static-model</property>
+			<value>0</value>
+		    </equals>
+			 <less-than>
+			   <property>/sim/presets/stage</property>
+			   <value>2</value>
+			 </less-than>
+			 <property>/sim/current-view/internal</property>
+			 <not>
+			  <property>/controls/shuttle/ET-sound-veto</property>
+			</not>
+			</and>
+		  </condition>
+		  <volume>
+			<factor>1.0</factor>
+			<offset>0.0</offset>
+			<min>0.6</min>
+			<max>0.6</max>
+		</volume>
+	</tank-separation>
+
+    <!-- OMS Main  -->
+	
+	<OMS>
+		<name>OMS</name>
+		<mode>looped</mode>
+		<path>Aircraft/SpaceShuttle/Sounds/rumble.wav</path>		
+		  <condition>
+			<and>
+			<or>
+			    <greater-than>
+				<property>/engines/engine[5]/thrust_lb</property>
+				<value>0</value>
+			    </greater-than>
+			    <greater-than>
+				<property>/engines/engine[6]/thrust_lb</property>
+				<value>0</value>
+			    </greater-than>
+			</or>
+			<property>/sim/current-view/internal</property>
+			</and>
+		  </condition>
+		  <volume>
+			<min>0.6</min>
+			<max>0.6</max>
+		</volume>
+	</OMS>
+
+	<!-- RCS engine firings are only audible from the nose module and from inside -->
+
+	<RCS>
+		<name>RCS</name>
+		<mode>looped</mode>
+		<path>Aircraft/SpaceShuttle/Sounds/rumble.wav</path>		
+		  <condition>
+		    <and>
+			<not-equals>
+				<property>/sim/current-view/view-number</property>
+				<value>8</value>
+			</not-equals>
+			<or>
+		    <greater-than>
+			<property>/fdm/jsbsim/propulsion/engine[7]/thrust-lbs</property>
+			<value>10</value>
+		    </greater-than>
+			<greater-than>
+			<property>/fdm/jsbsim/propulsion/engine[8]/thrust-lbs</property>
+			<value>10</value>
+		    </greater-than>
+			<greater-than>
+			<property>/fdm/jsbsim/propulsion/engine[9]/thrust-lbs</property>
+			<value>10</value>
+		    </greater-than>
+			<greater-than>
+			<property>/fdm/jsbsim/propulsion/engine[10]/thrust-lbs</property>
+			<value>10</value>
+		    </greater-than>
+			<greater-than>
+			<property>/fdm/jsbsim/propulsion/engine[11]/thrust-lbs</property>
+			<value>10</value>
+		    </greater-than>
+			<greater-than>
+			<property>/fdm/jsbsim/propulsion/engine[12]/thrust-lbs</property>
+			<value>10</value>
+		    </greater-than>
+			<greater-than>
+			<property>/fdm/jsbsim/propulsion/engine[13]/thrust-lbs</property>
+			<value>10</value>
+		    </greater-than>
+			<greater-than>
+			<property>/fdm/jsbsim/propulsion/engine[14]/thrust-lbs</property>
+			<value>10</value>
+		    </greater-than>
+			<greater-than>
+			<property>/fdm/jsbsim/propulsion/engine[15]/thrust-lbs</property>
+			<value>10</value>
+		    </greater-than>
+			<greater-than>
+			<property>/fdm/jsbsim/propulsion/engine[16]/thrust-lbs</property>
+			<value>10</value>
+		    </greater-than>
+			<greater-than>
+			<property>/fdm/jsbsim/propulsion/engine[17]/thrust-lbs</property>
+			<value>10</value>
+		    </greater-than>
+			<greater-than>
+			<property>/fdm/jsbsim/propulsion/engine[18]/thrust-lbs</property>
+			<value>10</value>
+		    </greater-than>
+			<greater-than>
+			<property>/fdm/jsbsim/propulsion/engine[19]/thrust-lbs</property>
+			<value>10</value>
+		    </greater-than>
+			<greater-than>
+			<property>/fdm/jsbsim/propulsion/engine[20]/thrust-lbs</property>
+			<value>10</value>
+		    </greater-than>
+			</or>
+			<property>/sim/current-view/internal</property>
+			</and>
+		  </condition>
+		  <volume>
+			<property>/fdm/jsbsim/systems/various/cabin-sound-transmission</property>
+			<factor>0.6</factor>
+			<min>0.0</min>
+			<max>0.6</max>
+		</volume>
+		<pitch>
+			<min>0.4</min>
+			<max>0.4</max>
+		</pitch>
+	</RCS>
+	<RCS1>
+		<name>RCS1</name>
+		<mode>once</mode>
+		<path>Aircraft/SpaceShuttle/Sounds/Vostok-1-TDU-Engine-Once.wav</path>		
+		  <condition>
+		    <and>
+			<not-equals>
+				<property>/sim/current-view/view-number</property>
+				<value>8</value>
+			</not-equals>
+			<or>
+		    <greater-than>
+			<property>/fdm/jsbsim/propulsion/engine[7]/thrust-lbs</property>
+			<value>10</value>
+		    </greater-than>
+			<greater-than>
+			<property>/fdm/jsbsim/propulsion/engine[8]/thrust-lbs</property>
+			<value>10</value>
+		    </greater-than>
+			<greater-than>
+			<property>/fdm/jsbsim/propulsion/engine[9]/thrust-lbs</property>
+			<value>10</value>
+		    </greater-than>
+			<greater-than>
+			<property>/fdm/jsbsim/propulsion/engine[10]/thrust-lbs</property>
+			<value>10</value>
+		    </greater-than>
+			<greater-than>
+			<property>/fdm/jsbsim/propulsion/engine[11]/thrust-lbs</property>
+			<value>10</value>
+		    </greater-than>
+			<greater-than>
+			<property>/fdm/jsbsim/propulsion/engine[12]/thrust-lbs</property>
+			<value>10</value>
+		    </greater-than>
+			<greater-than>
+			<property>/fdm/jsbsim/propulsion/engine[13]/thrust-lbs</property>
+			<value>10</value>
+		    </greater-than>
+			<greater-than>
+			<property>/fdm/jsbsim/propulsion/engine[14]/thrust-lbs</property>
+			<value>10</value>
+		    </greater-than>
+			<greater-than>
+			<property>/fdm/jsbsim/propulsion/engine[15]/thrust-lbs</property>
+			<value>10</value>
+		    </greater-than>
+			<greater-than>
+			<property>/fdm/jsbsim/propulsion/engine[16]/thrust-lbs</property>
+			<value>10</value>
+		    </greater-than>
+			<greater-than>
+			<property>/fdm/jsbsim/propulsion/engine[17]/thrust-lbs</property>
+			<value>10</value>
+		    </greater-than>
+			<greater-than>
+			<property>/fdm/jsbsim/propulsion/engine[18]/thrust-lbs</property>
+			<value>10</value>
+		    </greater-than>
+			<greater-than>
+			<property>/fdm/jsbsim/propulsion/engine[19]/thrust-lbs</property>
+			<value>10</value>
+		    </greater-than>
+			<greater-than>
+			<property>/fdm/jsbsim/propulsion/engine[20]/thrust-lbs</property>
+			<value>10</value>
+		    </greater-than>
+			</or>
+			<property>/sim/current-view/internal</property>
+			</and>
+		  </condition>
+		  <volume>
+			<property>/fdm/jsbsim/systems/various/cabin-sound-transmission</property>
+			<factor>0.2</factor>
+			<min>0.0</min>
+			<max>0.2</max>
+		</volume>
+		<pitch>
+			<min>0.001</min>
+			<max>0.001</max>
+		</pitch>
+	</RCS1>
+
+    <!-- Class 1 Alarm  -->
+	
+	<Class1>
+		<name>Class1</name>
+		<mode>looped</mode>
+		<path>Aircraft/SpaceShuttle/Sounds/class_1_klaxon.wav</path>		
+		  <condition>
+			<and>
+			<property>/fdm/jsbsim/systems/cws/class-1-sound-on</property>
+			<property>/sim/current-view/internal</property>
+			</and>
+		  </condition>
+		  <volume>
+			<property>/fdm/jsbsim/systems/various/cabin-sound-transmission</property>
+			<factor>0.6</factor>
+			<min>0.0</min>
+			<max>0.6</max>
+		 </volume>
+	</Class1>
+
+    <!-- Fire  Alarm  -->
+	
+	<FireAlarm>
+		<name>FireAlarm</name>
+		<mode>looped</mode>
+		<path>Aircraft/SpaceShuttle/Sounds/class_1_siren.wav</path>		
+		  <condition>
+			<and>
+			<property>/fdm/jsbsim/systems/cws/fire-alarm-sound-on</property>
+			<property>/sim/current-view/internal</property>
+			</and>
+		  </condition>
+		  <volume>
+			<property>/fdm/jsbsim/systems/various/cabin-sound-transmission</property>
+			<factor>1.0</factor>
+			<min>0.0</min>
+			<max>1.0</max>
+		 </volume>
+	</FireAlarm>
+
+    <!-- Class 2 Alarm  -->
+
+	<Class2>
+		<name>Class2</name>
+		<mode>looped</mode>
+		<path>Aircraft/SpaceShuttle/Sounds/class_2_alarm.wav</path>		
+		  <condition>
+			<and>
+			<property>/fdm/jsbsim/systems/cws/class-2-sound-on</property>
+			<property>/sim/current-view/internal</property>
+			</and>
+		  </condition>
+		  <volume>
+			<property>/fdm/jsbsim/systems/various/cabin-sound-transmission</property>
+			<factor>0.6</factor>
+			<min>0.0</min>
+			<max>0.6</max>
+		</volume>
+	</Class2>
+
+    <!-- SM alert  -->
+
+	<SMAlert>
+		<name>SMAlert</name>
+		<mode>once</mode>
+		<path>Aircraft/SpaceShuttle/Sounds/class_3_sm_alert.wav</path>		
+		  <condition>
+			<and>
+			<property>/fdm/jsbsim/systems/cws/sm-alert-on</property>
+			<property>/sim/current-view/internal</property>
+			</and>
+		  </condition>
+		  <volume>
+			<property>/fdm/jsbsim/systems/various/cabin-sound-transmission</property>
+			<factor>0.6</factor>
+			<min>0.0</min>
+			<max>0.6</max>
+		</volume>
+	</SMAlert>
+
+	<!-- doors  -->
+
+	<doors>
+		<name>doors</name>
+		<mode>looped</mode>
+		<path>Aircraft/SpaceShuttle/Sounds/Vostok-1-Radiators-Turn.wav</path>
+		  
+		  <condition>
+		    <and>
+		    <greater-than>
+			<property>sim/multiplay/generic/float[3]</property>
+			<value>0.01</value>
+		    </greater-than>
+		    <less-than>
+			<property>sim/multiplay/generic/float[3]</property>
+			<value>0.99</value>
+		    </less-than>
+		    </and>
+		  </condition>
+		  
+		  <volume>
+		    <property>sim/multiplay/generic/float[3]</property>
+			<factor>1.0</factor>
+			<offset>0.0</offset>
+			<min>0.15</min>
+			<max>0.15</max>
+		</volume>
+	</doors>
+
+	<!-- Gears  -->
+
+	<gears>
+		<name>gears</name>
+		<mode>once</mode>
+		<path>Aircraft/SpaceShuttle/Sounds/gear.wav</path>
+		  
+		  <condition>
+		    <and>
+		    <greater-than>
+			<property>gear/gear/position-norm</property>
+			<value>0.01</value>
+		    </greater-than>
+		    <less-than>
+			<property>gear/gear/position-norm</property>
+			<value>0.99</value>
+		    </less-than>
+		    </and>
+		  </condition>
+		  
+		  <volume>
+		    <property>gear/gear/position-norm</property>
+			<factor>1.0</factor>
+			<offset>0.0</offset>
+			<min>0.3</min>
+			<max>0.3</max>
+		</volume>
+	</gears>
+
+	<!-- Touchdown  -->
+
+	<touchdown>
+        <name>touchdown</name>
+		<mode>once</mode>
+        <path>Aircraft/SpaceShuttle/Sounds/touchdown.wav</path>
+        <condition>
+            <and>	      
+				<greater-than>
+						<property>/velocities/airspeed-kt</property>
+				<value>140</value>
+               </greater-than>
+               <less-than>
+                <property>velocities/vertical-speed-fps</property>
+				<value>-0.1</value>
+               </less-than>
+				<or>
+					<and>
+						<greater-than>
+							<property>/gear/gear[0]/compression-norm</property>
+							<value>0.05</value>
+						</greater-than>
+						<equals>
+							<property>/gear/gear[0]/wow</property>
+							<value>1</value>
+						</equals> 
+					</and>
+					<and>
+						<greater-than>
+							<property>/gear/gear[1]/compression-norm</property>
+							<value>0.05</value>
+						</greater-than>
+						<equals>
+							<property>/gear/gear[1]/wow</property>
+							<value>1</value>
+						</equals> 
+					</and>
+					<and>
+						<greater-than>
+							<property>/gear/gear[2]/compression-norm</property>
+							<value>0.05</value>
+						</greater-than>
+						<equals>
+							<property>/gear/gear[2]/wow</property>
+							<value>1</value>
+						</equals> 
+					</and>  
+				</or>
+            </and>
+        </condition>
+        <volume>
+            <property>sim/sound/volume</property>
+        </volume>       
+        <position>
+            <x>-6.5</x>
+            <y>0</y>
+            <z>-5</z>
+        </position>
+        <reference-dist>20.0</reference-dist>
+        <max-dist>40.0</max-dist>
+	</touchdown>
+	
+	<!-- gear damage -->
+	
+	<gearbreak>
+        <name>gearbreak</name>
+		<mode>once</mode>
+        <path>Sounds/damage-heavy.wav</path>
+        <condition>
+			<or>
+				<and>
+					<greater-than>
+						<property>/gear/gear[0]/compression-norm</property>
+						<value>0.05</value>
+					</greater-than>
+					<equals>
+						<property>/gear/gear[0]/wow</property>
+						<value>1</value>
+					</equals>
+					<equals>
+						<property>/fdm/jsbsim/systems/failures/gear/gearstrut-nose-condition</property>
+						<value>0</value>
+					</equals>
+				</and>
+				<and>
+					<greater-than>
+						<property>/gear/gear[1]/compression-norm</property>
+						<value>0.05</value>
+					</greater-than>
+					<equals>
+						<property>/gear/gear[1]/wow</property>
+						<value>1</value>
+					</equals>
+					<equals>
+						<property>/fdm/jsbsim/systems/failures/gear/gearstrut-left-condition</property>
+						<value>0</value>
+					</equals>			
+				</and>
+				<and>
+					<greater-than>
+						<property>/gear/gear[2]/compression-norm</property>
+						<value>0.05</value>
+					</greater-than>
+					<equals>
+						<property>/gear/gear[2]/wow</property>
+						<value>1</value>
+					</equals> 
+					<equals>
+						<property>/fdm/jsbsim/systems/failures/gear/gearstrut-right-condition</property>
+						<value>0</value>
+					</equals>
+				</and>  
+			</or>			
+        </condition>
+        <volume>
+            <property>sim/sound/volume</property>
+        </volume>       
+        <position>
+            <x>-6.5</x>
+            <y>0</y>
+            <z>-5</z>
+        </position>
+        <reference-dist>20.0</reference-dist>
+        <max-dist>100.0</max-dist>
+	</gearbreak>
+
+	<!-- fuselage scraping  -->
+
+	<scrape>
+		<name>scrape</name>
+		<mode>looped</mode>
+		<path>Aircraft/SpaceShuttle/Sounds/scratch.wav</path>
+		<condition>
+			<or>
+				<and>
+					<greater-than>
+						<property>velocities/groundspeed-kt</property>
+						<value>2</value>
+					</greater-than>
+					<and>
+						<or>
+							<property>gear/gear[0]/wow</property>
+							<property>gear/gear[1]/wow</property>
+							<property>gear/gear[2]/wow</property>
+						</or>
+						<or>
+							<equals>
+								<property>/fdm/jsbsim/systems/failures/gear/gearstrut-nose-condition</property>
+								<value>0</value>
+							</equals>
+							<equals>
+								<property>/fdm/jsbsim/systems/failures/gear/gearstrut-left-condition</property>
+								<value>0</value>
+							</equals>			
+							<equals>
+								<property>/fdm/jsbsim/systems/failures/gear/gearstrut-right-condition</property>
+								<value>0</value>
+							</equals>  
+						</or>
+					</and>
+				</and>
+				<or>
+					<greater-than>
+						<property>/fdm/jsbsim/ground/tail-ground-effect-speed-kt</property>
+						<value>1</value>
+					</greater-than>
+					<greater-than>
+						<property>/fdm/jsbsim/ground/left-tail-ground-effect-speed-kt</property>
+						<value>1</value>
+					</greater-than>
+					<greater-than>
+						<property>/fdm/jsbsim/ground/right-tail-ground-effect-speed-kt</property>
+						<value>1</value>
+					</greater-than>
+				</or>
+			</or>
+		</condition>
+		<volume>
+            <property>sim/sound/volume</property>
+		</volume>
+		<pitch>
+			<property>/fdm/jsbsim/ground/scrape-pitch</property>
+			<factor>1</factor>
+			<offset>0</offset>
+		</pitch>
+		<reference-dist>20</reference-dist>
+		<max-dist>200.0</max-dist>       
+    </scrape>
+	
+	<!-- rumble  -->
+
+	<rumble>
+		<name>rumble</name>
+		<mode>looped</mode>
+		<path>Aircraft/SpaceShuttle/Sounds/rumble.wav</path>
+		<condition>
+		  <or>
+			<and>
+				<greater-than>
+				  <property>/gear/gear[1]/rollspeed-ms</property>
+				  <value>5</value>
+				</greater-than>
+				<equals>
+				  <property>/gear/gear[1]/wow</property>
+				  <value>1</value>
+				</equals> 
+				</and>
+				<and>
+				<greater-than>
+				  <property>/gear/gear[2]/rollspeed-ms</property>
+				  <value>5</value>
+				</greater-than>
+				<equals>
+				  <property>/gear/gear[2]/wow</property>
+				  <value>1</value>
+				</equals> 
+			</and>
+		  </or>
+		</condition>
+		<volume>
+            <property>/gear/gear[1]/rollspeed-ms</property>            
+            <factor>0.005</factor>
+			<min>0.2</min>
+			<max>1.0</max>
+		</volume>          
+	</rumble>
+
+	<!-- orbiter breakup -->
+
+	<explosion>
+        <name>explosion</name>
+		<mode>once</mode>
+        <path>Sounds/crash.wav</path>
+        <condition>
+			<equals>
+				<property>/sim/model/effects/explosion-smoke</property>
+				<value>1.0</value>
+			</equals>
+        </condition>
+        <volume>
+            <property>sim/sound/volume</property>
+        </volume>       
+        <position>
+            <x>-6.5</x>
+            <y>0</y>
+            <z>-5</z>
+        </position>
+        <reference-dist>20.0</reference-dist>
+        <max-dist>1000.0</max-dist>
+	</explosion>
+
+    <!-- Switch click sound -->
+    <switch>
+        <name>click-avionics-switch</name>
+        <mode>once</mode>
+        <path>Sounds/click3.wav</path>
+        <condition>
+            <property>/sim/model/shuttle/sound/click-avionics</property>
+        </condition>
+        <position>
+            <x><property>/sim/model/shuttle/sound/click-pos-x</property></x>
+            <y><property>/sim/model/shuttle/sound/click-pos-y</property></y>
+            <z><property>/sim/model/shuttle/sound/click-pos-z</property></z>
+        </position>
+        <reference-dist>.02</reference-dist>
+        <max-dist>5.0</max-dist>
+    </switch>
+
+
+    <!-- Button down sound -->
+    <switch>
+        <name>click-button-down-switch</name>
+        <mode>once</mode>
+        <path>Sounds/button_down.wav</path>
+        <condition>
+            <property>/sim/model/shuttle/sound/click-button-down</property>
+        </condition>
+        <position>
+            <x><property>/sim/model/shuttle/sound/click-pos-x</property></x>
+            <y><property>/sim/model/shuttle/sound/click-pos-y</property></y>
+            <z><property>/sim/model/shuttle/sound/click-pos-z</property></z>
+        </position>
+        <reference-dist>.02</reference-dist>
+        <max-dist>5.0</max-dist>
+    </switch>
+
+    <!-- Button up sound -->
+    <switch>
+        <name>click-button-up-switch</name>
+        <mode>once</mode>
+        <path>Sounds/button_up.wav</path>
+        <condition>
+            <property>/sim/model/shuttle/sound/click-button-up</property>
+        </condition>
+        <position>
+            <x><property>/sim/model/shuttle/sound/click-pos-x</property></x>
+            <y><property>/sim/model/shuttle/sound/click-pos-y</property></y>
+            <z><property>/sim/model/shuttle/sound/click-pos-z</property></z>
+        </position>
+        <reference-dist>.02</reference-dist>
+        <max-dist>5.0</max-dist>
+    </switch>
+
+    <!-- Lift cover sound -->
+    <switch>
+        <name>click-cover-switch</name>
+        <mode>once</mode>
+        <path>Sounds/lift_cover.wav</path>
+        <condition>
+            <property>/sim/model/shuttle/sound/click-cover</property>
+        </condition>
+        <position>
+            <x><property>/sim/model/shuttle/sound/click-pos-x</property></x>
+            <y><property>/sim/model/shuttle/sound/click-pos-y</property></y>
+            <z><property>/sim/model/shuttle/sound/click-pos-z</property></z>
+        </position>
+        <reference-dist>.02</reference-dist>
+        <max-dist>5.0</max-dist>
+    </switch>
+
+    <!-- Turn knob sound -->
+    <switch>
+        <name>click-knob-switch</name>
+        <mode>once</mode>
+        <path>Sounds/turn_knob.wav</path>
+        <condition>
+            <property>/sim/model/shuttle/sound/click-knob</property>
+        </condition>
+        <position>
+            <x><property>/sim/model/shuttle/sound/click-pos-x</property></x>
+            <y><property>/sim/model/shuttle/sound/click-pos-y</property></y>
+            <z><property>/sim/model/shuttle/sound/click-pos-z</property></z>
+        </position>
+        <reference-dist>.02</reference-dist>
+        <max-dist>5.0</max-dist>
+    </switch>
+
+	</fx>
+
+</PropertyList>

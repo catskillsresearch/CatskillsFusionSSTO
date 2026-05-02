@@ -1,0 +1,28 @@
+<?xml version="1.0" ?>
+
+<PropertyList>
+
+
+<metadata>
+	<mission-stage type="int">6</mission-stage>
+	<title type="string">Satellite retrieval</title>
+</metadata>
+
+
+<proximity-object>
+	<name type="string">Spartan-201</name>
+	<prox-x type="double">150.0</prox-x>
+	<prox-y type="double">5.0</prox-y>
+	<prox-z type="double">-30.0</prox-z>
+</proximity-object>
+
+
+
+<settings>
+	<num-settings type="int">1</num-settings>
+	<property type="string">/sim/config/shuttle/PL-pallet-flag</property>
+	<value type="int">1</value>
+</settings>
+
+
+</PropertyList>

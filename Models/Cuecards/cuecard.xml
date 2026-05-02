@@ -1,0 +1,78 @@
+<?xml version="1.0"?>
+
+<PropertyList>
+
+    <path>Aircraft/SpaceShuttle/Models/Cuecards/cuecard.ac</path>
+
+
+
+ <animation>
+  <type>translate</type>
+  <object-name>Cuecard-CRD-center-left</object-name>
+  <property>/test/x</property>
+  <factor>1.0</factor>
+  <offset-m>0.0</offset-m>
+  <axis>
+   <x>1</x>
+   <y>0</y>
+   <z>0</z>
+  </axis>
+ </animation>
+
+ <animation>
+  <type>translate</type>
+  <object-name>Cuecard-CRD-center-left</object-name>
+  <property>/test/y</property>
+  <factor>1.0</factor>
+  <offset-m>0.0</offset-m>
+  <axis>
+   <x>0</x>
+   <y>1</y>
+   <z>0</z>
+  </axis>
+ </animation>
+
+ <animation>
+  <type>translate</type>
+  <object-name>Cuecard-CRD-center-left</object-name>
+  <property>/test/z</property>
+  <factor>1.0</factor>
+  <offset-m>0.0</offset-m>
+  <axis>
+   <x>0</x>
+   <y>0</y>
+   <z>1</z>
+  </axis>
+ </animation>
+
+ <animation>
+  <object-name>Cuecard-CRD-center-left</object-name>
+  <type>rotate</type>
+  <property>/test/angle</property>
+  <factor>1</factor>
+  <offset-deg>0</offset-deg>
+  <center>
+   <x-m>0</x-m>
+   <y-m>0</y-m>
+   <z-m>0</z-m>
+  </center>
+  <axis>
+   <x>0</x>
+   <y>1</y>
+   <z>0</z>
+  </axis>
+ </animation>
+
+  <animation>
+  <type>scale</type>
+  <object-name>Cuecard-CRD-center-left</object-name>
+  <!--<property>/test/scale</property>-->
+  <x-min>1.0</x-min>
+  <y-min>0.6</y-min>
+  <z-min>1.0</z-min>
+  <x-factor>0.0</x-factor>
+  <y-factor>1.0</y-factor>
+  <z-factor>0.0</z-factor>
+ </animation>
+
+</PropertyList>
