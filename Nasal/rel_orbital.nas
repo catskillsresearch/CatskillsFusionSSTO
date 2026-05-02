@@ -485,8 +485,8 @@ print(etCoord.x(), " ", etCoord.y, " ", etCoord.z);
 
 etState = stateVector.new (etCoord.x(),etCoord.y(),etCoord.z(),0,0,0,yaw, pitch - lon, roll);
 
-var etFoam="Aircraft/SpaceShuttle/Models/external-tank-disconnected.xml";
-if (getprop("/sim/model/livery/index") == 2) etFoam="Aircraft/SpaceShuttle/Models/external-tank-disconnectedw.xml";
+var etFoam="Aircraft/CatskillsFusionSSTO/Models/external-tank-disconnected.xml";
+if (getprop("/sim/model/livery/index") == 2) etFoam="Aircraft/CatskillsFusionSSTO/Models/external-tank-disconnectedw.xml";
 etModel = place_model("et-ballistic", etFoam, etCoord.lat(), etCoord.lon(), etCoord.alt() * m_to_ft, yaw,pitch,roll);
 
 # seems we need small offsets in velocity to get a small separation velocity
@@ -639,7 +639,7 @@ kuState.pitch_rate = 0.2;
 kuState.yaw_rate = 0.1;
 
 
-kuModel = place_model("ku-ballistic", "Aircraft/SpaceShuttle/Models/PayloadBay/KU-Antenna/ku-antenna-disconnected.xml", kuCoord.lat(), kuCoord.lon(), kuCoord.alt() * m_to_ft, yaw,pitch,roll);
+kuModel = place_model("ku-ballistic", "Aircraft/CatskillsFusionSSTO/Models/PayloadBay/KU-Antenna/ku-antenna-disconnected.xml", kuCoord.lat(), kuCoord.lon(), kuCoord.alt() * m_to_ft, yaw,pitch,roll);
 
 # seems we need small offsets in velocity to get a small separation velocity
 # this looks odd but the error we need to correct is actually a function
@@ -766,7 +766,7 @@ setprop("/controls/shuttle/rms-ballistic/ang-wrist-roll-deg", wrist_roll);
 
 rmsState = stateVector.new (rmsCoord.x(),rmsCoord.y(),rmsCoord.z(),0,0,0,yaw, pitch - lon, roll);
 
-rmsModel = place_model("rms-ballistic", "Aircraft/SpaceShuttle/Models/PayloadBay/rmsArm-disconnected.xml", rmsCoord.lat(), rmsCoord.lon(), rmsCoord.alt() * m_to_ft, yaw,pitch,roll);
+rmsModel = place_model("rms-ballistic", "Aircraft/CatskillsFusionSSTO/Models/PayloadBay/rmsArm-disconnected.xml", rmsCoord.lat(), rmsCoord.lon(), rmsCoord.alt() * m_to_ft, yaw,pitch,roll);
 
 var lat = getprop("/position/latitude-deg") * math.pi/180.0;
 var lon = getprop("/position/longitude-deg") * math.pi/180.0;
@@ -919,7 +919,7 @@ var iss_manager = {
 
 		me.issInitialState = [prox_x, prox_y, prox_z, dvx, dvy, dvz];
 
-		var model_path = "Aircraft/SpaceShuttle/Models/ISS/ISS_free.xml";
+		var model_path = "Aircraft/CatskillsFusionSSTO/Models/ISS/ISS_free.xml";
 
 		me.issModel = place_model("ISS", model_path, me.coord.lat(), me.coord.lon(), me.coord.alt() * m_to_ft, course,0.0,0.0);
 
@@ -1486,7 +1486,7 @@ var iss_manager = {
 
 
 
-		var model_path = "Aircraft/SpaceShuttle/Models/ISS/ISS_free.xml";
+		var model_path = "Aircraft/CatskillsFusionSSTO/Models/ISS/ISS_free.xml";
 
 		me.issModel = place_model("ISS", model_path, me.coord.lat(), me.coord.lon(), me.coord.alt() * m_to_ft, yaw,pitch -lon_deg,roll);
 
@@ -1632,7 +1632,7 @@ var hst_manager_old = {
 
 		me.hstInitialState = [prox_x, prox_y, prox_z, dvx, dvy, dvz];
 
-		var model_path = "Aircraft/SpaceShuttle/Models/HST/hst.xml";
+		var model_path = "Aircraft/CatskillsFusionSSTO/Models/HST/hst.xml";
 
 		me.hstModel = place_model("HST", model_path, me.coord.lat(), me.coord.lon(), me.coord.alt() * m_to_ft, course,0.0,0.0);
 

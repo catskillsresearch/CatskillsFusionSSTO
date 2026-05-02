@@ -8,7 +8,7 @@ var cdlg_scenario = {
 
 		var width = 512;
 		var height = 384;
-		var img_path = "Aircraft/SpaceShuttle/Pics/orbit-splash03.png";
+		var img_path = "Aircraft/CatskillsFusionSSTO/Pics/orbit-splash03.png";
 						
 		me.parse_custom_scenario();
 
@@ -50,7 +50,7 @@ var cdlg_scenario = {
 
 
 		var stack = [];
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/Scenario/scenario_next_0.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/Scenario/scenario_next_0.png");
 		me.button_next = cdlg_widget_img_stack.new(me.root, stack, 126, 42);
 		me.button_next.setTranslation(20,320);
 
@@ -61,7 +61,7 @@ var cdlg_scenario = {
 			};
 
 		stack = [];
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/Scenario/scenario_select_0.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/Scenario/scenario_select_0.png");
 		me.button_select = cdlg_widget_img_stack.new(me.root, stack, 126, 42);
 		me.button_select.setTranslation(370 ,320);
 
@@ -77,7 +77,7 @@ var cdlg_scenario = {
 		if (me.custom_flag == 1)
 			{
 			stack = [];
-			append(stack, "Aircraft/SpaceShuttle/Dialogs/Scenario/scenario_predef_0.png");
+			append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/Scenario/scenario_predef_0.png");
 			me.button_select = cdlg_widget_img_stack.new(me.root, stack, 126, 42);
 			me.button_select.setTranslation(195 ,320);
 
@@ -105,7 +105,7 @@ var cdlg_scenario = {
 				{
 				me.current_index = 1;
 				me.an_scenario_name.setText("Satellite capture");
-				me.picture.setFile("Aircraft/SpaceShuttle/Pics/mission-splash02.png");
+				me.picture.setFile("Aircraft/CatskillsFusionSSTO/Pics/mission-splash02.png");
 				setprop("/scenario/filename", "satellite-retrieval.xml");
 			
 				}
@@ -113,7 +113,7 @@ var cdlg_scenario = {
 				{
 				me.current_index = 2;
 				me.an_scenario_name.setText("ISS docking");
-				me.picture.setFile("Aircraft/SpaceShuttle/Pics/iss-splash01.png");
+				me.picture.setFile("Aircraft/CatskillsFusionSSTO/Pics/iss-splash01.png");
 				setprop("/scenario/filename", "iss-docking.xml");
 			
 				}
@@ -121,7 +121,7 @@ var cdlg_scenario = {
 				{
 				me.current_index = 3;
 				me.an_scenario_name.setText("ISS terminal intercept T1 burn");
-				me.picture.setFile("Aircraft/SpaceShuttle/Dialogs/Scenario/scenario_ISS_T1.png");
+				me.picture.setFile("Aircraft/CatskillsFusionSSTO/Dialogs/Scenario/scenario_ISS_T1.png");
 				setprop("/scenario/filename", "iss-TI-T1.xml");
 			
 				}
@@ -129,7 +129,7 @@ var cdlg_scenario = {
 				{
 				me.current_index = 4;
 				me.an_scenario_name.setText("De-orbit burn");
-				me.picture.setFile("Aircraft/SpaceShuttle/Dialogs/Scenario/scenario_de_orbit.png");
+				me.picture.setFile("Aircraft/CatskillsFusionSSTO/Dialogs/Scenario/scenario_de_orbit.png");
 				setprop("/scenario/filename", "de-orbit.xml");
 			
 				}
@@ -137,7 +137,7 @@ var cdlg_scenario = {
 				{
 				me.current_index = 0;
 				me.an_scenario_name.setText("No scenario selected");
-				me.picture.setFile("Aircraft/SpaceShuttle/Pics/orbit-splash03.png");
+				me.picture.setFile("Aircraft/CatskillsFusionSSTO/Pics/orbit-splash03.png");
 				}
 			}
 		else if (stage == 2)
@@ -146,7 +146,7 @@ var cdlg_scenario = {
 				{
 				me.current_index = 1;
 				me.an_scenario_name.setText("4200 nm to KSC");
-				me.picture.setFile("Aircraft/SpaceShuttle/Pics/entry-splash01.png");
+				me.picture.setFile("Aircraft/CatskillsFusionSSTO/Pics/entry-splash01.png");
 				setprop("/scenario/filename", "ksc-4200.xml");
 			
 				}
@@ -154,7 +154,7 @@ var cdlg_scenario = {
 				{
 				me.current_index = 2;
 				me.an_scenario_name.setText("Low energy entry to KSC");
-				me.picture.setFile("Aircraft/SpaceShuttle/Dialogs/Scenario/scenario_low_energy_entry.png");
+				me.picture.setFile("Aircraft/CatskillsFusionSSTO/Dialogs/Scenario/scenario_low_energy_entry.png");
 				setprop("/scenario/filename", "ksc-low-energy.xml");
 			
 				}
@@ -162,7 +162,7 @@ var cdlg_scenario = {
 				{
 				me.current_index = 3;
 				me.an_scenario_name.setText("High energy entry to KSC");
-				me.picture.setFile("Aircraft/SpaceShuttle/Dialogs/Scenario/scenario_high_energy_entry.png");
+				me.picture.setFile("Aircraft/CatskillsFusionSSTO/Dialogs/Scenario/scenario_high_energy_entry.png");
 				setprop("/scenario/filename", "ksc-high-energy.xml");
 			
 				}
@@ -170,7 +170,7 @@ var cdlg_scenario = {
 				{
 				me.current_index = 4;
 				me.an_scenario_name.setText("Lakebed landing");
-				me.picture.setFile("Aircraft/SpaceShuttle/Dialogs/Scenario/scenario_lakebed.png");
+				me.picture.setFile("Aircraft/CatskillsFusionSSTO/Dialogs/Scenario/scenario_lakebed.png");
 				setprop("/scenario/filename", "lakebed-landing.xml");
 			
 				}
@@ -180,7 +180,7 @@ var cdlg_scenario = {
 				{
 				me.current_index = 0;
 				me.an_scenario_name.setText("No scenario selected");
-				me.picture.setFile("Aircraft/SpaceShuttle/Pics/orbit-splash03.png");
+				me.picture.setFile("Aircraft/CatskillsFusionSSTO/Pics/orbit-splash03.png");
 				}
 			}
 		else if (stage == 0)
@@ -189,28 +189,28 @@ var cdlg_scenario = {
 				{
 				me.current_index = 1;
 				me.an_scenario_name.setText("Single engine failure in RTLS region");
-				me.picture.setFile("Aircraft/SpaceShuttle/Dialogs/Scenario/scenario_rtls.png");
+				me.picture.setFile("Aircraft/CatskillsFusionSSTO/Dialogs/Scenario/scenario_rtls.png");
 				setprop("/scenario/filename", "launch-rtls.xml");
 				}
 			else if (me.current_index == 1)
 				{
 				me.current_index = 2;
 				me.an_scenario_name.setText("Single engine failure in TAL region");
-				me.picture.setFile("Aircraft/SpaceShuttle/Dialogs/Scenario/scenario_tal.png");
+				me.picture.setFile("Aircraft/CatskillsFusionSSTO/Dialogs/Scenario/scenario_tal.png");
 				setprop("/scenario/filename", "launch-tal.xml");
 				}
 			else if (me.current_index == 2)
 				{
 				me.current_index = 3;
 				me.an_scenario_name.setText("Debris strike during SRB separation");
-				me.picture.setFile("Aircraft/SpaceShuttle/Dialogs/Scenario/scenario_debris.png");
+				me.picture.setFile("Aircraft/CatskillsFusionSSTO/Dialogs/Scenario/scenario_debris.png");
 				setprop("/scenario/filename", "launch-debris.xml");
 				}
 			else
 				{
 				me.current_index = 0;
 				me.an_scenario_name.setText("No scenario selected");
-				me.picture.setFile("Aircraft/SpaceShuttle/Pics/orbit-splash03.png");
+				me.picture.setFile("Aircraft/CatskillsFusionSSTO/Pics/orbit-splash03.png");
 				}
 			}
 
@@ -231,7 +231,7 @@ var cdlg_scenario = {
 		else
 			{
 			var target = props.globals.getNode("/scenario");
-			var success = io.read_properties("Aircraft/SpaceShuttle/Scenario/"~filename, target);
+			var success = io.read_properties("Aircraft/CatskillsFusionSSTO/Scenario/"~filename, target);
 
 			if (success == nil) # try absolute path
 				{
@@ -251,7 +251,7 @@ var cdlg_scenario = {
 			
 			if (me.custom_img_path == nil)
 			 	{
-				me.custom_img_path = "Aircraft/SpaceShuttle/Pics/orbit-splash01.png";
+				me.custom_img_path = "Aircraft/CatskillsFusionSSTO/Pics/orbit-splash01.png";
 				}
 
 

@@ -15,7 +15,7 @@
 </offsets>  
 
 <effect>
-    <inherits-from>Aircraft/SpaceShuttle/Models/Effects/srb-right</inherits-from>
+    <inherits-from>Aircraft/CatskillsFusionSSTO/Models/Effects/srb-right</inherits-from>
     <object-name>srb.layer1</object-name>
  </effect>
 

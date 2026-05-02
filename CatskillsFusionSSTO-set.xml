@@ -2,11 +2,11 @@
 
 <!-- this puts the Shuttle onto the launch pad -->
 
-<PropertyList include="SpaceShuttle-common.xml">
+<PropertyList include="CatskillsFusionSSTO-common.xml">
 <sim>
-  <description>NASA Space Shuttle Atlantis in launch position</description>
+  <description>Catskills Fusion SSTO in launch position</description>
   <long-description>
-     The Space Shuttle was a partially re-usable low orbit spacecraft operated by NASA from 1981 to 2011. In this mission phase, the Shuttle is on the pad, about five minutes to launch, ready to go into space.
+    Catskills Fusion SSTO is an evolution of the Space Shuttle which was a partially re-usable low orbit spacecraft operated by NASA from 1981 to 2011. In this mission phase, the Shuttle is on the pad, about five minutes to launch, ready to go into space.
   </long-description>
   <presets>
 	<altitude-ft>10000.0</altitude-ft>	
@@ -14,7 +14,7 @@
 	<stage type="int">0</stage>
   </presets>
   <startup>
-    <splash-texture>Aircraft/SpaceShuttle/SpaceShuttle-launch-splash.png</splash-texture>
+    <splash-texture>Aircraft/CatskillsFusionSSTO/CatskillsFusionSSTO-launch-splash.png</splash-texture>
   </startup>
   <previews>
       <preview>

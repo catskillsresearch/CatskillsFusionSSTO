@@ -2,7 +2,7 @@
 
 <PropertyList>
   <name>shuttle-payload-bay-door-right</name>
-  <inherits-from>Aircraft/SpaceShuttle/Models/Effects/shuttle-payload-bay</inherits-from>
+  <inherits-from>Aircraft/CatskillsFusionSSTO/Models/Effects/shuttle-payload-bay</inherits-from>
 
   <parameters>
 
@@ -13,7 +13,7 @@
 	<reflection-type type="int">1</reflection-type>
 	<reflection-dynamic type="int">1</reflection-dynamic>
 	<texture n="4">
-		<image>Aircraft/SpaceShuttle/Models/reflectmap.png</image>
+		<image>Aircraft/CatskillsFusionSSTO/Models/reflectmap.png</image>
 		<type>2d</type>
 		<filter>linear-mipmap-linear</filter>
 		<wrap-s>clamp</wrap-s>

@@ -21,7 +21,7 @@
           Individual pivot points need to be found in the mesh.
           
 
-    <path>Aircraft/SpaceShuttle/Models/RHC-Commander.ac</path>
+    <path>Aircraft/CatskillsFusionSSTO/Models/RHC-Commander.ac</path>
     <offsets>
       <x-m> 0.0 </x-m>
       <y-m> 0.0 </y-m>
@@ -88,7 +88,7 @@
   </animation>
 
     <!--effect>
-        <inherits-from>Aircraft/SpaceShuttle/Models/Effects/Interior/flashlight</inherits-from>
+        <inherits-from>Aircraft/CatskillsFusionSSTO/Models/Effects/Interior/flashlight</inherits-from>
         <object-name>Joystick.Base</object-name>
         <object-name>Joystick</object-name>
         <object-name>Joystick.Button</object-name>

@@ -2,7 +2,7 @@
 
 <PropertyList>
   <name>heatshield</name>
-  <inherits-from>Aircraft/SpaceShuttle/Models/Effects/shuttle-main</inherits-from>
+  <inherits-from>Aircraft/CatskillsFusionSSTO/Models/Effects/shuttle-main</inherits-from>
 
   <parameters>
 	  <delta_T><use>/sim/systems/various/nose-temperature-K</use></delta_T>
@@ -19,7 +19,7 @@
 	  <darkmap-enabled type="int">2</darkmap-enabled>
 	  <darkmap-factor type="float">0.6</darkmap-factor>
 	  <texture n="3">
-		  <image>Aircraft/SpaceShuttle/Models/shuttle_lightmap.png</image>
+		  <image>Aircraft/CatskillsFusionSSTO/Models/shuttle_lightmap.png</image>
 		  <type>2d</type>
 		  <filter>linear-mipmap-linear</filter>
 		  <wrap-s>clamp</wrap-s>

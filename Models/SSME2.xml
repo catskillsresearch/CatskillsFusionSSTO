@@ -4,7 +4,7 @@
    <path>SSME.ac</path>
 
  <effect>
-    <inherits-from>Aircraft/SpaceShuttle/Models/Effects/shuttle-main</inherits-from>
+    <inherits-from>Aircraft/CatskillsFusionSSTO/Models/Effects/shuttle-main</inherits-from>
 	<object-name>SSME</object-name>
  </effect>
       
@@ -52,7 +52,7 @@
 
 
 <model>
-<path>Aircraft/SpaceShuttle/Models/Effects/engine-fire-alt2.xml</path>
+<path>Aircraft/CatskillsFusionSSTO/Models/Effects/engine-fire-alt2.xml</path>
      <offsets>
        <x-m> 15.8 </x-m>
        <y-m> 0.0</y-m>
@@ -75,7 +75,7 @@
 
     <model>
  	<name>cryo-vent-ssme2</name>
-  	<path>Aircraft/SpaceShuttle/Models/Effects/cryo_vent_ssme.xml</path>
+  	<path>Aircraft/CatskillsFusionSSTO/Models/Effects/cryo_vent_ssme.xml</path>
   	<offsets>
         	<x-m>15.8</x-m>
 		<y-m>0.0</y-m>

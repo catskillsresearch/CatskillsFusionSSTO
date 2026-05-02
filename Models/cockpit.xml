@@ -10,24 +10,24 @@
 
     <!-- grain -->
     <effect>
-        <inherits-from>Aircraft/SpaceShuttle/Models/Effects/Interior/velcro-geo</inherits-from>
+        <inherits-from>Aircraft/CatskillsFusionSSTO/Models/Effects/Interior/velcro-geo</inherits-from>
         <object-name>velcro</object-name>
     </effect>
     <effect>
-        <inherits-from>Aircraft/SpaceShuttle/Models/Effects/Interior/window</inherits-from>
+        <inherits-from>Aircraft/CatskillsFusionSSTO/Models/Effects/Interior/window</inherits-from>
         <object-name>fwd_window_assembly</object-name>
     </effect>
     <effect>
-        <inherits-from>Aircraft/SpaceShuttle/Models/Effects/Interior/wall</inherits-from>
+        <inherits-from>Aircraft/CatskillsFusionSSTO/Models/Effects/Interior/wall</inherits-from>
         <object-name>left_bulkhead</object-name>
         <object-name>right_bulkhead</object-name>
     </effect>
     <effect>
-        <inherits-from>Aircraft/SpaceShuttle/Models/Effects/Interior/floor</inherits-from>
+        <inherits-from>Aircraft/CatskillsFusionSSTO/Models/Effects/Interior/floor</inherits-from>
         <object-name>cabin_floor</object-name>
     </effect>
     <effect>
-        <inherits-from>Aircraft/SpaceShuttle/Models/Effects/Interior/framing</inherits-from>
+        <inherits-from>Aircraft/CatskillsFusionSSTO/Models/Effects/Interior/framing</inherits-from>
         <object-name>aft_shell</object-name>
         <object-name>ceiling</object-name>
         <object-name>cabin_panel_framing</object-name>
@@ -36,7 +36,7 @@
 
     <!-- no implicit lighting -->
     <effect>
-        <inherits-from>Aircraft/SpaceShuttle/Models/Effects/Interior/shuttle-interior</inherits-from>
+        <inherits-from>Aircraft/CatskillsFusionSSTO/Models/Effects/Interior/shuttle-interior</inherits-from>
         <!--Panel F5 -->
         <object-name>F5-thc</object-name>
         <!--Panel O4 -->
@@ -61,7 +61,7 @@
     <!-- displays -->
 
     <effect>
-        <inherits-from>Aircraft/SpaceShuttle/Models/Effects/Interior/shuttle-display</inherits-from>
+        <inherits-from>Aircraft/CatskillsFusionSSTO/Models/Effects/Interior/shuttle-display</inherits-from>
 	<object-name>DisplayL1</object-name>
         <object-name>DisplayC1</object-name>
         <object-name>DisplayC2</object-name>
@@ -76,7 +76,7 @@
     <!-- digital readouts -->
 
     <effect>
-        <inherits-from>Aircraft/SpaceShuttle/Models/Effects/Interior/shuttle-digital</inherits-from>
+        <inherits-from>Aircraft/CatskillsFusionSSTO/Models/Effects/Interior/shuttle-digital</inherits-from>
 	<object-name>event-time-glass</object-name>
 	<object-name>A4-mission-time-glass</object-name>
 	<object-name>A4-event-time-glass</object-name>
@@ -87,7 +87,7 @@
 
     <!-- implicit lighting -->
     <effect>
-        <inherits-from>Aircraft/SpaceShuttle/Models/Effects/Interior/shuttle-interior-overhead-left</inherits-from>
+        <inherits-from>Aircraft/CatskillsFusionSSTO/Models/Effects/Interior/shuttle-interior-overhead-left</inherits-from>
         <!-- Panel O4 -->
         <object-name>O4-light-knob</object-name>
         <!-- Panel O6 -->
@@ -104,7 +104,7 @@
         <object-name>O6-light-instr-ov-knob</object-name>
     </effect>
     <effect>
-        <inherits-from>Aircraft/SpaceShuttle/Models/Effects/Interior/shuttle-interior-overhead-right</inherits-from>
+        <inherits-from>Aircraft/CatskillsFusionSSTO/Models/Effects/Interior/shuttle-interior-overhead-right</inherits-from>
         <!-- Panel O8 -->
         <object-name>O8-light-fasteners</object-name>
         <object-name>O8-light-guards</object-name>
@@ -121,7 +121,7 @@
         <object-name>O10-light-knob</object-name>
     </effect>
     <effect>
-        <inherits-from>Aircraft/SpaceShuttle/Models/Effects/Interior/shuttle-interior-panel-left</inherits-from>
+        <inherits-from>Aircraft/CatskillsFusionSSTO/Models/Effects/Interior/shuttle-interior-panel-left</inherits-from>
         <!-- Panel L1 switches -->
         <object-name>h2o-pump-l1</object-name>
         <object-name>h2o-pump-l2</object-name>
@@ -352,7 +352,7 @@
         <object-name>landing_gear_middle_cmd_talkback_dn</object-name>
     </effect>
     <effect>
-        <inherits-from>Aircraft/SpaceShuttle/Models/Effects/Interior/shuttle-interior-panel-right</inherits-from>
+        <inherits-from>Aircraft/CatskillsFusionSSTO/Models/Effects/Interior/shuttle-interior-panel-right</inherits-from>
         <!-- Panel R1 switches-->
         <object-name>R1-panel</object-name>
         <object-name>fc0-connector</object-name>
@@ -720,7 +720,7 @@
         <object-name>pri-mn-c-off</object-name>
     </effect>
     <effect>
-        <inherits-from>Aircraft/SpaceShuttle/Models/Effects/Interior/shuttle-interior-panel-center</inherits-from>
+        <inherits-from>Aircraft/CatskillsFusionSSTO/Models/Effects/Interior/shuttle-interior-panel-center</inherits-from>
         <!-- cabin -->
         <object-name>fwd_window_assembly_seal</object-name>
         <object-name>forward-bar</object-name>
@@ -1084,7 +1084,7 @@
     </effect>
 
     <effect>
-        <inherits-from>Aircraft/SpaceShuttle/Models/Effects/Interior/shuttle-interior-det-overhead-left</inherits-from>
+        <inherits-from>Aircraft/CatskillsFusionSSTO/Models/Effects/Interior/shuttle-interior-det-overhead-left</inherits-from>
         <!-- Panel O1 -->
         <object-name>O1-coas-panel</object-name>
         <object-name>O1-coas-fasteners</object-name>
@@ -1096,7 +1096,7 @@
         <object-name>coasmountfor</object-name>
     </effect>
     <effect>
-        <inherits-from>Aircraft/SpaceShuttle/Models/Effects/Interior/shuttle-interior-det-panel-center</inherits-from>
+        <inherits-from>Aircraft/CatskillsFusionSSTO/Models/Effects/Interior/shuttle-interior-det-panel-center</inherits-from>
         <!-- Panel O19 -->
         <object-name>O19-coas-panel</object-name>
         <object-name>O19-fasteners</object-name>
@@ -1110,7 +1110,7 @@
     </effect>
 
     <effect>
-        <inherits-from>Aircraft/SpaceShuttle/Models/Effects/Interior/shuttle-interior-aft-panel-center</inherits-from>
+        <inherits-from>Aircraft/CatskillsFusionSSTO/Models/Effects/Interior/shuttle-interior-aft-panel-center</inherits-from>
         <!-- Panel A2 -->
         <object-name>A2-thc</object-name>
         <object-name>A2-switches</object-name>
@@ -1285,7 +1285,7 @@
     </effect>
 
     <effect>
-        <inherits-from>Aircraft/SpaceShuttle/Models/Effects/Interior/shuttle-interior-aft-panel-right</inherits-from>    
+        <inherits-from>Aircraft/CatskillsFusionSSTO/Models/Effects/Interior/shuttle-interior-aft-panel-right</inherits-from>    
         <!-- Panel R10 "Fixings" -->
         <object-name>R10-fasteners</object-name>
         <object-name>R10-guards</object-name>
@@ -1368,7 +1368,7 @@
     </effect>
 
     <effect>
-        <inherits-from>Aircraft/SpaceShuttle/Models/Effects/Interior/shuttle-interior-instrument-right</inherits-from>    
+        <inherits-from>Aircraft/CatskillsFusionSSTO/Models/Effects/Interior/shuttle-interior-instrument-right</inherits-from>    
         <!-- Panel F9 needles -->
         <object-name>dc-amps</object-name>
         <object-name>ac-volts</object-name>
@@ -1377,17 +1377,17 @@
     </effect>
 
     <effect>
-        <inherits-from>Aircraft/SpaceShuttle/Models/Effects/hud/hud_cdr</inherits-from>
+        <inherits-from>Aircraft/CatskillsFusionSSTO/Models/Effects/hud/hud_cdr</inherits-from>
         <object-name>HUDImage1</object-name>
     </effect>
 
     <effect>
-        <inherits-from>Aircraft/SpaceShuttle/Models/Effects/hud/hud_plt</inherits-from>
+        <inherits-from>Aircraft/CatskillsFusionSSTO/Models/Effects/hud/hud_plt</inherits-from>
         <object-name>HUDImage2</object-name>
     </effect>
 
     <effect>
-        <inherits-from>Aircraft/SpaceShuttle/Effects/plasma</inherits-from>
+        <inherits-from>Aircraft/CatskillsFusionSSTO/Effects/plasma</inherits-from>
         <object-name>plasma_screen</object-name>
     </effect>
 

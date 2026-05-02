@@ -2334,7 +2334,7 @@
     <!-- disable most generic  instruments, the Shuttle has its own -->
 
     <instrumentation>
-      <path>Aircraft/SpaceShuttle/Systems/shuttle-instruments.xml</path>
+      <path>Aircraft/CatskillsFusionSSTO/Systems/shuttle-instruments.xml</path>
     </instrumentation>
 
 
@@ -2411,7 +2411,7 @@
    </multiplay>
 
    <startup>
-    <splash-texture>Aircraft/SpaceShuttle/SpaceShuttle-splash.png</splash-texture>
+    <splash-texture>Aircraft/CatskillsFusionSSTO/CatskillsFusionSSTO-splash.png</splash-texture>
    </startup>
 
    <approach-trainer>
@@ -2421,7 +2421,7 @@
    </approach-trainer>
 
    <model>
-    <path>Aircraft/SpaceShuttle/Models/SpaceShuttle.xml</path>
+    <path>Aircraft/CatskillsFusionSSTO/Models/SpaceShuttle.xml</path>
     <livery>
       <name type="string">Orange Foam ET</name>
     </livery>
@@ -2520,15 +2520,15 @@
    </model>
 
    <sound>
-    <path>Aircraft/SpaceShuttle/Sounds/SpaceShuttle-Sounds.xml</path>
+    <path>Aircraft/CatskillsFusionSSTO/Sounds/SpaceShuttle-Sounds.xml</path>
    </sound>
 
    <submodels>
     <serviceable type="bool">true</serviceable>
-    <path>Aircraft/SpaceShuttle/Models/submodels.xml</path>
+    <path>Aircraft/CatskillsFusionSSTO/Models/submodels.xml</path>
    </submodels>
 
-   <checklists include="SpaceShuttle-checklists.xml"/>
+   <checklists include="CatskillsFusionSSTO-checklists.xml"/>
 
    <view n="0">
     <internal archive="y">true</internal>
@@ -3239,7 +3239,7 @@ Note that devlopment is ongoing and not all features are documented.
    </help>
 
    <systems>
-    <path>Aircraft/SpaceShuttle/Systems/shuttle-generic-systems.xml</path>
+    <path>Aircraft/CatskillsFusionSSTO/Systems/shuttle-generic-systems.xml</path>
     <property-rule n="100"> 
      <name>ssme-flame-computation</name> 	
      <path>Systems/ssme-flame-computation.xml</path>  
@@ -3391,54 +3391,54 @@ Note that devlopment is ongoing and not all features are documented.
 
  <nasal>
   <SpaceShuttle>	
-   <file>Aircraft/SpaceShuttle/Nasal/canvas/canvas_draw.nas</file>
-   <file>Aircraft/SpaceShuttle/Nasal/callouts.nas</file>
-   <file>Aircraft/SpaceShuttle/Nasal/rel_orbital.nas</file>
-   <file>Aircraft/SpaceShuttle/Nasal/orbital_planning.nas</file>
-   <file>Aircraft/SpaceShuttle/Nasal/orbital_targeting.nas</file>
-   <file>Aircraft/SpaceShuttle/Nasal/coordinates.nas</file>
-   <file>Aircraft/SpaceShuttle/Nasal/oms_burn_logic.nas</file>
-   <file>Aircraft/SpaceShuttle/Nasal/state_vector.nas</file>
-   <file>Aircraft/SpaceShuttle/Nasal/vertical_traj.nas</file>
-   <file>Aircraft/SpaceShuttle/Nasal/stages.nas</file>
-   <file>Aircraft/SpaceShuttle/Nasal/auto_launch.nas</file>
-   <file>Aircraft/SpaceShuttle/Nasal/housekeeping.nas</file>
-   <file>Aircraft/SpaceShuttle/Nasal/dialogs.nas</file>
-   <file>Aircraft/SpaceShuttle/Nasal/limits.nas</file>
-   <file>Aircraft/SpaceShuttle/Nasal/entry_guidance.nas</file>
-   <file>Aircraft/SpaceShuttle/Nasal/TAEM_guidance.nas</file>
-   <file>Aircraft/SpaceShuttle/Nasal/map.nas</file>
-   <file>Aircraft/SpaceShuttle/Nasal/failures.nas</file>
-   <file>Aircraft/SpaceShuttle/Nasal/cws.nas</file>
-   <file>Aircraft/SpaceShuttle/Nasal/thermal_balance.nas</file>
-   <file>Aircraft/SpaceShuttle/Nasal/launchpad.nas</file>
-   <file>Aircraft/SpaceShuttle/Nasal/payload.nas</file>
-   <file>Aircraft/SpaceShuttle/Nasal/dps_command_parser.nas</file>
-   <file>Aircraft/SpaceShuttle/Nasal/dps_hardware.nas</file>
-   <file>Aircraft/SpaceShuttle/Nasal/communications.nas</file>
-   <file>Aircraft/SpaceShuttle/Nasal/sensors.nas</file>
-   <file>Aircraft/SpaceShuttle/Nasal/sound.nas</file>
-   <file>Aircraft/SpaceShuttle/Nasal/save.nas</file>
-   <file>Aircraft/SpaceShuttle/Nasal/mission.nas</file>
-   <file>Aircraft/SpaceShuttle/Nasal/scenario.nas</file>
-   <file>Aircraft/SpaceShuttle/Nasal/training.nas</file>
-   <file>Aircraft/SpaceShuttle/Nasal/rtls.nas</file>
-   <file>Aircraft/SpaceShuttle/Nasal/contingency_abort.nas</file>
-   <file>Aircraft/SpaceShuttle/Nasal/cue_cards.nas</file>
-   <file>Aircraft/SpaceShuttle/Nasal/aborts.nas</file>
-   <file>Aircraft/SpaceShuttle/Nasal/light_manager.nas</file>
-   <file>Aircraft/SpaceShuttle/Nasal/orbital_dap_selection.nas</file>
-   <file>Aircraft/SpaceShuttle/Nasal/liveries.nas</file>
-   <file>Aircraft/SpaceShuttle/Nasal/mcc.nas</file>
-   <file>Aircraft/SpaceShuttle/Nasal/zero_g.nas</file>
-   <file>Aircraft/SpaceShuttle/Nasal/carrier.nas</file>
-   <file>Aircraft/SpaceShuttle/Nasal/approach_trainer.nas</file>
-   <file>Aircraft/SpaceShuttle/Nasal/leakage.nas</file>
-   <file>Aircraft/SpaceShuttle/Nasal/fire.nas</file>
-   <file>Aircraft/SpaceShuttle/Nasal/coas.nas</file>
-   <file>Aircraft/SpaceShuttle/Nasal/lambert_manager.nas</file>
-   <file>Aircraft/SpaceShuttle/Nasal/eileen.nas</file>
-   <file>Aircraft/SpaceShuttle/Nasal/payload_manager.nas</file>
+   <file>Aircraft/CatskillsFusionSSTO/Nasal/canvas/canvas_draw.nas</file>
+   <file>Aircraft/CatskillsFusionSSTO/Nasal/callouts.nas</file>
+   <file>Aircraft/CatskillsFusionSSTO/Nasal/rel_orbital.nas</file>
+   <file>Aircraft/CatskillsFusionSSTO/Nasal/orbital_planning.nas</file>
+   <file>Aircraft/CatskillsFusionSSTO/Nasal/orbital_targeting.nas</file>
+   <file>Aircraft/CatskillsFusionSSTO/Nasal/coordinates.nas</file>
+   <file>Aircraft/CatskillsFusionSSTO/Nasal/oms_burn_logic.nas</file>
+   <file>Aircraft/CatskillsFusionSSTO/Nasal/state_vector.nas</file>
+   <file>Aircraft/CatskillsFusionSSTO/Nasal/vertical_traj.nas</file>
+   <file>Aircraft/CatskillsFusionSSTO/Nasal/stages.nas</file>
+   <file>Aircraft/CatskillsFusionSSTO/Nasal/auto_launch.nas</file>
+   <file>Aircraft/CatskillsFusionSSTO/Nasal/housekeeping.nas</file>
+   <file>Aircraft/CatskillsFusionSSTO/Nasal/dialogs.nas</file>
+   <file>Aircraft/CatskillsFusionSSTO/Nasal/limits.nas</file>
+   <file>Aircraft/CatskillsFusionSSTO/Nasal/entry_guidance.nas</file>
+   <file>Aircraft/CatskillsFusionSSTO/Nasal/TAEM_guidance.nas</file>
+   <file>Aircraft/CatskillsFusionSSTO/Nasal/map.nas</file>
+   <file>Aircraft/CatskillsFusionSSTO/Nasal/failures.nas</file>
+   <file>Aircraft/CatskillsFusionSSTO/Nasal/cws.nas</file>
+   <file>Aircraft/CatskillsFusionSSTO/Nasal/thermal_balance.nas</file>
+   <file>Aircraft/CatskillsFusionSSTO/Nasal/launchpad.nas</file>
+   <file>Aircraft/CatskillsFusionSSTO/Nasal/payload.nas</file>
+   <file>Aircraft/CatskillsFusionSSTO/Nasal/dps_command_parser.nas</file>
+   <file>Aircraft/CatskillsFusionSSTO/Nasal/dps_hardware.nas</file>
+   <file>Aircraft/CatskillsFusionSSTO/Nasal/communications.nas</file>
+   <file>Aircraft/CatskillsFusionSSTO/Nasal/sensors.nas</file>
+   <file>Aircraft/CatskillsFusionSSTO/Nasal/sound.nas</file>
+   <file>Aircraft/CatskillsFusionSSTO/Nasal/save.nas</file>
+   <file>Aircraft/CatskillsFusionSSTO/Nasal/mission.nas</file>
+   <file>Aircraft/CatskillsFusionSSTO/Nasal/scenario.nas</file>
+   <file>Aircraft/CatskillsFusionSSTO/Nasal/training.nas</file>
+   <file>Aircraft/CatskillsFusionSSTO/Nasal/rtls.nas</file>
+   <file>Aircraft/CatskillsFusionSSTO/Nasal/contingency_abort.nas</file>
+   <file>Aircraft/CatskillsFusionSSTO/Nasal/cue_cards.nas</file>
+   <file>Aircraft/CatskillsFusionSSTO/Nasal/aborts.nas</file>
+   <file>Aircraft/CatskillsFusionSSTO/Nasal/light_manager.nas</file>
+   <file>Aircraft/CatskillsFusionSSTO/Nasal/orbital_dap_selection.nas</file>
+   <file>Aircraft/CatskillsFusionSSTO/Nasal/liveries.nas</file>
+   <file>Aircraft/CatskillsFusionSSTO/Nasal/mcc.nas</file>
+   <file>Aircraft/CatskillsFusionSSTO/Nasal/zero_g.nas</file>
+   <file>Aircraft/CatskillsFusionSSTO/Nasal/carrier.nas</file>
+   <file>Aircraft/CatskillsFusionSSTO/Nasal/approach_trainer.nas</file>
+   <file>Aircraft/CatskillsFusionSSTO/Nasal/leakage.nas</file>
+   <file>Aircraft/CatskillsFusionSSTO/Nasal/fire.nas</file>
+   <file>Aircraft/CatskillsFusionSSTO/Nasal/coas.nas</file>
+   <file>Aircraft/CatskillsFusionSSTO/Nasal/lambert_manager.nas</file>
+   <file>Aircraft/CatskillsFusionSSTO/Nasal/eileen.nas</file>
+   <file>Aircraft/CatskillsFusionSSTO/Nasal/payload_manager.nas</file>
    <file>Nasal/PFD/PFD_main.nas</file>
    <file>Nasal/HUD/HUD_main.nas</file>
    <file>Nasal/canvas/canvas_dialogs.nas</file>

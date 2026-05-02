@@ -123,8 +123,8 @@
         <use>vertex-program-two-side</use>
       </vertex-program-two-side>
       <program>
-        <vertex-shader>Aircraft/SpaceShuttle/Shaders/chute-ALS.vert</vertex-shader>
-        <fragment-shader>Aircraft/SpaceShuttle/Shaders/chute-ALS.frag</fragment-shader>
+        <vertex-shader>Aircraft/CatskillsFusionSSTO/Shaders/chute-ALS.vert</vertex-shader>
+        <fragment-shader>Aircraft/CatskillsFusionSSTO/Shaders/chute-ALS.frag</fragment-shader>
         <fragment-shader>Shaders/hazes.frag</fragment-shader>
         <fragment-shader>Shaders/secondary_lights.frag</fragment-shader>
         <fragment-shader>Shaders/noise.frag</fragment-shader>

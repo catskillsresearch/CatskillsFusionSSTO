@@ -53,7 +53,7 @@ var cdlg_traj_map = {
 		me.root = me.mapCanvas.createGroup();
 
 
-		var path = "Aircraft/SpaceShuttle/Dialogs/MapOfEarth.png";
+		var path = "Aircraft/CatskillsFusionSSTO/Dialogs/MapOfEarth.png";
 		me.map_image=me.root.createChild("image")
                                    .setFile( path )
                                    .setTranslation(0,0)
@@ -187,11 +187,11 @@ var cdlg_traj_map = {
 		# buttons
 
 		var stack = [];
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/TrajectoryMap/prediction_0.png");
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/TrajectoryMap/prediction_1.png");
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/TrajectoryMap/prediction_2.png");
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/TrajectoryMap/prediction_3.png");
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/TrajectoryMap/prediction_4.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/TrajectoryMap/prediction_0.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/TrajectoryMap/prediction_1.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/TrajectoryMap/prediction_2.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/TrajectoryMap/prediction_3.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/TrajectoryMap/prediction_4.png");
 
 		me.button_prediction = cdlg_widget_img_stack.new(me.root, stack, 126, 42);
 		me.button_prediction.setTranslation(40,400);
@@ -213,8 +213,8 @@ var cdlg_traj_map = {
 		};
 
 		setsize(stack,0);
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/TrajectoryMap/horizon_0.png");
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/TrajectoryMap/horizon_1.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/TrajectoryMap/horizon_0.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/TrajectoryMap/horizon_1.png");
 		
 
 		me.button_horizon = cdlg_widget_img_stack.new(me.root, stack, 126, 42);
@@ -232,10 +232,10 @@ var cdlg_traj_map = {
 
 
 		setsize(stack,0);
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/TrajectoryMap/comsites_0.png");
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/TrajectoryMap/comsites_1.png");
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/TrajectoryMap/comsites_2.png");
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/TrajectoryMap/comsites_3.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/TrajectoryMap/comsites_0.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/TrajectoryMap/comsites_1.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/TrajectoryMap/comsites_2.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/TrajectoryMap/comsites_3.png");
 		
 
 		me.button_comsites = cdlg_widget_img_stack.new(me.root, stack, 126, 42);
@@ -247,12 +247,12 @@ var cdlg_traj_map = {
 		};
 
 		setsize(stack,0);
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/TrajectoryMap/landing_0.png");
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/TrajectoryMap/landing_1.png");
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/TrajectoryMap/landing_2.png");
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/TrajectoryMap/landing_3.png");
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/TrajectoryMap/landing_4.png");
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/TrajectoryMap/landing_5.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/TrajectoryMap/landing_0.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/TrajectoryMap/landing_1.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/TrajectoryMap/landing_2.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/TrajectoryMap/landing_3.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/TrajectoryMap/landing_4.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/TrajectoryMap/landing_5.png");
 		
 		me.button_landsites = cdlg_widget_img_stack.new(me.root, stack, 126, 42);
 		me.button_landsites.setTranslation(580,400);
@@ -263,8 +263,8 @@ var cdlg_traj_map = {
 		};
 
 		setsize(stack,0);
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/TrajectoryMap/history_0.png");
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/TrajectoryMap/history_1.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/TrajectoryMap/history_0.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/TrajectoryMap/history_1.png");
 
 		me.button_history = cdlg_widget_img_stack.new(me.root, stack, 126, 42);
 		me.button_history.setTranslation(760,400);

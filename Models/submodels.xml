@@ -9,7 +9,7 @@
 
 <submodel>
   <name>SRB-left-submodel</name>
-  <model>Aircraft/SpaceShuttle/Models/srb-left.xml</model>
+  <model>Aircraft/CatskillsFusionSSTO/Models/srb-left.xml</model>
   <trigger>/controls/shuttle/SRB-attach</trigger>
   <repeat>false</repeat>
   <count>1</count>
@@ -34,7 +34,7 @@
 
 <submodel>
   <name>SRB-right-submodel</name>
-  <model>Aircraft/SpaceShuttle/Models/srb-right.xml</model>
+  <model>Aircraft/CatskillsFusionSSTO/Models/srb-right.xml</model>
   <trigger>/controls/shuttle/SRB-attach</trigger>
   <repeat>false</repeat>
   <count>1</count>

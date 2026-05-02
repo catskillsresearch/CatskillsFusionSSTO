@@ -2,19 +2,19 @@
 
 <!-- this puts the Shuttle into orbit -->
 
-<PropertyList include="SpaceShuttle-common.xml">
+<PropertyList include="CatskillsFusionSSTO-common.xml">
 <sim>
-  <description>NASA Space Shuttle Atlantis in orbit</description>
+  <description>Catskills Fusion SSTO Atlantis in orbit</description>
   <long-description>
      The Space Shuttle was a partially re-usable low orbit spacecraft operated by NASA from 1981 to 2011. In this mission phase, the Shuttle is on the periapsis of an eccentric orbit right after main engine cutoff and needs to be prepared for orbital insertion next.
   </long-description>
-  <variant-of>SpaceShuttle-launch</variant-of>
+  <variant-of>CatskillsFusionSSTO</variant-of>
   <presets>
 	<altitude-ft>500000.0</altitude-ft>
 	<stage type="int">1</stage>
   </presets>
   <startup>
-    <splash-texture>Aircraft/SpaceShuttle/SpaceShuttle-orbit-splash.png</splash-texture>
+    <splash-texture>Aircraft/CatskillsFusionSSTO/CatskillsFusionSSTO-orbit-splash.png</splash-texture>
   </startup>
   <previews>
       <preview>

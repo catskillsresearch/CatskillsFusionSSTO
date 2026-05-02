@@ -69,11 +69,11 @@
   <!-- SSME Motors Placements -->
 
   <model>
-    <path>Aircraft/SpaceShuttle/Models/SSME1.xml</path>
+    <path>Aircraft/CatskillsFusionSSTO/Models/SSME1.xml</path>
   </model>
 
   <model>
-    <path>Aircraft/SpaceShuttle/Models/SSME2.xml</path>
+    <path>Aircraft/CatskillsFusionSSTO/Models/SSME2.xml</path>
     <offsets>
       <x-m> 0.0 </x-m>
       <y-m> -1.5 </y-m>
@@ -82,7 +82,7 @@
   </model>
 
   <model>
-    <path>Aircraft/SpaceShuttle/Models/SSME3.xml</path>
+    <path>Aircraft/CatskillsFusionSSTO/Models/SSME3.xml</path>
     <offsets>
       <x-m> 0.0 </x-m>
       <y-m> 1.5 </y-m>
@@ -94,7 +94,7 @@
 
     
   <model>
-    <path>Aircraft/SpaceShuttle/Models/air-data-boom.ac</path>
+    <path>Aircraft/CatskillsFusionSSTO/Models/air-data-boom.ac</path>
 	<condition>
 		<equals>
 			<property>/sim/config/shuttle/approach-and-landing-test-config</property>
@@ -106,7 +106,7 @@
 <!-- Enterprise tail cone -->
 
   <model>
-    <path>Aircraft/SpaceShuttle/Models/TailCone.xml</path>
+    <path>Aircraft/CatskillsFusionSSTO/Models/TailCone.xml</path>
 	<condition>
 		<equals>
 			<property>/sim/config/shuttle/approach-and-landing-test-config</property>
@@ -119,7 +119,7 @@
 <!-- carrier aircraft -->
 
     <model>
-        <path>Aircraft/SpaceShuttle/Models/SCA/747-123-SCAlite.xml</path>
+        <path>Aircraft/CatskillsFusionSSTO/Models/SCA/747-123-SCAlite.xml</path>
         <offsets>
             <x-m> -30.5 </x-m>
             <y-m> 0 </y-m>
@@ -137,13 +137,13 @@
 <!-- OMS thruster exhaust and rear RCS modules -->
 
  <model>
-    <path>Aircraft/SpaceShuttle/Models/OMSPods.xml</path>
+    <path>Aircraft/CatskillsFusionSSTO/Models/OMSPods.xml</path>
   </model>
 
 <!-- outer cockpit glass, inward-facing -->
 
  <model>
-   <path>Aircraft/SpaceShuttle/Models/cockpit_glass_outer.xml</path>
+   <path>Aircraft/CatskillsFusionSSTO/Models/cockpit_glass_outer.xml</path>
        <offsets>
             <x-m> 0.01 </x-m>
             <y-m> 0 </y-m>
@@ -154,7 +154,7 @@
 <!-- broken cockpit glass pane, inward-facing -->
 
  <model>
-   <path>Aircraft/SpaceShuttle/Models/cockpit_glass_broken.xml</path>
+   <path>Aircraft/CatskillsFusionSSTO/Models/cockpit_glass_broken.xml</path>
        <offsets>
             <x-m> 0.02 </x-m>
             <y-m> 0 </y-m>
@@ -172,7 +172,7 @@
 
 
  <model>
-    <path>Aircraft/SpaceShuttle/Models/PayloadBay/TDRS/TDRS.xml</path>
+    <path>Aircraft/CatskillsFusionSSTO/Models/PayloadBay/TDRS/TDRS.xml</path>
     <offsets>
        <x-m> -8.5 </x-m>
        <y-m> -2.1</y-m>
@@ -193,7 +193,7 @@
   </model>
 
  <model>
-    <path>Aircraft/SpaceShuttle/Models/PayloadBay/TDRS/TDRS_secure.xml</path>
+    <path>Aircraft/CatskillsFusionSSTO/Models/PayloadBay/TDRS/TDRS_secure.xml</path>
     <offsets>
        <x-m> -8.5 </x-m>
        <y-m> -2.1</y-m>
@@ -216,7 +216,7 @@
 <!-- SPARTAN-201 -->
 
  <model>
-    <path>Aircraft/SpaceShuttle/Models/PayloadBay/Spartan-201/SPARTAN-201.xml</path>
+    <path>Aircraft/CatskillsFusionSSTO/Models/PayloadBay/Spartan-201/SPARTAN-201.xml</path>
     <offsets>
        <x-m> -8.5 </x-m>
        <y-m> -2.1</y-m>
@@ -237,7 +237,7 @@
   </model>
 
  <model>
-    <path>Aircraft/SpaceShuttle/Models/PayloadBay/Spartan-201/SPARTAN-201-secure.xml</path>
+    <path>Aircraft/CatskillsFusionSSTO/Models/PayloadBay/Spartan-201/SPARTAN-201-secure.xml</path>
     <offsets>
        <x-m> -8.5 </x-m>
        <y-m> -2.1</y-m>
@@ -260,7 +260,7 @@
   <!-- HST Payload -->
 
   <model>
-    <path>Aircraft/SpaceShuttle/Models/PayloadBay/HST/hst.xml</path>
+    <path>Aircraft/CatskillsFusionSSTO/Models/PayloadBay/HST/hst.xml</path>
     <offsets>
        <x-m> -8.5 </x-m>
        <y-m> -2.1</y-m>
@@ -280,7 +280,7 @@
     </condition>
   </model>
   <model>
-    <path>Aircraft/SpaceShuttle/Models/PayloadBay/HST/hst-secure.xml</path>
+    <path>Aircraft/CatskillsFusionSSTO/Models/PayloadBay/HST/hst-secure.xml</path>
     <offsets>
        <x-m> -8.5 </x-m>
        <y-m> -2.1</y-m>
@@ -301,7 +301,7 @@
   </model>
 
  <model>
-    <path>Aircraft/SpaceShuttle/Models/PayloadBay/pallet.xml</path>
+    <path>Aircraft/CatskillsFusionSSTO/Models/PayloadBay/pallet.xml</path>
     <offsets>
        <x-m> -10.5 </x-m>
        <y-m> -2.1</y-m>
@@ -317,7 +317,7 @@
 
     <!-- OMS PBK -->
     <model>
-        <path>Aircraft/SpaceShuttle/Models/PayloadBay/OMS-KIT/oms-kit.xml</path>
+        <path>Aircraft/CatskillsFusionSSTO/Models/PayloadBay/OMS-KIT/oms-kit.xml</path>
         <condition>
             <equals>
 	            <property>/fdm/jsbsim/systems/oms-hardware/oms-kit-installed</property>
@@ -328,7 +328,7 @@
 
 <!-- airlock module -->
 <model>
-    <path>Aircraft/SpaceShuttle/Models/PayloadBay/Airlock-Module/airlock_module.xml</path>
+    <path>Aircraft/CatskillsFusionSSTO/Models/PayloadBay/Airlock-Module/airlock_module.xml</path>
      <offsets>
        <x-m> 0.0 </x-m>
        <y-m> 0.0 </y-m>
@@ -340,7 +340,7 @@
 <!-- ISS docked -->
 
 <model>
-     <path>Aircraft/SpaceShuttle/Models/ISS/ISS_docked.xml</path>
+     <path>Aircraft/CatskillsFusionSSTO/Models/ISS/ISS_docked.xml</path>
      <condition>
 	<equals>
 		<property>/controls/shuttle/ISS/docking-flag</property>
@@ -351,19 +351,19 @@
 
 <!-- landing gear -->
 <model>
-  <path>Aircraft/SpaceShuttle/Models/LandingGears.xml</path>
+  <path>Aircraft/CatskillsFusionSSTO/Models/LandingGears.xml</path>
 </model>
 
 <!-- landing gear damaged-->
 <model>
-	<path>Aircraft/SpaceShuttle/Models/gear-damage.xml</path>
+	<path>Aircraft/CatskillsFusionSSTO/Models/gear-damage.xml</path>
 </model>
 
     <nasal>
         <load>
 
             <![CDATA[
-                var livery_update = aircraft.livery_update.new("Aircraft/SpaceShuttle/Models/Liveries");
+                var livery_update = aircraft.livery_update.new("Aircraft/CatskillsFusionSSTO/Models/Liveries");
             ]]>
 
         </load>
@@ -1297,11 +1297,11 @@
 
 <!-- cockpit damage-->
 <model>
-    <path>Aircraft/SpaceShuttle/Models/cockpit-damage.xml</path>
+    <path>Aircraft/CatskillsFusionSSTO/Models/cockpit-damage.xml</path>
 </model>
 <!-- shuttle damage-->
 <model>
-    <path>Aircraft/SpaceShuttle/Models/shuttle_o2-damage.xml</path>
+    <path>Aircraft/CatskillsFusionSSTO/Models/shuttle_o2-damage.xml</path>
 </model>
 
 <!-- cockpit not destroyed and not damaged -->
@@ -1441,7 +1441,7 @@
  </animation>
 
  <!--<model>
-    <path>Aircraft/SpaceShuttle/Models/Effects/SRB_smoke.xml</path>
+    <path>Aircraft/CatskillsFusionSSTO/Models/Effects/SRB_smoke.xml</path>
       <offsets>
 		 <x-m>180.5</x-m>
 		 <y-m>0.0</y-m>
@@ -1485,7 +1485,7 @@
 <!-- Ku-band antenna -->
 
 <model>
-     <path>Aircraft/SpaceShuttle/Models/PayloadBay/KU-Antenna/Antenna-ku-Assembly.xml</path>
+     <path>Aircraft/CatskillsFusionSSTO/Models/PayloadBay/KU-Antenna/Antenna-ku-Assembly.xml</path>
      <offsets>
             <x-m>-7.9 </x-m>
             <y-m> 2.3 </y-m>
@@ -1504,7 +1504,7 @@
 <!-- RMS manipulator arm -->
 
 <model>
-    <path>Aircraft/SpaceShuttle/Models/PayloadBay/rmsArm.xml</path>
+    <path>Aircraft/CatskillsFusionSSTO/Models/PayloadBay/rmsArm.xml</path>
      <condition>
 	    <equals>
 		<property>/fdm/jsbsim/systems/rms/rms-arm-attached</property>
@@ -1516,7 +1516,7 @@
 <!-- external Tank and Booster -->
  
 <model>
-<path>Aircraft/SpaceShuttle/Models/external-fuel-tank.xml</path>
+<path>Aircraft/CatskillsFusionSSTO/Models/external-fuel-tank.xml</path>
 		<offsets>
 			<x-m>-10.0</x-m>
 			<y-m>0.0</y-m>
@@ -1532,7 +1532,7 @@
 
 
 <model>
-<path>Aircraft/SpaceShuttle/Models/solid-rocket-booster-left.xml</path>
+<path>Aircraft/CatskillsFusionSSTO/Models/solid-rocket-booster-left.xml</path>
 		<offsets>
 			<x-m> -5.2 </x-m>
 			<y-m> -6.35</y-m>
@@ -1548,7 +1548,7 @@
 </model>
 
 <model>
-<path>Aircraft/SpaceShuttle/Models/solid-rocket-booster-right.xml</path>
+<path>Aircraft/CatskillsFusionSSTO/Models/solid-rocket-booster-right.xml</path>
 		<offsets>
 			<x-m> -5.2 </x-m>
 			<y-m>  6.35</y-m>
@@ -1570,7 +1570,7 @@
 
 
   <model>
-    <path>Aircraft/SpaceShuttle/Models/Effects/SRB_launch_smoke.xml</path>
+    <path>Aircraft/CatskillsFusionSSTO/Models/Effects/SRB_launch_smoke.xml</path>
       <offsets>
 		 <x-m>14.5</x-m>
 		 <y-m>0.0</y-m>
@@ -1581,7 +1581,7 @@
   </model>
 
   <model>
-    <path>Aircraft/SpaceShuttle/Models/Effects/SRB_launch_smoke.xml</path>
+    <path>Aircraft/CatskillsFusionSSTO/Models/Effects/SRB_launch_smoke.xml</path>
       <offsets>
 		 <x-m>14.5</x-m>
 		 <y-m>120.0</y-m>
@@ -1592,7 +1592,7 @@
   </model>
 
   <model>
-    <path>Aircraft/SpaceShuttle/Models/Effects/SRB_launch_smoke.xml</path>
+    <path>Aircraft/CatskillsFusionSSTO/Models/Effects/SRB_launch_smoke.xml</path>
       <offsets>
 		 <x-m>14.5</x-m>
 		 <y-m>-120.0</y-m>
@@ -1603,7 +1603,7 @@
   </model>
 
   <model>
-    <path>Aircraft/SpaceShuttle/Models/Effects/SRB_launch_smoke.xml</path>
+    <path>Aircraft/CatskillsFusionSSTO/Models/Effects/SRB_launch_smoke.xml</path>
       <offsets>
 		 <x-m>14.5</x-m>
 		 <y-m>0.0</y-m>
@@ -1614,7 +1614,7 @@
   </model>
 
   <model>
-    <path>Aircraft/SpaceShuttle/Models/Effects/SRB_launch_smoke.xml</path>
+    <path>Aircraft/CatskillsFusionSSTO/Models/Effects/SRB_launch_smoke.xml</path>
       <offsets>
 		 <x-m>14.5</x-m>
 		 <y-m>0.0</y-m>
@@ -1627,7 +1627,7 @@
  <!-- explosion blast for catastrophic ascent failure -->
 
   <model>
-    <path>Aircraft/SpaceShuttle/Models/Effects/ET_fireball.xml</path>
+    <path>Aircraft/CatskillsFusionSSTO/Models/Effects/ET_fireball.xml</path>
       <offsets>
 		 <x-m>0.0</x-m>
 		 <y-m>0.0</y-m>
@@ -1638,7 +1638,7 @@
   </model>
 
   <model>
-    <path>Aircraft/SpaceShuttle/Models/Effects/ET_explosion_blast.xml</path>
+    <path>Aircraft/CatskillsFusionSSTO/Models/Effects/ET_explosion_blast.xml</path>
       <offsets>
 		 <x-m>0.0</x-m>
 		 <y-m>0.0</y-m>
@@ -1653,7 +1653,7 @@
  
   <!-- RCS nose up -->
   <model>
-    <path>Aircraft/SpaceShuttle/Models/Effects/RCS_flame_alt.xml</path>
+    <path>Aircraft/CatskillsFusionSSTO/Models/Effects/RCS_flame_alt.xml</path>
       <offsets>
 		 <x-m>-17.0</x-m>
 		 <y-m>0.0</y-m>
@@ -1688,7 +1688,7 @@
 
  <!-- RCS nose down -->
  <model>
-    <path>Aircraft/SpaceShuttle/Models/Effects/RCS_flame_alt.xml</path>
+    <path>Aircraft/CatskillsFusionSSTO/Models/Effects/RCS_flame_alt.xml</path>
       <offsets>
 		 <x-m>-16.5</x-m>
 		 <y-m>1.6</y-m>
@@ -1717,7 +1717,7 @@
 	</condition>
   </model>
  <model>
-    <path>Aircraft/SpaceShuttle/Models/Effects/RCS_flame_alt.xml</path>
+    <path>Aircraft/CatskillsFusionSSTO/Models/Effects/RCS_flame_alt.xml</path>
       <offsets>
 		 <x-m>-16.5</x-m>
 		 <y-m>-1.6</y-m>
@@ -1748,7 +1748,7 @@
 
 <!-- RCS nose left -->
  <model>
-    <path>Aircraft/SpaceShuttle/Models/Effects/RCS_flame_alt.xml</path>
+    <path>Aircraft/CatskillsFusionSSTO/Models/Effects/RCS_flame_alt.xml</path>
       <offsets>
 		 <x-m>-16.5</x-m>
 		 <y-m>-1.6</y-m>
@@ -1780,7 +1780,7 @@
 <!-- RCS nose right -->
 
  <model>
-    <path>Aircraft/SpaceShuttle/Models/Effects/RCS_flame_alt.xml</path>
+    <path>Aircraft/CatskillsFusionSSTO/Models/Effects/RCS_flame_alt.xml</path>
       <offsets>
 		 <x-m>-16.5</x-m>
 		 <y-m>1.6</y-m>
@@ -1811,7 +1811,7 @@
 <!-- RCS nose forward -->
 
  <model>
-    <path>Aircraft/SpaceShuttle/Models/Effects/RCS_flame_alt.xml</path>
+    <path>Aircraft/CatskillsFusionSSTO/Models/Effects/RCS_flame_alt.xml</path>
       <offsets>
 		 <x-m>-17.0</x-m>
 		 <y-m>0.0</y-m>
@@ -1845,7 +1845,7 @@
     
 <!-- RCS pod 1 left -->
  <model>
-    <path>Aircraft/SpaceShuttle/Models/Effects/RCS_flame_alt.xml</path>
+    <path>Aircraft/CatskillsFusionSSTO/Models/Effects/RCS_flame_alt.xml</path>
       <offsets>
 		 <x-m>15.0</x-m>
 		 <y-m>-3.4</y-m>
@@ -1884,7 +1884,7 @@
 
 <!-- RCS pod 1 up -->
  <model>
-    <path>Aircraft/SpaceShuttle/Models/Effects/RCS_flame_alt.xml</path>
+    <path>Aircraft/CatskillsFusionSSTO/Models/Effects/RCS_flame_alt.xml</path>
       <offsets>
 		 <x-m>15.0</x-m>
 		 <y-m>-3.4</y-m>
@@ -1918,7 +1918,7 @@
 
 <!-- RCS pod 1 down -->
  <model>
-    <path>Aircraft/SpaceShuttle/Models/Effects/RCS_flame_alt.xml</path>
+    <path>Aircraft/CatskillsFusionSSTO/Models/Effects/RCS_flame_alt.xml</path>
       <offsets>
 		 <x-m>15.0</x-m>
 		 <y-m>-3.4</y-m>
@@ -1952,7 +1952,7 @@
 
 <!-- RCS pod 1 rear -->
  <model>
-    <path>Aircraft/SpaceShuttle/Models/Effects/RCS_flame_alt.xml</path>
+    <path>Aircraft/CatskillsFusionSSTO/Models/Effects/RCS_flame_alt.xml</path>
       <offsets>
 		 <x-m>15.0</x-m>
 		 <y-m>-3.4</y-m>
@@ -1981,7 +1981,7 @@
 
 <!-- RCS pod 2 right -->
  <model>
-    <path>Aircraft/SpaceShuttle/Models/Effects/RCS_flame_alt.xml</path>
+    <path>Aircraft/CatskillsFusionSSTO/Models/Effects/RCS_flame_alt.xml</path>
       <offsets>
 		 <x-m>15.0</x-m>
 		 <y-m>3.4</y-m>
@@ -2019,7 +2019,7 @@
 
 <!-- RCS pod 2 up -->
  <model>
-    <path>Aircraft/SpaceShuttle/Models/Effects/RCS_flame_alt.xml</path>
+    <path>Aircraft/CatskillsFusionSSTO/Models/Effects/RCS_flame_alt.xml</path>
       <offsets>
 		 <x-m>15.0</x-m>
 		 <y-m>3.4</y-m>
@@ -2053,7 +2053,7 @@
 
 <!-- RCS pod 2 down -->
  <model>
-    <path>Aircraft/SpaceShuttle/Models/Effects/RCS_flame_alt.xml</path>
+    <path>Aircraft/CatskillsFusionSSTO/Models/Effects/RCS_flame_alt.xml</path>
       <offsets>
 		 <x-m>15.0</x-m>
 		 <y-m>3.4</y-m>
@@ -2087,7 +2087,7 @@
 
 <!-- RCS pod 2 rear -->
  <model>
-    <path>Aircraft/SpaceShuttle/Models/Effects/RCS_flame_alt.xml</path>
+    <path>Aircraft/CatskillsFusionSSTO/Models/Effects/RCS_flame_alt.xml</path>
       <offsets>
 		 <x-m>15.0</x-m>
 		 <y-m>3.4</y-m>
@@ -2116,7 +2116,7 @@
 
 <!-- OMS 1 flame-->
  <model>
-    <path>Aircraft/SpaceShuttle/Models/Effects/OMS_flame1_alt.xml</path>
+    <path>Aircraft/CatskillsFusionSSTO/Models/Effects/OMS_flame1_alt.xml</path>
       <offsets>
 		 <x-m>15.5</x-m>
 		 <y-m>-2.22</y-m>
@@ -2142,7 +2142,7 @@
 
 <!-- OMS 2 flame-->
  <model>
-    <path>Aircraft/SpaceShuttle/Models/Effects/OMS_flame2_alt.xml</path>
+    <path>Aircraft/CatskillsFusionSSTO/Models/Effects/OMS_flame2_alt.xml</path>
       <offsets>
 		 <x-m>15.5</x-m>
 		 <y-m>2.22</y-m>
@@ -2167,7 +2167,7 @@
 <!-- entry plasma trail-->
 
 <model>
-	<path>Aircraft/SpaceShuttle/Models/Effects/plasma_trail.xml</path>
+	<path>Aircraft/CatskillsFusionSSTO/Models/Effects/plasma_trail.xml</path>
 </model>
 
 
@@ -2175,7 +2175,7 @@
 <!-- debris plasma trails for TPS failure-->
 
 <model>
-	<path>Aircraft/SpaceShuttle/Models/Effects/debris_trail_1.xml</path>
+	<path>Aircraft/CatskillsFusionSSTO/Models/Effects/debris_trail_1.xml</path>
 	<condition>
  		<equals>
      			<property>/sim/model/effects/entry-debris</property>
@@ -2185,7 +2185,7 @@
 </model>
 
 <model>
-	<path>Aircraft/SpaceShuttle/Models/Effects/debris_trail_2.xml</path>
+	<path>Aircraft/CatskillsFusionSSTO/Models/Effects/debris_trail_2.xml</path>
 	<condition>
  		<equals>
      			<property>/sim/model/effects/entry-debris</property>
@@ -2195,7 +2195,7 @@
 </model>
 
 <model>
-	<path>Aircraft/SpaceShuttle/Models/Effects/debris_trail_3.xml</path>
+	<path>Aircraft/CatskillsFusionSSTO/Models/Effects/debris_trail_3.xml</path>
 	<condition>
  		<equals>
      			<property>/sim/model/effects/entry-debris</property>
@@ -2205,7 +2205,7 @@
 </model>
 
 <model>
-	<path>Aircraft/SpaceShuttle/Models/Effects/debris_trail_4.xml</path>
+	<path>Aircraft/CatskillsFusionSSTO/Models/Effects/debris_trail_4.xml</path>
 	<condition>
  		<equals>
      			<property>/sim/model/effects/entry-debris</property>
@@ -2215,7 +2215,7 @@
 </model>
 
 <model>
-	<path>Aircraft/SpaceShuttle/Models/Effects/debris_trail_5.xml</path>
+	<path>Aircraft/CatskillsFusionSSTO/Models/Effects/debris_trail_5.xml</path>
 	<condition>
  		<equals>
      			<property>/sim/model/effects/entry-debris</property>
@@ -2227,7 +2227,7 @@
 <!-- main propulsion system fuel dump -->
 
 <model>
-<path>Aircraft/SpaceShuttle/Models/Effects/propellant-dump.xml</path>
+<path>Aircraft/CatskillsFusionSSTO/Models/Effects/propellant-dump.xml</path>
      <offsets>
        <x-m> 15.5 </x-m>
        <y-m> 0.0</y-m>
@@ -2245,7 +2245,7 @@
 <!-- FES hiload exhaust -->
 
 <model>
-<path>Aircraft/SpaceShuttle/Models/Effects/fes-exhaust.xml</path>
+<path>Aircraft/CatskillsFusionSSTO/Models/Effects/fes-exhaust.xml</path>
      <offsets>
        <x-m> 12.0 </x-m>
        <y-m> -3.0</y-m>
@@ -2572,7 +2572,7 @@
 
 <model>
   <name>right-strake-vortex</name>
-  <path>Aircraft/SpaceShuttle/Models/Effects/strake-vortex-new.xml</path>
+  <path>Aircraft/CatskillsFusionSSTO/Models/Effects/strake-vortex-new.xml</path>
   <offsets>
   <x-m>9.55</x-m>
 	<y-m> 11.7</y-m>
@@ -2601,7 +2601,7 @@
  </model>
  <model>
   <name>left-strake-vortex</name>
-  <path>Aircraft/SpaceShuttle/Models/Effects/strake-vortex-new.xml</path>
+  <path>Aircraft/CatskillsFusionSSTO/Models/Effects/strake-vortex-new.xml</path>
   <offsets>
   <x-m>9.55</x-m>
 	<y-m>-11.7</y-m>
@@ -2628,7 +2628,7 @@
  <!--and supersonic boom ! -->
  <model>
 		<name>sonicboom</name>
-		<path>Aircraft/SpaceShuttle/Models/Effects/boom.xml</path>
+		<path>Aircraft/CatskillsFusionSSTO/Models/Effects/boom.xml</path>
 		<offsets>
 			<x-m>-18.38</x-m>
 			<y-m>0</y-m>
@@ -2642,7 +2642,7 @@
 
   <model>
  	<name>lo2-drain</name>
-  	<path>Aircraft/SpaceShuttle/Models/Effects/o2_drain.xml</path>
+  	<path>Aircraft/CatskillsFusionSSTO/Models/Effects/o2_drain.xml</path>
   	<offsets>
         	<x-m>12.0</x-m>
 		<y-m>3.5</y-m>
@@ -2669,7 +2669,7 @@
 	
   <model>
  	<name>lh2-drain</name>
-  	<path>Aircraft/SpaceShuttle/Models/Effects/h2_drain.xml</path>
+  	<path>Aircraft/CatskillsFusionSSTO/Models/Effects/h2_drain.xml</path>
   	<offsets>
         	<x-m>12.0</x-m>
 		<y-m>-3.5</y-m>
@@ -2700,7 +2700,7 @@
 
     <model>
  	<name>spark-igniter1</name>
-  	<path>Aircraft/SpaceShuttle/Models/Effects/spark_igniter.xml</path>
+  	<path>Aircraft/CatskillsFusionSSTO/Models/Effects/spark_igniter.xml</path>
   	<offsets>
         	<x-m>16.5</x-m>
 		<y-m>4.5</y-m>
@@ -2716,7 +2716,7 @@
 
     <model>
  	<name>spark-igniter2</name>
-  	<path>Aircraft/SpaceShuttle/Models/Effects/spark_igniter.xml</path>
+  	<path>Aircraft/CatskillsFusionSSTO/Models/Effects/spark_igniter.xml</path>
   	<offsets>
         	<x-m>16.5</x-m>
 		<y-m>-4.5</y-m>
@@ -2732,7 +2732,7 @@
 
     <!--Parachutes -->
     <model>
-        <path>Aircraft/SpaceShuttle/Models/Parachutes/Brake-Parachute.xml</path>
+        <path>Aircraft/CatskillsFusionSSTO/Models/Parachutes/Brake-Parachute.xml</path>
          <offsets>
            <x-m> 17.7 </x-m>
            <y-m> 0.0 </y-m>
@@ -2938,7 +2938,7 @@
     </animation>
     
 <effect>
- <inherits-from>Aircraft/SpaceShuttle/Models/Effects/shuttle-main</inherits-from>
+ <inherits-from>Aircraft/CatskillsFusionSSTO/Models/Effects/shuttle-main</inherits-from>
  <object-name>spaceshutt_spstob_3</object-name>
  <object-name>spaceshutt_spstob_eal</object-name>
  <object-name>SpeedBrakeL</object-name>
@@ -2948,7 +2948,7 @@
 </effect>
 
 <effect>
- <inherits-from>Aircraft/SpaceShuttle/Models/Effects/shuttle-interior-object</inherits-from>
+ <inherits-from>Aircraft/CatskillsFusionSSTO/Models/Effects/shuttle-interior-object</inherits-from>
  <object-name>interior-shell</object-name>
 </effect>
 
@@ -2960,12 +2960,12 @@
 </effect>
 
 <effect>
- <inherits-from>Aircraft/SpaceShuttle/Models/Effects/shuttle-payload-bay</inherits-from>
+ <inherits-from>Aircraft/CatskillsFusionSSTO/Models/Effects/shuttle-payload-bay</inherits-from>
  <object-name>payload-bay</object-name>
 </effect>
 
 <effect>
- <inherits-from>Aircraft/SpaceShuttle/Models/Effects/shuttle-heatshield</inherits-from>
+ <inherits-from>Aircraft/CatskillsFusionSSTO/Models/Effects/shuttle-heatshield</inherits-from>
  <object-name>heatshield</object-name>
  <object-name>fuselage</object-name>
  <object-name>GearDoorR</object-name>
@@ -2984,17 +2984,17 @@
 </effect>
 
 <effect>
- <inherits-from>Aircraft/SpaceShuttle/Models/Effects/shuttle-payload-bay-door-left</inherits-from>
+ <inherits-from>Aircraft/CatskillsFusionSSTO/Models/Effects/shuttle-payload-bay-door-left</inherits-from>
  <object-name>payload-bay-door-left</object-name>
 </effect>
 
 <effect>
- <inherits-from>Aircraft/SpaceShuttle/Models/Effects/shuttle-payload-bay-door-right</inherits-from>
+ <inherits-from>Aircraft/CatskillsFusionSSTO/Models/Effects/shuttle-payload-bay-door-right</inherits-from>
  <object-name>payload-bay-door-right</object-name>
 </effect>
 
  <!--effect>
-  <inherits-from>Aircraft/SpaceShuttle/Models/Effects/Interior/flashlight</inherits-from>
+  <inherits-from>Aircraft/CatskillsFusionSSTO/Models/Effects/Interior/flashlight</inherits-from>
   <object-name>RMS.Base</object-name>
   <object-name>RMS.Shoulder.Yaw</object-name>
   <object-name>RMS.Shoulder.Pitch</object-name>

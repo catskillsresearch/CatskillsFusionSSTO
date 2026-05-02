@@ -2,17 +2,17 @@
 
 <PropertyList>
     <name>Effects/shuttle-display</name>
-    <inherits-from>Aircraft/SpaceShuttle/Effects/model-interior-display</inherits-from>
+    <inherits-from>Aircraft/CatskillsFusionSSTO/Effects/model-interior-display</inherits-from>
     <parameters>
         <texture n="4">
           <type>cubemap</type>
           <images>
-              <positive-x>Aircraft/SpaceShuttle/Models/Effects/Interior/0004.png</positive-x>      <!-- px (tail) rotate 90 deg from N or S to W -->
-              <negative-x>Aircraft/SpaceShuttle/Models/Effects/Interior/0002.png</negative-x>      <!-- nx (nose) rotate 90 deg from N or S to E -->
-              <positive-y>Aircraft/SpaceShuttle/Models/Effects/Interior/0001.png</positive-y>      <!-- py (starboard/right) from N do not rotate -->
-              <negative-y>Aircraft/SpaceShuttle/Models/Effects/Interior/0003.png</negative-y>      <!-- ny (port/left) from N rotate 180 deg to S -->
-              <positive-z>Aircraft/SpaceShuttle/Models/Effects/Interior/0006.png</positive-z>      <!-- pz (top) rotate 90 deg from N or S to W -->
-              <negative-z>Aircraft/SpaceShuttle/Models/Effects/Interior/0005.png</negative-z>      <!-- nz (bottom) rotate 90 deg from N or S to W -->
+              <positive-x>Aircraft/CatskillsFusionSSTO/Models/Effects/Interior/0004.png</positive-x>      <!-- px (tail) rotate 90 deg from N or S to W -->
+              <negative-x>Aircraft/CatskillsFusionSSTO/Models/Effects/Interior/0002.png</negative-x>      <!-- nx (nose) rotate 90 deg from N or S to E -->
+              <positive-y>Aircraft/CatskillsFusionSSTO/Models/Effects/Interior/0001.png</positive-y>      <!-- py (starboard/right) from N do not rotate -->
+              <negative-y>Aircraft/CatskillsFusionSSTO/Models/Effects/Interior/0003.png</negative-y>      <!-- ny (port/left) from N rotate 180 deg to S -->
+              <positive-z>Aircraft/CatskillsFusionSSTO/Models/Effects/Interior/0006.png</positive-z>      <!-- pz (top) rotate 90 deg from N or S to W -->
+              <negative-z>Aircraft/CatskillsFusionSSTO/Models/Effects/Interior/0005.png</negative-z>      <!-- nz (bottom) rotate 90 deg from N or S to W -->
           </images>
         </texture>
 
@@ -79,7 +79,7 @@
         <darkmap-factor type="float">0.0</darkmap-factor-->
         
         <texture n="3">
-            <image>Aircraft/SpaceShuttle/Models/Effects/Interior/lm-F12-F34-L1-R1-lite.png</image>
+            <image>Aircraft/CatskillsFusionSSTO/Models/Effects/Interior/lm-F12-F34-L1-R1-lite.png</image>
             <type>2d</type>
             <filter>linear-mipmap-linear</filter>
             <wrap-s>clamp</wrap-s>
@@ -87,7 +87,7 @@
             <internal-format>normalized</internal-format>
         </texture>
         <texture n="5">
-            <image>Aircraft/SpaceShuttle/Models/Effects/Interior/lm-S1C-S2C-lite.png</image>
+            <image>Aircraft/CatskillsFusionSSTO/Models/Effects/Interior/lm-S1C-S2C-lite.png</image>
             <type>2d</type>
             <filter>linear-mipmap-linear</filter>
             <wrap-s>repeat</wrap-s>
@@ -95,7 +95,7 @@
             <internal-format>normalized</internal-format>
         </texture>
         <texture n="6">
-            <image>Aircraft/SpaceShuttle/Models/Effects/Interior/lm-A1-A2-A3-lite.png</image>
+            <image>Aircraft/CatskillsFusionSSTO/Models/Effects/Interior/lm-A1-A2-A3-lite.png</image>
             <type>2d</type>
             <filter>linear-mipmap-linear</filter>
             <wrap-s>repeat</wrap-s>
@@ -103,7 +103,7 @@
             <internal-format>normalized</internal-format>
         </texture>
         <texture n="13">
-            <image>Aircraft/SpaceShuttle/Models/Effects/Interior/lm-glare-panel.png</image>
+            <image>Aircraft/CatskillsFusionSSTO/Models/Effects/Interior/lm-glare-panel.png</image>
             <type>2d</type>
             <filter>linear-mipmap-linear</filter>
             <wrap-s>clamp</wrap-s>
@@ -111,7 +111,7 @@
             <internal-format>normalized</internal-format>
         </texture>
         <texture n="15">
-            <image>Aircraft/SpaceShuttle/Models/Effects/Interior/lm-seat-spot.png</image>
+            <image>Aircraft/CatskillsFusionSSTO/Models/Effects/Interior/lm-seat-spot.png</image>
             <type>2d</type>
             <filter>linear-mipmap-linear</filter>
             <wrap-s>repeat</wrap-s>
@@ -119,7 +119,7 @@
             <internal-format>normalized</internal-format>
         </texture>
         <texture n="16">
-            <image>Aircraft/SpaceShuttle/Models/Effects/Interior/lm-aft-panel.png</image>
+            <image>Aircraft/CatskillsFusionSSTO/Models/Effects/Interior/lm-aft-panel.png</image>
             <type>2d</type>
             <filter>linear-mipmap-linear</filter>
             <wrap-s>repeat</wrap-s>

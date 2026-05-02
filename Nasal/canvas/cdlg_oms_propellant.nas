@@ -7,7 +7,7 @@ var cdlg_oms_propellant = {
 
 		var width = 545;
 		var height = 762;
-		var img_path = "Aircraft/SpaceShuttle/Dialogs/oms_panel.png";
+		var img_path = "Aircraft/CatskillsFusionSSTO/Dialogs/oms_panel.png";
 						
 
 		var window = canvas.Window.new([width,height],"dialog").set("title", "OMS Propellant flow");
@@ -33,8 +33,8 @@ var cdlg_oms_propellant = {
 		# left isolation A
 
 		var stack = [];
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/oms_switch_down.png");
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/oms_switch_up.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/oms_switch_down.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/oms_switch_up.png");
 
 		me.switch_left_isolation_A = cdlg_widget_img_stack.new(me.root, stack, 50, 50);
 		me.switch_left_isolation_A.setTranslation(219,440);
@@ -217,8 +217,8 @@ var cdlg_oms_propellant = {
 
 
 		setsize(stack, 0);
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/oms_talkback_cl.png");
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/oms_talkback_op.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/oms_talkback_cl.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/oms_talkback_op.png");
 
 		# left isolation A talkback
 

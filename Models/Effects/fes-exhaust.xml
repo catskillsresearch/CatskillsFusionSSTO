@@ -18,7 +18,7 @@
  	</animation>
 
 	<effect>
-		<inherits-from>Aircraft/SpaceShuttle/Models/Effects/fes-exhaust</inherits-from>
+		<inherits-from>Aircraft/CatskillsFusionSSTO/Models/Effects/fes-exhaust</inherits-from>
 		<object-name>Bounding_box</object-name>
 	</effect>
 

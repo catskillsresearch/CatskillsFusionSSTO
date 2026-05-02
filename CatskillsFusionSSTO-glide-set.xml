@@ -2,13 +2,13 @@
 
 <!-- this puts the Shuttle at 36.000 ft 20 miles from the airport, simulating a free-fly test -->
 
-<PropertyList include="SpaceShuttle-common.xml">
+<PropertyList include="CatskillsFusionSSTO-common.xml">
 <sim>
-  <description>NASA Space Shuttle Atlantis in a free-fly test</description>
+  <description>Catskills Fusion SSTO Atlantis in a free-fly test</description>
   <long-description>
      The Space Shuttle was a partially re-usable low orbit spacecraft operated by NASA from 1981 to 2011. Prior to the spaceflight program, NASA conducted a series of free-fly tests with the Shuttle dropped from the back of a 747  - this scenario simulates such a test with the altitude worth about five minutes of flight.
   </long-description>
-  <variant-of>SpaceShuttle-launch</variant-of>
+  <variant-of>CatskillsFusionSSTO</variant-of>
   <presets>
 	<altitude-ft>10000.0</altitude-ft>
 	<pitch-deg>-10.0</pitch-deg>
@@ -16,7 +16,7 @@
 	<stage type="int">5</stage>
   </presets>
   <startup>
-    <splash-texture>Aircraft/SpaceShuttle/SpaceShuttle-glide-splash.png</splash-texture>
+    <splash-texture>Aircraft/CatskillsFusionSSTO/CatskillsFusionSSTO-glide-splash.png</splash-texture>
   </startup>
  <previews>
       <preview>

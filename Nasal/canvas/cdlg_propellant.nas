@@ -36,14 +36,14 @@ var cdlg_propellant = {
 			{
 			width = 256;
 			height = 512;
-			img_path = "Aircraft/SpaceShuttle/Dialogs/propellant_launch.png";
+			img_path = "Aircraft/CatskillsFusionSSTO/Dialogs/propellant_launch.png";
 			me.dlg_flag = 0;
 			}
 		else
 			{
 			width = 430;
 			height = 616;
-			img_path = "Aircraft/SpaceShuttle/Dialogs/orbiter_top.png";
+			img_path = "Aircraft/CatskillsFusionSSTO/Dialogs/orbiter_top.png";
 			me.dlg_flag = 1;
 			}			
 
@@ -368,7 +368,7 @@ var cdlg_propellant = {
 		me.right_rcs.setContextHelp(me.process_context_help);
 		me.fwd_rcs.setContextHelp(me.process_context_help);
 
-		#me.gauge_test = cdlg_widget_analog_gauge.new(me.root, "Aircraft/SpaceShuttle/Nasal/canvas/gauge.png", "Aircraft/SpaceShuttle/Nasal/canvas/gauge_needle.png");
+		#me.gauge_test = cdlg_widget_analog_gauge.new(me.root, "Aircraft/CatskillsFusionSSTO/Nasal/canvas/gauge.png", "Aircraft/CatskillsFusionSSTO/Nasal/canvas/gauge_needle.png");
 		#me.gauge_test.setTranslation (50, 150);
 		#me.gauge_test.setAngle(30.0);
 

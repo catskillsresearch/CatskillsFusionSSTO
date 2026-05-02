@@ -317,7 +317,7 @@ var payload_data = {
 		p1.attach_z = -1.8;
 		p1.mass = 20000.0;
 		p1.requires_slot3 = 1;
-		p1.model_path = "Aircraft/SpaceShuttle/Models/PayloadBay/TDRS/TDRS_disconnected.xml";		
+		p1.model_path = "Aircraft/CatskillsFusionSSTO/Models/PayloadBay/TDRS/TDRS_disconnected.xml";		
 		append(me.payload_data_array, p1);
 		me.num_entries += 1;
 
@@ -327,7 +327,7 @@ var payload_data = {
 		p2.attach_z = -0.6;
 		p2.attach_pitch = 90.0;
 		p2.mass = 2998.2;
-		p2.model_path = "Aircraft/SpaceShuttle/Models/PayloadBay/Spartan-201/SPARTAN-201-disconnected.xml";
+		p2.model_path = "Aircraft/CatskillsFusionSSTO/Models/PayloadBay/Spartan-201/SPARTAN-201-disconnected.xml";
 		p2.lighting_x = 1.5;		
 		p2.lighting_y = 0.0;
 		p2.lighting_z = 0.0;
@@ -347,7 +347,7 @@ var payload_data = {
 		p3.attach_pitch = 90.0;
 		p3.attach_roll = 180.0;
 		p3.mass = 24500;
-		p3.model_path = "Aircraft/SpaceShuttle/Models/PayloadBay/HST/hst-disconnected.xml";
+		p3.model_path = "Aircraft/CatskillsFusionSSTO/Models/PayloadBay/HST/hst-disconnected.xml";
 		p3.lighting_x = 1.5;
 		p3.lighting_y = 0.0;
 		p3.lighting_z = 0.0;

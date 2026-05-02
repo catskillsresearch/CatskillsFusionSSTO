@@ -74,11 +74,11 @@
 			<object-name>Fuselage.001</object-name>
       <object-name>windowframe</object-name>
 			<object-name>Front</object-name>
-      <texture>Aircraft/SpaceShuttle/Models/SCA/AAL_NASA.png</texture>
+      <texture>Aircraft/CatskillsFusionSSTO/Models/SCA/AAL_NASA.png</texture>
     </animation>
 
     <effect>
- 	<inherits-from>Aircraft/SpaceShuttle/Models/SCA/Effects/sca-main</inherits-from>
+ 	<inherits-from>Aircraft/CatskillsFusionSSTO/Models/SCA/Effects/sca-main</inherits-from>
 			<object-name>Fuselage</object-name>
 			<object-name>Nose</object-name>
 			<object-name>Shuttlefix</object-name> 
@@ -327,7 +327,7 @@
 			<object-name>GearDoorWROuterTop</object-name>
 			<object-name>GearWLSupport</object-name>
 			<object-name>GearWRSupport</object-name>
-		<texture>Aircraft/SpaceShuttle/Models/SCA/wings.png</texture>
+		<texture>Aircraft/CatskillsFusionSSTO/Models/SCA/wings.png</texture>
     </animation>
 
  <animation>

@@ -5,7 +5,7 @@
 
 <parameters>
 	<texture n="2">
-		<image>Aircraft/SpaceShuttle/Models/Effects/Interior/glass-scratch.png</image>
+		<image>Aircraft/CatskillsFusionSSTO/Models/Effects/Interior/glass-scratch.png</image>
 		<type>2d</type>
 		<filter>linear-mipmap-linear</filter>
 		<wrap-s>repeat</wrap-s>

@@ -218,7 +218,7 @@ adapted and extended by Thorsten Renk 2015-16
 	<booster>
 		<name>booster</name>
 		<mode>looped</mode>
-		<path>Aircraft/SpaceShuttle/Sounds/real_launch.wav</path>
+		<path>Aircraft/CatskillsFusionSSTO/Sounds/real_launch.wav</path>
 		<condition>
 			<and>
 			<property>/sim/current-view/internal</property>
@@ -244,7 +244,7 @@ adapted and extended by Thorsten Renk 2015-16
 	<booster-external>
 		<name>booster-external</name>
 		<mode>looped</mode>
-		<path>Aircraft/SpaceShuttle/Sounds/real_launch.wav</path>
+		<path>Aircraft/CatskillsFusionSSTO/Sounds/real_launch.wav</path>
 		<condition>
 			<and>
 			<not>
@@ -316,7 +316,7 @@ adapted and extended by Thorsten Renk 2015-16
 	<booster-separation>
 		<name>booster-separation</name>
 		<mode>once</mode>
-		<path>Aircraft/SpaceShuttle/Sounds/Vostok-1-Fairings-Separation.wav</path>		
+		<path>Aircraft/CatskillsFusionSSTO/Sounds/Vostok-1-Fairings-Separation.wav</path>		
 		  <condition>
 		    <and>
 		    <equals>
@@ -346,7 +346,7 @@ adapted and extended by Thorsten Renk 2015-16
 	<tank-separation>
 		<name>tank-separation</name>
 		<mode>once</mode>
-		<path>Aircraft/SpaceShuttle/Sounds/Vostok-1-Stage-1-Separation.wav</path>		
+		<path>Aircraft/CatskillsFusionSSTO/Sounds/Vostok-1-Stage-1-Separation.wav</path>		
 		  <condition>
 		    <and>
 		    <equals>
@@ -376,7 +376,7 @@ adapted and extended by Thorsten Renk 2015-16
 	<OMS>
 		<name>OMS</name>
 		<mode>looped</mode>
-		<path>Aircraft/SpaceShuttle/Sounds/rumble.wav</path>		
+		<path>Aircraft/CatskillsFusionSSTO/Sounds/rumble.wav</path>		
 		  <condition>
 			<and>
 			<or>
@@ -403,7 +403,7 @@ adapted and extended by Thorsten Renk 2015-16
 	<RCS>
 		<name>RCS</name>
 		<mode>looped</mode>
-		<path>Aircraft/SpaceShuttle/Sounds/rumble.wav</path>		
+		<path>Aircraft/CatskillsFusionSSTO/Sounds/rumble.wav</path>		
 		  <condition>
 		    <and>
 			<not-equals>
@@ -485,7 +485,7 @@ adapted and extended by Thorsten Renk 2015-16
 	<RCS1>
 		<name>RCS1</name>
 		<mode>once</mode>
-		<path>Aircraft/SpaceShuttle/Sounds/Vostok-1-TDU-Engine-Once.wav</path>		
+		<path>Aircraft/CatskillsFusionSSTO/Sounds/Vostok-1-TDU-Engine-Once.wav</path>		
 		  <condition>
 		    <and>
 			<not-equals>
@@ -570,7 +570,7 @@ adapted and extended by Thorsten Renk 2015-16
 	<Class1>
 		<name>Class1</name>
 		<mode>looped</mode>
-		<path>Aircraft/SpaceShuttle/Sounds/class_1_klaxon.wav</path>		
+		<path>Aircraft/CatskillsFusionSSTO/Sounds/class_1_klaxon.wav</path>		
 		  <condition>
 			<and>
 			<property>/fdm/jsbsim/systems/cws/class-1-sound-on</property>
@@ -590,7 +590,7 @@ adapted and extended by Thorsten Renk 2015-16
 	<FireAlarm>
 		<name>FireAlarm</name>
 		<mode>looped</mode>
-		<path>Aircraft/SpaceShuttle/Sounds/class_1_siren.wav</path>		
+		<path>Aircraft/CatskillsFusionSSTO/Sounds/class_1_siren.wav</path>		
 		  <condition>
 			<and>
 			<property>/fdm/jsbsim/systems/cws/fire-alarm-sound-on</property>
@@ -610,7 +610,7 @@ adapted and extended by Thorsten Renk 2015-16
 	<Class2>
 		<name>Class2</name>
 		<mode>looped</mode>
-		<path>Aircraft/SpaceShuttle/Sounds/class_2_alarm.wav</path>		
+		<path>Aircraft/CatskillsFusionSSTO/Sounds/class_2_alarm.wav</path>		
 		  <condition>
 			<and>
 			<property>/fdm/jsbsim/systems/cws/class-2-sound-on</property>
@@ -630,7 +630,7 @@ adapted and extended by Thorsten Renk 2015-16
 	<SMAlert>
 		<name>SMAlert</name>
 		<mode>once</mode>
-		<path>Aircraft/SpaceShuttle/Sounds/class_3_sm_alert.wav</path>		
+		<path>Aircraft/CatskillsFusionSSTO/Sounds/class_3_sm_alert.wav</path>		
 		  <condition>
 			<and>
 			<property>/fdm/jsbsim/systems/cws/sm-alert-on</property>
@@ -650,7 +650,7 @@ adapted and extended by Thorsten Renk 2015-16
 	<doors>
 		<name>doors</name>
 		<mode>looped</mode>
-		<path>Aircraft/SpaceShuttle/Sounds/Vostok-1-Radiators-Turn.wav</path>
+		<path>Aircraft/CatskillsFusionSSTO/Sounds/Vostok-1-Radiators-Turn.wav</path>
 		  
 		  <condition>
 		    <and>
@@ -679,7 +679,7 @@ adapted and extended by Thorsten Renk 2015-16
 	<gears>
 		<name>gears</name>
 		<mode>once</mode>
-		<path>Aircraft/SpaceShuttle/Sounds/gear.wav</path>
+		<path>Aircraft/CatskillsFusionSSTO/Sounds/gear.wav</path>
 		  
 		  <condition>
 		    <and>
@@ -708,7 +708,7 @@ adapted and extended by Thorsten Renk 2015-16
 	<touchdown>
         <name>touchdown</name>
 		<mode>once</mode>
-        <path>Aircraft/SpaceShuttle/Sounds/touchdown.wav</path>
+        <path>Aircraft/CatskillsFusionSSTO/Sounds/touchdown.wav</path>
         <condition>
             <and>	      
 				<greater-than>
@@ -834,7 +834,7 @@ adapted and extended by Thorsten Renk 2015-16
 	<scrape>
 		<name>scrape</name>
 		<mode>looped</mode>
-		<path>Aircraft/SpaceShuttle/Sounds/scratch.wav</path>
+		<path>Aircraft/CatskillsFusionSSTO/Sounds/scratch.wav</path>
 		<condition>
 			<or>
 				<and>
@@ -897,7 +897,7 @@ adapted and extended by Thorsten Renk 2015-16
 	<rumble>
 		<name>rumble</name>
 		<mode>looped</mode>
-		<path>Aircraft/SpaceShuttle/Sounds/rumble.wav</path>
+		<path>Aircraft/CatskillsFusionSSTO/Sounds/rumble.wav</path>
 		<condition>
 		  <or>
 			<and>

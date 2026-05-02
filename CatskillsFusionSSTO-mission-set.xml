@@ -2,19 +2,19 @@
 
 <!-- this puts the Shuttle into a high orbit -->
 
-<PropertyList include="SpaceShuttle-common.xml">
+<PropertyList include="CatskillsFusionSSTO-common.xml">
 <sim>
-  <description>NASA Space Shuttle Atlantis ready for a mission</description>
+  <description>Catskills Fusion SSTO Atlantis ready for a mission</description>
   <long-description>
      The Space Shuttle was a partially re-usable low orbit spacecraft operated by NASA from 1981 to 2011. This mission phase puts the Shuttle into a 320 km orbit with all systems configured for orbital operations.
   </long-description>
-  <variant-of>SpaceShuttle-launch</variant-of>
+  <variant-of>CatskillsFusionSSTO</variant-of>
   <presets>
 	<altitude-ft>1500000.0</altitude-ft>
 	<stage type="int">6</stage>
   </presets>
   <startup>
-    <splash-texture>Aircraft/SpaceShuttle/SpaceShuttle-orbit-splash.png</splash-texture>
+    <splash-texture>Aircraft/CatskillsFusionSSTO/CatskillsFusionSSTO-orbit-splash.png</splash-texture>
   </startup>
  <previews>
       <preview>

@@ -2,19 +2,19 @@
 
 <!-- this puts the Shuttle into the entry interface -->
 
-<PropertyList include="SpaceShuttle-common.xml">
+<PropertyList include="CatskillsFusionSSTO-common.xml">
 <sim>
-  <description>NASA Space Shuttle Atlantis on re-entry</description>
+  <description>Catskills Fusion SSTO Atlantis on re-entry</description>
   <long-description>
      The Space Shuttle was a partially re-usable low orbit spacecraft operated by NASA from 1981 to 2011. In this mission phase, the Shuttle is in space, on a descending trajectory into the atmosphere, with all systems configured for entry.
   </long-description>
-  <variant-of>SpaceShuttle-launch</variant-of>
+  <variant-of>CatskillsFusionSSTO</variant-of>
   <presets>
 	<altitude-ft>400000.0</altitude-ft>
 	<stage type="int">2</stage>
   </presets>
   <startup>
-    <splash-texture>Aircraft/SpaceShuttle/SpaceShuttle-entry-splash.png</splash-texture>
+    <splash-texture>Aircraft/CatskillsFusionSSTO/CatskillsFusionSSTO-entry-splash.png</splash-texture>
   </startup>
  <previews>
       <preview>

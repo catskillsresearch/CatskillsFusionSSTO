@@ -16,7 +16,7 @@
 		
 
 	 <effect>
-        <inherits-from>Aircraft/SpaceShuttle/Models/PayloadBay/KU-Antenna/ku-antenna</inherits-from>
+        <inherits-from>Aircraft/CatskillsFusionSSTO/Models/PayloadBay/KU-Antenna/ku-antenna</inherits-from>
 	    <object-name>KuReflector</object-name>
 	    <object-name>Arm</object-name>
 	    <object-name>Gimbal.Alpha</object-name>

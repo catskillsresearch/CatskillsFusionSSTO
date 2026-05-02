@@ -14,7 +14,7 @@ var cdlg_shuttle_view_manager = {
 		me.running_flag = 1;
 		var width = 640;
 		var height = 480;
-		var img_path = "Aircraft/SpaceShuttle/Dialogs/ViewManager/flightdeck_top.png";
+		var img_path = "Aircraft/CatskillsFusionSSTO/Dialogs/ViewManager/flightdeck_top.png";
 						
 
 		me.window = canvas.Window.new([width,height],"dialog").set("title", "Shuttle View Manager");
@@ -203,7 +203,7 @@ var cdlg_shuttle_outside_view_manager = {
 		me.running_flag = 1;
 		var width = 640;
 		var height = 480;
-		var img_path = "Aircraft/SpaceShuttle/Dialogs/ViewManager/orbiter_top_pbd_open.png";
+		var img_path = "Aircraft/CatskillsFusionSSTO/Dialogs/ViewManager/orbiter_top_pbd_open.png";
 						
 
 		me.window = canvas.Window.new([width,height],"dialog").set("title", "Shuttle View Manager");

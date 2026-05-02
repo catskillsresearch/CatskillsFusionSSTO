@@ -7,7 +7,7 @@ var cdlg_eileen = {
 
 		var width = 512;
 		var height = 512;
-		var img_path = "Aircraft/SpaceShuttle/Dialogs/Eileen/eileen.png";
+		var img_path = "Aircraft/CatskillsFusionSSTO/Dialogs/Eileen/eileen.png";
 						
 
 
@@ -28,8 +28,8 @@ var cdlg_eileen = {
 
 
 		var stack = [];
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/Eileen/eileen_station_0.png");
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/Eileen/eileen_station_1.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/Eileen/eileen_station_0.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/Eileen/eileen_station_1.png");
 		me.button_stationkeeping = cdlg_widget_img_stack.new(me.root, stack, 126, 42);
 		me.button_stationkeeping.setTranslation(20,460);
 
@@ -57,7 +57,7 @@ var cdlg_eileen = {
 
 
 		stack = [];
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/Eileen/eileen_reference_0.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/Eileen/eileen_reference_0.png");
 		me.button_reference = cdlg_widget_img_stack.new(me.root, stack, 126, 42);
 		me.button_reference.setTranslation(146,460);
 
@@ -78,9 +78,9 @@ var cdlg_eileen = {
 
 
 		stack = [];
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/Eileen/eileen_precision_0.png");
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/Eileen/eileen_precision_1.png");
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/Eileen/eileen_precision_2.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/Eileen/eileen_precision_0.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/Eileen/eileen_precision_1.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/Eileen/eileen_precision_2.png");
 		me.button_precision = cdlg_widget_img_stack.new(me.root, stack, 126, 42);
 		me.button_precision.setTranslation(272,460);
 

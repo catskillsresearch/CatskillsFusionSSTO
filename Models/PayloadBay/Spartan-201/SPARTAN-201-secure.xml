@@ -6,7 +6,7 @@
 	<nopreview/>
 
 	 <effect>
-	     <inherits-from>Aircraft/SpaceShuttle/Models/Effects/payload</inherits-from>
+	     <inherits-from>Aircraft/CatskillsFusionSSTO/Models/Effects/payload</inherits-from>
 	     <!--<inherits-from>Effects/space</inherits-from>-->
 	     <object-name>SPARTAN-201</object-name>
 	 </effect>

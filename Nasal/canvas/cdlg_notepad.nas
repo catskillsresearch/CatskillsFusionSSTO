@@ -13,7 +13,7 @@ var cdlg_notepad = {
 
 		var width = 800;
 		var height = 1000;
-		var img_path = "Aircraft/SpaceShuttle/Dialogs/Notepad/notepad.png";
+		var img_path = "Aircraft/CatskillsFusionSSTO/Dialogs/Notepad/notepad.png";
 
 		if (me.update_flag == 1) {return;}	
 

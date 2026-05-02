@@ -17,7 +17,7 @@
 
  
     <effect>
-        <inherits-from>Aircraft/SpaceShuttle/Models/PayloadBay/Airlock-Module/airlock-module</inherits-from>
+        <inherits-from>Aircraft/CatskillsFusionSSTO/Models/PayloadBay/Airlock-Module/airlock-module</inherits-from>
         <object-name>spaceshutt_spstob_eal</object-name>
     </effect>
 

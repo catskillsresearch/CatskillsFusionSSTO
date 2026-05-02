@@ -11,7 +11,7 @@ var cdlg_orbital_dap = {
 		var width = 518;
 		var height = 489;
 
-		var img_path = "Aircraft/SpaceShuttle/Dialogs/OrbitalDAP/DAP-panel.png";
+		var img_path = "Aircraft/CatskillsFusionSSTO/Dialogs/OrbitalDAP/DAP-panel.png";
 						
 
 		var window = canvas.Window.new([width,height],"dialog").set("title", "Orbital DAP");
@@ -39,8 +39,8 @@ var cdlg_orbital_dap = {
 		# DAP A
 
 		var stack = [];
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/OrbitalDAP/DAP_A_0.png");
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/OrbitalDAP/DAP_A_1.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/OrbitalDAP/DAP_A_0.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/OrbitalDAP/DAP_A_1.png");
 
 		me.button_DAP_A = cdlg_widget_img_stack.new(me.root, stack, 48, 48);
 		me.button_DAP_A.setTranslation(106,105);
@@ -53,8 +53,8 @@ var cdlg_orbital_dap = {
 
 
 		stack = [];
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/OrbitalDAP/DAP_B_0.png");
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/OrbitalDAP/DAP_B_1.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/OrbitalDAP/DAP_B_0.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/OrbitalDAP/DAP_B_1.png");
 
 		me.button_DAP_B = cdlg_widget_img_stack.new(me.root, stack, 48, 48);
 		me.button_DAP_B.setTranslation(192,105);
@@ -66,8 +66,8 @@ var cdlg_orbital_dap = {
 		# AUTO
 		
 		stack = [];
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/OrbitalDAP/DAP_AUTO_0.png");
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/OrbitalDAP/DAP_AUTO_1.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/OrbitalDAP/DAP_AUTO_0.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/OrbitalDAP/DAP_AUTO_1.png");
 
 		me.button_AUTO = cdlg_widget_img_stack.new(me.root, stack, 48, 48);
 		me.button_AUTO.setTranslation(278,105);
@@ -79,8 +79,8 @@ var cdlg_orbital_dap = {
 		# INRTL
 		
 		stack = [];
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/OrbitalDAP/DAP_INRTL_0.png");
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/OrbitalDAP/DAP_INRTL_1.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/OrbitalDAP/DAP_INRTL_0.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/OrbitalDAP/DAP_INRTL_1.png");
 
 		me.button_INRTL = cdlg_widget_img_stack.new(me.root, stack, 48, 48);
 		me.button_INRTL.setTranslation(363,105);
@@ -92,8 +92,8 @@ var cdlg_orbital_dap = {
 		# LVLH
 		
 		stack = [];
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/OrbitalDAP/DAP_LVLH_0.png");
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/OrbitalDAP/DAP_LVLH_1.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/OrbitalDAP/DAP_LVLH_0.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/OrbitalDAP/DAP_LVLH_1.png");
 
 		me.button_LVLH = cdlg_widget_img_stack.new(me.root, stack, 48, 48);
 		me.button_LVLH.setTranslation(449,105);
@@ -105,8 +105,8 @@ var cdlg_orbital_dap = {
 		# FREE
 		
 		stack = [];
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/OrbitalDAP/DAP_FREE_0.png");
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/OrbitalDAP/DAP_FREE_1.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/OrbitalDAP/DAP_FREE_0.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/OrbitalDAP/DAP_FREE_1.png");
 
 		me.button_FREE = cdlg_widget_img_stack.new(me.root, stack, 48, 48);
 		me.button_FREE.setTranslation(534,105);
@@ -118,8 +118,8 @@ var cdlg_orbital_dap = {
 		# low Z
 		
 		stack = [];
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/OrbitalDAP/DAP_low_Z_0.png");
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/OrbitalDAP/DAP_low_Z_1.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/OrbitalDAP/DAP_low_Z_0.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/OrbitalDAP/DAP_low_Z_1.png");
 
 		me.button_lowZ = cdlg_widget_img_stack.new(me.root, stack, 48, 48);
 		me.button_lowZ.setTranslation(191,299);
@@ -131,8 +131,8 @@ var cdlg_orbital_dap = {
 		# high Z
 		
 		stack = [];
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/OrbitalDAP/DAP_high_Z_0.png");
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/OrbitalDAP/DAP_high_Z_1.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/OrbitalDAP/DAP_high_Z_0.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/OrbitalDAP/DAP_high_Z_1.png");
 
 		me.button_highZ = cdlg_widget_img_stack.new(me.root, stack, 48, 48);
 		me.button_highZ.setTranslation(273,299);
@@ -144,8 +144,8 @@ var cdlg_orbital_dap = {
 		# PRI
 		
 		stack = [];
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/OrbitalDAP/DAP_PRI_0.png");
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/OrbitalDAP/DAP_PRI_1.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/OrbitalDAP/DAP_PRI_0.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/OrbitalDAP/DAP_PRI_1.png");
 
 		me.button_PRI = cdlg_widget_img_stack.new(me.root, stack, 48, 48);
 		me.button_PRI.setTranslation(377,299);
@@ -157,8 +157,8 @@ var cdlg_orbital_dap = {
 		# ALT
 		
 		stack = [];
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/OrbitalDAP/DAP_ALT_0.png");
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/OrbitalDAP/DAP_ALT_1.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/OrbitalDAP/DAP_ALT_0.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/OrbitalDAP/DAP_ALT_1.png");
 
 		me.button_ALT = cdlg_widget_img_stack.new(me.root, stack, 48, 48);
 		me.button_ALT.setTranslation(457,299);
@@ -170,8 +170,8 @@ var cdlg_orbital_dap = {
 		# VRN
 		
 		stack = [];
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/OrbitalDAP/DAP_VERN_0.png");
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/OrbitalDAP/DAP_VERN_1.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/OrbitalDAP/DAP_VERN_0.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/OrbitalDAP/DAP_VERN_1.png");
 
 		me.button_VRN = cdlg_widget_img_stack.new(me.root, stack, 48, 48);
 		me.button_VRN.setTranslation(537,299);
@@ -185,8 +185,8 @@ var cdlg_orbital_dap = {
 		# NORM X
 		
 		stack = [];
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/OrbitalDAP/DAP_NORM_0.png");
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/OrbitalDAP/DAP_NORM_1.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/OrbitalDAP/DAP_NORM_0.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/OrbitalDAP/DAP_NORM_1.png");
 
 		me.button_NORM_X = cdlg_widget_img_stack.new(me.root, stack, 48, 48);
 		me.button_NORM_X.setTranslation(112,400);
@@ -198,8 +198,8 @@ var cdlg_orbital_dap = {
 		# NORM Y
 		
 		stack = [];
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/OrbitalDAP/DAP_NORM_0.png");
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/OrbitalDAP/DAP_NORM_1.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/OrbitalDAP/DAP_NORM_0.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/OrbitalDAP/DAP_NORM_1.png");
 
 		me.button_NORM_Y = cdlg_widget_img_stack.new(me.root, stack, 48, 48);
 		me.button_NORM_Y.setTranslation(194,400);
@@ -211,8 +211,8 @@ var cdlg_orbital_dap = {
 		# NORM Z
 		
 		stack = [];
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/OrbitalDAP/DAP_NORM_0.png");
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/OrbitalDAP/DAP_NORM_1.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/OrbitalDAP/DAP_NORM_0.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/OrbitalDAP/DAP_NORM_1.png");
 
 		me.button_NORM_Z = cdlg_widget_img_stack.new(me.root, stack, 48, 48);
 		me.button_NORM_Z.setTranslation(272,400);
@@ -224,8 +224,8 @@ var cdlg_orbital_dap = {
 		# PULSE X
 		
 		stack = [];
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/OrbitalDAP/DAP_PULSE_0.png");
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/OrbitalDAP/DAP_PULSE_1.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/OrbitalDAP/DAP_PULSE_0.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/OrbitalDAP/DAP_PULSE_1.png");
 
 		me.button_PULSE_X = cdlg_widget_img_stack.new(me.root, stack, 48, 48);
 		me.button_PULSE_X.setTranslation(112,496);
@@ -237,8 +237,8 @@ var cdlg_orbital_dap = {
 		# PULSE Y
 		
 		stack = [];
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/OrbitalDAP/DAP_PULSE_0.png");
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/OrbitalDAP/DAP_PULSE_1.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/OrbitalDAP/DAP_PULSE_0.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/OrbitalDAP/DAP_PULSE_1.png");
 
 		me.button_PULSE_Y = cdlg_widget_img_stack.new(me.root, stack, 48, 48);
 		me.button_PULSE_Y.setTranslation(194,496);
@@ -250,8 +250,8 @@ var cdlg_orbital_dap = {
 		# PULSE Z
 		
 		stack = [];
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/OrbitalDAP/DAP_PULSE_0.png");
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/OrbitalDAP/DAP_PULSE_1.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/OrbitalDAP/DAP_PULSE_0.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/OrbitalDAP/DAP_PULSE_1.png");
 
 		me.button_PULSE_Z = cdlg_widget_img_stack.new(me.root, stack, 48, 48);
 		me.button_PULSE_Z.setTranslation(272,496);
@@ -264,8 +264,8 @@ var cdlg_orbital_dap = {
 		# DISC ROLL
 		
 		stack = [];
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/OrbitalDAP/DAP_DISC_0.png");
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/OrbitalDAP/DAP_DISC_1.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/OrbitalDAP/DAP_DISC_0.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/OrbitalDAP/DAP_DISC_1.png");
 
 		me.button_DISC_ROLL = cdlg_widget_img_stack.new(me.root, stack, 48, 48);
 		me.button_DISC_ROLL.setTranslation(377,400);
@@ -277,8 +277,8 @@ var cdlg_orbital_dap = {
 		# DISC PITCH
 		
 		stack = [];
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/OrbitalDAP/DAP_DISC_0.png");
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/OrbitalDAP/DAP_DISC_1.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/OrbitalDAP/DAP_DISC_0.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/OrbitalDAP/DAP_DISC_1.png");
 
 		me.button_DISC_PITCH = cdlg_widget_img_stack.new(me.root, stack, 48, 48);
 		me.button_DISC_PITCH.setTranslation(457,400);
@@ -290,8 +290,8 @@ var cdlg_orbital_dap = {
 		# DISC YAW
 		
 		stack = [];
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/OrbitalDAP/DAP_DISC_0.png");
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/OrbitalDAP/DAP_DISC_1.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/OrbitalDAP/DAP_DISC_0.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/OrbitalDAP/DAP_DISC_1.png");
 
 		me.button_DISC_YAW = cdlg_widget_img_stack.new(me.root, stack, 48, 48);
 		me.button_DISC_YAW.setTranslation(537,400);
@@ -303,8 +303,8 @@ var cdlg_orbital_dap = {
 		# PULSE ROLL
 		
 		stack = [];
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/OrbitalDAP/DAP_PULSE_0.png");
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/OrbitalDAP/DAP_PULSE_1.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/OrbitalDAP/DAP_PULSE_0.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/OrbitalDAP/DAP_PULSE_1.png");
 
 		me.button_PULSE_ROLL = cdlg_widget_img_stack.new(me.root, stack, 48, 48);
 		me.button_PULSE_ROLL.setTranslation(377,496);
@@ -316,8 +316,8 @@ var cdlg_orbital_dap = {
 		# PULSE PITCH
 		
 		stack = [];
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/OrbitalDAP/DAP_PULSE_0.png");
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/OrbitalDAP/DAP_PULSE_1.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/OrbitalDAP/DAP_PULSE_0.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/OrbitalDAP/DAP_PULSE_1.png");
 
 		me.button_PULSE_PITCH = cdlg_widget_img_stack.new(me.root, stack, 48, 48);
 		me.button_PULSE_PITCH.setTranslation(457,496);
@@ -329,8 +329,8 @@ var cdlg_orbital_dap = {
 		# PULSE YAW
 		
 		stack = [];
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/OrbitalDAP/DAP_PULSE_0.png");
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/OrbitalDAP/DAP_PULSE_1.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/OrbitalDAP/DAP_PULSE_0.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/OrbitalDAP/DAP_PULSE_1.png");
 
 		me.button_PULSE_YAW = cdlg_widget_img_stack.new(me.root, stack, 48, 48);
 		me.button_PULSE_YAW.setTranslation(537,496);

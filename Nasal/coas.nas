@@ -29,7 +29,7 @@ var coas_device = {
 
 	me.root = me.canvas.createGroup();
 
-	var path = "Aircraft/SpaceShuttle/Models/coas_pattern.png";
+	var path = "Aircraft/CatskillsFusionSSTO/Models/coas_pattern.png";
 		
 	me.coas_pattern = me.root.createChild("image")
                                    .setFile(path)

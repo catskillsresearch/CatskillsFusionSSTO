@@ -8,7 +8,7 @@
 <PropertyList>
 
  <model>
-    <path>Aircraft/SpaceShuttle/Models/Effects/RCS_flame_element.xml</path>
+    <path>Aircraft/CatskillsFusionSSTO/Models/Effects/RCS_flame_element.xml</path>
       <offsets>
 		 <x-m>0.0</x-m>
 		 <y-m>0.0</y-m>
@@ -22,7 +22,7 @@
  
 
  <model>
-    <path>Aircraft/SpaceShuttle/Models/Effects/RCS_flame_element1.xml</path>
+    <path>Aircraft/CatskillsFusionSSTO/Models/Effects/RCS_flame_element1.xml</path>
       <offsets>
 		 <x-m>0.5</x-m>
 		 <y-m>0.0</y-m>
@@ -34,7 +34,7 @@
   </model>
 
  <model>
-    <path>Aircraft/SpaceShuttle/Models/Effects/RCS_flame_element2.xml</path>
+    <path>Aircraft/CatskillsFusionSSTO/Models/Effects/RCS_flame_element2.xml</path>
       <offsets>
 		 <x-m>0.9</x-m>
 		 <y-m>0.0</y-m>
@@ -46,7 +46,7 @@
   </model>
 
 <model>
-    <path>Aircraft/SpaceShuttle/Models/Effects/RCS_flame_element3.xml</path>
+    <path>Aircraft/CatskillsFusionSSTO/Models/Effects/RCS_flame_element3.xml</path>
       <offsets>
 		 <x-m>1.5</x-m>
 		 <y-m>0.0</y-m>

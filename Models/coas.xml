@@ -6,14 +6,14 @@
     <nopreview/>
 
     <effect>
-        <inherits-from>Aircraft/SpaceShuttle/Models/Effects/shuttle-interior-object</inherits-from>
+        <inherits-from>Aircraft/CatskillsFusionSSTO/Models/Effects/shuttle-interior-object</inherits-from>
         <object-name>coasfor</object-name>
         <object-name>coasaft</object-name>
         <object-name>coasaft-reticle-intensity</object-name>
         <object-name>coasfor-reticle-intensity</object-name>
     </effect>
     <effect>
-        <inherits-from>Aircraft/SpaceShuttle/Models/Effects/hud/hud_coas</inherits-from>
+        <inherits-from>Aircraft/CatskillsFusionSSTO/Models/Effects/hud/hud_coas</inherits-from>
         <object-name>coasglassfor</object-name>
         <object-name>coasglassaft</object-name>
     </effect>

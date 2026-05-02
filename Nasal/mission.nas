@@ -125,12 +125,12 @@ var mission_init = func {
 var filename = getprop("/mission/filename");
 
 var target = props.globals.getNode("/mission");
-var success = io.read_properties("Aircraft/SpaceShuttle/Mission/"~filename, target);
+var success = io.read_properties("Aircraft/CatskillsFusionSSTO/Mission/"~filename, target);
 
 if (success == nil) 
 	{
 	print("Cannot open mission file ", filename, ", using defaults.");
-	io.read_properties("Aircraft/SpaceShuttle/Mission/mission.xml", target);
+	io.read_properties("Aircraft/CatskillsFusionSSTO/Mission/mission.xml", target);
 	}
 
 var stage = getprop("/sim/presets/stage");

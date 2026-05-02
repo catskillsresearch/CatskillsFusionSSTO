@@ -2,11 +2,11 @@
 
 <PropertyList>
 
-    	<path>Aircraft/SpaceShuttle/Models/Cuecards/cuecard_cdr_center_left.ac</path>
+    	<path>Aircraft/CatskillsFusionSSTO/Models/Cuecards/cuecard_cdr_center_left.ac</path>
 
 
    	<effect>
-         <inherits-from>Aircraft/SpaceShuttle/Models/Effects/shuttle-cuecard-object</inherits-from>
+         <inherits-from>Aircraft/CatskillsFusionSSTO/Models/Effects/shuttle-cuecard-object</inherits-from>
 	 <object-name>Cuecard-CDR-center-left</object-name>
     	</effect>
 

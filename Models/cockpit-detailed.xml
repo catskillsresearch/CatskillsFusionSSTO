@@ -10,19 +10,19 @@
 
     <!--no implicit lighting
     <effect>
-        <inherits-from>Aircraft/SpaceShuttle/Models/Effects/Interior/shuttle-interior</inherits-from>
+        <inherits-from>Aircraft/CatskillsFusionSSTO/Models/Effects/Interior/shuttle-interior</inherits-from>
     </effect>-->
 
 
     <!-- digital readouts -->
 
     <effect>
-        <inherits-from>Aircraft/SpaceShuttle/Models/Effects/Interior/shuttle-digital</inherits-from>
+        <inherits-from>Aircraft/CatskillsFusionSSTO/Models/Effects/Interior/shuttle-digital</inherits-from>
 	<object-name>O3-event-time-glass</object-name>
     </effect>
 
     <effect>
-        <inherits-from>Aircraft/SpaceShuttle/Models/Effects/Interior/shuttle-digital2</inherits-from>
+        <inherits-from>Aircraft/CatskillsFusionSSTO/Models/Effects/Interior/shuttle-digital2</inherits-from>
         <object-name>display-qty-left</object-name>
         <object-name>display-qty-fwd</object-name>
         <object-name>display-qty-right</object-name>
@@ -30,7 +30,7 @@
 
     <!-- implicit lighting -->
     <effect>
-        <inherits-from>Aircraft/SpaceShuttle/Models/Effects/Interior/shuttle-interior-det-panel-center</inherits-from>
+        <inherits-from>Aircraft/CatskillsFusionSSTO/Models/Effects/Interior/shuttle-interior-det-panel-center</inherits-from>
 	      <!-- RHC -->
         <object-name>seat-cmd-joystick</object-name>
         <object-name>seat-cmd-belt-buckle</object-name>
@@ -188,7 +188,7 @@
         <object-name>smoke-detn-bay-1B3A-bkr</object-name>
     </effect>
     <effect>
-        <inherits-from>Aircraft/SpaceShuttle/Models/Effects/Interior/shuttle-interior-det-overhead-left</inherits-from>
+        <inherits-from>Aircraft/CatskillsFusionSSTO/Models/Effects/Interior/shuttle-interior-det-overhead-left</inherits-from>
         <!-- Panel O1 -->
 	    <object-name>O1-misc</object-name>
 	    <object-name>O1-fasteners</object-name>
@@ -321,7 +321,7 @@
         <object-name>smoke-detn-lr-flt-dk-bkr</object-name>
     </effect>
     <effect>
-        <inherits-from>Aircraft/SpaceShuttle/Models/Effects/Interior/shuttle-interior-det-overhead-right</inherits-from>
+        <inherits-from>Aircraft/CatskillsFusionSSTO/Models/Effects/Interior/shuttle-interior-det-overhead-right</inherits-from>
 	    <!-- Panel O3 -->
         <object-name>O3-base</object-name>
         <object-name>O3-fasteners</object-name>
@@ -463,7 +463,7 @@
         <object-name>O17-panel</object-name>
     </effect>
     <effect>
-        <inherits-from>Aircraft/SpaceShuttle/Models/Effects/Interior/shuttle-interior-det-aft-panel-center</inherits-from>
+        <inherits-from>Aircraft/CatskillsFusionSSTO/Models/Effects/Interior/shuttle-interior-det-aft-panel-center</inherits-from>
         <!-- Panel A1 -->
         <object-name>A1-panel</object-name>
         <object-name>A1-base</object-name>
@@ -683,7 +683,7 @@
     </effect>
 
     <effect>
-        <inherits-from>Aircraft/SpaceShuttle/Models/Effects/Interior/shuttle-interior-det-aft-panel-right</inherits-from>
+        <inherits-from>Aircraft/CatskillsFusionSSTO/Models/Effects/Interior/shuttle-interior-det-aft-panel-right</inherits-from>
         <!-- Panel R11 -->
         <object-name>R11-panel</object-name>
         <object-name>R11-knob</object-name>
@@ -720,7 +720,7 @@
     </effect>
 
     <effect>
-        <inherits-from>Aircraft/SpaceShuttle/Models/Effects/Interior/shuttle-interior-det-instrument-overhead</inherits-from>
+        <inherits-from>Aircraft/CatskillsFusionSSTO/Models/Effects/Interior/shuttle-interior-det-instrument-overhead</inherits-from>
         <!--Panel O1 - O3 gauges -->
         <object-name>O1-gauges</object-name>
         <object-name>O2-gauges</object-name>

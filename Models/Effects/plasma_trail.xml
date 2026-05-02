@@ -3,7 +3,7 @@
 <PropertyList>
 
 <model>
-   <path>Aircraft/SpaceShuttle/Models/Effects/entry_flame.xml</path>
+   <path>Aircraft/CatskillsFusionSSTO/Models/Effects/entry_flame.xml</path>
     <offsets>
 		 <x-m>0.0</x-m>
 		 <y-m>0.0</y-m>
@@ -13,7 +13,7 @@
   </model>
 
 <model>
-   <path>Aircraft/SpaceShuttle/Models/Effects/entry_flame_core.xml</path>
+   <path>Aircraft/CatskillsFusionSSTO/Models/Effects/entry_flame_core.xml</path>
     <offsets>
 		 <x-m>0.0</x-m>
 		 <y-m>0.0</y-m>

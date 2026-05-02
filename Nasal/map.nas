@@ -77,7 +77,7 @@ var mapCanvas = window.createCanvas().set("background", canvas.style.getColor("b
 var root = mapCanvas.createGroup();
 
 
-var path = "Aircraft/SpaceShuttle/Dialogs/MapOfEarth.png";
+var path = "Aircraft/CatskillsFusionSSTO/Dialogs/MapOfEarth.png";
 var child=root.createChild("image")
                                    .setFile( path )
                                    .setTranslation(0,0)
@@ -739,7 +739,7 @@ var mapCanvas = window.createCanvas().set("background", canvas.style.getColor("b
 var root = mapCanvas.createGroup();
 
 
-var path = "Aircraft/SpaceShuttle/Dialogs/ECAL_Sites.png";
+var path = "Aircraft/CatskillsFusionSSTO/Dialogs/ECAL_Sites.png";
 var child=root.createChild("image")
                                    .setFile( path )
                                    .setTranslation(0,0)

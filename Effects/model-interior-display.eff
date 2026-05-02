@@ -11,7 +11,7 @@
 			<wrap-s>clamp</wrap-s>
 			<wrap-t>clamp</wrap-t>
 			<internal-format>normalized</internal-format>
-			<image>Aircraft/SpaceShuttle/Models/Effects/Interior/dust-effect-overlay.png</image>
+			<image>Aircraft/CatskillsFusionSSTO/Models/Effects/Interior/dust-effect-overlay.png</image>
 	</texture>
 	<sample-res>0.0</sample-res>
 	<dirt-factor>3.0</dirt-factor>
@@ -129,8 +129,8 @@
         <use>vertex-program-two-side</use>
       </vertex-program-two-side>
       <program>
-        <vertex-shader>Aircraft/SpaceShuttle/Shaders/model-interior-ALS-extended-lightmap.vert</vertex-shader>
-        <fragment-shader>Aircraft/SpaceShuttle/Shaders/model-interior-ALS-extended-display.frag</fragment-shader>
+        <vertex-shader>Aircraft/CatskillsFusionSSTO/Shaders/model-interior-ALS-extended-lightmap.vert</vertex-shader>
+        <fragment-shader>Aircraft/CatskillsFusionSSTO/Shaders/model-interior-ALS-extended-display.frag</fragment-shader>
         <fragment-shader>Shaders/secondary_lights.frag</fragment-shader>
         <fragment-shader>Shaders/noise.frag</fragment-shader>
         <fragment-shader>Shaders/filters-ALS.frag</fragment-shader>
@@ -690,8 +690,8 @@
         <use>vertex-program-two-side</use>
       </vertex-program-two-side>
       <program>
-        <vertex-shader>Aircraft/SpaceShuttle/Shaders/model-interior-ALS-extended-lightmap.vert</vertex-shader>
-        <fragment-shader>Aircraft/SpaceShuttle/Shaders/model-interior-ALS-extended-display.frag</fragment-shader>
+        <vertex-shader>Aircraft/CatskillsFusionSSTO/Shaders/model-interior-ALS-extended-lightmap.vert</vertex-shader>
+        <fragment-shader>Aircraft/CatskillsFusionSSTO/Shaders/model-interior-ALS-extended-display.frag</fragment-shader>
         <fragment-shader>Shaders/secondary_lights.frag</fragment-shader>
         <fragment-shader>Shaders/noise.frag</fragment-shader>
         <fragment-shader>Shaders/filters-ALS.frag</fragment-shader>

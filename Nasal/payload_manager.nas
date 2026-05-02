@@ -701,6 +701,6 @@ var payload_manager = {
 
 };
 
-var hst_manager = payload_manager.new("HST", "Aircraft/SpaceShuttle/Models/PayloadBay/HST/hst-disconnected.xml", 3);
-var spartan_manager = payload_manager.new("SPARTAN-201", "Aircraft/SpaceShuttle/Models/PayloadBay/Spartan-201/SPARTAN-201-disconnected.xml", 2);
-var TDRS_manager = payload_manager.new("TDRS-demo", "Aircraft/SpaceShuttle/Models/PayloadBay/TDRS/TDRS_disconnected.xml", 1);
+var hst_manager = payload_manager.new("HST", "Aircraft/CatskillsFusionSSTO/Models/PayloadBay/HST/hst-disconnected.xml", 3);
+var spartan_manager = payload_manager.new("SPARTAN-201", "Aircraft/CatskillsFusionSSTO/Models/PayloadBay/Spartan-201/SPARTAN-201-disconnected.xml", 2);
+var TDRS_manager = payload_manager.new("TDRS-demo", "Aircraft/CatskillsFusionSSTO/Models/PayloadBay/TDRS/TDRS_disconnected.xml", 1);

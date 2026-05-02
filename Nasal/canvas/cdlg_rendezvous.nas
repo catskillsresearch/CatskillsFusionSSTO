@@ -206,8 +206,8 @@ var cdlg_rendezvous = {
 
 
 		var stack = [];
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/Rendezvous/rndz_units_0.png");
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/Rendezvous/rndz_units_1.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/Rendezvous/rndz_units_0.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/Rendezvous/rndz_units_1.png");
 		me.button_units = cdlg_widget_img_stack.new(me.root, stack, 126, 42);
 		me.button_units.setTranslation(180,340);
 		#me.button_units.increment();
@@ -217,8 +217,8 @@ var cdlg_rendezvous = {
 		};
 
 		stack = [];
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/Rendezvous/rndz_burn_0.png");
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/Rendezvous/rndz_burn_1.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/Rendezvous/rndz_burn_0.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/Rendezvous/rndz_burn_1.png");
 		me.button_burn = cdlg_widget_img_stack.new(me.root, stack, 126, 42);
 		me.button_burn.setTranslation(360,340);
 		me.button_burn.f = func {

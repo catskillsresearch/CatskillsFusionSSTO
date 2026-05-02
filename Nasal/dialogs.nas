@@ -39,67 +39,67 @@ var scenario_string_navigation_problems = "After an avionics bay fire, there's d
 
 var scenario_string_pass_failure = "The primary avionics software system (PASS) experiences a software bug that makes the state vector compute wrong. You need to engage the backup flight system (BFS) to save the Shuttle.";
 
-var propellant_dlg = gui.Dialog.new("/sim/gui/dialogs/SpaceShuttle/propellant/dialog","Aircraft/SpaceShuttle/Dialogs/propellant.xml");
+var propellant_dlg = gui.Dialog.new("/sim/gui/dialogs/SpaceShuttle/propellant/dialog","Aircraft/CatskillsFusionSSTO/Dialogs/propellant.xml");
 
-var entry_guidance_dlg = gui.Dialog.new("/sim/gui/dialogs/SpaceShuttle/entry_guidance/dialog","Aircraft/SpaceShuttle/Dialogs/entry_guidance.xml");
+var entry_guidance_dlg = gui.Dialog.new("/sim/gui/dialogs/SpaceShuttle/entry_guidance/dialog","Aircraft/CatskillsFusionSSTO/Dialogs/entry_guidance.xml");
 
-var autolaunch_dlg = gui.Dialog.new("/sim/gui/dialogs/SpaceShuttle/autolaunch/dialog","Aircraft/SpaceShuttle/Dialogs/auto_launch.xml");
-
-
-var limits_dlg = gui.Dialog.new("/sim/gui/dialogs/SpaceShuttle/limits/dialog","Aircraft/SpaceShuttle/Dialogs/limits.xml");
-
-var apu_dlg = gui.Dialog.new("/sim/gui/dialogs/SpaceShuttle/apu/dialog","Aircraft/SpaceShuttle/Dialogs/apu.xml");
-
-var atcs_dlg = gui.Dialog.new("/sim/gui/dialogs/SpaceShuttle/atcs/dialog","Aircraft/SpaceShuttle/Dialogs/atcs.xml");
-
-var rcs_oms_thermal_dlg = gui.Dialog.new("/sim/gui/dialogs/SpaceShuttle/rcs_oms_thermal/dialog","Aircraft/SpaceShuttle/Dialogs/rcs_oms_thermal.xml");
-
-var electrical_dlg = gui.Dialog.new("/sim/gui/dialogs/SpaceShuttle/electrical/dialog","Aircraft/SpaceShuttle/Dialogs/electrical.xml");
-
-var ku_dlg = gui.Dialog.new("/sim/gui/dialogs/SpaceShuttle/ku/dialog","Aircraft/SpaceShuttle/Dialogs/ku_antenna.xml");
-
-var mechanical_dlg = gui.Dialog.new("/sim/gui/dialogs/SpaceShuttle/mechanical/dialog","Aircraft/SpaceShuttle/Dialogs/mechanical.xml");
-
-var mps_dlg = gui.Dialog.new("/sim/gui/dialogs/SpaceShuttle/mps/dialog","Aircraft/SpaceShuttle/Dialogs/mps.xml");
-
-var options_dlg = gui.Dialog.new("/sim/gui/dialogs/SpaceShuttle/options/dialog","Aircraft/SpaceShuttle/Dialogs/options.xml");
-
-var rcs_dlg = gui.Dialog.new("/sim/gui/dialogs/SpaceShuttle/rcs/dialog","Aircraft/SpaceShuttle/Dialogs/rcs.xml");
-
-var rms_deploy_dlg = gui.Dialog.new("/sim/gui/dialogs/SpaceShuttle/rms-deploy/dialog","Aircraft/SpaceShuttle/Dialogs/rms_deploy.xml");
-
-var rms_pyro_dlg = gui.Dialog.new("/sim/gui/dialogs/SpaceShuttle/rms-pyro/dialog","Aircraft/SpaceShuttle/Dialogs/rms_pyro.xml");
-
-var pb_floodlight_dlg = gui.Dialog.new("/sim/gui/dialogs/SpaceShuttle/pb-floodlight/dialog","Aircraft/SpaceShuttle/Dialogs/pb_floodlight.xml");
-
-var rms_operation_dlg = gui.Dialog.new("/sim/gui/dialogs/SpaceShuttle/rms-operation/dialog","Aircraft/SpaceShuttle/Dialogs/rms_operation.xml");
-
-var pl_retention_dlg = gui.Dialog.new("/sim/gui/dialogs/SpaceShuttle/payload-retention/dialog","Aircraft/SpaceShuttle/Dialogs/payload_retention.xml");
-
-var flight_controls_dlg = gui.Dialog.new("/sim/gui/dialogs/SpaceShuttle/flight_controls/dialog","Aircraft/SpaceShuttle/Dialogs/flight_controls.xml");
-
-var dps_keyboard_dlg = gui.Dialog.new("/sim/gui/dialogs/SpaceShuttle/dps_keyboard/dialog","Aircraft/SpaceShuttle/Dialogs/dps_keyboard.xml");
-
-var idp_dlg = gui.Dialog.new("/sim/gui/dialogs/SpaceShuttle/idp/dialog","Aircraft/SpaceShuttle/Dialogs/idp_settings.xml");
+var autolaunch_dlg = gui.Dialog.new("/sim/gui/dialogs/SpaceShuttle/autolaunch/dialog","Aircraft/CatskillsFusionSSTO/Dialogs/auto_launch.xml");
 
 
-var temperature_dlg = gui.Dialog.new("/sim/gui/dialogs/SpaceShuttle/temperature/dialog","Aircraft/SpaceShuttle/Dialogs/thermal_distribution.xml");
+var limits_dlg = gui.Dialog.new("/sim/gui/dialogs/SpaceShuttle/limits/dialog","Aircraft/CatskillsFusionSSTO/Dialogs/limits.xml");
 
-var propellant_fd_dlg = gui.Dialog.new("/sim/gui/dialogs/SpaceShuttle/propellant_fd/dialog","Aircraft/SpaceShuttle/Dialogs/propellant_fill_drain.xml");
+var apu_dlg = gui.Dialog.new("/sim/gui/dialogs/SpaceShuttle/apu/dialog","Aircraft/CatskillsFusionSSTO/Dialogs/apu.xml");
 
-var cabin_lighting_dlg = gui.Dialog.new("/sim/gui/dialogs/SpaceShuttle/cabin-lighting/dialog","Aircraft/SpaceShuttle/Dialogs/cabin_lighting.xml");
+var atcs_dlg = gui.Dialog.new("/sim/gui/dialogs/SpaceShuttle/atcs/dialog","Aircraft/CatskillsFusionSSTO/Dialogs/atcs.xml");
 
-var switch_covers_dlg = gui.Dialog.new("/sim/gui/dialogs/SpaceShuttle/switch-covers/dialog","Aircraft/SpaceShuttle/Dialogs/switch_covers.xml");
+var rcs_oms_thermal_dlg = gui.Dialog.new("/sim/gui/dialogs/SpaceShuttle/rcs_oms_thermal/dialog","Aircraft/CatskillsFusionSSTO/Dialogs/rcs_oms_thermal.xml");
 
-var save_dlg = gui.Dialog.new("/sim/gui/dialogs/SpaceShuttle/save/dialog","Aircraft/SpaceShuttle/Dialogs/save.xml");
+var electrical_dlg = gui.Dialog.new("/sim/gui/dialogs/SpaceShuttle/electrical/dialog","Aircraft/CatskillsFusionSSTO/Dialogs/electrical.xml");
 
-var mcc_status_dlg = gui.Dialog.new("/sim/gui/dialogs/SpaceShuttle/mcc-status/dialog","Aircraft/SpaceShuttle/Dialogs/mcc_status.xml");
+var ku_dlg = gui.Dialog.new("/sim/gui/dialogs/SpaceShuttle/ku/dialog","Aircraft/CatskillsFusionSSTO/Dialogs/ku_antenna.xml");
 
-var mcc_comm_dlg = gui.Dialog.new("/sim/gui/dialogs/SpaceShuttle/mcc-comm/dialog","Aircraft/SpaceShuttle/Dialogs/mcc_comm.xml");
+var mechanical_dlg = gui.Dialog.new("/sim/gui/dialogs/SpaceShuttle/mechanical/dialog","Aircraft/CatskillsFusionSSTO/Dialogs/mechanical.xml");
 
-var touchdown_dlg = gui.Dialog.new("/sim/gui/dialogs/SpaceShuttle/touchdown/dialog","Aircraft/SpaceShuttle/Dialogs/touchdown.xml");
+var mps_dlg = gui.Dialog.new("/sim/gui/dialogs/SpaceShuttle/mps/dialog","Aircraft/CatskillsFusionSSTO/Dialogs/mps.xml");
 
-var carrier_dlg = gui.Dialog.new("/sim/gui/dialogs/SpaceShuttle/carrier/dialog","Aircraft/SpaceShuttle/Dialogs/carrier_controls.xml");
+var options_dlg = gui.Dialog.new("/sim/gui/dialogs/SpaceShuttle/options/dialog","Aircraft/CatskillsFusionSSTO/Dialogs/options.xml");
+
+var rcs_dlg = gui.Dialog.new("/sim/gui/dialogs/SpaceShuttle/rcs/dialog","Aircraft/CatskillsFusionSSTO/Dialogs/rcs.xml");
+
+var rms_deploy_dlg = gui.Dialog.new("/sim/gui/dialogs/SpaceShuttle/rms-deploy/dialog","Aircraft/CatskillsFusionSSTO/Dialogs/rms_deploy.xml");
+
+var rms_pyro_dlg = gui.Dialog.new("/sim/gui/dialogs/SpaceShuttle/rms-pyro/dialog","Aircraft/CatskillsFusionSSTO/Dialogs/rms_pyro.xml");
+
+var pb_floodlight_dlg = gui.Dialog.new("/sim/gui/dialogs/SpaceShuttle/pb-floodlight/dialog","Aircraft/CatskillsFusionSSTO/Dialogs/pb_floodlight.xml");
+
+var rms_operation_dlg = gui.Dialog.new("/sim/gui/dialogs/SpaceShuttle/rms-operation/dialog","Aircraft/CatskillsFusionSSTO/Dialogs/rms_operation.xml");
+
+var pl_retention_dlg = gui.Dialog.new("/sim/gui/dialogs/SpaceShuttle/payload-retention/dialog","Aircraft/CatskillsFusionSSTO/Dialogs/payload_retention.xml");
+
+var flight_controls_dlg = gui.Dialog.new("/sim/gui/dialogs/SpaceShuttle/flight_controls/dialog","Aircraft/CatskillsFusionSSTO/Dialogs/flight_controls.xml");
+
+var dps_keyboard_dlg = gui.Dialog.new("/sim/gui/dialogs/SpaceShuttle/dps_keyboard/dialog","Aircraft/CatskillsFusionSSTO/Dialogs/dps_keyboard.xml");
+
+var idp_dlg = gui.Dialog.new("/sim/gui/dialogs/SpaceShuttle/idp/dialog","Aircraft/CatskillsFusionSSTO/Dialogs/idp_settings.xml");
+
+
+var temperature_dlg = gui.Dialog.new("/sim/gui/dialogs/SpaceShuttle/temperature/dialog","Aircraft/CatskillsFusionSSTO/Dialogs/thermal_distribution.xml");
+
+var propellant_fd_dlg = gui.Dialog.new("/sim/gui/dialogs/SpaceShuttle/propellant_fd/dialog","Aircraft/CatskillsFusionSSTO/Dialogs/propellant_fill_drain.xml");
+
+var cabin_lighting_dlg = gui.Dialog.new("/sim/gui/dialogs/SpaceShuttle/cabin-lighting/dialog","Aircraft/CatskillsFusionSSTO/Dialogs/cabin_lighting.xml");
+
+var switch_covers_dlg = gui.Dialog.new("/sim/gui/dialogs/SpaceShuttle/switch-covers/dialog","Aircraft/CatskillsFusionSSTO/Dialogs/switch_covers.xml");
+
+var save_dlg = gui.Dialog.new("/sim/gui/dialogs/SpaceShuttle/save/dialog","Aircraft/CatskillsFusionSSTO/Dialogs/save.xml");
+
+var mcc_status_dlg = gui.Dialog.new("/sim/gui/dialogs/SpaceShuttle/mcc-status/dialog","Aircraft/CatskillsFusionSSTO/Dialogs/mcc_status.xml");
+
+var mcc_comm_dlg = gui.Dialog.new("/sim/gui/dialogs/SpaceShuttle/mcc-comm/dialog","Aircraft/CatskillsFusionSSTO/Dialogs/mcc_comm.xml");
+
+var touchdown_dlg = gui.Dialog.new("/sim/gui/dialogs/SpaceShuttle/touchdown/dialog","Aircraft/CatskillsFusionSSTO/Dialogs/touchdown.xml");
+
+var carrier_dlg = gui.Dialog.new("/sim/gui/dialogs/SpaceShuttle/carrier/dialog","Aircraft/CatskillsFusionSSTO/Dialogs/carrier_controls.xml");
 
 var earthview_flag = getprop("/sim/config/shuttle/rendering/use-earthview");
 var earthview_transition_alt = getprop("/sim/config/shuttle/rendering/earthview-transition-alt-ft");

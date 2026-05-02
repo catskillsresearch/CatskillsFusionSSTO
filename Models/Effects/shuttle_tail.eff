@@ -2,7 +2,7 @@
 
 <PropertyList>
   <name>shuttle-tail</name>
-  <inherits-from>Aircraft/SpaceShuttle/Models/Effects/shuttle-payload-bay</inherits-from>
+  <inherits-from>Aircraft/CatskillsFusionSSTO/Models/Effects/shuttle-payload-bay</inherits-from>
 
   <parameters>
 	<lightmap-multi type="int">0</lightmap-multi>

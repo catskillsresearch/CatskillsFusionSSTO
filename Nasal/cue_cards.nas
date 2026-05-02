@@ -105,12 +105,12 @@ var cue_card_binder_manager = {
 		me.root_right = me.canvas_right.createGroup();
 
 		me.img_left = me.root_left.createChild("image")
-				.setFile("Aircraft/SpaceShuttle/Cuecards/"~me.base_file_string~"-L-01.jpg")
+				.setFile("Aircraft/CatskillsFusionSSTO/Cuecards/"~me.base_file_string~"-L-01.jpg")
 				.setTranslation(200,0)
 				.setSize(620, 1024);
 
 		me.img_right = me.root_right.createChild("image")
-				.setFile("Aircraft/SpaceShuttle/Cuecards/"~me.base_file_string~"-R-01.jpg")
+				.setFile("Aircraft/CatskillsFusionSSTO/Cuecards/"~me.base_file_string~"-R-01.jpg")
 				.setTranslation(200,0)
 				.setSize(620, 1024);
 
@@ -133,8 +133,8 @@ var cue_card_binder_manager = {
 			me.num_pages = 34;
 			}
 
-		me.img_left.setFile("Aircraft/SpaceShuttle/Cuecards/"~me.base_file_string~"-L-01.jpg");
-		me.img_right.setFile("Aircraft/SpaceShuttle/Cuecards/"~me.base_file_string~"-R-01.jpg");
+		me.img_left.setFile("Aircraft/CatskillsFusionSSTO/Cuecards/"~me.base_file_string~"-L-01.jpg");
+		me.img_right.setFile("Aircraft/CatskillsFusionSSTO/Cuecards/"~me.base_file_string~"-R-01.jpg");
 		me.current_page = 1;
 
 	},
@@ -154,8 +154,8 @@ var cue_card_binder_manager = {
 		numstring = numstring~me.current_page;
 
 
-		me.img_left.setFile("Aircraft/SpaceShuttle/Cuecards/"~string~"-L-"~numstring~".jpg");
-		me.img_right.setFile("Aircraft/SpaceShuttle/Cuecards/"~string~"-R-"~numstring~".jpg");
+		me.img_left.setFile("Aircraft/CatskillsFusionSSTO/Cuecards/"~string~"-L-"~numstring~".jpg");
+		me.img_right.setFile("Aircraft/CatskillsFusionSSTO/Cuecards/"~string~"-R-"~numstring~".jpg");
 
 
 			
@@ -178,7 +178,7 @@ var cue_card_binder_manager = {
 		numstring = numstring~me.current_page;
 
 		var child=root.createChild("image")
-				                   .setFile("Aircraft/SpaceShuttle/Cuecards/"~string~"-L-"~numstring~".jpg")
+				                   .setFile("Aircraft/CatskillsFusionSSTO/Cuecards/"~string~"-L-"~numstring~".jpg")
 				                   .setTranslation(0,0)
 				                   .setSize(size);
 
@@ -199,7 +199,7 @@ var cue_card_binder_manager = {
 		numstring = numstring~me.current_page;
 
 		var child=root.createChild("image")
-				                   .setFile("Aircraft/SpaceShuttle/Cuecards/"~string~"-R-"~numstring~".jpg")
+				                   .setFile("Aircraft/CatskillsFusionSSTO/Cuecards/"~string~"-R-"~numstring~".jpg")
 				                   .setTranslation(0,0)
 				                   .setSize(size);
 

@@ -32,7 +32,7 @@
   </animation>
 
 	<effect>
-		<inherits-from>Aircraft/SpaceShuttle/Models/Effects/strake-vortex</inherits-from>
+		<inherits-from>Aircraft/CatskillsFusionSSTO/Models/Effects/strake-vortex</inherits-from>
 		<object-name>Bounding_box</object-name>
 	</effect>
 

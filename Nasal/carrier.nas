@@ -271,7 +271,7 @@ var carrier_aircraft =  {
 		var pitch = getprop("/orientation/pitch-deg");
 		var roll = getprop("/orientation/roll-deg");
 
-		SpaceShuttle.place_model("SCA", "Aircraft/SpaceShuttle/Models/SCA/747-123-SCAfree.xml", me.sca_coord.lat(), me.sca_coord.lon(), me.sca_coord.alt(), heading, pitch, roll);
+		SpaceShuttle.place_model("SCA", "Aircraft/CatskillsFusionSSTO/Models/SCA/747-123-SCAfree.xml", me.sca_coord.lat(), me.sca_coord.lon(), me.sca_coord.alt(), heading, pitch, roll);
 
 		me.carrier_speed_north = getprop("/fdm/jsbsim/velocities/v-north-fps") * 0.3048;
 		me.carrier_speed_east = getprop("/fdm/jsbsim/velocities/v-east-fps") * 0.3048;

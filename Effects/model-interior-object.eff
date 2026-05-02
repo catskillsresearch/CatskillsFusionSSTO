@@ -164,8 +164,8 @@
         <use>vertex-program-two-side</use>
       </vertex-program-two-side>
       <program>
-        <vertex-shader>Aircraft/SpaceShuttle/Shaders/model-interior-ALS-extended-geolight.vert</vertex-shader>
-        <fragment-shader>Aircraft/SpaceShuttle/Shaders/model-interior-ALS-extended-geolight.frag</fragment-shader>
+        <vertex-shader>Aircraft/CatskillsFusionSSTO/Shaders/model-interior-ALS-extended-geolight.vert</vertex-shader>
+        <fragment-shader>Aircraft/CatskillsFusionSSTO/Shaders/model-interior-ALS-extended-geolight.frag</fragment-shader>
         <fragment-shader>Shaders/secondary_lights.frag</fragment-shader>
         <fragment-shader>Shaders/noise.frag</fragment-shader>
         <fragment-shader>Shaders/filters-ALS.frag</fragment-shader>

@@ -7,7 +7,7 @@ var cdlg_cuecards = {
 
 		var width = 512;
 		var height = 512;
-		var img_path = "Aircraft/SpaceShuttle/Dialogs/Cuecards/cuecards.png";
+		var img_path = "Aircraft/CatskillsFusionSSTO/Dialogs/Cuecards/cuecards.png";
 						
 
 
@@ -138,7 +138,7 @@ var cdlg_cuecards = {
 
 
 		var stack = [];
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/Cuecards/cuecards_next_0.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/Cuecards/cuecards_next_0.png");
 		me.button_cdr_next = cdlg_widget_img_stack.new(me.root, stack, 126, 42);
 		me.button_cdr_next.setTranslation(350,70);
 

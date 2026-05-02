@@ -7,7 +7,7 @@ var cdlg_temperature = {
 
 		var width = 430;
 		var height = 616;
-		var img_path = "Aircraft/SpaceShuttle/Dialogs/orbiter_top.png";
+		var img_path = "Aircraft/CatskillsFusionSSTO/Dialogs/orbiter_top.png";
 						
 
 
@@ -94,8 +94,8 @@ var cdlg_temperature = {
 
 
 		var stack = [];
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/units_to_fahrenheit.png");
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/units_to_kelvin.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/units_to_fahrenheit.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/units_to_kelvin.png");
 
 		me.unit_switch = cdlg_widget_img_stack.new(me.root, stack, 126, 142);
 		me.unit_switch.setTranslation(20,20);

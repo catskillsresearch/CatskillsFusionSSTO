@@ -2,20 +2,20 @@
 
 <!-- this puts the Shuttle onto a gliding path -->
 
-<PropertyList include="SpaceShuttle-common.xml">
+<PropertyList include="CatskillsFusionSSTO-common.xml">
 <sim>
-  <description>NASA Space Shuttle Atlantis on final</description>
+  <description>Catskills Fusion SSTO Atlantis on final</description>
   <long-description>
      The Space Shuttle was a partially re-usable low orbit spacecraft operated by NASA from 1981 to 2011. This mission phase finds the Shuttle at 12.000 ft in final approach to the runway with about a minute of flight to go to touchdown. There is an approach trainer provided which evaluates the landing and allows to re-set the scenario.
   </long-description>
-  <variant-of>SpaceShuttle-launch</variant-of>
+  <variant-of>CatskillsFusionSSTO</variant-of>
   <presets>
 	<altitude-ft>11000.0</altitude-ft>
 	<pitch-deg>-5.0</pitch-deg>	
 	<stage type="int">4</stage>
   </presets>
   <startup>
-    <splash-texture>Aircraft/SpaceShuttle/SpaceShuttle-approach-splash.png</splash-texture>
+    <splash-texture>Aircraft/CatskillsFusionSSTO/CatskillsFusionSSTO-approach-splash.png</splash-texture>
   </startup>
  <previews>
       <preview>

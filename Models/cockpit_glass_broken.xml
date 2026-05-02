@@ -2,10 +2,10 @@
 
 <PropertyList>
 
-    <path>Aircraft/SpaceShuttle/Models/cockpit_glass_broken.ac</path>
+    <path>Aircraft/CatskillsFusionSSTO/Models/cockpit_glass_broken.ac</path>
 
  <effect>
-    <inherits-from>Aircraft/SpaceShuttle/Models/Effects/glass-front-broken</inherits-from>
+    <inherits-from>Aircraft/CatskillsFusionSSTO/Models/Effects/glass-front-broken</inherits-from>
 	<object-name>cockpit-front-glass-outside-broken</object-name>
  </effect>
 

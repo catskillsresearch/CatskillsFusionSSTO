@@ -8,7 +8,7 @@ var cdlg_training = {
 
 		var width = 512;
 		var height = 384;
-		var img_path = "Aircraft/SpaceShuttle/Pics/orbit-splash03.png";
+		var img_path = "Aircraft/CatskillsFusionSSTO/Pics/orbit-splash03.png";
 						
 
 
@@ -49,7 +49,7 @@ var cdlg_training = {
 
 
 		var stack = [];
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/Scenario/scenario_next_0.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/Scenario/scenario_next_0.png");
 		me.button_next = cdlg_widget_img_stack.new(me.root, stack, 126, 42);
 		me.button_next.setTranslation(20,320);
 
@@ -60,7 +60,7 @@ var cdlg_training = {
 			};
 
 		stack = [];
-		append(stack, "Aircraft/SpaceShuttle/Dialogs/Scenario/scenario_select_0.png");
+		append(stack, "Aircraft/CatskillsFusionSSTO/Dialogs/Scenario/scenario_select_0.png");
 		me.button_select = cdlg_widget_img_stack.new(me.root, stack, 126, 42);
 		me.button_select.setTranslation(370 ,320);
 
@@ -110,25 +110,25 @@ var cdlg_training = {
 				{
 				me.current_index = 1;
 				me.an_scenario_name.setText("Ascent failures difficulty level: easy");
-				me.picture.setFile("Aircraft/SpaceShuttle/Dialogs/Training/ascent_easy.png");
+				me.picture.setFile("Aircraft/CatskillsFusionSSTO/Dialogs/Training/ascent_easy.png");
 				}
 			else if (me.current_index == 1)
 				{
 				me.current_index = 2;
 				me.an_scenario_name.setText("Ascent failures difficulty level: medium");
-				me.picture.setFile("Aircraft/SpaceShuttle/Dialogs/Training/ascent_medium.png");
+				me.picture.setFile("Aircraft/CatskillsFusionSSTO/Dialogs/Training/ascent_medium.png");
 				}
 			else if (me.current_index == 2)
 				{
 				me.current_index = 3;
 				me.an_scenario_name.setText("Ascent failures difficulty level: hard");
-				me.picture.setFile("Aircraft/SpaceShuttle/Dialogs/Training/ascent_hard.png");
+				me.picture.setFile("Aircraft/CatskillsFusionSSTO/Dialogs/Training/ascent_hard.png");
 				}
 			else
 				{
 				me.current_index = 0;
 				me.an_scenario_name.setText("No scenario selected");
-				me.picture.setFile("Aircraft/SpaceShuttle/Pics/orbit-splash03.png");
+				me.picture.setFile("Aircraft/CatskillsFusionSSTO/Pics/orbit-splash03.png");
 				}
 			
 			}

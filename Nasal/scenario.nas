@@ -9,7 +9,7 @@ var scenario_init = func {
 var filename = getprop("/scenario/filename");
 
 var target = props.globals.getNode("/scenario");
-var success = io.read_properties("Aircraft/SpaceShuttle/Scenario/"~filename, target);
+var success = io.read_properties("Aircraft/CatskillsFusionSSTO/Scenario/"~filename, target);
 
 if (success == nil) # try absolute path
 	{

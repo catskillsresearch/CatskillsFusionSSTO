@@ -112,7 +112,7 @@
   </animation>
 
     <effect> 
-	<inherits-from>Aircraft/SpaceShuttle/Effects/chute</inherits-from>
+	<inherits-from>Aircraft/CatskillsFusionSSTO/Effects/chute</inherits-from>
         <object-name>MC_Chute</object-name>
         <object-name>MC_Cords</object-name>
     </effect>

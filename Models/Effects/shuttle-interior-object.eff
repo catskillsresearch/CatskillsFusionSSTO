@@ -2,17 +2,17 @@
 
 <PropertyList>
     <name>Effects/shuttle-interior-object</name>
-    <inherits-from>Aircraft/SpaceShuttle/Effects/model-interior-object</inherits-from>
+    <inherits-from>Aircraft/CatskillsFusionSSTO/Effects/model-interior-object</inherits-from>
     <parameters>
         <texture n="4">
           <type>cubemap</type>
           <images>
-              <positive-x>Aircraft/SpaceShuttle/Models/Effects/Interior/0004.png</positive-x>      <!-- px (tail) rotate 90 deg from N or S to W -->
-              <negative-x>Aircraft/SpaceShuttle/Models/Effects/Interior/0002.png</negative-x>      <!-- nx (nose) rotate 90 deg from N or S to E -->
-              <positive-y>Aircraft/SpaceShuttle/Models/Effects/Interior/0001.png</positive-y>      <!-- py (starboard/right) from N do not rotate -->
-              <negative-y>Aircraft/SpaceShuttle/Models/Effects/Interior/0003.png</negative-y>      <!-- ny (port/left) from N rotate 180 deg to S -->
-              <positive-z>Aircraft/SpaceShuttle/Models/Effects/Interior/0006.png</positive-z>      <!-- pz (top) rotate 90 deg from N or S to W -->
-              <negative-z>Aircraft/SpaceShuttle/Models/Effects/Interior/0005.png</negative-z>      <!-- nz (bottom) rotate 90 deg from N or S to W -->
+              <positive-x>Aircraft/CatskillsFusionSSTO/Models/Effects/Interior/0004.png</positive-x>      <!-- px (tail) rotate 90 deg from N or S to W -->
+              <negative-x>Aircraft/CatskillsFusionSSTO/Models/Effects/Interior/0002.png</negative-x>      <!-- nx (nose) rotate 90 deg from N or S to E -->
+              <positive-y>Aircraft/CatskillsFusionSSTO/Models/Effects/Interior/0001.png</positive-y>      <!-- py (starboard/right) from N do not rotate -->
+              <negative-y>Aircraft/CatskillsFusionSSTO/Models/Effects/Interior/0003.png</negative-y>      <!-- ny (port/left) from N rotate 180 deg to S -->
+              <positive-z>Aircraft/CatskillsFusionSSTO/Models/Effects/Interior/0006.png</positive-z>      <!-- pz (top) rotate 90 deg from N or S to W -->
+              <negative-z>Aircraft/CatskillsFusionSSTO/Models/Effects/Interior/0005.png</negative-z>      <!-- nz (bottom) rotate 90 deg from N or S to W -->
           </images>
         </texture>
 
