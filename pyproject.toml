@@ -1,0 +1,58 @@
+[tool.poetry]
+name = "ssto"
+version = "0.1"
+description = ""
+authors = ["Lars Ericson"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+python-dotenv = "*"
+unidecode = "*"
+tqdm = "^4.67.1"
+plotly = "^6.3.0"
+ta = "^0.11.0"
+qasync = "^0.28.0"
+pyright = "^1.1.406"
+pylint = "^4.0.1"
+ruff = "^0.14.1"
+mypy = "^1.18.2"
+types-pyyaml = "^6.0.12.20250915"
+types-psutil = "^7.0.0.20251001"
+beartype = "^0.22.6"
+tabulate = "^0.9.0"
+cadquery = "^2.7.0"
+mpi4py = "^4.1.1"
+openpmd-viewer = "^1.11.0"
+matplotlib = "^3.10.9"
+yt = "^4.4.2"
+pillow = "^12.2.0"
+scipy = "^1.17.1"
+
+[tool.poetry.group.dev.dependencies]
+jupyterlab = "*"
+ipykernel = "*"
+ipywidgets = "*"
+jupyter_nbextensions_configurator = "*"
+ipympl = "*"
+selenium = "*"
+streamlit = "*"
+pandas = "*"
+matplotlib = "*"
+seaborn = "*"
+numpy = "*"
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+warn_unused_ignores = true
+warn_return_any = true
+disallow_untyped_calls = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+disallow_untyped_decorators = true
+check_untyped_defs = true
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

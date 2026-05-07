@@ -1,0 +1,133 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="http://jsbsim.sourceforge.net/JSBSim.xsl"?>
+<fdm_config name="Orbitron_Test_Stand" version="2.0" release="BETA">
+
+    <fileheader>
+        <author>Catskills Aerospace</author>
+        <description>Single 3.5 MW p-B11 Tube Test Stand</description>
+    </fileheader>
+
+    <!-- METRICS: A stationary 500kg metal stand and optical table -->
+    <metrics>
+        <wingarea unit="FT2"> 0 </wingarea>
+        <wingspan unit="FT"> 0 </wingspan>
+        <chord unit="FT"> 0 </chord>
+        <htailarea unit="FT2"> 0 </htailarea>
+        <htailarm unit="FT"> 0 </htailarm>
+        <vtailarea unit="FT2"> 0 </vtailarea>
+        <vtailarm unit="FT"> 0 </vtailarm>
+        <location name="CG" unit="M">
+            <x> 0 </x> <y> 0 </y> <z> 1.0 </z>
+        </location>
+    </metrics>
+
+    <mass_balance>
+        <emptywt unit="KG"> 500 </emptywt>
+        <ixx unit="SLUG*FT2"> 100 </ixx>
+        <iyy unit="SLUG*FT2"> 100 </iyy>
+        <izz unit="SLUG*FT2"> 100 </izz>
+        <ixy unit="SLUG*FT2"> 0 </ixy>
+        <ixz unit="SLUG*FT2"> 0 </ixz>
+        <iyz unit="SLUG*FT2"> 0 </iyz>
+    </mass_balance>
+
+    <!-- GROUND REACTIONS: Bolted to the floor (Infinite friction) -->
+    <ground_reactions>
+        <contact type="BOGEY" name="BOLT_FRONT">
+            <location unit="M"> <x> 0.5 </x> <y> 0 </y> <z> 0 </z> </location>
+            <static_friction> 100.0 </static_friction>
+            <dynamic_friction> 100.0 </dynamic_friction>
+            <spring_coeff unit="LBS/FT"> 50000.0 </spring_coeff>
+            <damping_coeff unit="LBS/FT/SEC"> 10000.0 </damping_coeff>
+        </contact>
+        <contact type="BOGEY" name="BOLT_REAR">
+            <location unit="M"> <x> -0.5 </x> <y> 0 </y> <z> 0 </z> </location>
+            <static_friction> 100.0 </static_friction>
+            <dynamic_friction> 100.0 </dynamic_friction>
+            <spring_coeff unit="LBS/FT"> 50000.0 </spring_coeff>
+            <damping_coeff unit="LBS/FT/SEC"> 10000.0 </damping_coeff>
+        </contact>
+    </ground_reactions>
+
+    <!-- ORBITRON REACTOR SIMULATION MATH -->
+    <system name="Orbitron_Physics">
+        
+        <!-- 1. Map Throttle to Ion Injection Rate (0 to 100 sccm) -->
+        <channel name="Fuel Injection">
+            <pure_gain name="reactor/injection-sccm">
+                <input>fcs/throttle-cmd-norm</input>
+                <gain>100.0</gain>
+            </pure_gain>
+        </channel>
+
+        <!-- 2. Fusion Power Output (3.5 MW Max) -->
+        <!-- Power scales non-linearly with density, let's square the throttle -->
+        <channel name="Power Generation">
+            <fcs_function name="reactor/alpha-power-mw">
+                <function>
+                    <product>
+                        <property>fcs/throttle-cmd-norm</property>
+                        <property>fcs/throttle-cmd-norm</property>
+                        <value>3.5</value> <!-- Max 3.5 MW -->
+                    </product>
+                </function>
+            </fcs_function>
+        </channel>
+
+        <!-- 3. Bremsstrahlung Heat Generation (400 kW Max at full throttle) -->
+        <channel name="Heat Generation">
+            <fcs_function name="reactor/xray-heat-kw">
+                <function>
+                    <product>
+                        <property>fcs/throttle-cmd-norm</property>
+                        <value>400.0</value>
+                    </product>
+                </function>
+            </fcs_function>
+        </channel>
+
+        <!-- 4. Coolant Flow (Mapped to Mixture Control, 0 to 10 kg/s) -->
+        <channel name="Coolant System">
+            <pure_gain name="reactor/coolant-flow-kgs">
+                <input>fcs/mixture-cmd-norm</input>
+                <gain>10.0</gain>
+            </pure_gain>
+            
+            <!-- Cooling effect: 1 kg/s removes ~50 kW of heat from the tube -->
+            <pure_gain name="reactor/cooling-effect-kw">
+                <input>reactor/coolant-flow-kgs</input>
+                <gain>-50.0</gain>
+            </pure_gain>
+        </channel>
+
+        <!-- 5. Thermodynamics: Wall Temperature Integrator -->
+        <!-- Delta Temp = (Heat In - Cooling Out) * Thermal Mass factor -->
+        <channel name="Thermodynamics">
+            <summer name="reactor/net-heat-flux">
+                <input>reactor/xray-heat-kw</input>
+                <input>reactor/cooling-effect-kw</input> <!-- Negative value -->
+            </summer>
+
+            <integrator name="reactor/wall-temp-c">
+                <input>reactor/net-heat-flux</input>
+                <c1>0.5</c1> <!-- Heating/Cooling speed factor -->
+                <initialval>20.0</initialval> <!-- Starts at room temp -->
+                <trigger> <!-- Stop cooling below room temp -->
+                    <condition>
+                        <and>
+                            <lessthan>
+                                <property>reactor/wall-temp-c</property>
+                                <value>20.0</value>
+                            </lessthan>
+                            <lessthan>
+                                <property>reactor/net-heat-flux</property>
+                                <value>0.0</value>
+                            </lessthan>
+                        </and>
+                    </condition>
+                </trigger>
+            </integrator>
+        </channel>
+    </system>
+
+</fdm_config>

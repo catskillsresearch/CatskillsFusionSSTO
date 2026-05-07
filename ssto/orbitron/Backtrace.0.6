@@ -1,0 +1,41 @@
+Host Name: catskills-Z390-AORUS-MASTER
+=== If no file names and line numbers are shown below, one can run
+            addr2line -Cpfie my_exefile my_line_address
+    to convert `my_line_address` (e.g., 0x4a6b) into file name and line number.
+    Or one can use amrex/Tools/Backtrace/parse_bt.py.
+
+=== Please note that the line number reported by addr2line may not be accurate.
+    One can use
+            readelf -wl my_exefile | grep my_line_address'
+    to find out the offset for that line.
+
+ 0: /home/catskills/Desktop/Aircraft/CatskillsFusionSSTO/WarpX/build/lib/libamrex_2d.so(_ZN5amrex11BLBackTrace20print_backtrace_infoEP8_IO_FILE+0x46) [0x7b4a2e966cc6]
+    ?? ??:0
+
+ 1: /home/catskills/Desktop/Aircraft/CatskillsFusionSSTO/WarpX/build/lib/libamrex_2d.so(_ZN5amrex11BLBackTrace7handlerEi+0x437) [0x7b4a2e96a8f7]
+    ?? ??:0
+
+ 2: /lib/x86_64-linux-gnu/libc.so.6(+0x45330) [0x7b4a5ca45330]
+
+ 3: /home/catskills/Desktop/Aircraft/CatskillsFusionSSTO/WarpX/build/lib/site-packages/pywarpx/warpx_pybind_2d.cpython-312-x86_64-linux-gnu.so(_ZN22WarpXParticleContainer14DepositCurrentER12WarpXParIterRKN5amrex9PODVectorIdNS2_25PolymorphicArenaAllocatorIdEEEES8_S8_S8_PKiPNS2_8MultiFabESC_SC_lliiidd8PushType+0x2e21) [0x7b4a2dab98f1]
+    ?? ??:0
+
+ 4: /home/catskills/Desktop/Aircraft/CatskillsFusionSSTO/WarpX/build/lib/site-packages/pywarpx/warpx_pybind_2d.cpython-312-x86_64-linux-gnu.so(+0x5b4e2a) [0x7b4a2d9b4e2a]
+    ?? ??:0
+
+ 5: /lib/x86_64-linux-gnu/libgomp.so.1(+0x2279f) [0x7b4a59ecc79f]
+    ?? ??:0
+
+ 6: /lib/x86_64-linux-gnu/libc.so.6(+0x9caa4) [0x7b4a5ca9caa4]
+
+ 7: /lib/x86_64-linux-gnu/libc.so.6(+0x129c6c) [0x7b4a5cb29c6c]
+
+
+===== TinyProfilers ======
+REG::WarpX::Evolve()
+WarpX::Evolve()
+WarpX::Evolve::step
+WarpX::OneStep()
+WarpX::OneStep_nosub()
+PhysicalParticleContainer::Evolve()
+

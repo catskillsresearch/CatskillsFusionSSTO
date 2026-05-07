@@ -1,0 +1,82 @@
+import numpy as np
+from pywarpx import picmi
+
+print("==================================================")
+print("  ORBITRON LAMINAR FLOW / DIOCOTRON SIMULATION    ")
+print("==================================================")
+
+# --- DEVICE GEOMETRY & FIELDS ---
+r_anode = 0.05
+r_cathode = 0.005
+V_cathode = -600e3
+B_axial = 2.0
+
+# NOTE: We are back to the pure 2D grid now that you compiled it correctly!
+grid = picmi.Cartesian2DGrid(
+    number_of_cells=[256, 256], # High resolution required to see turbulence
+    lower_bound=[-r_anode, -r_anode],
+    upper_bound=[r_anode, r_anode],
+    lower_boundary_conditions=['dirichlet', 'dirichlet'],
+    upper_boundary_conditions=['dirichlet', 'dirichlet']
+)
+
+# Crossed E and B Fields
+E_field_expr = f"-({V_cathode}/log({r_anode}/{r_cathode}))"
+Ex_expr = f"{E_field_expr} * x / max(x**2 + y**2, {r_cathode**2})"
+Ey_expr = f"{E_field_expr} * y / max(x**2 + y**2, {r_cathode**2})"
+
+applied_E = picmi.AnalyticAppliedField(Ex_expression=Ex_expr, Ey_expression=Ey_expr, Ez_expression="0.0")
+applied_B = picmi.AnalyticAppliedField(Bx_expression="0.0", By_expression="0.0", Bz_expression=str(B_axial))
+
+# --- THE HOLLOW ELECTRON RING (The Unstable Element) ---
+n_e = 5e15 
+electron_ring = picmi.AnalyticDistribution(
+    density_expression=f"{n_e} * (sqrt(x**2 + y**2) > 0.01) * (sqrt(x**2 + y**2) < 0.03)",
+    # PICMI 'momentum_expressions' (evaluates to velocity p/m)
+    momentum_expressions=[
+        f"-({E_field_expr} / max(sqrt(x**2 + y**2), 1e-4) / {B_axial}) * (y / max(sqrt(x**2 + y**2), 1e-4))",
+        f"({E_field_expr} / max(sqrt(x**2 + y**2), 1e-4) / {B_axial}) * (x / max(sqrt(x**2 + y**2), 1e-4))",
+        "0.0"
+    ]
+)
+
+electrons = picmi.Species(particle_type='electron', name='electrons', initial_distribution=electron_ring)
+
+# --- THE LAMINAR FIX: BEAM INJECTION (Image 2) ---
+beam_injector = picmi.ParticleListDistribution(
+    x=[0.04] * 100,  # X-coordinates of injection
+    y=np.linspace(-0.01, 0.01, 100).tolist(), # Y-coordinates (a 2cm wide beam)
+    z=[0.0] * 100,
+    ux=[-3e6] * 100, # High velocity shooting inward to create shear
+    uy=[0.0] * 100,
+    uz=[0.0] * 100,
+    weight=[1e10] * 100
+)
+
+stabilizing_beam = picmi.Species(particle_type='proton', name='stabilizing_beam', initial_distribution=beam_injector)
+
+# --- ASSEMBLE AND RUN ---
+sim = picmi.Simulation(solver=picmi.ElectromagneticSolver(grid=grid, cfl=0.9),
+                       max_steps=5000, # Needs time for turbulence to form and be suppressed
+                       verbose=1, time_step_size=1e-12)
+
+sim.add_applied_field(applied_E)
+sim.add_applied_field(applied_B)
+
+# Map electrons to grid
+sim.add_species(electrons, layout=picmi.GriddedLayout(n_macroparticle_per_cell=[4,4], grid=grid))
+sim.add_species(stabilizing_beam, layout=None) 
+
+# Add a diagnostic to output the 2D density maps to see the "Washing Machine" vs "Laminar" flow
+diag = picmi.FieldDiagnostic(
+    name='density_diag',
+    grid=grid,
+    period=500,
+    data_list=['rho_electrons'],
+    write_dir='diags'
+)
+sim.add_diagnostic(diag)
+
+print("Running ExB Relaminarization physics...")
+sim.step(5000)
+print("Simulation complete. Check 'diags' folder for Diocotron vortex data.")
