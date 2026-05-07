@@ -3,7 +3,8 @@
     <fx>
         <reactor-start>
             <name>Reactor Heavy Audio</name>
-            <path>reactor_audio_heavy.wav</path>
+            <!-- FG resolves sound paths relative to the aircraft ROOT folder -->
+            <path>Sounds/reactor_audio_heavy.wav</path>
             <condition>
                 <property>/sim/model/reactor/startup-trigger</property>
             </condition>

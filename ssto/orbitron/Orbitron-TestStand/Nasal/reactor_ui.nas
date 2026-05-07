@@ -10,8 +10,8 @@ var ReactorUI = {
             "mipmapping": 1
         });
 
-        # 2. Place this Canvas texture ON the 3D model object named "Screen"
-        m.canvas.addPlacement({"node": "Screen"});
+        # 2. Place this Canvas texture ON the 3D model object named "Decal_Table_Placard"
+        m.canvas.addPlacement({"node": "Decal_Table_Placard"});
         
         # 3. Create a drawing group
         m.root = m.canvas.createGroup();
@@ -36,10 +36,10 @@ var ReactorUI = {
         m.txt_heat  = m.create_text(500, "Brem. Heat: 0.00 kW");
         m.txt_q     = m.create_text(600, "Q-Factor: 0.00");
 
-        # Render PIC Image
-        # Make sure warpx_frame.png is in the Models folder
+        # Render PIC Image dynamically based on actual folder location
+        var aircraft_dir = getprop("/sim/aircraft-dir");
         m.pic_img = m.root.createChild("image")
-                          .setFile("Aircraft/Orbitron-TestStand/Models/warpx_frame.png")
+                          .setFile(aircraft_dir ~ "/Models/warpx_frame.png")
                           .setTranslation(200, 650)
                           .setSize(624, 350);
 

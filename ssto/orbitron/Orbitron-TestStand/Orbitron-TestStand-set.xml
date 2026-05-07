@@ -2,33 +2,46 @@
 <PropertyList>
     <sim>
         <description>Orbitron p-B11 Test Stand</description>
-        <author>Senior Aerospace Systems Engineer</author>
+        <author>Catskills Aerospace</author>
         <status>alpha</status>
+        
+        <!-- Fixes the Version Warning -->
+        <minimum-fg-version>2020.3.0</minimum-fg-version>
         
         <flight-model>jsb</flight-model>
         <aero>orbitron-jsbsim</aero>
-        <aero-dir>Systems</aero-dir>
 
+        <!-- Pure relative paths for custom desktop directories -->
         <model>
-            <path>Aircraft/Orbitron-TestStand/Models/Orbitron.xml</path>
+            <path>Models/Orbitron.xml</path>
         </model>
 
         <sound>
-            <path>Aircraft/Orbitron-TestStand/Sounds/sound.xml</path>
+            <path>Sounds/sound.xml</path>
         </sound>
 
-        <!-- Initialize custom properties -->
-        <model>
-            <reactor>
-                <startup-trigger type="bool">false</startup-trigger>
-            </reactor>
-        </model>
+        <reactor>
+            <startup-trigger type="bool">false</startup-trigger>
+        </reactor>
+
+        <!-- Default Camera: Standing at the Operator Console -->
+        <view>
+            <internal archive="y">true</internal>
+            <config>
+                <!-- X is left/right. Y is up/down. Z is forward/back in FlightGear view coords -->
+                <x-offset-m archive="y"> 0.0 </x-offset-m> 
+                <y-offset-m archive="y"> 1.6 </y-offset-m> <!-- 1.6 meters high (eye level) -->
+                <z-offset-m archive="y"> 3.0 </z-offset-m> <!-- 3 meters back from the center -->
+                <pitch-offset-deg>-10</pitch-offset-deg>   <!-- Looking slightly down at the table -->
+            </config>
+        </view>
+
     </sim>
 
-    <!-- Load the Canvas Nasal Script -->
     <nasal>
         <reactor_ui>
-            <file>Aircraft/Orbitron-TestStand/Nasal/reactor_ui.nas</file>
+            <!-- Pure relative path -->
+            <file>Nasal/reactor_ui.nas</file>
         </reactor_ui>
     </nasal>
 </PropertyList>

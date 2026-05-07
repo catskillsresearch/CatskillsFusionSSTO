@@ -1,0 +1,125 @@
+<?xml version="1.0"?>
+<fdm_config name="Orbitron-TestStand" version="2.0" release="BETA"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="http://jsbsim.sourceforge.net/JSBSim.xsd">
+
+    <metrics>
+        <wingarea  unit="FT2"> 10.0 </wingarea>
+        <wingspan  unit="FT" >  5.0 </wingspan>
+        <wing_incid unit="DEG"> 0.0 </wing_incid>
+        <chord     unit="FT" >  2.0 </chord>
+        <htailarea unit="FT2">  0.0 </htailarea>
+        <htailarm  unit="FT" >  0.0 </htailarm>
+        <vtailarea unit="FT2">  0.0 </vtailarea>
+        <vtailarm  unit="FT" >  0.0 </vtailarm>
+        <location name="AERORP" unit="IN"> <x>0</x> <y>0</y> <z>0</z> </location>
+        <location name="CG"     unit="IN"> <x>0</x> <y>0</y> <z>0</z> </location>
+    </metrics>
+
+    <mass_balance>
+        <!-- Boosted inertia so it acts like a heavy, stationary object -->
+        <ixx unit="SLUG*FT2"> 10000 </ixx>
+        <iyy unit="SLUG*FT2"> 10000 </iyy>
+        <izz unit="SLUG*FT2"> 10000 </izz>
+        <emptywt unit="LBS" > 5000 </emptywt>
+        <location name="CG" unit="IN"> <x>0</x> <y>0</y> <z>0</z> </location>
+    </mass_balance>
+
+    <ground_reactions>
+        <!-- Changed to STRUCTURE so it scrapes/plants instead of rolling -->
+        <contact type="STRUCTURE" name="Left_Front">
+            <location unit="IN"> <x>-50</x> <y>-50</y> <z>-20</z> </location>
+            <static_friction>  1.0 </static_friction>
+            <dynamic_friction> 1.0 </dynamic_friction>
+            <spring_coeff unit="LBS/FT"> 50000.0 </spring_coeff>
+            <damping_coeff unit="LBS/FT/SEC"> 10000.0 </damping_coeff>
+        </contact>
+        <contact type="STRUCTURE" name="Right_Front">
+            <location unit="IN"> <x>-50</x> <y>50</y> <z>-20</z> </location>
+            <static_friction>  1.0 </static_friction>
+            <dynamic_friction> 1.0 </dynamic_friction>
+            <spring_coeff unit="LBS/FT"> 50000.0 </spring_coeff>
+            <damping_coeff unit="LBS/FT/SEC"> 10000.0 </damping_coeff>
+        </contact>
+        <contact type="STRUCTURE" name="Left_Rear">
+            <location unit="IN"> <x>50</x> <y>-50</y> <z>-20</z> </location>
+            <static_friction>  1.0 </static_friction>
+            <dynamic_friction> 1.0 </dynamic_friction>
+            <spring_coeff unit="LBS/FT"> 50000.0 </spring_coeff>
+            <damping_coeff unit="LBS/FT/SEC"> 10000.0 </damping_coeff>
+        </contact>
+        <contact type="STRUCTURE" name="Right_Rear">
+            <location unit="IN"> <x>50</x> <y>50</y> <z>-20</z> </location>
+            <static_friction>  1.0 </static_friction>
+            <dynamic_friction> 1.0 </dynamic_friction>
+            <spring_coeff unit="LBS/FT"> 50000.0 </spring_coeff>
+            <damping_coeff unit="LBS/FT/SEC"> 10000.0 </damping_coeff>
+        </contact>
+    </ground_reactions>
+
+    <!-- REQUIRED BY JSBSIM PARSER EVEN IF EMPTY -->
+    <aerodynamics>
+    </aerodynamics>
+
+    <!-- REACTOR 0D MODEL -->
+    <system name="p-B11_Reactor">
+        <channel name="Reactor Input">
+            <fcs_function name="systems/reactor/nbi-sccm">
+                <function>
+                    <product>
+                        <!-- CHANGED: Reading FG hardware input directly -->
+                        <property>/controls/engines/engine[0]/throttle</property>
+                        <value> 100.0 </value> 
+                    </product>
+                </function>
+            </fcs_function>
+
+            <switch name="systems/reactor/active">
+                <default value="0.0"/>
+                <test value="1.0">
+                    /sim/model/reactor/startup-trigger == 1
+                </test>
+            </switch>
+        </channel>
+
+        <channel name="Reactor Output">
+            <fcs_function name="systems/reactor/gross-power-mw">
+                <function>
+                    <product>
+                        <property>systems/reactor/active</property>
+                        <property>/controls/engines/engine[0]/throttle</property>
+                        <value> 3.5 </value> 
+                    </product>
+                </function>
+            </fcs_function>
+
+            <fcs_function name="systems/reactor/heat-kw">
+                <function>
+                    <product>
+                        <property>systems/reactor/active</property>
+                        <property>/controls/engines/engine[0]/throttle</property>
+                        <value> 400.0 </value> 
+                    </product>
+                </function>
+            </fcs_function>
+
+            <fcs_function name="systems/reactor/current-amps">
+                <function>
+                    <quotient>
+                        <property>systems/reactor/gross-power-mw</property>
+                        <value> 4.0 </value> 
+                    </quotient>
+                </function>
+            </fcs_function>
+
+            <fcs_function name="systems/reactor/q-factor">
+                <function>
+                    <product>
+                        <property>systems/reactor/active</property>
+                        <value> 26.9 </value> 
+                    </product>
+                </function>
+            </fcs_function>
+        </channel>
+    </system>
+</fdm_config>
