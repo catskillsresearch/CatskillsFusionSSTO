@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<PropertyList>
+    <fx>
+        <reactor-start>
+            <name>Reactor Heavy Audio</name>
+            <path>reactor_audio_heavy.wav</path>
+            <condition>
+                <property>/sim/model/reactor/startup-trigger</property>
+            </condition>
+            <volume>
+                <factor>1.0</factor>
+            </volume>
+        </reactor-start>
+    </fx>
+</PropertyList>

@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<PropertyList>
+    <sim>
+        <description>Orbitron p-B11 Test Stand</description>
+        <author>Senior Aerospace Systems Engineer</author>
+        <status>alpha</status>
+        
+        <flight-model>jsb</flight-model>
+        <aero>orbitron-jsbsim</aero>
+        <aero-dir>Systems</aero-dir>
+
+        <model>
+            <path>Aircraft/Orbitron-TestStand/Models/Orbitron.xml</path>
+        </model>
+
+        <sound>
+            <path>Aircraft/Orbitron-TestStand/Sounds/sound.xml</path>
+        </sound>
+
+        <!-- Initialize custom properties -->
+        <model>
+            <reactor>
+                <startup-trigger type="bool">false</startup-trigger>
+            </reactor>
+        </model>
+    </sim>
+
+    <!-- Load the Canvas Nasal Script -->
+    <nasal>
+        <reactor_ui>
+            <file>Aircraft/Orbitron-TestStand/Nasal/reactor_ui.nas</file>
+        </reactor_ui>
+    </nasal>
+</PropertyList>

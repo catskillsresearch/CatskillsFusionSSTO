@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<PropertyList>
+    <path>orbitron.ac</path>
+
+    <!-- BIG RED BUTTON: Click to Start -->
+    <animation>
+        <type>pick</type>
+        <object-name>Big_Red_Button</object-name>
+        <action>
+            <button>0</button>
+            <repeatable>false</repeatable>
+            <binding>
+                <command>property-assign</command>
+                <property>/sim/model/reactor/startup-trigger</property>
+                <value>1</value>
+            </binding>
+        </action>
+    </animation>
+
+    <!-- THROTTLE SLIDER: Visual movement mapped to JSBSim input -->
+    <animation>
+        <type>translate</type>
+        <object-name>Throttle_Slider</object-name>
+        <property>/controls/engines/engine[0]/throttle</property>
+        <factor>0.2</factor> <!-- Adjust translation distance (meters) -->
+        <axis>
+            <x>-1</x> <!-- Assuming forward movement on X axis -->
+            <y>0</y>
+            <z>0</z>
+        </axis>
+    </animation>
+</PropertyList>
