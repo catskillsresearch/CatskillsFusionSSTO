@@ -2,21 +2,27 @@
 <PropertyList>
     <path>orbitron.ac</path>
 
-    <!-- 3D MODEL ORIENTATION ALIGNMENT -->
     <offsets>
-        <!-- We reset Pitch, and use Roll to cartwheel it upright -->
         <pitch-deg> 0 </pitch-deg> 
-        <roll-deg> -90 </roll-deg> 
-        <heading-deg> 0 </heading-deg>
-        
-        <!-- Let's put this back to 0.0 so the tanks aren't floating -->
-        <z-m> -1.0 </z-m> 
+        <roll-deg> 0 </roll-deg> 
+        <heading-deg> 90 </heading-deg> <!-- Spun to face the camera -->
+        <z-m> -0.5 </z-m> 
     </offsets>
 
-    <!-- CLICKABLE STARTUP TRIGGER -->
+    <!-- ANIMATION 1: Ambient light fix (Notice there is no <object-name>, so it applies to everything) -->
+    <animation>
+        <type>material</type>
+        <emission>
+            <red>0.15</red>
+            <green>0.15</green>
+            <blue>0.15</blue>
+        </emission>
+    </animation>
+
+    <!-- ANIMATION 2: Armed Big Red Button -->
     <animation>
         <type>pick</type>
-        <object-name>Big_Red_Button</object-name>  <!-- CHANGED THIS -->
+        <object-name>Big_Red_Button</object-name>
         <action>
             <button>0</button>
             <repeatable>false</repeatable>
