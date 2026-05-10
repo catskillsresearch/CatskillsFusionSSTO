@@ -25,7 +25,7 @@ def linear_to_srgb(v):
 
 def extract_base_color_linear(material):
     """Return (r, g, b, a) from Principled BSDF Base Color if present."""
-    if not (material and material.use_nodes and material.node_tree):
+    if not (material and material.node_tree):
         return None
 
     bsdf = material.node_tree.nodes.get("Principled BSDF")
@@ -57,42 +57,6 @@ def sync_material_diffuse_colors():
         g = linear_to_srgb(g_lin)
         b = linear_to_srgb(b_lin)
         mat.diffuse_color = (r, g, b, a)
-
-
-def build_object_target_rgb_map():
-    """
-    Build object -> representative sRGB tuple using first assigned material.
-    This is used to repair broken 'mat 0' face bindings in exported AC3D text.
-    """
-    mapping = {}
-    for obj in bpy.context.scene.objects:
-        if obj.type != "MESH":
-            continue
-        if not obj.material_slots:
-            continue
-
-        material = None
-        for slot in obj.material_slots:
-            if slot.material is not None:
-                material = slot.material
-                break
-        if material is None:
-            continue
-
-        linear = extract_base_color_linear(material)
-        if linear is None:
-            # Fallback to diffuse_color if node-based base color is unavailable.
-            dc = material.diffuse_color
-            mapping[obj.name] = (float(dc[0]), float(dc[1]), float(dc[2]))
-            continue
-
-        r_lin, g_lin, b_lin, _a = linear
-        mapping[obj.name] = (
-            linear_to_srgb(r_lin),
-            linear_to_srgb(g_lin),
-            linear_to_srgb(b_lin),
-        )
-    return mapping
 
 
 def load_gltf_object_target_rgb_map(gltf_path):
@@ -347,6 +311,118 @@ def enforce_ground_truth_materials(lines):
     return out
 
 
+def _choose_projection_axes(vertices):
+    xs = [v[0] for v in vertices]
+    ys = [v[1] for v in vertices]
+    zs = [v[2] for v in vertices]
+    spans = [
+        (max(xs) - min(xs), 0),
+        (max(ys) - min(ys), 1),
+        (max(zs) - min(zs), 2),
+    ]
+    spans.sort(reverse=True)
+    return spans[0][1], spans[1][1]
+
+
+def _normalized_uv(val, lo, hi):
+    if hi - lo < 1e-9:
+        return 0.5
+    return (val - lo) / (hi - lo)
+
+
+def repair_screen_uvs(lines, screen_name="Screen"):
+    """
+    AC3D exporter may emit collapsed UVs (0,0) for untextured meshes.
+    For FlightGear canvas mapping, repair Screen object refs with planar UVs.
+    """
+    out = list(lines)
+    i = 0
+    n = len(out)
+
+    while i < n:
+        line = out[i]
+        name_match = re.match(r'^\s*name\s+"(.+)"\s*$', line)
+        if not name_match or name_match.group(1) != screen_name:
+            i += 1
+            continue
+
+        # Find object block bounds.
+        obj_start = i
+        obj_end = n
+        j = i + 1
+        while j < n:
+            if out[j].startswith("OBJECT "):
+                obj_end = j
+                break
+            j += 1
+
+        # Parse vertices.
+        numvert_idx = None
+        numvert = 0
+        for k in range(obj_start, obj_end):
+            if out[k].startswith("numvert "):
+                numvert_idx = k
+                numvert = int(out[k].split()[1])
+                break
+        if numvert_idx is None or numvert <= 0:
+            i = obj_end
+            continue
+
+        vert_start = numvert_idx + 1
+        vert_end = vert_start + numvert
+        if vert_end > obj_end:
+            i = obj_end
+            continue
+
+        vertices = []
+        for k in range(vert_start, vert_end):
+            parts = out[k].split()
+            if len(parts) < 3:
+                vertices.append((0.0, 0.0, 0.0))
+                continue
+            vertices.append((float(parts[0]), float(parts[1]), float(parts[2])))
+
+        axis_u, axis_v = _choose_projection_axes(vertices)
+        coords_u = [v[axis_u] for v in vertices]
+        coords_v = [v[axis_v] for v in vertices]
+        u_min, u_max = min(coords_u), max(coords_u)
+        v_min, v_max = min(coords_v), max(coords_v)
+
+        # Rewrite refs lines within this object.
+        k = vert_end
+        while k < obj_end:
+            if out[k].startswith("refs "):
+                try:
+                    ref_count = int(out[k].split()[1])
+                except (IndexError, ValueError):
+                    k += 1
+                    continue
+                for r in range(ref_count):
+                    rr = k + 1 + r
+                    if rr >= obj_end:
+                        break
+                    parts = out[rr].split()
+                    if len(parts) < 1:
+                        continue
+                    try:
+                        vidx = int(parts[0])
+                    except ValueError:
+                        continue
+                    if not (0 <= vidx < len(vertices)):
+                        continue
+                    vtx = vertices[vidx]
+                    u = _normalized_uv(vtx[axis_u], u_min, u_max)
+                    v = _normalized_uv(vtx[axis_v], v_min, v_max)
+                    out[rr] = f"{vidx} {u:.6f} {v:.6f}\n"
+                k += 1 + ref_count
+            else:
+                k += 1
+
+        i = obj_end
+
+    return out
+
+
 def postprocess_ac_file(path, object_target_rgb):
     with open(path, "r", encoding="utf-8") as f:
         lines = f.readlines()
@@ -354,6 +430,7 @@ def postprocess_ac_file(path, object_target_rgb):
     # Material/lighting normalization + object face material repair.
     out = rebind_object_mat_indices(lines, object_target_rgb)
     out = enforce_ground_truth_materials(out)
+    out = repair_screen_uvs(out, "Screen")
 
     # Double-sided override for FlightGear backface culling.
     final_lines = []
@@ -370,6 +447,10 @@ def postprocess_ac_file(path, object_target_rgb):
 
 
 def execute_pipeline():
+    # Pipeline guarantees:
+    # 1) Kill "red virus": explicit diffuse_color from Principled Base Color.
+    # 2) Fix linear/sRGB mismatch before FlightGear sees MATERIAL rgb.
+    # 3) Force double-sided SURF to avoid flat-plane culling artifacts.
     print("--- STARTING AC3D BUILD PIPELINE ---")
     bpy.ops.preferences.addon_enable(module="io_scene_ac3d")
 
@@ -391,15 +472,20 @@ def execute_pipeline():
             obj.select_set(True)
     bpy.ops.object.delete()
 
+    # Ensure the podium monitor has valid UVs for FlightGear canvas mapping.
+    screen_obj = bpy.data.objects.get("Screen")
+    if screen_obj and screen_obj.type == "MESH":
+        bpy.ops.object.select_all(action="DESELECT")
+        screen_obj.select_set(True)
+        bpy.context.view_layer.objects.active = screen_obj
+        bpy.ops.object.mode_set(mode="EDIT")
+        bpy.ops.mesh.select_all(action="SELECT")
+        bpy.ops.uv.smart_project()
+        bpy.ops.object.mode_set(mode="OBJECT")
+
     # Critical color handoff for io_scene_ac3d.
     sync_material_diffuse_colors()
-    object_target_rgb = {}
-    try:
-        object_target_rgb.update(load_gltf_object_target_rgb_map(GLTF_FILE))
-    except Exception:
-        # Keep pipeline resilient; Blender-derived fallback still applies.
-        pass
-    object_target_rgb.update(build_object_target_rgb_map())
+    object_target_rgb = load_gltf_object_target_rgb_map(GLTF_FILE)
 
     # Export natively to AC3D.
     bpy.ops.object.select_all(action="SELECT")

@@ -17,6 +17,7 @@
             <!-- Moved trigger here so it becomes /sim/model/reactor/startup-trigger -->
             <reactor>
                 <startup-trigger type="bool">false</startup-trigger>
+                <debug-ui-window type="bool">false</debug-ui-window>
             </reactor>
         </model>
 
@@ -87,6 +88,16 @@
                     <step>-0.1</step>
                     <min>0.0</min>
                     <max>1.0</max>
+                </binding>
+            </key>
+
+            <!-- M Key (Key 109) : Toggle debug telemetry popup -->
+            <key n="109">
+                <name>m</name>
+                <desc>Toggle Reactor Telemetry Debug Window</desc>
+                <binding>
+                    <command>property-toggle</command>
+                    <property>/sim/model/reactor/debug-ui-window</property>
                 </binding>
             </key>
         </keyboard>
