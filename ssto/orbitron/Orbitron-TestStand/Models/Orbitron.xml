@@ -9,17 +9,7 @@
         <z-m> -0.5 </z-m> 
     </offsets>
 
-    <!-- ANIMATION 1: Ambient light fix (Notice there is no <object-name>, so it applies to everything) -->
-    <animation>
-        <type>material</type>
-        <emission>
-            <red>0.15</red>
-            <green>0.15</green>
-            <blue>0.15</blue>
-        </emission>
-    </animation>
-
-    <!-- ANIMATION 2: Armed Big Red Button -->
+    <!-- ANIMATION 1: Armed Big Red Button -->
     <animation>
         <type>pick</type>
         <object-name>Big_Red_Button</object-name>
