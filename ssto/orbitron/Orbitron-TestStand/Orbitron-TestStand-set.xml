@@ -14,29 +14,79 @@
         <!-- Pure relative paths for custom desktop directories -->
         <model>
             <path>Models/Orbitron.xml</path>
+            <!-- Moved trigger here so it becomes /sim/model/reactor/startup-trigger -->
+            <reactor>
+                <startup-trigger type="bool">false</startup-trigger>
+            </reactor>
         </model>
 
         <sound>
             <path>Sounds/sound.xml</path>
         </sound>
 
-        <reactor>
-            <startup-trigger type="bool">false</startup-trigger>
-        </reactor>
-
         <!-- Default Camera: Standing at the Operator Console -->
-        <view>
+        <view n="0">
+            <name>Operator View</name>
+            <type>lookfrom</type>
             <internal archive="y">true</internal>
             <config>
-                <!-- X is left/right. Y is up/down. Z is forward/back in FlightGear view coords -->
-                <x-offset-m archive="y"> 0.0 </x-offset-m> 
-                <y-offset-m archive="y"> 1.6 </y-offset-m> <!-- 1.6 meters high (eye level) -->
-                <z-offset-m archive="y"> 3.0 </z-offset-m> <!-- 3 meters back from the center -->
-                <pitch-offset-deg>-10</pitch-offset-deg>   <!-- Looking slightly down at the table -->
+                <x-offset-m archive="y"> 0.0 </x-offset-m> <!-- Left/Right -->
+                <y-offset-m archive="y"> 1.6 </y-offset-m> <!-- Height (1.6m = ~5'3") -->
+                <z-offset-m archive="y"> 4.0 </z-offset-m> <!-- Move 4 meters backwards -->
+                <pitch-offset-deg> -10.0 </pitch-offset-deg> <!-- Look slightly down -->
             </config>
         </view>
-
     </sim>
+
+    <!-- ======================================================== -->
+    <!-- MUST BE OUTSIDE THE <sim> TAG SO JSBSIM CAN FIND IT!     -->
+    <!-- ======================================================== -->
+    <controls>
+        <reactor>
+            <throttle type="double">0.0</throttle>
+        </reactor>
+    </controls>
+
+    <!-- CUSTOM KEYBOARD CONTROLS (Must be outside <sim>) -->
+    <input>
+        <keyboard>
+            <!-- SPACEBAR (Key 32) : Toggle Reactor Ignition -->
+            <key n="32">
+                <name>SPACE</name>
+                <desc>Toggle Reactor Ignition</desc>
+                <binding>
+                    <command>property-toggle</command>
+                    <property>/sim/model/reactor/startup-trigger</property>
+                </binding>
+            </key>
+
+            <!-- W Key (Key 119) : Throttle UP -->
+            <key n="119">
+                <name>w</name>
+                <desc>Increase NBI Injection</desc>
+                <binding>
+                    <command>property-adjust</command>
+                    <property>/controls/reactor/throttle</property>
+                    <step>0.1</step>
+                    <min>0.0</min>
+                    <max>1.0</max>
+                </binding>
+            </key>
+
+            <!-- S Key (Key 115) : Throttle DOWN -->
+            <key n="115">
+                <name>s</name>
+                <desc>Decrease NBI Injection</desc>
+                <binding>
+                    <command>property-adjust</command>
+                    <property>/controls/reactor/throttle</property>
+                    <step>-0.1</step>
+                    <min>0.0</min>
+                    <max>1.0</max>
+                </binding>
+            </key>
+        </keyboard>
+    </input>
 
     <nasal>
         <reactor_ui>

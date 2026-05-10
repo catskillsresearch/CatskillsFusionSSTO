@@ -2,48 +2,22 @@ var ReactorUI = {
     new: func() {
         var m = { parents: [ReactorUI] };
         
-        # 1. Create a 1024x1024 Canvas texture
-        m.canvas = canvas.new({
-            "name": "Reactor_Telemetry",
-            "size": [1024, 1024],
-            "view": [1024, 1024],
-            "mipmapping": 1
-        });
-
-        # 2. Place this Canvas texture ON the 3D model object named "Decal_Table_Placard"
-        m.canvas.addPlacement({"node": "Decal_Table_Placard"});
-        
-        # 3. Create a drawing group
+        # Create a floating 2D Window on your screen
+        m.window = canvas.Window.new([400, 350], "dialog").set("title", "p-B11 ORBITRON TELEMETRY");
+        m.canvas = m.window.createCanvas();
         m.root = m.canvas.createGroup();
         
-        # Background
-        m.bg = m.root.createChild("path")
-                     .rect(0, 0, 1024, 1024)
-                     .setColorFill(0.05, 0.05, 0.1);
-
-        # Title
-        m.root.createChild("text")
-              .setText("p-B11 ORBITRON TELEMETRY")
-              .setFontSize(50)
-              .setColor(1, 0.8, 0) # Gold
-              .setAlignment("center-center")
-              .setTranslation(512, 100);
-
+        # Dark translucent background
+        m.root.createChild("path").rect(0, 0, 400, 350).setColorFill(0.05, 0.05, 0.1, 0.85);
+        
         # Telemetry Text Elements
-        m.txt_nbi   = m.create_text(200, "NBI Flow: 0.00 sccm");
-        m.txt_power = m.create_text(300, "Gross Power: 0.00 MW");
-        m.txt_amps  = m.create_text(400, "DEC Current: 0.000 A");
-        m.txt_heat  = m.create_text(500, "Brem. Heat: 0.00 kW");
-        m.txt_q     = m.create_text(600, "Q-Factor: 0.00");
+        m.txt_nbi   = m.create_text(50,  "NBI Flow: 0.00 sccm");
+        m.txt_power = m.create_text(100, "Gross Power: 0.00 MW");
+        m.txt_amps  = m.create_text(150, "DEC Current: 0.000 A");
+        m.txt_heat  = m.create_text(200, "Brem. Heat: 0.00 kW");
+        m.txt_q     = m.create_text(250, "Q-Factor: 0.00");
 
-        # Render PIC Image dynamically based on actual folder location
-        var aircraft_dir = getprop("/sim/aircraft-dir");
-        m.pic_img = m.root.createChild("image")
-                          .setFile(aircraft_dir ~ "/Models/warpx_frame.png")
-                          .setTranslation(200, 650)
-                          .setSize(624, 350);
-
-        # 4. Start Telemetry Update Loop
+        # 10Hz Update Loop
         m.timer = maketimer(0.1, m, ReactorUI.update);
         m.timer.start();
         
@@ -54,10 +28,10 @@ var ReactorUI = {
         return me.root.createChild("text")
                      .setText(initial_text)
                      .setFont("LiberationFonts/LiberationMono-Bold.ttf")
-                     .setFontSize(40)
-                     .setColor(0, 1, 0) # Green text
-                     .setAlignment("center-center")
-                     .setTranslation(512, y);
+                     .setFontSize(24)
+                     .setColor(0, 1, 0) # Hacker Green
+                     .setAlignment("left-center")
+                     .setTranslation(30, y);
     },
 
     update: func() {
@@ -68,7 +42,7 @@ var ReactorUI = {
         var heat  = getprop("/fdm/jsbsim/systems/reactor/heat-kw") or 0.0;
         var q     = getprop("/fdm/jsbsim/systems/reactor/q-factor") or 0.0;
 
-        # Update Canvas Text Elements
+        # Update Canvas
         me.txt_nbi.setText(sprintf("NBI Flow: %.2f sccm", nbi));
         me.txt_power.setText(sprintf("Gross Power: %.3f MW", power));
         me.txt_amps.setText(sprintf("DEC Current: %.3f A", amps));
@@ -77,5 +51,4 @@ var ReactorUI = {
     }
 };
 
-# Initialize when Nasal loads
 var sys = ReactorUI.new();

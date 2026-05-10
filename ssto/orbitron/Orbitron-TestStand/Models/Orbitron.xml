@@ -1,13 +1,16 @@
 <?xml version="1.0"?>
 <PropertyList>
-  <path>orbitron.ac</path>
+    <path>orbitron.ac</path>
 
-      <!-- SPINS AND LIFTS THE ENTIRE 3D MODEL -->
+    <!-- 3D MODEL ORIENTATION ALIGNMENT -->
     <offsets>
-        <!-- Try 90, -90, or 180 to twist the console toward the camera -->
-        <heading-deg> 90 </heading-deg> 
-        <!-- Lift the model 1 meter up so it sits on top of the concrete -->
-        <z-m> 1.0 </z-m> 
+        <!-- We reset Pitch, and use Roll to cartwheel it upright -->
+        <pitch-deg> 0 </pitch-deg> 
+        <roll-deg> -90 </roll-deg> 
+        <heading-deg> 0 </heading-deg>
+        
+        <!-- Let's put this back to 0.0 so the tanks aren't floating -->
+        <z-m> -1.0 </z-m> 
     </offsets>
 
     <!-- CLICKABLE STARTUP TRIGGER -->

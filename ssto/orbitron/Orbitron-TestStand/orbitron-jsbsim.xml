@@ -67,8 +67,8 @@
             <fcs_function name="systems/reactor/nbi-sccm">
                 <function>
                     <product>
-                        <!-- CHANGED: Reading FG hardware input directly -->
-                        <property>/controls/engines/engine[0]/throttle</property>
+                        <!-- CHANGED: Reading Custom Keyboard W/S Throttle Input -->
+                        <property>/controls/reactor/throttle</property>
                         <value> 100.0 </value> 
                     </product>
                 </function>
@@ -87,7 +87,8 @@
                 <function>
                     <product>
                         <property>systems/reactor/active</property>
-                        <property>/controls/engines/engine[0]/throttle</property>
+                        <!-- CHANGED: Reading Custom Keyboard W/S Throttle Input -->
+                        <property>/controls/reactor/throttle</property>
                         <value> 3.5 </value> 
                     </product>
                 </function>
@@ -97,7 +98,8 @@
                 <function>
                     <product>
                         <property>systems/reactor/active</property>
-                        <property>/controls/engines/engine[0]/throttle</property>
+                        <!-- CHANGED: Reading Custom Keyboard W/S Throttle Input -->
+                        <property>/controls/reactor/throttle</property>
                         <value> 400.0 </value> 
                     </product>
                 </function>
