@@ -24,18 +24,20 @@
             <path>Sounds/sound.xml</path>
         </sound>
 
-        <!-- Default Camera: Standing at the Operator Console -->
+	<!-- Default Camera: Standing at the Operator Console -->
         <view n="0">
             <name>Operator View</name>
             <type>lookfrom</type>
             <internal archive="y">true</internal>
             <config>
                 <x-offset-m archive="y"> 0.0 </x-offset-m> <!-- Left/Right -->
-                <y-offset-m archive="y"> 1.6 </y-offset-m> <!-- Height (1.6m = ~5'3") -->
-                <z-offset-m archive="y"> 4.0 </z-offset-m> <!-- Move 4 meters backwards -->
-                <pitch-offset-deg> -10.0 </pitch-offset-deg> <!-- Look slightly down -->
+                <y-offset-m archive="y"> 2.5 </y-offset-m> <!-- Raised Height to 2.5 meters -->
+                <z-offset-m archive="y"> 10.0 </z-offset-m> <!-- Stepped WAY back (10 meters) -->
+                <pitch-offset-deg> -15.0 </pitch-offset-deg> <!-- Angled head down to see the table -->
+                <default-field-of-view-deg> 75.0 </default-field-of-view-deg> <!-- Wider Camera Lens -->
             </config>
         </view>
+
     </sim>
 
     <!-- ======================================================== -->

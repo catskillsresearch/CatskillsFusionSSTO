@@ -17,43 +17,42 @@
     </metrics>
 
     <mass_balance>
-        <!-- Boosted inertia so it acts like a heavy, stationary object -->
-        <ixx unit="SLUG*FT2"> 10000 </ixx>
-        <iyy unit="SLUG*FT2"> 10000 </iyy>
-        <izz unit="SLUG*FT2"> 10000 </izz>
+        <ixx unit="SLUG*FT2"> 5000 </ixx>
+        <iyy unit="SLUG*FT2"> 5000 </iyy>
+        <izz unit="SLUG*FT2"> 5000 </izz>
         <emptywt unit="LBS" > 5000 </emptywt>
         <location name="CG" unit="IN"> <x>0</x> <y>0</y> <z>0</z> </location>
     </mass_balance>
 
     <ground_reactions>
-        <!-- Changed to STRUCTURE so it scrapes/plants instead of rolling -->
+        <!-- Numerically Stable values for 120Hz physics -->
         <contact type="STRUCTURE" name="Left_Front">
             <location unit="IN"> <x>-50</x> <y>-50</y> <z>-20</z> </location>
             <static_friction>  1.0 </static_friction>
             <dynamic_friction> 1.0 </dynamic_friction>
-            <spring_coeff unit="LBS/FT"> 50000.0 </spring_coeff>
-            <damping_coeff unit="LBS/FT/SEC"> 10000.0 </damping_coeff>
+            <spring_coeff unit="LBS/FT"> 5000.0 </spring_coeff>
+            <damping_coeff unit="LBS/FT/SEC"> 500.0 </damping_coeff>
         </contact>
         <contact type="STRUCTURE" name="Right_Front">
             <location unit="IN"> <x>-50</x> <y>50</y> <z>-20</z> </location>
             <static_friction>  1.0 </static_friction>
             <dynamic_friction> 1.0 </dynamic_friction>
-            <spring_coeff unit="LBS/FT"> 50000.0 </spring_coeff>
-            <damping_coeff unit="LBS/FT/SEC"> 10000.0 </damping_coeff>
+            <spring_coeff unit="LBS/FT"> 5000.0 </spring_coeff>
+            <damping_coeff unit="LBS/FT/SEC"> 500.0 </damping_coeff>
         </contact>
         <contact type="STRUCTURE" name="Left_Rear">
             <location unit="IN"> <x>50</x> <y>-50</y> <z>-20</z> </location>
             <static_friction>  1.0 </static_friction>
             <dynamic_friction> 1.0 </dynamic_friction>
-            <spring_coeff unit="LBS/FT"> 50000.0 </spring_coeff>
-            <damping_coeff unit="LBS/FT/SEC"> 10000.0 </damping_coeff>
+            <spring_coeff unit="LBS/FT"> 5000.0 </spring_coeff>
+            <damping_coeff unit="LBS/FT/SEC"> 500.0 </damping_coeff>
         </contact>
         <contact type="STRUCTURE" name="Right_Rear">
             <location unit="IN"> <x>50</x> <y>50</y> <z>-20</z> </location>
             <static_friction>  1.0 </static_friction>
             <dynamic_friction> 1.0 </dynamic_friction>
-            <spring_coeff unit="LBS/FT"> 50000.0 </spring_coeff>
-            <damping_coeff unit="LBS/FT/SEC"> 10000.0 </damping_coeff>
+            <spring_coeff unit="LBS/FT"> 5000.0 </spring_coeff>
+            <damping_coeff unit="LBS/FT/SEC"> 500.0 </damping_coeff>
         </contact>
     </ground_reactions>
 
