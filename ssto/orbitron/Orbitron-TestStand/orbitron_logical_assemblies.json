@@ -1,0 +1,75 @@
+{
+  "root": "test_stand",
+  "groups": {
+    "test_stand": {
+      "title": "Orbitron test stand",
+      "members": [
+        "control_panel_stand",
+        "supply_tanks",
+        "fluid_and_electrical_services",
+        "air_breathing_engine"
+      ]
+    },
+    "control_panel_stand": {
+      "title": "Control panel and stand",
+      "parts": [
+        "Operator_Console",
+        "Rail_Left",
+        "Rail_Right",
+        "Thrust_Sled_Frame",
+        "Screen",
+        "Big_Red_Button"
+      ]
+    },
+    "supply_tanks": {
+      "title": "Supply tanks",
+      "parts": ["Tank_Cryo_Methane", "Tank_Diborane", "Tank_Hydrogen"]
+    },
+    "fluid_and_electrical_services": {
+      "title": "Cryo piping, fuel lines, decals, HV umbilical",
+      "parts": [
+        "Cryo_Methane_Piping",
+        "Fuel_Gas_Lines",
+        "High_Voltage_Umbilical",
+        "Decal_B2H6",
+        "Decal_CH4",
+        "Decal_H2"
+      ]
+    },
+    "fusion_reactor": {
+      "title": "Fusion reactor assembly",
+      "parts": [
+        "Anode",
+        "Cathode",
+        "Magnet",
+        "NBI_Injector",
+        "Insulators",
+        "DEC_Grid",
+        "LoadCell_0",
+        "LoadCell_1",
+        "LoadCell_2",
+        "LoadCell_3"
+      ]
+    },
+    "reactor_duct_shielding": {
+      "title": "Duct flow and shielding (detuner / annulus hardware)",
+      "parts": ["Blast_Detuner"]
+    },
+    "turbofan_intake": {
+      "title": "Electric turbofan / inlet path",
+      "parts": ["Bellmouth_Inlet", "Compressor_Can"]
+    },
+    "propulsive_nozzle": {
+      "title": "Nozzle and CD stub",
+      "parts": ["CD_Nozzle_Stub"]
+    },
+    "reactor_bay": {
+      "title": "Reactor bay (fusion core inside the engine flowpath)",
+      "members": ["fusion_reactor", "reactor_duct_shielding"]
+    },
+    "air_breathing_engine": {
+      "title": "Air-breathing engine (reactor module embedded in the duct)",
+      "members": ["turbofan_intake", "reactor_bay", "propulsive_nozzle"]
+    }
+  }
+}

@@ -5,7 +5,7 @@
 # See Makefile for SURROGATE=warpx|dry|mesh, graph, run-fgfs.
 #
 # Default (slow, full fidelity): full WarpX sweep (tools/build_surrogate_map.py), then
-# prototype_build.sh --skip-surrogate --with-sounds, then exec ./fs.sh from ssto/orbitron.
+# prototype_build.sh --skip-surrogate --with-sounds, then exec ./fs.sh from repo root.
 #
 # Fast / partial:
 #   --mesh-only       Skip WarpX; CadQuery → Blender → placeholder surrogate + sounds → fgfs
@@ -170,9 +170,9 @@ echo ""
 echo "=== [3/3] Orbitron: FlightGear ==="
 if [[ "${NO_FGFS}" -ne 0 ]]; then
   echo "Skipped (--no-fgfs). Launch manually:"
-  echo "  cd ${ORBITRON} && ./fs.sh"
+  echo "  cd ${ROOT} && ./fs.sh"
   exit 0
 fi
 
-cd "${ORBITRON}"
+cd "${ROOT}"
 exec ./fs.sh
