@@ -60,6 +60,25 @@
     <aerodynamics>
     </aerodynamics>
 
+    <!-- Arcjet thrust along body +X (engine exhaust to +X); 0D surrogate -->
+    <external_reactions>
+        <force name="arcjet_thrust" frame="BODY">
+            <function>
+                <property>systems/arcjet/thrust-lbf</property>
+            </function>
+            <location unit="M">
+                <x> -1.5 </x>
+                <y> 0 </y>
+                <z> 0 </z>
+            </location>
+            <direction>
+                <x> 1 </x>
+                <y> 0 </y>
+                <z> 0 </z>
+            </direction>
+        </force>
+    </external_reactions>
+
     <!-- REACTOR 0D MODEL -->
     <system name="p-B11_Reactor">
         <channel name="Reactor Input">
@@ -86,9 +105,22 @@
                 <function>
                     <product>
                         <property>systems/reactor/active</property>
-                        <!-- CHANGED: Reading Custom Keyboard W/S Throttle Input -->
-                        <property>/controls/reactor/throttle</property>
-                        <value> 3.5 </value> 
+                        <sum>
+                            <property>/sim/model/orbitron/surrogate/power-c0</property>
+                            <product>
+                                <property>/controls/reactor/throttle</property>
+                                <property>/sim/model/orbitron/surrogate/power-ct</property>
+                            </product>
+                            <product>
+                                <property>/controls/orbitron/compressor</property>
+                                <property>/sim/model/orbitron/surrogate/power-cc</property>
+                            </product>
+                            <product>
+                                <property>/controls/reactor/throttle</property>
+                                <property>/controls/orbitron/compressor</property>
+                                <property>/sim/model/orbitron/surrogate/power-ctc</property>
+                            </product>
+                        </sum>
                     </product>
                 </function>
             </fcs_function>
@@ -97,10 +129,58 @@
                 <function>
                     <product>
                         <property>systems/reactor/active</property>
-                        <!-- CHANGED: Reading Custom Keyboard W/S Throttle Input -->
-                        <property>/controls/reactor/throttle</property>
-                        <value> 400.0 </value> 
+                        <sum>
+                            <property>/sim/model/orbitron/surrogate/heat-c0</property>
+                            <product>
+                                <property>/controls/reactor/throttle</property>
+                                <property>/sim/model/orbitron/surrogate/heat-ct</property>
+                            </product>
+                            <product>
+                                <property>/controls/orbitron/compressor</property>
+                                <property>/sim/model/orbitron/surrogate/heat-cc</property>
+                            </product>
+                            <product>
+                                <property>/controls/reactor/throttle</property>
+                                <property>/controls/orbitron/compressor</property>
+                                <property>/sim/model/orbitron/surrogate/heat-ctc</property>
+                            </product>
+                        </sum>
                     </product>
+                </function>
+            </fcs_function>
+
+            <!-- WarpX-reduced viewport beam power (kW); bilinear in (throttle, compressor). -->
+            <fcs_function name="systems/reactor/beam-screen-deposition-kw">
+                <function>
+                    <product>
+                        <property>systems/reactor/active</property>
+                        <sum>
+                            <property>/sim/model/orbitron/surrogate/beam-screen-kw-c0</property>
+                            <product>
+                                <property>/controls/reactor/throttle</property>
+                                <property>/sim/model/orbitron/surrogate/beam-screen-kw-ct</property>
+                            </product>
+                            <product>
+                                <property>/controls/orbitron/compressor</property>
+                                <property>/sim/model/orbitron/surrogate/beam-screen-kw-cc</property>
+                            </product>
+                            <product>
+                                <property>/controls/reactor/throttle</property>
+                                <property>/controls/orbitron/compressor</property>
+                                <property>/sim/model/orbitron/surrogate/beam-screen-kw-ctc</property>
+                            </product>
+                        </sum>
+                    </product>
+                </function>
+            </fcs_function>
+
+            <!-- I_mA = P_kW / 8 with 8 MV equivalent (see build_surrogate_map.beam_screen_kw_from_rho). -->
+            <fcs_function name="systems/reactor/beam-current-ma">
+                <function>
+                    <quotient>
+                        <property>systems/reactor/beam-screen-deposition-kw</property>
+                        <value> 8.0 </value>
+                    </quotient>
                 </function>
             </fcs_function>
 
@@ -121,6 +201,394 @@
                     </product>
                 </function>
             </fcs_function>
+        </channel>
+    </system>
+
+    <!-- 0D arcjet / load-path (GOAL 4–5: replace with surrogate tables when ready) -->
+    <system name="arcjet_airbreather">
+        <channel name="arcjet_outputs">
+            <!-- Multivariate control surface: y = c0 + ct*T + cc*C + ctc*T*C -->
+            <fcs_function name="systems/arcjet/thrust-lbf">
+                <function>
+                    <product>
+                        <property>systems/reactor/active</property>
+                        <sum>
+                            <property>/sim/model/orbitron/surrogate/thrust-c0</property>
+                            <product>
+                                <property>/controls/reactor/throttle</property>
+                                <property>/sim/model/orbitron/surrogate/thrust-ct</property>
+                            </product>
+                            <product>
+                                <property>/controls/orbitron/compressor</property>
+                                <property>/sim/model/orbitron/surrogate/thrust-cc</property>
+                            </product>
+                            <product>
+                                <property>/controls/reactor/throttle</property>
+                                <property>/controls/orbitron/compressor</property>
+                                <property>/sim/model/orbitron/surrogate/thrust-ctc</property>
+                            </product>
+                        </sum>
+                    </product>
+                </function>
+            </fcs_function>
+
+            <fcs_function name="systems/arcjet/mass-flow-kgps">
+                <function>
+                    <product>
+                        <property>systems/reactor/active</property>
+                        <sum>
+                            <property>/sim/model/orbitron/surrogate/mdot-c0</property>
+                            <product>
+                                <property>/controls/reactor/throttle</property>
+                                <property>/sim/model/orbitron/surrogate/mdot-ct</property>
+                            </product>
+                            <product>
+                                <property>/controls/orbitron/compressor</property>
+                                <property>/sim/model/orbitron/surrogate/mdot-cc</property>
+                            </product>
+                            <product>
+                                <property>/controls/reactor/throttle</property>
+                                <property>/controls/orbitron/compressor</property>
+                                <property>/sim/model/orbitron/surrogate/mdot-ctc</property>
+                            </product>
+                        </sum>
+                    </product>
+                </function>
+            </fcs_function>
+
+            <switch name="systems/arcjet/dec-voltage-mv">
+                <default value="0.0"/>
+                <test value="4.0">
+                    systems/reactor/active == 1
+                </test>
+            </switch>
+
+            <fcs_function name="systems/arcjet/load-cell-avg-lbf">
+                <function>
+                    <property>systems/arcjet/thrust-lbf</property>
+                </function>
+            </fcs_function>
+
+            <fcs_function name="systems/arcjet/load-cell-0-lbf">
+                <function>
+                    <quotient>
+                        <property>systems/arcjet/thrust-lbf</property>
+                        <value> 4.0 </value>
+                    </quotient>
+                </function>
+            </fcs_function>
+            <fcs_function name="systems/arcjet/load-cell-1-lbf">
+                <function>
+                    <quotient>
+                        <property>systems/arcjet/thrust-lbf</property>
+                        <value> 4.0 </value>
+                    </quotient>
+                </function>
+            </fcs_function>
+            <fcs_function name="systems/arcjet/load-cell-2-lbf">
+                <function>
+                    <quotient>
+                        <property>systems/arcjet/thrust-lbf</property>
+                        <value> 4.0 </value>
+                    </quotient>
+                </function>
+            </fcs_function>
+            <fcs_function name="systems/arcjet/load-cell-3-lbf">
+                <function>
+                    <quotient>
+                        <property>systems/arcjet/thrust-lbf</property>
+                        <value> 4.0 </value>
+                    </quotient>
+                </function>
+            </fcs_function>
+        </channel>
+    </system>
+
+    <!--
+      Soundscape drivers (SpaceShuttle-style): continuous 0..1 channels from physics +
+      controls, consumed by Sounds/sound.xml looped beds. Atmospheric factor follows
+      systems/various/SSME-external-volume pattern in Shuttle computations.xml.
+    -->
+    <system name="orbitron_soundscape">
+        <channel name="sfx">
+
+            <fcs_function name="systems/orbitron_sfx/atmo_transmission">
+                <function>
+                    <quotient>
+                        <property>/environment/pressure-inhg</property>
+                        <property>/environment/pressure-sea-level-inhg</property>
+                    </quotient>
+                </function>
+            </fcs_function>
+
+            <!-- Core plasma / fusion channel: NBI, gross power, compressor bleed sketch -->
+            <fcs_function name="systems/orbitron_sfx/core_volume">
+                <function>
+                    <min>
+                        <value> 1.0 </value>
+                        <max>
+                            <value> 0.0 </value>
+                            <product>
+                                <property>systems/reactor/active</property>
+                                <sum>
+                                    <value> 0.05 </value>
+                                    <product>
+                                        <property>/controls/reactor/throttle</property>
+                                        <value> 0.48 </value>
+                                    </product>
+                                    <product>
+                                        <property>systems/reactor/gross-power-mw</property>
+                                        <value> 0.20 </value>
+                                    </product>
+                                    <product>
+                                        <property>/controls/orbitron/compressor</property>
+                                        <value> 0.14 </value>
+                                    </product>
+                                </sum>
+                            </product>
+                        </max>
+                    </min>
+                </function>
+            </fcs_function>
+
+            <!-- Bellmouth / electric compressor ingestion + duct mass flow -->
+            <fcs_function name="systems/orbitron_sfx/inlet_volume">
+                <function>
+                    <min>
+                        <value> 1.0 </value>
+                        <max>
+                            <value> 0.0 </value>
+                            <product>
+                                <property>systems/reactor/active</property>
+                                <property>/controls/orbitron/compressor</property>
+                                <sum>
+                                    <value> 0.12 </value>
+                                    <product>
+                                        <property>systems/arcjet/mass-flow-kgps</property>
+                                        <value> 0.14 </value>
+                                    </product>
+                                    <product>
+                                        <property>systems/arcjet/thrust-lbf</property>
+                                        <value> 0.00006 </value>
+                                    </product>
+                                </sum>
+                                <property>systems/orbitron_sfx/atmo_transmission</property>
+                            </product>
+                        </max>
+                    </min>
+                </function>
+            </fcs_function>
+
+            <!-- Nozzle / cell exhaust (thrust line + air mass flow); thins with altitude -->
+            <fcs_function name="systems/orbitron_sfx/nozzle_volume">
+                <function>
+                    <min>
+                        <value> 1.0 </value>
+                        <max>
+                            <value> 0.0 </value>
+                            <product>
+                                <property>systems/reactor/active</property>
+                                <property>systems/orbitron_sfx/atmo_transmission</property>
+                                <sum>
+                                    <value> 0.04 </value>
+                                    <product>
+                                        <property>systems/arcjet/thrust-lbf</property>
+                                        <value> 0.00032 </value>
+                                    </product>
+                                    <product>
+                                        <property>systems/arcjet/mass-flow-kgps</property>
+                                        <value> 0.10 </value>
+                                    </product>
+                                    <product>
+                                        <property>/controls/orbitron/compressor</property>
+                                        <value> 0.12 </value>
+                                    </product>
+                                </sum>
+                            </product>
+                        </max>
+                    </min>
+                </function>
+            </fcs_function>
+
+            <!-- DEC arc / magnet bus crackle scales with current and MV bias -->
+            <fcs_function name="systems/orbitron_sfx/dec_arc_volume">
+                <function>
+                    <min>
+                        <value> 1.0 </value>
+                        <max>
+                            <value> 0.0 </value>
+                            <product>
+                                <property>systems/reactor/active</property>
+                                <min>
+                                    <value> 1.0 </value>
+                                    <product>
+                                        <property>systems/reactor/current-amps</property>
+                                        <value> 0.022 </value>
+                                    </product>
+                                </min>
+                                <min>
+                                    <value> 1.0 </value>
+                                    <quotient>
+                                        <property>systems/arcjet/dec-voltage-mv</property>
+                                        <value> 8.0 </value>
+                                    </quotient>
+                                </min>
+                            </product>
+                        </max>
+                    </min>
+                </function>
+            </fcs_function>
+
+            <!-- Viewport / beam sputter: driven by WarpX-surrogate beam_screen_kw + derived current -->
+            <fcs_function name="systems/orbitron_sfx/screen_beam_volume">
+                <function>
+                    <min>
+                        <value> 1.0 </value>
+                        <max>
+                            <value> 0.0 </value>
+                            <product>
+                                <property>systems/reactor/active</property>
+                                <min>
+                                    <value> 1.0 </value>
+                                    <product>
+                                        <property>systems/reactor/beam-screen-deposition-kw</property>
+                                        <value> 0.0028 </value>
+                                    </product>
+                                </min>
+                                <min>
+                                    <value> 1.0 </value>
+                                    <product>
+                                        <property>systems/reactor/beam-current-ma</property>
+                                        <value> 0.018 </value>
+                                    </product>
+                                </min>
+                                <min>
+                                    <value> 1.0 </value>
+                                    <quotient>
+                                        <property>systems/arcjet/dec-voltage-mv</property>
+                                        <value> 8.0 </value>
+                                    </quotient>
+                                </min>
+                            </product>
+                        </max>
+                    </min>
+                </function>
+            </fcs_function>
+
+            <!-- Battery-driven motor + bleed / turbofan generator sketch: rises with compressor and thrust bleed -->
+            <fcs_function name="systems/orbitron_sfx/motor_generator_volume">
+                <function>
+                    <min>
+                        <value> 1.0 </value>
+                        <max>
+                            <value> 0.0 </value>
+                            <product>
+                                <property>systems/reactor/active</property>
+                                <sum>
+                                    <value> 0.10 </value>
+                                    <product>
+                                        <property>/controls/orbitron/compressor</property>
+                                        <value> 0.52 </value>
+                                    </product>
+                                    <product>
+                                        <property>/controls/orbitron/compressor</property>
+                                        <value> 0.28 </value>
+                                        <min>
+                                            <value> 1.0 </value>
+                                            <product>
+                                                <property>systems/arcjet/thrust-lbf</property>
+                                                <value> 0.00014 </value>
+                                            </product>
+                                        </min>
+                                    </product>
+                                </sum>
+                            </product>
+                        </max>
+                    </min>
+                </function>
+            </fcs_function>
+
+            <!-- Heated air in duct: Bremss + mass flow × compressor -->
+            <fcs_function name="systems/orbitron_sfx/duct_heat_volume">
+                <function>
+                    <min>
+                        <value> 1.0 </value>
+                        <max>
+                            <value> 0.0 </value>
+                            <product>
+                                <property>systems/reactor/active</property>
+                                <property>/controls/orbitron/compressor</property>
+                                <min>
+                                    <value> 1.0 </value>
+                                    <product>
+                                        <property>systems/reactor/heat-kw</property>
+                                        <value> 0.0018 </value>
+                                    </product>
+                                </min>
+                                <min>
+                                    <value> 1.0 </value>
+                                    <product>
+                                        <property>systems/arcjet/mass-flow-kgps</property>
+                                        <value> 0.11 </value>
+                                    </product>
+                                </min>
+                            </product>
+                        </max>
+                    </min>
+                </function>
+            </fcs_function>
+
+            <!-- Unusual run: thermal headroom without matching thrust (algebraic, no predicates) -->
+            <fcs_function name="systems/orbitron_sfx/stressor_volume">
+                <function>
+                    <min>
+                        <value> 1.0 </value>
+                        <max>
+                            <value> 0.0 </value>
+                            <product>
+                                <property>systems/reactor/active</property>
+                                <min>
+                                    <value> 1.0 </value>
+                                    <product>
+                                        <max>
+                                            <value> 0.0 </value>
+                                            <sum>
+                                                <property>systems/reactor/heat-kw</property>
+                                                <value> -380.0 </value>
+                                            </sum>
+                                        </max>
+                                        <value> 0.0045 </value>
+                                    </product>
+                                </min>
+                                <min>
+                                    <value> 1.0 </value>
+                                    <product>
+                                        <max>
+                                            <value> 0.0 </value>
+                                            <sum>
+                                                <value> 1100.0 </value>
+                                                <product>
+                                                    <value> -1.0 </value>
+                                                    <property>systems/arcjet/thrust-lbf</property>
+                                                </product>
+                                            </sum>
+                                        </max>
+                                        <value> 0.0020 </value>
+                                    </product>
+                                </min>
+                                <min>
+                                    <value> 1.0 </value>
+                                    <product>
+                                        <property>systems/reactor/heat-kw</property>
+                                        <value> 0.0010 </value>
+                                    </product>
+                                </min>
+                            </product>
+                        </max>
+                    </min>
+                </function>
+            </fcs_function>
+
         </channel>
     </system>
 </fdm_config>

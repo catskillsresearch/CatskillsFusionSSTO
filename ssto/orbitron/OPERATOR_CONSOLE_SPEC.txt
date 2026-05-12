@@ -1,0 +1,63 @@
+================================================================================
+GOAL 3 — AIR-BREATHING ELECTRIC JET TEST STAND: OPERATOR CONSOLE SPEC
+================================================================================
+Scope: human-in-the-loop hot-fire style sequencing, interlocks, and telemetry
+for the outdoor sled + detuner configuration. Map each item to a FlightGear
+property under /controls/orbitron/* or /sim/model/orbitron/* and mirror in
+/fdm/jsbsim/systems/* for JSBSim truth.
+
+3.1 SAFETY INTERLOCKS (HARD / GATED)
+  [IL-01]  Site perimeter clear + personnel key switch — ARM prop
+  [IL-02]  Detuner alignment pin engaged — ARM prop
+  [IL-03]  Cryo methane jacket flow OK — allow magnet / DEC bias sequencing
+  [IL-04]  HV ground grid continuity test pass — enable DEC
+  [IL-05]  Blast deflector water deluge pressure (if modeled) — arc enable
+
+3.2 POWER & SOURCE SEQUENCING (SOFT PANEL)
+  Step A: Black-start battery online, bus voltage display
+  Step B: Superconducting magnet ramp (with simulated quench trip)
+  Step C: NBI / fuel (H2 + B2H6) flow — tie to existing /controls/reactor/throttle
+  Step D: Electric compressor motor contactor — new /controls/orbitron/compressor
+  Step E: DEC bias ramp to nominal 4 MV (simulated as enable + slew rate cap)
+  Step F: Arc strike permissive — only if D+E true — /controls/orbitron/arc-enable
+
+3.3 PRIMARY CONTROLS (KNOBS / SWITCHES)
+  - MASTER ARM (guarded toggle)
+  - COMPRESSOR SPEED / INLET GUIDE (0–1 → mass flow demand)
+  - ARC CURRENT COMMAND (optional override; default 0.875 A at full DEC)
+  - NBI / REACTOR THROTTLE (existing W/S keys → keep)
+  - EMERGENCY SHUTDOWN — dumps arc, opens compressor bleed, holds sled brakes
+
+3.4 TELEMETRY — ENGINE / REACTOR
+  - Gross electrical power (MW) — systems/reactor/gross-power-mw
+  - DEC voltage (MV), DEC current (A) — extend for arc column impedance estimate
+  - Brem / anode heat load (kW) — systems/reactor/heat-kw
+  - Q-factor (fusion bookkeeping; optional hide in arcjet-only display)
+  - Arc channel light / UV proxy (future: from surrogate “brightness”)
+
+3.5 TELEMETRY — AIR PATH & THRUST
+  - Compressor corrected speed, inlet total pressure / temperature (stub OK)
+  - Mass flow (kg/s) — systems/arcjet/mass-flow-kgps
+  - Nozzle throat static P/T (stubs for 0D)
+  - Gross thrust (lbf) — systems/arcjet/thrust-lbf
+  - Specific impulse surrogate (s) — derived thrust / (mdot * g0)
+
+3.6 TELEMETRY — STRUCTURAL / SLED
+  - Four load cells (lbf) + average + imbalance alarm
+  - Rail displacement (in) if modeled
+  - Sled longitudinal acceleration
+
+3.7 ALARMS / ANNUNCIATORS
+  - ARC UNSTABLE (oscillation index from surrogate crossing threshold)
+  - THRUST LIMIT (e.g. > 4200 lbf)
+  - DETUNER OVERPRESSURE
+  - QUENCH / CRYO LOSS
+
+3.8 HUMAN-IN-THE-LOOP CHECKPOINTS (SUGGESTED)
+  After each software milestone: (1) cold panel — all props nominal OFF;
+  (2) magnet only; (3) compressor windmilling; (4) low-power arc;
+  (5) full thrust bracket. Log property trees to flight recorder.
+
+================================================================================
+END SPEC
+================================================================================

@@ -18,7 +18,34 @@
             <reactor>
                 <startup-trigger type="bool">false</startup-trigger>
                 <debug-ui-window type="bool">false</debug-ui-window>
+                <!-- Set true briefly to fire reactor_audio_heavy.wav (optional one-shot). -->
+                <startup-commissioning-audio type="bool">false</startup-commissioning-audio>
             </reactor>
+            <!-- Bilinear coefficients read by orbitron-jsbsim.xml; Nasal may overwrite from engine_surrogate.json -->
+            <orbitron>
+                <surrogate>
+                    <thrust-c0 type="double">0</thrust-c0>
+                    <thrust-ct type="double">0</thrust-ct>
+                    <thrust-cc type="double">0</thrust-cc>
+                    <thrust-ctc type="double">4000</thrust-ctc>
+                    <mdot-c0 type="double">0</mdot-c0>
+                    <mdot-ct type="double">0</mdot-ct>
+                    <mdot-cc type="double">0</mdot-cc>
+                    <mdot-ctc type="double">2.5</mdot-ctc>
+                    <power-c0 type="double">0</power-c0>
+                    <power-ct type="double">0</power-ct>
+                    <power-cc type="double">0</power-cc>
+                    <power-ctc type="double">3.5</power-ctc>
+                    <heat-c0 type="double">0</heat-c0>
+                    <heat-ct type="double">0</heat-ct>
+                    <heat-cc type="double">0</heat-cc>
+                    <heat-ctc type="double">400</heat-ctc>
+                    <beam-screen-kw-c0 type="double">0</beam-screen-kw-c0>
+                    <beam-screen-kw-ct type="double">55</beam-screen-kw-ct>
+                    <beam-screen-kw-cc type="double">48</beam-screen-kw-cc>
+                    <beam-screen-kw-ctc type="double">320</beam-screen-kw-ctc>
+                </surrogate>
+            </orbitron>
         </model>
 
 	<sound>
@@ -35,9 +62,11 @@
             <internal>true</internal>
             <config>
                 <x-offset-m archive="n"> 0.0 </x-offset-m>
-                <y-offset-m archive="n"> 2.0 </y-offset-m>
-                <z-offset-m archive="n"> 12.0 </z-offset-m>
-                <pitch-offset-deg archive="n"> -8.0 </pitch-offset-deg>
+                <y-offset-m archive="n"> 2.0 </y-offset-m> <!-- Operator eye-level height -->
+                
+                <z-offset-m archive="n"> 2.0 </z-offset-m> <!-- Stand exactly 2 meters (~6.5 ft) back from the console -->
+                
+                <pitch-offset-deg archive="n"> -8.0 </pitch-offset-deg> <!-- Angled down to look at the console -->
             </config>
         </view>
 
@@ -50,6 +79,9 @@
         <reactor>
             <throttle type="double">0.0</throttle>
         </reactor>
+        <orbitron>
+            <compressor type="double">0.0</compressor>
+        </orbitron>
     </controls>
 
     <!-- CUSTOM KEYBOARD CONTROLS (Must be outside <sim>) -->
@@ -100,12 +132,38 @@
                     <property>/sim/model/reactor/debug-ui-window</property>
                 </binding>
             </key>
+
+            <!-- U / J : compressor vane / motor command (arcjet air path) -->
+            <key n="117">
+                <name>u</name>
+                <desc>Increase compressor command</desc>
+                <binding>
+                    <command>property-adjust</command>
+                    <property>/controls/orbitron/compressor</property>
+                    <step>0.1</step>
+                    <min>0.0</min>
+                    <max>1.0</max>
+                </binding>
+            </key>
+            <key n="106">
+                <name>j</name>
+                <desc>Decrease compressor command</desc>
+                <binding>
+                    <command>property-adjust</command>
+                    <property>/controls/orbitron/compressor</property>
+                    <step>-0.1</step>
+                    <min>0.0</min>
+                    <max>1.0</max>
+                </binding>
+            </key>
         </keyboard>
     </input>
 
     <nasal>
+        <surrogate_load>
+            <file>Nasal/surrogate_load.nas</file>
+        </surrogate_load>
         <reactor_ui>
-            <!-- Pure relative path -->
             <file>Nasal/reactor_ui.nas</file>
         </reactor_ui>
     </nasal>

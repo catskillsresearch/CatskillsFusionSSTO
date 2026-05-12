@@ -90,66 +90,9 @@ class LabInfrastructure:
         return hv, gas, meth
 
 # ==========================================
-# ASSEMBLE AND EXPORT
+# ASSEMBLE AND EXPORT — merged fusion + arcjet engine (single glTF)
 # ==========================================
 if __name__ == "__main__":
-    print("Welding Industrial Plumbing and Finalizing 3D Layout...")
-    tube = IntegratedOrbitronTube()
-    infra = LabInfrastructure()
-    assy = cq.Assembly(name="Orbitron_Test_Facility")
+    from fusion_arcjet_engine_cad import save_fusion_arcjet_engine
 
-    c_niobium = cq.Color(0.8, 0.8, 0.85)   
-    c_dec     = cq.Color(0.8, 0.6, 0.1)    
-    c_cath    = cq.Color(0.2, 0.8, 0.9)    
-    c_ceramic = cq.Color(0.9, 0.9, 0.9)    
-    c_magnet  = cq.Color(0.2, 0.2, 0.2)    
-    c_nbi     = cq.Color(0.3, 0.6, 0.4)    
-    c_table   = cq.Color(0.15, 0.15, 0.15)    
-    c_h2      = cq.Color(0.8, 0.1, 0.1)    
-    c_b2h6    = cq.Color(0.1, 0.6, 0.2)    
-    c_dewar   = cq.Color(0.7, 0.7, 0.8)    
-    c_hv      = cq.Color(0.9, 0.4, 0.0)    
-    c_stencil_w = cq.Color(0.9, 0.9, 0.9)  
-    c_stencil_b = cq.Color(0.1, 0.1, 0.1)  
-    
-    # NEW COLORS FOR CONSOLE
-    c_screen = cq.Color(0.05, 0.05, 0.05)
-    c_red_btn = cq.Color(0.9, 0.0, 0.0)
-
-    table_body, table_label = infra.build_table()
-    assy.add(table_body, name="Optics_Table", color=c_table)
-    assy.add(table_label, name="Decal_Table_Placard", color=c_stencil_w)
-    
-    # CHANGED: Adding the desk, screen, and button explicitly so they keep their names!
-    desk, screen, brb = infra.build_console()
-    assy.add(desk, name="Operator_Console", color=c_table)
-    assy.add(screen, name="Screen", color=c_screen)
-    assy.add(brb, name="Big_Red_Button", color=c_red_btn)
-    
-    h2, b2h6, dewar, t_h2, t_b2, t_ch4 = infra.build_fuel_farm()
-    assy.add(h2, name="Tank_Hydrogen", color=c_h2)
-    assy.add(b2h6, name="Tank_Diborane", color=c_b2h6)
-    assy.add(dewar, name="Tank_Cryo_Methane", color=c_dewar)
-    assy.add(t_h2, name="Decal_H2", color=c_stencil_w)
-    assy.add(t_b2, name="Decal_B2H6", color=c_stencil_w)
-    assy.add(t_ch4, name="Decal_CH4", color=c_stencil_b)
-    
-    hv, gas, meth = infra.build_rigid_plumbing()
-    assy.add(hv, name="High_Voltage_Umbilical", color=c_hv)
-    assy.add(gas, name="Fuel_Gas_Lines", color=cq.Color(0.2, 0.2, 0.2))
-    assy.add(meth, name="Cryo_Methane_Piping", color=c_niobium)
-
-    anode, dec, cath, ins, mag, nbi = tube.build()
-    r_assy = cq.Assembly(name="Reactor_Core")
-    r_assy.add(anode, name="Anode", color=c_niobium)
-    r_assy.add(dec, name="DEC_Grid", color=c_dec)
-    r_assy.add(cath, name="Cathode", color=c_cath)
-    r_assy.add(ins, name="Insulators", color=c_ceramic)
-    r_assy.add(mag, name="Magnet", color=c_magnet)
-    r_assy.add(nbi, name="NBI_Injector", color=c_nbi)
-    
-    assy.add(r_assy, name="3_5MW_Tube", loc=cq.Location(cq.Vector(0, 0, 1.25), cq.Vector(0, 1, 0), 90))
-
-    output_file = "orbitron_lab_v5.gltf"
-    assy.save(output_file)
-    print(f"Success! CAD saved to {output_file}")
+    save_fusion_arcjet_engine("orbitron_lab_v5.gltf")

@@ -1,0 +1,1421 @@
+FlightGear
+├── ai
+│   └── B
+│       └── I
+│           └── K
+│               └── BIKF-cache.txt
+├── Aircraft
+│   ├── org.flightgear.fgaddon.stable_2020
+│   │   ├── Aircraft
+│   │   │   ├── SpaceShuttle
+│   │   │   │   ├── AUTHORS
+│   │   │   │   ├── circuit_breakers.xml
+│   │   │   │   ├── component_condition.xml
+│   │   │   │   ├── Cuecards
+│   │   │   │   │   ├── ascent_entry_spec.png
+│   │   │   │   │   ├── ascent_nominal.png
+│   │   │   │   │   ├── contingency_abort.png
+│   │   │   │   │   ├── entry_nominal.png
+│   │   │   │   │   ├── glided_flight-L-01.jpg
+│   │   │   │   │   ├── glided_flight-L-02.jpg
+│   │   │   │   │   ├── glided_flight-L-03.jpg
+│   │   │   │   │   ├── glided_flight-L-04.jpg
+│   │   │   │   │   ├── glided_flight-L-05.jpg
+│   │   │   │   │   ├── glided_flight-L-06.jpg
+│   │   │   │   │   ├── glided_flight-L-07.jpg
+│   │   │   │   │   ├── glided_flight-L-08.jpg
+│   │   │   │   │   ├── glided_flight-L-09.jpg
+│   │   │   │   │   ├── glided_flight-L-10.jpg
+│   │   │   │   │   ├── glided_flight-L-11.jpg
+│   │   │   │   │   ├── glided_flight-L-12.jpg
+│   │   │   │   │   ├── glided_flight-L-13.jpg
+│   │   │   │   │   ├── glided_flight-L-14.jpg
+│   │   │   │   │   ├── glided_flight-L-15.jpg
+│   │   │   │   │   ├── glided_flight-L-16.jpg
+│   │   │   │   │   ├── glided_flight-L-17.jpg
+│   │   │   │   │   ├── glided_flight-L-18.jpg
+│   │   │   │   │   ├── glided_flight-L-19.jpg
+│   │   │   │   │   ├── glided_flight-L-20.jpg
+│   │   │   │   │   ├── glided_flight-L-21.jpg
+│   │   │   │   │   ├── glided_flight-L-22.jpg
+│   │   │   │   │   ├── glided_flight-L-23.jpg
+│   │   │   │   │   ├── glided_flight-L-24.jpg
+│   │   │   │   │   ├── glided_flight-L-25.jpg
+│   │   │   │   │   ├── glided_flight-L-26.jpg
+│   │   │   │   │   ├── glided_flight-L-27.jpg
+│   │   │   │   │   ├── glided_flight-L-28.jpg
+│   │   │   │   │   ├── glided_flight-L-29.jpg
+│   │   │   │   │   ├── glided_flight-L-30.jpg
+│   │   │   │   │   ├── glided_flight-L-31.jpg
+│   │   │   │   │   ├── glided_flight-L-32.jpg
+│   │   │   │   │   ├── glided_flight-L-33.jpg
+│   │   │   │   │   ├── glided_flight-L-34.jpg
+│   │   │   │   │   ├── glided_flight-R-01.jpg
+│   │   │   │   │   ├── glided_flight-R-02.jpg
+│   │   │   │   │   ├── glided_flight-R-03.jpg
+│   │   │   │   │   ├── glided_flight-R-04.jpg
+│   │   │   │   │   ├── glided_flight-R-05.jpg
+│   │   │   │   │   ├── glided_flight-R-06.jpg
+│   │   │   │   │   ├── glided_flight-R-07.jpg
+│   │   │   │   │   ├── glided_flight-R-08.jpg
+│   │   │   │   │   ├── glided_flight-R-09.jpg
+│   │   │   │   │   ├── glided_flight-R-10.jpg
+│   │   │   │   │   ├── glided_flight-R-11.jpg
+│   │   │   │   │   ├── glided_flight-R-12.jpg
+│   │   │   │   │   ├── glided_flight-R-13.jpg
+│   │   │   │   │   ├── glided_flight-R-14.jpg
+│   │   │   │   │   ├── glided_flight-R-15.jpg
+│   │   │   │   │   ├── glided_flight-R-16.jpg
+│   │   │   │   │   ├── glided_flight-R-17.jpg
+│   │   │   │   │   ├── glided_flight-R-18.jpg
+│   │   │   │   │   ├── glided_flight-R-19.jpg
+│   │   │   │   │   ├── glided_flight-R-20.jpg
+│   │   │   │   │   ├── glided_flight-R-21.jpg
+│   │   │   │   │   ├── glided_flight-R-22.jpg
+│   │   │   │   │   ├── glided_flight-R-23.jpg
+│   │   │   │   │   ├── glided_flight-R-24.jpg
+│   │   │   │   │   ├── glided_flight-R-25.jpg
+│   │   │   │   │   ├── glided_flight-R-26.jpg
+│   │   │   │   │   ├── glided_flight-R-27.jpg
+│   │   │   │   │   ├── glided_flight-R-28.jpg
+│   │   │   │   │   ├── glided_flight-R-29.jpg
+│   │   │   │   │   ├── glided_flight-R-30.jpg
+│   │   │   │   │   ├── glided_flight-R-31.jpg
+│   │   │   │   │   ├── glided_flight-R-32.jpg
+│   │   │   │   │   ├── glided_flight-R-33.jpg
+│   │   │   │   │   ├── glided_flight-R-34.jpg
+│   │   │   │   │   ├── oms_part1.png
+│   │   │   │   │   ├── oms_part2.png
+│   │   │   │   │   ├── powered_flight-L-01.jpg
+│   │   │   │   │   ├── powered_flight-L-02.jpg
+│   │   │   │   │   ├── powered_flight-L-03.jpg
+│   │   │   │   │   ├── powered_flight-L-04.jpg
+│   │   │   │   │   ├── powered_flight-L-05.jpg
+│   │   │   │   │   ├── powered_flight-L-06.jpg
+│   │   │   │   │   ├── powered_flight-L-07.jpg
+│   │   │   │   │   ├── powered_flight-L-08.jpg
+│   │   │   │   │   ├── powered_flight-L-09.jpg
+│   │   │   │   │   ├── powered_flight-L-10.jpg
+│   │   │   │   │   ├── powered_flight-L-11.jpg
+│   │   │   │   │   ├── powered_flight-L-12.jpg
+│   │   │   │   │   ├── powered_flight-L-13.jpg
+│   │   │   │   │   ├── powered_flight-L-14.jpg
+│   │   │   │   │   ├── powered_flight-L-15.jpg
+│   │   │   │   │   ├── powered_flight-L-16.jpg
+│   │   │   │   │   ├── powered_flight-L-17.jpg
+│   │   │   │   │   ├── powered_flight-L-18.jpg
+│   │   │   │   │   ├── powered_flight-L-19.jpg
+│   │   │   │   │   ├── powered_flight-L-20.jpg
+│   │   │   │   │   ├── powered_flight-L-21.jpg
+│   │   │   │   │   ├── powered_flight-L-22.jpg
+│   │   │   │   │   ├── powered_flight-L-23.jpg
+│   │   │   │   │   ├── powered_flight-L-24.jpg
+│   │   │   │   │   ├── powered_flight-L-25.jpg
+│   │   │   │   │   ├── powered_flight-L-26.jpg
+│   │   │   │   │   ├── powered_flight-R-01.jpg
+│   │   │   │   │   ├── powered_flight-R-02.jpg
+│   │   │   │   │   ├── powered_flight-R-03.jpg
+│   │   │   │   │   ├── powered_flight-R-04.jpg
+│   │   │   │   │   ├── powered_flight-R-05.jpg
+│   │   │   │   │   ├── powered_flight-R-06.jpg
+│   │   │   │   │   ├── powered_flight-R-07.jpg
+│   │   │   │   │   ├── powered_flight-R-08.jpg
+│   │   │   │   │   ├── powered_flight-R-09.jpg
+│   │   │   │   │   ├── powered_flight-R-10.jpg
+│   │   │   │   │   ├── powered_flight-R-11.jpg
+│   │   │   │   │   ├── powered_flight-R-12.jpg
+│   │   │   │   │   ├── powered_flight-R-13.jpg
+│   │   │   │   │   ├── powered_flight-R-14.jpg
+│   │   │   │   │   ├── powered_flight-R-15.jpg
+│   │   │   │   │   ├── powered_flight-R-16.jpg
+│   │   │   │   │   ├── powered_flight-R-17.jpg
+│   │   │   │   │   ├── powered_flight-R-18.jpg
+│   │   │   │   │   ├── powered_flight-R-19.jpg
+│   │   │   │   │   ├── powered_flight-R-20.jpg
+│   │   │   │   │   ├── powered_flight-R-21.jpg
+│   │   │   │   │   ├── powered_flight-R-22.jpg
+│   │   │   │   │   ├── powered_flight-R-23.jpg
+│   │   │   │   │   ├── powered_flight-R-24.jpg
+│   │   │   │   │   ├── powered_flight-R-25.jpg
+│   │   │   │   │   ├── powered_flight-R-26.jpg
+│   │   │   │   │   ├── rtls_cdr.png
+│   │   │   │   │   ├── rtls_contingency.png
+│   │   │   │   │   ├── rtls_plt.png
+│   │   │   │   │   └── tal_redesignation_zza.png
+│   │   │   │   ├── Data
+│   │   │   │   │   ├── entry01.dat
+│   │   │   │   │   ├── entry02.dat
+│   │   │   │   │   ├── launch01.dat
+│   │   │   │   │   ├── launch02.dat
+│   │   │   │   │   ├── README.data
+│   │   │   │   │   └── srb_loft01.dat
+│   │   │   │   ├── Dialogs
+│   │   │   │   │   ├── apu.xml
+│   │   │   │   │   ├── atcs.xml
+│   │   │   │   │   ├── auto_launch.xml
+│   │   │   │   │   ├── cabin_lighting.xml
+│   │   │   │   │   ├── carrier_controls.xml
+│   │   │   │   │   ├── Cuecards
+│   │   │   │   │   │   ├── cuecards_next_0.png
+│   │   │   │   │   │   └── cuecards.png
+│   │   │   │   │   ├── dps_keyboard.xml
+│   │   │   │   │   ├── ECAL_Sites.png
+│   │   │   │   │   ├── Eileen
+│   │   │   │   │   │   ├── eileen.png
+│   │   │   │   │   │   ├── eileen_precision_0.png
+│   │   │   │   │   │   ├── eileen_precision_1.png
+│   │   │   │   │   │   ├── eileen_precision_2.png
+│   │   │   │   │   │   ├── eileen_reference_0.png
+│   │   │   │   │   │   ├── eileen_station_0.png
+│   │   │   │   │   │   └── eileen_station_1.png
+│   │   │   │   │   ├── electrical.xml
+│   │   │   │   │   ├── entry_guidance.xml
+│   │   │   │   │   ├── flight_controls.xml
+│   │   │   │   │   ├── idp_settings.xml
+│   │   │   │   │   ├── keypad_0.png
+│   │   │   │   │   ├── keypad_0_pressed.png
+│   │   │   │   │   ├── keypad_1.png
+│   │   │   │   │   ├── keypad_1_pressed.png
+│   │   │   │   │   ├── keypad_2.png
+│   │   │   │   │   ├── keypad_2_pressed.png
+│   │   │   │   │   ├── keypad_3.png
+│   │   │   │   │   ├── keypad_3_pressed.png
+│   │   │   │   │   ├── keypad_4.png
+│   │   │   │   │   ├── keypad_4_pressed.png
+│   │   │   │   │   ├── keypad_5.png
+│   │   │   │   │   ├── keypad_5_pressed.png
+│   │   │   │   │   ├── keypad_6.png
+│   │   │   │   │   ├── keypad_6_pressed.png
+│   │   │   │   │   ├── keypad_7.png
+│   │   │   │   │   ├── keypad_7_pressed.png
+│   │   │   │   │   ├── keypad_8.png
+│   │   │   │   │   ├── keypad_8_pressed.png
+│   │   │   │   │   ├── keypad_9.png
+│   │   │   │   │   ├── keypad_9_pressed.png
+│   │   │   │   │   ├── keypad_ack.png
+│   │   │   │   │   ├── keypad_ack_pressed.png
+│   │   │   │   │   ├── keypad_A.png
+│   │   │   │   │   ├── keypad_A_pressed.png
+│   │   │   │   │   ├── keypad_B.png
+│   │   │   │   │   ├── keypad_B_pressed.png
+│   │   │   │   │   ├── keypad_clear.png
+│   │   │   │   │   ├── keypad_clear_pressed.png
+│   │   │   │   │   ├── keypad_C.png
+│   │   │   │   │   ├── keypad_C_pressed.png
+│   │   │   │   │   ├── keypad_decimal.png
+│   │   │   │   │   ├── keypad_decimal_pressed.png
+│   │   │   │   │   ├── keypad_D.png
+│   │   │   │   │   ├── keypad_D_pressed.png
+│   │   │   │   │   ├── keypad_E.png
+│   │   │   │   │   ├── keypad_E_pressed.png
+│   │   │   │   │   ├── keypad_exec.png
+│   │   │   │   │   ├── keypad_exec_pressed.png
+│   │   │   │   │   ├── keypad_fault_sum.png
+│   │   │   │   │   ├── keypad_fault_sum_pressed.png
+│   │   │   │   │   ├── keypad_F.png
+│   │   │   │   │   ├── keypad_F_pressed.png
+│   │   │   │   │   ├── keypad_gpc_crt.png
+│   │   │   │   │   ├── keypad_gpc_crt_pressed.png
+│   │   │   │   │   ├── keypad_io_reset.png
+│   │   │   │   │   ├── keypad_io_reset_pressed.png
+│   │   │   │   │   ├── keypad_item.png
+│   │   │   │   │   ├── keypad_item_pressed.png
+│   │   │   │   │   ├── keypad_minus.png
+│   │   │   │   │   ├── keypad_minus_pressed.png
+│   │   │   │   │   ├── keypad_msg_reset.png
+│   │   │   │   │   ├── keypad_msg_reset_pressed.png
+│   │   │   │   │   ├── keypad_ops.png
+│   │   │   │   │   ├── keypad_ops_pressed.png
+│   │   │   │   │   ├── keypad_plus.png
+│   │   │   │   │   ├── keypad_plus_pressed.png
+│   │   │   │   │   ├── keypad.png
+│   │   │   │   │   ├── keypad_pro.png
+│   │   │   │   │   ├── keypad_pro_pressed.png
+│   │   │   │   │   ├── keypad_resume.png
+│   │   │   │   │   ├── keypad_resume_pressed.png
+│   │   │   │   │   ├── keypad_spec.png
+│   │   │   │   │   ├── keypad_spec_pressed.png
+│   │   │   │   │   ├── keypad_sys_sum.png
+│   │   │   │   │   ├── keypad_sys_sum_pressed.png
+│   │   │   │   │   ├── ku_antenna.xml
+│   │   │   │   │   ├── limits.xml
+│   │   │   │   │   ├── MapOfEarth.png
+│   │   │   │   │   ├── mcc_comm.xml
+│   │   │   │   │   ├── mcc_status.xml
+│   │   │   │   │   ├── mechanical.xml
+│   │   │   │   │   ├── mps.xml
+│   │   │   │   │   ├── Notepad
+│   │   │   │   │   │   └── notepad.png
+│   │   │   │   │   ├── oms_panel.png
+│   │   │   │   │   ├── oms_switch_down.png
+│   │   │   │   │   ├── oms_switch_up.png
+│   │   │   │   │   ├── oms_talkback_cl.png
+│   │   │   │   │   ├── oms_talkback_op.png
+│   │   │   │   │   ├── options.xml
+│   │   │   │   │   ├── OrbitalDAP
+│   │   │   │   │   │   ├── DAP_A_0.png
+│   │   │   │   │   │   ├── DAP_A_1.png
+│   │   │   │   │   │   ├── DAP_ALT_0.png
+│   │   │   │   │   │   ├── DAP_ALT_1.png
+│   │   │   │   │   │   ├── DAP_AUTO_0.png
+│   │   │   │   │   │   ├── DAP_AUTO_1.png
+│   │   │   │   │   │   ├── DAP_B_0.png
+│   │   │   │   │   │   ├── DAP_B_1.png
+│   │   │   │   │   │   ├── DAP_DISC_0.png
+│   │   │   │   │   │   ├── DAP_DISC_1.png
+│   │   │   │   │   │   ├── DAP_FREE_0.png
+│   │   │   │   │   │   ├── DAP_FREE_1.png
+│   │   │   │   │   │   ├── DAP_high_Z_0.png
+│   │   │   │   │   │   ├── DAP_high_Z_1.png
+│   │   │   │   │   │   ├── DAP_INRTL_0.png
+│   │   │   │   │   │   ├── DAP_INRTL_1.png
+│   │   │   │   │   │   ├── DAP_low_Z_0.png
+│   │   │   │   │   │   ├── DAP_low_Z_1.png
+│   │   │   │   │   │   ├── DAP_LVLH_0.png
+│   │   │   │   │   │   ├── DAP_LVLH_1.png
+│   │   │   │   │   │   ├── DAP_NORM_0.png
+│   │   │   │   │   │   ├── DAP_NORM_1.png
+│   │   │   │   │   │   ├── DAP-panel.png
+│   │   │   │   │   │   ├── DAP_PRI_0.png
+│   │   │   │   │   │   ├── DAP_PRI_1.png
+│   │   │   │   │   │   ├── DAP_PULSE_0.png
+│   │   │   │   │   │   ├── DAP_PULSE_1.png
+│   │   │   │   │   │   ├── DAP_VERN_0.png
+│   │   │   │   │   │   └── DAP_VERN_1.png
+│   │   │   │   │   ├── orbiter_top.png
+│   │   │   │   │   ├── payload_retention.xml
+│   │   │   │   │   ├── pb_floodlight.xml
+│   │   │   │   │   ├── propellant_fill_drain.xml
+│   │   │   │   │   ├── propellant_launch.png
+│   │   │   │   │   ├── propellant.xml
+│   │   │   │   │   ├── rcs_oms_thermal.xml
+│   │   │   │   │   ├── rcs.xml
+│   │   │   │   │   ├── Rendezvous
+│   │   │   │   │   │   ├── rndz_burn_0.png
+│   │   │   │   │   │   ├── rndz_burn_1.png
+│   │   │   │   │   │   ├── rndz_units_0.png
+│   │   │   │   │   │   └── rndz_units_1.png
+│   │   │   │   │   ├── rms_deploy.xml
+│   │   │   │   │   ├── rms_operation.xml
+│   │   │   │   │   ├── rms_pyro.xml
+│   │   │   │   │   ├── save.xml
+│   │   │   │   │   ├── Scenario
+│   │   │   │   │   │   ├── scenario_debris.png
+│   │   │   │   │   │   ├── scenario_de_orbit.png
+│   │   │   │   │   │   ├── scenario_high_energy_entry.png
+│   │   │   │   │   │   ├── scenario_ISS_T1.png
+│   │   │   │   │   │   ├── scenario_lakebed.png
+│   │   │   │   │   │   ├── scenario_low_energy_entry.png
+│   │   │   │   │   │   ├── scenario_next_0.png
+│   │   │   │   │   │   ├── scenario_predef_0.png
+│   │   │   │   │   │   ├── scenario_rtls.png
+│   │   │   │   │   │   └── scenario_select_0.png
+│   │   │   │   │   ├── switch_covers.xml
+│   │   │   │   │   ├── thermal_distribution.xml
+│   │   │   │   │   ├── touchdown.xml
+│   │   │   │   │   ├── Training
+│   │   │   │   │   │   ├── ascent_easy.png
+│   │   │   │   │   │   ├── ascent_hard.png
+│   │   │   │   │   │   └── ascent_medium.png
+│   │   │   │   │   ├── TrajectoryMap
+│   │   │   │   │   │   ├── comsites_0.png
+│   │   │   │   │   │   ├── comsites_1.png
+│   │   │   │   │   │   ├── comsites_2.png
+│   │   │   │   │   │   ├── comsites_3.png
+│   │   │   │   │   │   ├── history_0.png
+│   │   │   │   │   │   ├── history_1.png
+│   │   │   │   │   │   ├── history_2.png
+│   │   │   │   │   │   ├── history_3.png
+│   │   │   │   │   │   ├── horizon_0.png
+│   │   │   │   │   │   ├── horizon_1.png
+│   │   │   │   │   │   ├── landing_0.png
+│   │   │   │   │   │   ├── landing_1.png
+│   │   │   │   │   │   ├── landing_2.png
+│   │   │   │   │   │   ├── landing_3.png
+│   │   │   │   │   │   ├── landing_4.png
+│   │   │   │   │   │   ├── landing_5.png
+│   │   │   │   │   │   ├── prediction_0.png
+│   │   │   │   │   │   ├── prediction_1.png
+│   │   │   │   │   │   ├── prediction_2.png
+│   │   │   │   │   │   ├── prediction_3.png
+│   │   │   │   │   │   └── prediction_4.png
+│   │   │   │   │   ├── units_to_fahrenheit.png
+│   │   │   │   │   ├── units_to_kelvin.png
+│   │   │   │   │   └── ViewManager
+│   │   │   │   │       ├── flightdeck_top.png
+│   │   │   │   │       └── orbiter_top_pbd_open.png
+│   │   │   │   ├── Documentation
+│   │   │   │   │   ├── dps_dictionary.pdf
+│   │   │   │   │   ├── dps_index_tables.txt
+│   │   │   │   │   ├── Howto.AddPayload.txt
+│   │   │   │   │   ├── navaids.txt
+│   │   │   │   │   └── shuttle_crew_operations_manual.pdf
+│   │   │   │   ├── Effects
+│   │   │   │   │   ├── chute.eff
+│   │   │   │   │   ├── model-interior-display.eff
+│   │   │   │   │   ├── model-interior-extended.eff
+│   │   │   │   │   ├── model-interior-object.eff
+│   │   │   │   │   ├── model-interior-velcro.eff
+│   │   │   │   │   └── plasma.eff
+│   │   │   │   ├── Engines
+│   │   │   │   │   ├── OMS_nozzle.xml
+│   │   │   │   │   ├── OMS.xml
+│   │   │   │   │   ├── RCS-24.0lb.xml
+│   │   │   │   │   ├── RCS-24.5lb.xml
+│   │   │   │   │   ├── RCS-870.0lb.xml
+│   │   │   │   │   ├── RCS-870.6lb.xml
+│   │   │   │   │   ├── RCS-874.2lb.xml
+│   │   │   │   │   ├── RCS-875.1lb.xml
+│   │   │   │   │   ├── RCS-885.9lb.xml
+│   │   │   │   │   ├── RCS-887.9lb.xml
+│   │   │   │   │   ├── RCS-896.6lb.xml
+│   │   │   │   │   ├── RCS_nozzle.xml
+│   │   │   │   │   ├── RCS.xml
+│   │   │   │   │   ├── SRB_nozzle.xml
+│   │   │   │   │   ├── SRB.xml
+│   │   │   │   │   ├── SSME_nozzle.xml
+│   │   │   │   │   └── SSME.xml
+│   │   │   │   ├── Fonts
+│   │   │   │   │   ├── SSU_Font_A_mod.ttf
+│   │   │   │   │   └── SSU_Font_B_mod.ttf
+│   │   │   │   ├── Huds
+│   │   │   │   │   ├── default.xml
+│   │   │   │   │   ├── Instruments
+│   │   │   │   │   │   ├── compass.xml
+│   │   │   │   │   │   ├── gload.xml
+│   │   │   │   │   │   ├── ladder.xml
+│   │   │   │   │   │   ├── latitude.xml
+│   │   │   │   │   │   ├── longitude.xml
+│   │   │   │   │   │   ├── runway.xml
+│   │   │   │   │   │   └── turn-bank-indicator.xml
+│   │   │   │   │   ├── README
+│   │   │   │   │   ├── Sets
+│   │   │   │   │   │   ├── autopilot.xml
+│   │   │   │   │   │   ├── controls.xml
+│   │   │   │   │   │   ├── coordinates.xml
+│   │   │   │   │   │   ├── gps.xml
+│   │   │   │   │   │   ├── in-cockpit-orbital.xml
+│   │   │   │   │   │   ├── orbital.xml
+│   │   │   │   │   │   └── parameters.xml
+│   │   │   │   │   └── tachiametric-sight.xml
+│   │   │   │   ├── jet_table.xml
+│   │   │   │   ├── key_bindings.xml
+│   │   │   │   ├── Mission
+│   │   │   │   │   ├── columbia.xml
+│   │   │   │   │   ├── earlysts.xml
+│   │   │   │   │   ├── hst.xml
+│   │   │   │   │   ├── iss.xml
+│   │   │   │   │   ├── mission.xml
+│   │   │   │   │   └── polarexpress.xml
+│   │   │   │   ├── mission_control.xml
+│   │   │   │   ├── Models
+│   │   │   │   │   ├── aft-cockpit-text-map-x.png
+│   │   │   │   │   ├── air-data-boom.ac
+│   │   │   │   │   ├── Artwork
+│   │   │   │   │   │   ├── readme.txt
+│   │   │   │   │   │   └── ToDo-Switches.txt
+│   │   │   │   │   ├── book.ac
+│   │   │   │   │   ├── book.png
+│   │   │   │   │   ├── cc.ive
+│   │   │   │   │   ├── coas.ac
+│   │   │   │   │   ├── coas_pattern.png
+│   │   │   │   │   ├── coas.png
+│   │   │   │   │   ├── coas.xml
+│   │   │   │   │   ├── cockpit.ac
+│   │   │   │   │   ├── cockpit-damage.ac
+│   │   │   │   │   ├── cockpit-damage.xml
+│   │   │   │   │   ├── cockpit-detailed.ac
+│   │   │   │   │   ├── cockpit-detailed.xml
+│   │   │   │   │   ├── cockpit-forward-panel.rgb
+│   │   │   │   │   ├── cockpit_glass_broken.ac
+│   │   │   │   │   ├── cockpit_glass_broken.xml
+│   │   │   │   │   ├── cockpit_glass_outer.ac
+│   │   │   │   │   ├── cockpit_glass_outer.xml
+│   │   │   │   │   ├── cockpit.ive
+│   │   │   │   │   ├── cockpit.xml
+│   │   │   │   │   ├── Cuecards
+│   │   │   │   │   │   ├── cuecard_cdr_center_left.ac
+│   │   │   │   │   │   ├── cuecard_cdr_center_left.xml
+│   │   │   │   │   │   ├── cuecard_cdr_center_right.ac
+│   │   │   │   │   │   ├── cuecard_cdr_center_right.xml
+│   │   │   │   │   │   ├── cuecard_plt_center_left.ac
+│   │   │   │   │   │   ├── cuecard_plt_center_left.xml
+│   │   │   │   │   │   ├── cuecard_plt_center_right.ac
+│   │   │   │   │   │   ├── cuecard_plt_center_right.xml
+│   │   │   │   │   │   ├── cuecard.xml
+│   │   │   │   │   │   └── white.png
+│   │   │   │   │   ├── damage.ac
+│   │   │   │   │   ├── Effects
+│   │   │   │   │   │   ├── annulus.png
+│   │   │   │   │   │   ├── boom.xml
+│   │   │   │   │   │   ├── cryo_vent_ssme.xml
+│   │   │   │   │   │   ├── debris_trail_1.xml
+│   │   │   │   │   │   ├── debris_trail_2.xml
+│   │   │   │   │   │   ├── debris_trail_3.xml
+│   │   │   │   │   │   ├── debris_trail_4.xml
+│   │   │   │   │   │   ├── debris_trail_5.xml
+│   │   │   │   │   │   ├── engine-fire.ac
+│   │   │   │   │   │   ├── engine-fire-alt1.xml
+│   │   │   │   │   │   ├── engine-fire-alt2.xml
+│   │   │   │   │   │   ├── engine-fire-alt.xml
+│   │   │   │   │   │   ├── engine-fire.xml
+│   │   │   │   │   │   ├── entry_flame_core.xml
+│   │   │   │   │   │   ├── entry_flame_medium.xml
+│   │   │   │   │   │   ├── entry_flame_small.xml
+│   │   │   │   │   │   ├── entry_flame.xml
+│   │   │   │   │   │   ├── ET_explosion_blast.xml
+│   │   │   │   │   │   ├── ET_fireball.xml
+│   │   │   │   │   │   ├── et-main.eff
+│   │   │   │   │   │   ├── fes-exhaust.eff
+│   │   │   │   │   │   ├── fes-exhaust.xml
+│   │   │   │   │   │   ├── fx.png
+│   │   │   │   │   │   ├── glass-front-broken.eff
+│   │   │   │   │   │   ├── glass-front.eff
+│   │   │   │   │   │   ├── ground
+│   │   │   │   │   │   │   ├── gear-damage
+│   │   │   │   │   │   │   │   ├── nose-damage.xml
+│   │   │   │   │   │   │   │   ├── port-damage.xml
+│   │   │   │   │   │   │   │   ├── spark.png
+│   │   │   │   │   │   │   │   ├── stbd-damage.xml
+│   │   │   │   │   │   │   │   └── tyresmoke.png
+│   │   │   │   │   │   │   ├── tailstrike
+│   │   │   │   │   │   │   │   ├── left-tail-strike.xml
+│   │   │   │   │   │   │   │   ├── right-tail-strike.xml
+│   │   │   │   │   │   │   │   ├── spark.png
+│   │   │   │   │   │   │   │   ├── tail-strike.xml
+│   │   │   │   │   │   │   │   └── tyresmoke.png
+│   │   │   │   │   │   │   ├── tiresmoke
+│   │   │   │   │   │   │   │   ├── left-tire-smoke.xml
+│   │   │   │   │   │   │   │   ├── nose-tire-smoke.xml
+│   │   │   │   │   │   │   │   ├── right-tire-smoke.xml
+│   │   │   │   │   │   │   │   └── tyresmoke.png
+│   │   │   │   │   │   │   ├── tirespray
+│   │   │   │   │   │   │   │   ├── left-tire-spray.xml
+│   │   │   │   │   │   │   │   ├── nose-tire-spray.xml
+│   │   │   │   │   │   │   │   ├── right-tire-spray.xml
+│   │   │   │   │   │   │   │   └── smoke.png
+│   │   │   │   │   │   │   ├── touchdown
+│   │   │   │   │   │   │   │   ├── left-touchdown-smoke.xml
+│   │   │   │   │   │   │   │   ├── nose-touchdown-smoke.xml
+│   │   │   │   │   │   │   │   ├── right-touchdown-smoke.xml
+│   │   │   │   │   │   │   │   └── tyresmoke.png
+│   │   │   │   │   │   │   └── wingstrike
+│   │   │   │   │   │   │       ├── left-wing-strike.xml
+│   │   │   │   │   │   │       ├── right-wing-strike.xml
+│   │   │   │   │   │   │       ├── spark.png
+│   │   │   │   │   │   │       └── tyresmoke.png
+│   │   │   │   │   │   ├── h2_drain.xml
+│   │   │   │   │   │   ├── hud
+│   │   │   │   │   │   │   ├── hud_cdr.eff
+│   │   │   │   │   │   │   ├── hud_coas.eff
+│   │   │   │   │   │   │   └── hud_plt.eff
+│   │   │   │   │   │   ├── Interior
+│   │   │   │   │   │   │   ├── 0001.png
+│   │   │   │   │   │   │   ├── 0002.png
+│   │   │   │   │   │   │   ├── 0003.png
+│   │   │   │   │   │   │   ├── 0004.png
+│   │   │   │   │   │   │   ├── 0005.png
+│   │   │   │   │   │   │   ├── 0006.png
+│   │   │   │   │   │   │   ├── crack_mask.png
+│   │   │   │   │   │   │   ├── dust-effect-overlay.png
+│   │   │   │   │   │   │   ├── flashlight.eff
+│   │   │   │   │   │   │   ├── floor.eff
+│   │   │   │   │   │   │   ├── floor_texture.png
+│   │   │   │   │   │   │   ├── framing-detailed.eff
+│   │   │   │   │   │   │   ├── framing.eff
+│   │   │   │   │   │   │   ├── framing_texture.png
+│   │   │   │   │   │   │   ├── glass-scratch.png
+│   │   │   │   │   │   │   ├── lm-A1-A2-A3-lite.png
+│   │   │   │   │   │   │   ├── lm-A1-A2-A3.png
+│   │   │   │   │   │   │   ├── lm-aft-panel.png
+│   │   │   │   │   │   │   ├── lm-F12-F34-L1-R1-lite.png
+│   │   │   │   │   │   │   ├── lm-F12-F34-L1-R1.png
+│   │   │   │   │   │   │   ├── lm-glare-panel.png
+│   │   │   │   │   │   │   ├── lm-S1C-S2C-lite.png
+│   │   │   │   │   │   │   ├── lm-S1C-S2C.png
+│   │   │   │   │   │   │   ├── lm-seat-spot.png
+│   │   │   │   │   │   │   ├── roof.eff
+│   │   │   │   │   │   │   ├── shuttle-digital2.eff
+│   │   │   │   │   │   │   ├── shuttle-digital.eff
+│   │   │   │   │   │   │   ├── shuttle-display.eff
+│   │   │   │   │   │   │   ├── shuttle-interior-aft-panel-center.eff
+│   │   │   │   │   │   │   ├── shuttle-interior-aft-panel-left.eff
+│   │   │   │   │   │   │   ├── shuttle-interior-aft-panel-right.eff
+│   │   │   │   │   │   │   ├── shuttle-interior-det-aft-panel-center.eff
+│   │   │   │   │   │   │   ├── shuttle-interior-det-aft-panel-left.eff
+│   │   │   │   │   │   │   ├── shuttle-interior-det-aft-panel-right.eff
+│   │   │   │   │   │   │   ├── shuttle-interior-detailed.eff
+│   │   │   │   │   │   │   ├── shuttle-interior-det-instrument-overhead.eff
+│   │   │   │   │   │   │   ├── shuttle-interior-det-overhead-left.eff
+│   │   │   │   │   │   │   ├── shuttle-interior-det-overhead-right.eff
+│   │   │   │   │   │   │   ├── shuttle-interior-det-panel-center.eff
+│   │   │   │   │   │   │   ├── shuttle-interior-det-panel-left.eff
+│   │   │   │   │   │   │   ├── shuttle-interior-det-panel-right.eff
+│   │   │   │   │   │   │   ├── shuttle-interior.eff
+│   │   │   │   │   │   │   ├── shuttle-interior-instrument-overhead.eff
+│   │   │   │   │   │   │   ├── shuttle-interior-instrument-right.eff
+│   │   │   │   │   │   │   ├── shuttle-interior-overhead-left.eff
+│   │   │   │   │   │   │   ├── shuttle-interior-overhead-right.eff
+│   │   │   │   │   │   │   ├── shuttle-interior-panel-center.eff
+│   │   │   │   │   │   │   ├── shuttle-interior-panel-left.eff
+│   │   │   │   │   │   │   ├── shuttle-interior-panel-right.eff
+│   │   │   │   │   │   │   ├── velcro.eff
+│   │   │   │   │   │   │   ├── velcro-geo.eff
+│   │   │   │   │   │   │   ├── velcro_texture.png
+│   │   │   │   │   │   │   ├── wall.eff
+│   │   │   │   │   │   │   ├── wall_texture.png
+│   │   │   │   │   │   │   ├── white.png
+│   │   │   │   │   │   │   ├── window.eff
+│   │   │   │   │   │   │   └── window_texture.png
+│   │   │   │   │   │   ├── o2_drain.xml
+│   │   │   │   │   │   ├── OMS_flame1_alt.xml
+│   │   │   │   │   │   ├── OMS_flame2_alt.xml
+│   │   │   │   │   │   ├── OMS_flame.eff
+│   │   │   │   │   │   ├── OMS_flame.xml
+│   │   │   │   │   │   ├── payload.eff
+│   │   │   │   │   │   ├── plasma-burn_texture.png
+│   │   │   │   │   │   ├── plasma_trail.xml
+│   │   │   │   │   │   ├── procedural_light.ac
+│   │   │   │   │   │   ├── procedural_light_button_master-alarm_cmd.xml
+│   │   │   │   │   │   ├── procedural_light_button_master-alarm_pbs.xml
+│   │   │   │   │   │   ├── procedural_light_button_master-alarm_plt.xml
+│   │   │   │   │   │   ├── procedural-light-cw-light-ac-overload.eff
+│   │   │   │   │   │   ├── procedural_light_cw-light-ac-overload.xml
+│   │   │   │   │   │   ├── procedural-light-cw-light-ac-voltage.eff
+│   │   │   │   │   │   ├── procedural_light_cw-light-ac-voltage.xml
+│   │   │   │   │   │   ├── procedural-light-cw-light-air-data.eff
+│   │   │   │   │   │   ├── procedural_light_cw-light-air-data.xml
+│   │   │   │   │   │   ├── procedural-light-cw-light-apu-overspeed.eff
+│   │   │   │   │   │   ├── procedural_light_cw-light-apu-overspeed.xml
+│   │   │   │   │   │   ├── procedural-light-cw-light-apu-temp.eff
+│   │   │   │   │   │   ├── procedural_light_cw-light-apu-temp.xml
+│   │   │   │   │   │   ├── procedural-light-cw-light-apu-underspeed.eff
+│   │   │   │   │   │   ├── procedural_light_cw-light-apu-underspeed.xml
+│   │   │   │   │   │   ├── procedural-light-cw-light-av-bay-cabin-air.eff
+│   │   │   │   │   │   ├── procedural_light_cw-light-av-bay-cabin-air.xml
+│   │   │   │   │   │   ├── procedural-light-cw-light-backup-cw-alarm.eff
+│   │   │   │   │   │   ├── procedural_light_cw-light-backup-cw-alarm.xml
+│   │   │   │   │   │   ├── procedural-light-cw-light-cabin-atm.eff
+│   │   │   │   │   │   ├── procedural_light_cw-light-cabin-atm.xml
+│   │   │   │   │   │   ├── procedural-light-cw-light-fcs-channel.eff
+│   │   │   │   │   │   ├── procedural_light_cw-light-fcs-channel.xml
+│   │   │   │   │   │   ├── procedural-light-cw-light-fcs-saturation.eff
+│   │   │   │   │   │   ├── procedural_light_cw-light-fcs-saturation.xml
+│   │   │   │   │   │   ├── procedural-light-cw-light-freon-loop.eff
+│   │   │   │   │   │   ├── procedural_light_cw-light-freon-loop.xml
+│   │   │   │   │   │   ├── procedural-light-cw-light-fuel-cell-pump.eff
+│   │   │   │   │   │   ├── procedural_light_cw-light-fuel-cell-pump.xml
+│   │   │   │   │   │   ├── procedural-light-cw-light-fuel-cell-reac.eff
+│   │   │   │   │   │   ├── procedural_light_cw-light-fuel-cell-reac.xml
+│   │   │   │   │   │   ├── procedural-light-cw-light-fuel-cell-stack-temp.eff
+│   │   │   │   │   │   ├── procedural_light_cw-light-fuel-cell-stack-temp.xml
+│   │   │   │   │   │   ├── procedural-light-cw-light-fwd-rcs.eff
+│   │   │   │   │   │   ├── procedural_light_cw-light-fwd-rcs.xml
+│   │   │   │   │   │   ├── procedural-light-cw-light-gpc.eff
+│   │   │   │   │   │   ├── procedural_light_cw-light-gpc.xml
+│   │   │   │   │   │   ├── procedural-light-cw-light-h2o-loop.eff
+│   │   │   │   │   │   ├── procedural_light_cw-light-h2o-loop.xml
+│   │   │   │   │   │   ├── procedural-light-cw-light-h2press.eff
+│   │   │   │   │   │   ├── procedural_light_cw-light-h2press.xml
+│   │   │   │   │   │   ├── procedural-light-cw-light-hyd-press.eff
+│   │   │   │   │   │   ├── procedural_light_cw-light-hyd-press.xml
+│   │   │   │   │   │   ├── procedural-light-cw-light-imu.eff
+│   │   │   │   │   │   ├── procedural_light_cw-light-imu.xml
+│   │   │   │   │   │   ├── procedural-light-cw-light-left-oms.eff
+│   │   │   │   │   │   ├── procedural_light_cw-light-left-oms.xml
+│   │   │   │   │   │   ├── procedural-light-cw-light-left-rcs.eff
+│   │   │   │   │   │   ├── procedural_light_cw-light-left-rcs.xml
+│   │   │   │   │   │   ├── procedural-light-cw-light-left-rhc.eff
+│   │   │   │   │   │   ├── procedural_light_cw-light-left-rhc.xml
+│   │   │   │   │   │   ├── procedural-light-cw-light-main-bus-undervolt.eff
+│   │   │   │   │   │   ├── procedural_light_cw-light-main-bus-undervolt.xml
+│   │   │   │   │   │   ├── procedural-light-cw-light-mps.eff
+│   │   │   │   │   │   ├── procedural_light_cw-light-mps.xml
+│   │   │   │   │   │   ├── procedural-light-cw-light-o2heater-temp.eff
+│   │   │   │   │   │   ├── procedural_light_cw-light-o2heater-temp.xml
+│   │   │   │   │   │   ├── procedural-light-cw-light-o2press.eff
+│   │   │   │   │   │   ├── procedural_light_cw-light-o2press.xml
+│   │   │   │   │   │   ├── procedural-light-cw-light-oms-kit.eff
+│   │   │   │   │   │   ├── procedural_light_cw-light-oms-kit.xml
+│   │   │   │   │   │   ├── procedural-light-cw-light-oms-tvc.eff
+│   │   │   │   │   │   ├── procedural_light_cw-light-oms-tvc.xml
+│   │   │   │   │   │   ├── procedural-light-cw-light-payload-caution.eff
+│   │   │   │   │   │   ├── procedural_light_cw-light-payload-caution.xml
+│   │   │   │   │   │   ├── procedural-light-cw-light-payload-warning.eff
+│   │   │   │   │   │   ├── procedural_light_cw-light-payload-warning.xml
+│   │   │   │   │   │   ├── procedural-light-cw-light-primary-cw.eff
+│   │   │   │   │   │   ├── procedural_light_cw-light-primary-cw.xml
+│   │   │   │   │   │   ├── procedural-light-cw-light-rcs-jet.eff
+│   │   │   │   │   │   ├── procedural_light_cw-light-rcs-jet.xml
+│   │   │   │   │   │   ├── procedural-light-cw-light-rga-accel.eff
+│   │   │   │   │   │   ├── procedural_light_cw-light-rga-accel.xml
+│   │   │   │   │   │   ├── procedural-light-cw-light-right-aft-rhc.eff
+│   │   │   │   │   │   ├── procedural_light_cw-light-right-aft-rhc.xml
+│   │   │   │   │   │   ├── procedural-light-cw-light-right-oms.eff
+│   │   │   │   │   │   ├── procedural_light_cw-light-right-oms.xml
+│   │   │   │   │   │   ├── procedural-light-cw-light-right-rcs.eff
+│   │   │   │   │   │   ├── procedural_light_cw-light-right-rcs.xml
+│   │   │   │   │   │   ├── procedural-light-cw-light-rms-red-a.001.eff
+│   │   │   │   │   │   ├── procedural_light_cw-light-rms-red-a.001.xml
+│   │   │   │   │   │   ├── procedural-light-cw-light-rms-red-a.002.eff
+│   │   │   │   │   │   ├── procedural_light_cw-light-rms-red-a.002.xml
+│   │   │   │   │   │   ├── procedural-light-cw-light-rms-red-a.004.eff
+│   │   │   │   │   │   ├── procedural_light_cw-light-rms-red-a.004.xml
+│   │   │   │   │   │   ├── procedural-light-cw-light-rms-red-a.005.eff
+│   │   │   │   │   │   ├── procedural_light_cw-light-rms-red-a.005.xml
+│   │   │   │   │   │   ├── procedural-light-cw-light-rms-red-a.eff
+│   │   │   │   │   │   ├── procedural_light_cw-light-rms-red-a.xml
+│   │   │   │   │   │   ├── procedural-light-cw-light-rms-yellow-a.001.eff
+│   │   │   │   │   │   ├── procedural_light_cw-light-rms-yellow-a.001.xml
+│   │   │   │   │   │   ├── procedural-light-cw-light-rms-yellow-a.002.eff
+│   │   │   │   │   │   ├── procedural_light_cw-light-rms-yellow-a.002.xml
+│   │   │   │   │   │   ├── procedural-light-cw-light-rms-yellow-a.003.eff
+│   │   │   │   │   │   ├── procedural_light_cw-light-rms-yellow-a.003.xml
+│   │   │   │   │   │   ├── procedural-light-cw-light-rms-yellow-a.004.eff
+│   │   │   │   │   │   ├── procedural_light_cw-light-rms-yellow-a.004.xml
+│   │   │   │   │   │   ├── procedural-light-cw-light-rms-yellow-a.005.eff
+│   │   │   │   │   │   ├── procedural_light_cw-light-rms-yellow-a.005.xml
+│   │   │   │   │   │   ├── procedural-light-cw-light-rms-yellow-a.eff
+│   │   │   │   │   │   ├── procedural_light_cw-light-rms-yellow-a.xml
+│   │   │   │   │   │   ├── procedural-light-incandescent.eff
+│   │   │   │   │   │   ├── procedural-light-incandescent-yellow.eff
+│   │   │   │   │   │   ├── procedural-light-left-console.eff
+│   │   │   │   │   │   ├── procedural_light_left_console.xml
+│   │   │   │   │   │   ├── procedural-light-left-glare.eff
+│   │   │   │   │   │   ├── procedural_light_left_glare.xml
+│   │   │   │   │   │   ├── procedural-light-left-seat.eff
+│   │   │   │   │   │   ├── procedural_light_left_seat.xml
+│   │   │   │   │   │   ├── procedural-light-master-alarm-cmd.eff
+│   │   │   │   │   │   ├── procedural-light-master-alarm-pbs.eff
+│   │   │   │   │   │   ├── procedural-light-master-alarm-plt.eff
+│   │   │   │   │   │   ├── procedural-light-mes-ctr-r.eff
+│   │   │   │   │   │   ├── procedural_light_mes-ctr-r.xml
+│   │   │   │   │   │   ├── procedural-light-mes-ctr-y.eff
+│   │   │   │   │   │   ├── procedural_light_mes-ctr-y.xml
+│   │   │   │   │   │   ├── procedural-light-mes-left-r.eff
+│   │   │   │   │   │   ├── procedural_light_mes-left-r.xml
+│   │   │   │   │   │   ├── procedural-light-mes-left-y.eff
+│   │   │   │   │   │   ├── procedural_light_mes-left-y.xml
+│   │   │   │   │   │   ├── procedural-light-mes-right-r.eff
+│   │   │   │   │   │   ├── procedural_light_mes-right-r.xml
+│   │   │   │   │   │   ├── procedural-light-mes-right-y.eff
+│   │   │   │   │   │   ├── procedural_light_mes-right-y.xml
+│   │   │   │   │   │   ├── procedural-light-mode-sel-rotory.eff
+│   │   │   │   │   │   ├── procedural_light_mode-sel-rotory.xml
+│   │   │   │   │   │   ├── procedural-light-right-console.eff
+│   │   │   │   │   │   ├── procedural_light_right_console.xml
+│   │   │   │   │   │   ├── procedural-light-right-glare.eff
+│   │   │   │   │   │   ├── procedural_light_right_glare.xml
+│   │   │   │   │   │   ├── procedural-light-right-seat.eff
+│   │   │   │   │   │   ├── procedural_light_right_seat.xml
+│   │   │   │   │   │   ├── procedural-light-rms-master-alarm.eff
+│   │   │   │   │   │   ├── procedural_light_rms-master-alarm.xml
+│   │   │   │   │   │   ├── procedural-light-sd-avbay1-light-l.eff
+│   │   │   │   │   │   ├── procedural_light_sd-avbay1-light-l.xml
+│   │   │   │   │   │   ├── procedural-light-sd-avbay1-light-r.eff
+│   │   │   │   │   │   ├── procedural_light_sd-avbay1-light-r.xml
+│   │   │   │   │   │   ├── procedural-light-sd-avbay2-light-l.eff
+│   │   │   │   │   │   ├── procedural_light_sd-avbay2-light-l.xml
+│   │   │   │   │   │   ├── procedural-light-sd-avbay2-light-r.eff
+│   │   │   │   │   │   ├── procedural_light_sd-avbay2-light-r.xml
+│   │   │   │   │   │   ├── procedural-light-sd-avbay3-light-l.eff
+│   │   │   │   │   │   ├── procedural_light_sd-avbay3-light-l.xml
+│   │   │   │   │   │   ├── procedural-light-sd-avbay3-light-r.eff
+│   │   │   │   │   │   ├── procedural_light_sd-avbay3-light-r.xml
+│   │   │   │   │   │   ├── procedural-light-sd-cabin-light-l.eff
+│   │   │   │   │   │   ├── procedural_light_sd-cabin-light-l.xml
+│   │   │   │   │   │   ├── procedural-light-sd-flightdeck-light-l.eff
+│   │   │   │   │   │   ├── procedural_light_sd-flightdeck-light-l.xml
+│   │   │   │   │   │   ├── procedural-light-sd-flightdeck-light-r.eff
+│   │   │   │   │   │   ├── procedural_light_sd-flightdeck-light-r.xml
+│   │   │   │   │   │   ├── procedural-light-sd-payload-light-r.eff
+│   │   │   │   │   │   ├── procedural_light_sd-payload-light-r.xml
+│   │   │   │   │   │   ├── procedural-light-sm-alert-b.eff
+│   │   │   │   │   │   ├── procedural_light_sm-alert-b.xml
+│   │   │   │   │   │   ├── propellant-dump.eff
+│   │   │   │   │   │   ├── propellant-dump.xml
+│   │   │   │   │   │   ├── puff.rgb
+│   │   │   │   │   │   ├── RCS_flame_alt.xml
+│   │   │   │   │   │   ├── RCS_flame.eff
+│   │   │   │   │   │   ├── shuttle-cuecard-object.eff
+│   │   │   │   │   │   ├── shuttle-heatshield.eff
+│   │   │   │   │   │   ├── shuttle-interior-object.eff
+│   │   │   │   │   │   ├── shuttle-main.eff
+│   │   │   │   │   │   ├── shuttle-payload-bay-door-left.eff
+│   │   │   │   │   │   ├── shuttle-payload-bay-door-right.eff
+│   │   │   │   │   │   ├── shuttle-payload-bay.eff
+│   │   │   │   │   │   ├── shuttle_tail.eff
+│   │   │   │   │   │   ├── smoke_engine2.xml
+│   │   │   │   │   │   ├── smoke.png
+│   │   │   │   │   │   ├── spark_igniter.xml
+│   │   │   │   │   │   ├── spark.png
+│   │   │   │   │   │   ├── srb-flame-near.eff
+│   │   │   │   │   │   ├── SRB_flame_near.xml
+│   │   │   │   │   │   ├── SRB_flame.xml
+│   │   │   │   │   │   ├── SRB_launch_smoke.xml
+│   │   │   │   │   │   ├── srb-left.eff
+│   │   │   │   │   │   ├── srb-right.eff
+│   │   │   │   │   │   ├── SRB_separation_motor_flame.xml
+│   │   │   │   │   │   ├── SRBsep-flame.eff
+│   │   │   │   │   │   ├── SRB_smoke.xml
+│   │   │   │   │   │   ├── ssme-flame1.eff
+│   │   │   │   │   │   ├── ssme-flame2.eff
+│   │   │   │   │   │   ├── ssme-flame.eff
+│   │   │   │   │   │   ├── strake-vortex.eff
+│   │   │   │   │   │   ├── strake-vortex-new.xml
+│   │   │   │   │   │   └── thrusters.png
+│   │   │   │   │   ├── et.ac
+│   │   │   │   │   ├── et all.png
+│   │   │   │   │   ├── etallw.png
+│   │   │   │   │   ├── etw.ac
+│   │   │   │   │   ├── external-fuel-tank.xml
+│   │   │   │   │   ├── external-tank-disconnectedw.xml
+│   │   │   │   │   ├── external-tank-disconnected.xml
+│   │   │   │   │   ├── flags.png
+│   │   │   │   │   ├── fwd-cockpit-base.png
+│   │   │   │   │   ├── fwd-cockpit-text-map-x.png
+│   │   │   │   │   ├── gear-damage.xml
+│   │   │   │   │   ├── glass-scratch.png
+│   │   │   │   │   ├── HST
+│   │   │   │   │   │   ├── foil-normal2.eff
+│   │   │   │   │   │   ├── foil-normal2.png
+│   │   │   │   │   │   ├── foil-normal.eff
+│   │   │   │   │   │   ├── foil-normal.png
+│   │   │   │   │   │   ├── hbltel_1.png
+│   │   │   │   │   │   ├── hbltel_2.png
+│   │   │   │   │   │   ├── hbltel_3.png
+│   │   │   │   │   │   ├── hbltel_4.png
+│   │   │   │   │   │   ├── hbltel_w.png
+│   │   │   │   │   │   ├── hst.ac
+│   │   │   │   │   │   ├── hst-shine.eff
+│   │   │   │   │   │   └── hst.xml
+│   │   │   │   │   ├── ISS
+│   │   │   │   │   │   ├── alt_panel.png
+│   │   │   │   │   │   ├── docking_port.png
+│   │   │   │   │   │   ├── ISS_docked.ac
+│   │   │   │   │   │   ├── ISS_docked.xml
+│   │   │   │   │   │   ├── ISS_free.xml
+│   │   │   │   │   │   ├── ISS_simple_docked.ac
+│   │   │   │   │   │   ├── module_side.png
+│   │   │   │   │   │   ├── singlepanel.png
+│   │   │   │   │   │   └── thermal_wrap.png
+│   │   │   │   │   ├── LandingGears.ac
+│   │   │   │   │   ├── LandingGears.xml
+│   │   │   │   │   ├── Launchpad
+│   │   │   │   │   │   ├── Gantry.ac
+│   │   │   │   │   │   ├── gantry.xml
+│   │   │   │   │   │   ├── launchpad.xml
+│   │   │   │   │   │   └── LC-39-MLP.ac
+│   │   │   │   │   ├── Liveries
+│   │   │   │   │   │   ├── default.xml
+│   │   │   │   │   │   ├── etall.png
+│   │   │   │   │   │   ├── etallw.png
+│   │   │   │   │   │   ├── LICENSE
+│   │   │   │   │   │   └── white.xml
+│   │   │   │   │   ├── OMSPods.ac
+│   │   │   │   │   ├── OMSPods.xml
+│   │   │   │   │   ├── Parachutes
+│   │   │   │   │   │   ├── Brake-Parachute1.xml
+│   │   │   │   │   │   ├── Brake-Parachute2.xml
+│   │   │   │   │   │   ├── Brake-Parachute.xml
+│   │   │   │   │   │   ├── chutes.png
+│   │   │   │   │   │   ├── DragChute.ac
+│   │   │   │   │   │   └── Main-Parachute.ac
+│   │   │   │   │   ├── PayloadBay
+│   │   │   │   │   │   ├── Airlock-Module
+│   │   │   │   │   │   │   ├── airlock_module.ac
+│   │   │   │   │   │   │   ├── airlock-module.eff
+│   │   │   │   │   │   │   ├── airlock_module_lm.png
+│   │   │   │   │   │   │   ├── airlock_module.xml
+│   │   │   │   │   │   │   └── thermal_wrap_large.png
+│   │   │   │   │   │   ├── HST
+│   │   │   │   │   │   │   ├── foil-normal2.eff
+│   │   │   │   │   │   │   ├── foil-normal2.png
+│   │   │   │   │   │   │   ├── foil-normal.eff
+│   │   │   │   │   │   │   ├── foil-normal.png
+│   │   │   │   │   │   │   ├── hbltel_1.png
+│   │   │   │   │   │   │   ├── hbltel_2.png
+│   │   │   │   │   │   │   ├── hbltel_3.png
+│   │   │   │   │   │   │   ├── hbltel_4.png
+│   │   │   │   │   │   │   ├── hbltel_5.png
+│   │   │   │   │   │   │   ├── hbltel_w.png
+│   │   │   │   │   │   │   ├── hst.ac
+│   │   │   │   │   │   │   ├── hst-disconnected.xml
+│   │   │   │   │   │   │   ├── hst-secure.xml
+│   │   │   │   │   │   │   ├── hst-shine.eff
+│   │   │   │   │   │   │   ├── hst.xml
+│   │   │   │   │   │   │   └── spstob_1.png
+│   │   │   │   │   │   ├── KU-Antenna
+│   │   │   │   │   │   │   ├── Antenna-ku-Assembly.ac
+│   │   │   │   │   │   │   ├── Antenna-ku-Assembly.xml
+│   │   │   │   │   │   │   ├── ku-antenna-disconnected.xml
+│   │   │   │   │   │   │   ├── ku-antenna.eff
+│   │   │   │   │   │   │   ├── ku_antenna_lm.png
+│   │   │   │   │   │   │   └── ku-antenna.png
+│   │   │   │   │   │   ├── OMS-KIT
+│   │   │   │   │   │   │   ├── oms-kit.ac
+│   │   │   │   │   │   │   ├── oms-kit.eff
+│   │   │   │   │   │   │   ├── oms_kit_lm.png
+│   │   │   │   │   │   │   ├── oms-kit.png
+│   │   │   │   │   │   │   └── oms-kit.xml
+│   │   │   │   │   │   ├── Pallet.ac
+│   │   │   │   │   │   ├── pallet.xml
+│   │   │   │   │   │   ├── rmsArm.ac
+│   │   │   │   │   │   ├── rmsArm-disconnected.xml
+│   │   │   │   │   │   ├── rms_arm_lm.png
+│   │   │   │   │   │   ├── rmsArm.xml
+│   │   │   │   │   │   ├── shuttle-rms.eff
+│   │   │   │   │   │   ├── Spartan-201
+│   │   │   │   │   │   │   ├── SPARTAN-201.ac
+│   │   │   │   │   │   │   ├── SPARTAN-201-disconnected.xml
+│   │   │   │   │   │   │   ├── SPARTAN-201-secure.xml
+│   │   │   │   │   │   │   └── SPARTAN-201.xml
+│   │   │   │   │   │   ├── spstob_2.png
+│   │   │   │   │   │   ├── spstob_e.png
+│   │   │   │   │   │   ├── TDRS
+│   │   │   │   │   │   │   ├── foil_n.png
+│   │   │   │   │   │   │   ├── TDRS_demo.ac
+│   │   │   │   │   │   │   ├── TDRS_disconnected.xml
+│   │   │   │   │   │   │   ├── TDRS_secure.xml
+│   │   │   │   │   │   │   ├── TDRS.xml
+│   │   │   │   │   │   │   ├── tex_01.png
+│   │   │   │   │   │   │   └── tex_02.png
+│   │   │   │   │   │   └── thermal_wrap.png
+│   │   │   │   │   ├── reflectmap.png
+│   │   │   │   │   ├── RHC-cmdr.xml
+│   │   │   │   │   ├── RHC-Commander.ac
+│   │   │   │   │   ├── SCA
+│   │   │   │   │   │   ├── 747-123-SCA.ac
+│   │   │   │   │   │   ├── 747-123-SCAfree.xml
+│   │   │   │   │   │   ├── 747-123-SCAlite.xml
+│   │   │   │   │   │   ├── 747NW-gear.png
+│   │   │   │   │   │   ├── AAL_NASA.png
+│   │   │   │   │   │   ├── Effects
+│   │   │   │   │   │   │   └── sca-main.eff
+│   │   │   │   │   │   ├── JT9D7.ac
+│   │   │   │   │   │   ├── JT9D7lite.xml
+│   │   │   │   │   │   ├── JT9D7.png
+│   │   │   │   │   │   └── wings.png
+│   │   │   │   │   ├── scom.xml
+│   │   │   │   │   ├── shuttle_lightmap.png
+│   │   │   │   │   ├── shuttle_o2.ac
+│   │   │   │   │   ├── shuttle_o2-damage.ac
+│   │   │   │   │   ├── shuttle_o2-damage.xml
+│   │   │   │   │   ├── solid-rocket-booster-left.xml
+│   │   │   │   │   ├── solid-rocket-booster-left.xml~c6d3f70db254100bfda8009e8919fdb41439ddae
+│   │   │   │   │   ├── solid-rocket-booster-left.xml~git-svn
+│   │   │   │   │   ├── solid-rocket-booster-right.xml
+│   │   │   │   │   ├── SpaceShuttle.xml
+│   │   │   │   │   ├── spstob_1.png
+│   │   │   │   │   ├── spstob_3.png
+│   │   │   │   │   ├── spstob_4.png
+│   │   │   │   │   ├── spstob_e.png
+│   │   │   │   │   ├── srb.ac
+│   │   │   │   │   ├── srb_all.png
+│   │   │   │   │   ├── srb-left.xml
+│   │   │   │   │   ├── srb-right.xml
+│   │   │   │   │   ├── SSME1.xml
+│   │   │   │   │   ├── SSME2.xml
+│   │   │   │   │   ├── SSME3.xml
+│   │   │   │   │   ├── SSME.ac
+│   │   │   │   │   ├── submodels.xml
+│   │   │   │   │   ├── TailCone.ac
+│   │   │   │   │   ├── TailCone.xml
+│   │   │   │   │   ├── thermal_wrap.png
+│   │   │   │   │   └── tranbg.png
+│   │   │   │   ├── Nasal
+│   │   │   │   │   ├── aborts.nas
+│   │   │   │   │   ├── approach_trainer.nas
+│   │   │   │   │   ├── auto_launch.nas
+│   │   │   │   │   ├── automatic_approach_setup.nas
+│   │   │   │   │   ├── callouts.nas
+│   │   │   │   │   ├── canvas
+│   │   │   │   │   │   ├── canvas_dialogs.nas
+│   │   │   │   │   │   ├── canvas_draw.nas
+│   │   │   │   │   │   ├── canvas_widgets.nas
+│   │   │   │   │   │   ├── cdlg_cuecards.nas
+│   │   │   │   │   │   ├── cdlg_eileen.nas
+│   │   │   │   │   │   ├── cdlg_keypad.nas
+│   │   │   │   │   │   ├── cdlg_notepad.nas
+│   │   │   │   │   │   ├── cdlg_oms_propellant.nas
+│   │   │   │   │   │   ├── cdlg_orbital_dap.nas
+│   │   │   │   │   │   ├── cdlg_propellant.nas
+│   │   │   │   │   │   ├── cdlg_rendezvous.nas
+│   │   │   │   │   │   ├── cdlg_scenario.nas
+│   │   │   │   │   │   ├── cdlg_shuttle_view_manager.nas
+│   │   │   │   │   │   ├── cdlg_temperature.nas
+│   │   │   │   │   │   ├── cdlg_training.nas
+│   │   │   │   │   │   └── cdlg_traj_map.nas
+│   │   │   │   │   ├── canvas_draw.nas
+│   │   │   │   │   ├── carrier.nas
+│   │   │   │   │   ├── coas.nas
+│   │   │   │   │   ├── communications.nas
+│   │   │   │   │   ├── contingency_abort.nas
+│   │   │   │   │   ├── coordinates.nas
+│   │   │   │   │   ├── cue_cards.nas
+│   │   │   │   │   ├── cws.nas
+│   │   │   │   │   ├── dialogs.nas
+│   │   │   │   │   ├── dps_command_parser.nas
+│   │   │   │   │   ├── dps_hardware.nas
+│   │   │   │   │   ├── eileen.nas
+│   │   │   │   │   ├── entry_guidance.nas
+│   │   │   │   │   ├── failures.nas
+│   │   │   │   │   ├── fire.nas
+│   │   │   │   │   ├── housekeeping.nas
+│   │   │   │   │   ├── HUD
+│   │   │   │   │   │   └── HUD_main.nas
+│   │   │   │   │   ├── lambert_manager.nas
+│   │   │   │   │   ├── landing_sites.nas
+│   │   │   │   │   ├── launchpad.nas
+│   │   │   │   │   ├── leakage.nas
+│   │   │   │   │   ├── light_manager.nas
+│   │   │   │   │   ├── limits.nas
+│   │   │   │   │   ├── liveries.nas
+│   │   │   │   │   ├── map.nas
+│   │   │   │   │   ├── mcc.nas
+│   │   │   │   │   ├── mission.nas
+│   │   │   │   │   ├── oms_burn_logic.nas
+│   │   │   │   │   ├── orbital_dap_selection.nas
+│   │   │   │   │   ├── orbital_planning.nas
+│   │   │   │   │   ├── orbital_targeting.nas
+│   │   │   │   │   ├── payload_manager.nas
+│   │   │   │   │   ├── payload.nas
+│   │   │   │   │   ├── PFD
+│   │   │   │   │   │   ├── MFD_Generic.nas
+│   │   │   │   │   │   ├── p_ascent.nas
+│   │   │   │   │   │   ├── p_dps_antenna.nas
+│   │   │   │   │   │   ├── p_dps_apu_hyd.nas
+│   │   │   │   │   │   ├── p_dps_apu_thermal.nas
+│   │   │   │   │   │   ├── p_dps_bfs_override.nas
+│   │   │   │   │   │   ├── p_dps_bfs_sys_summ1.nas
+│   │   │   │   │   │   ├── p_dps_bfs_thermal.nas
+│   │   │   │   │   │   ├── p_dps_comm.nas
+│   │   │   │   │   │   ├── p_dps_cryo.nas
+│   │   │   │   │   │   ├── p_dps_dap.nas
+│   │   │   │   │   │   ├── p_dps_electric.nas
+│   │   │   │   │   │   ├── p_dps_env.nas
+│   │   │   │   │   │   ├── p_dps_fault.nas
+│   │   │   │   │   │   ├── p_dps_fc.nas
+│   │   │   │   │   │   ├── p_dps_gpc.nas
+│   │   │   │   │   │   ├── p_dps_hsit.nas
+│   │   │   │   │   │   ├── p_dps_hyd_thermal.nas
+│   │   │   │   │   │   ├── p_dps_imu_align.nas
+│   │   │   │   │   │   ├── p_dps_memory.nas
+│   │   │   │   │   │   ├── p_dps_mnvr.nas
+│   │   │   │   │   │   ├── p_dps.nas
+│   │   │   │   │   │   ├── p_dps_orbit_tgt.nas
+│   │   │   │   │   │   ├── p_dps_override.nas
+│   │   │   │   │   │   ├── p_dps_pdrs_control.nas
+│   │   │   │   │   │   ├── p_dps_pdrs_override.nas
+│   │   │   │   │   │   ├── p_dps_pdrs_status.nas
+│   │   │   │   │   │   ├── p_dps_pl_bay.nas
+│   │   │   │   │   │   ├── p_dps_pl_ret.nas
+│   │   │   │   │   │   ├── p_dps_prplt_thermal.nas
+│   │   │   │   │   │   ├── p_dps_rcs.nas
+│   │   │   │   │   │   ├── p_dps_rel_nav.nas
+│   │   │   │   │   │   ├── p_dps_rm_orbit.nas
+│   │   │   │   │   │   ├── p_dps_rtls.nas
+│   │   │   │   │   │   ├── p_dps_sm_sys_summ1.nas
+│   │   │   │   │   │   ├── p_dps_sm_sys_summ2.nas
+│   │   │   │   │   │   ├── p_dps_strk.nas
+│   │   │   │   │   │   ├── p_dps_sys_summ2.nas
+│   │   │   │   │   │   ├── p_dps_sys_summ.nas
+│   │   │   │   │   │   ├── p_dps_time.nas
+│   │   │   │   │   │   ├── p_dps_univ_ptg.nas
+│   │   │   │   │   │   ├── p_entry.nas
+│   │   │   │   │   │   ├── PFD_main.nas
+│   │   │   │   │   │   ├── PFD.svg
+│   │   │   │   │   │   ├── p_helper.nas
+│   │   │   │   │   │   ├── p_main.nas
+│   │   │   │   │   │   ├── p_meds_apu.nas
+│   │   │   │   │   │   ├── p_meds_autonomous.nas
+│   │   │   │   │   │   ├── p_meds_fault.nas
+│   │   │   │   │   │   ├── p_meds_maint.nas
+│   │   │   │   │   │   ├── p_meds_oms_mps.nas
+│   │   │   │   │   │   ├── p_meds_spi.nas
+│   │   │   │   │   │   ├── p_pfd.nas
+│   │   │   │   │   │   ├── p_subsys.nas
+│   │   │   │   │   │   └── p_vert_sit.nas
+│   │   │   │   │   ├── rel_orbital.nas
+│   │   │   │   │   ├── rtls.nas
+│   │   │   │   │   ├── save.nas
+│   │   │   │   │   ├── scenario.nas
+│   │   │   │   │   ├── sensors.nas
+│   │   │   │   │   ├── sound.nas
+│   │   │   │   │   ├── stages.nas
+│   │   │   │   │   ├── state_vector.nas
+│   │   │   │   │   ├── TAEM_guidance.nas
+│   │   │   │   │   ├── thermal_balance.nas
+│   │   │   │   │   ├── training.nas
+│   │   │   │   │   ├── tyresmoke.nas
+│   │   │   │   │   ├── vertical_traj.nas
+│   │   │   │   │   └── zero_g.nas
+│   │   │   │   ├── Pics
+│   │   │   │   │   ├── approach-splash01.png
+│   │   │   │   │   ├── approach-splash02.jpg
+│   │   │   │   │   ├── approach-splash03.jpg
+│   │   │   │   │   ├── approach-splash04.jpg
+│   │   │   │   │   ├── entry-splash01.png
+│   │   │   │   │   ├── glide-splash01.jpg
+│   │   │   │   │   ├── glide-splash02.jpg
+│   │   │   │   │   ├── iss-splash01.png
+│   │   │   │   │   ├── launch-splash01.png
+│   │   │   │   │   ├── launch-splash02.png
+│   │   │   │   │   ├── launch-splash03.png
+│   │   │   │   │   ├── mission-splash01.png
+│   │   │   │   │   ├── mission-splash02.png
+│   │   │   │   │   ├── mission-splash03.png
+│   │   │   │   │   ├── orbit-splash01.png
+│   │   │   │   │   ├── orbit-splash02.png
+│   │   │   │   │   ├── orbit-splash03.png
+│   │   │   │   │   └── taem-splash01.png
+│   │   │   │   ├── README-SpaceFlight.txt
+│   │   │   │   ├── Scenario
+│   │   │   │   │   ├── de-orbit.xml
+│   │   │   │   │   ├── iss-docking.xml
+│   │   │   │   │   ├── iss-TI-T1.xml
+│   │   │   │   │   ├── ksc-3200.xml
+│   │   │   │   │   ├── ksc-4200.xml
+│   │   │   │   │   ├── ksc-high-energy.xml
+│   │   │   │   │   ├── ksc-low-energy.xml
+│   │   │   │   │   ├── lakebed-landing.xml
+│   │   │   │   │   ├── launch-debris.xml
+│   │   │   │   │   ├── launch-rtls.xml
+│   │   │   │   │   ├── launch-tal.xml
+│   │   │   │   │   └── satellite-retrieval.xml
+│   │   │   │   ├── Shaders
+│   │   │   │   │   ├── chute-ALS.frag
+│   │   │   │   │   ├── chute-ALS.vert
+│   │   │   │   │   ├── model-interior-ALS-extended-display.frag
+│   │   │   │   │   ├── model-interior-ALS-extended-geolight.frag
+│   │   │   │   │   ├── model-interior-ALS-extended-geolight.vert
+│   │   │   │   │   ├── model-interior-ALS-extended-lightmap.frag
+│   │   │   │   │   ├── model-interior-ALS-extended-lightmap.vert
+│   │   │   │   │   ├── model-interior-ALS-velcro.frag
+│   │   │   │   │   ├── model-interior-ALS-velcro.geom
+│   │   │   │   │   ├── model-interior-ALS-velcro.vert
+│   │   │   │   │   ├── plasma.frag
+│   │   │   │   │   └── plasma.vert
+│   │   │   │   ├── shuttle.xml
+│   │   │   │   ├── Sounds
+│   │   │   │   │   ├── breathing.wav
+│   │   │   │   │   ├── button_down.wav
+│   │   │   │   │   ├── button_press1.wav
+│   │   │   │   │   ├── button_press2.wav
+│   │   │   │   │   ├── button_up.wav
+│   │   │   │   │   ├── class_1_klaxon.wav
+│   │   │   │   │   ├── class_1_siren.wav
+│   │   │   │   │   ├── class_2_alarm.wav
+│   │   │   │   │   ├── class_3_sm_alert.wav
+│   │   │   │   │   ├── click3.wav
+│   │   │   │   │   ├── damage-heavy.wav
+│   │   │   │   │   ├── damage.wav
+│   │   │   │   │   ├── flaps-backup1.wav
+│   │   │   │   │   ├── flaps.wav
+│   │   │   │   │   ├── gear.wav
+│   │   │   │   │   ├── lift_cover.wav
+│   │   │   │   │   ├── real_launch.wav
+│   │   │   │   │   ├── rumble.wav
+│   │   │   │   │   ├── scratch.wav
+│   │   │   │   │   ├── SpaceShuttleLaunchAudio.wav
+│   │   │   │   │   ├── SpaceShuttle-Sounds.xml
+│   │   │   │   │   ├── touchdown-backup1.wav
+│   │   │   │   │   ├── touchdown.wav
+│   │   │   │   │   ├── turn_knob.wav
+│   │   │   │   │   ├── Vostok-1-Antennas-Turn.wav
+│   │   │   │   │   ├── Vostok-1-Deorbit-Burning.wav
+│   │   │   │   │   ├── Vostok-1-Fairings-Separation.wav
+│   │   │   │   │   ├── Vostok-1-Radiators-Turn.wav
+│   │   │   │   │   ├── Vostok-1-Stage-1-2-Engines-Internal.wav
+│   │   │   │   │   ├── Vostok-1-Stage-1-Separation.wav
+│   │   │   │   │   ├── Vostok-1-TDU-Engine-Once.wav
+│   │   │   │   │   ├── Vostok-1-TDU-Engine.wav
+│   │   │   │   │   └── wind-8khz.wav
+│   │   │   │   ├── SpaceShuttle-approach-set.xml
+│   │   │   │   ├── SpaceShuttle-approach-splash.png
+│   │   │   │   ├── SpaceShuttle-checklists.xml
+│   │   │   │   ├── SpaceShuttle-common.xml
+│   │   │   │   ├── SpaceShuttle-entry-set.xml
+│   │   │   │   ├── SpaceShuttle-entry-splash.png
+│   │   │   │   ├── SpaceShuttle-glide-set.xml
+│   │   │   │   ├── SpaceShuttle-glide-splash.png
+│   │   │   │   ├── SpaceShuttle-launch-set.xml
+│   │   │   │   ├── SpaceShuttle-launch-splash.png
+│   │   │   │   ├── SpaceShuttle-mission-set.xml
+│   │   │   │   ├── SpaceShuttle-orbit-set.xml
+│   │   │   │   ├── SpaceShuttle-orbit-splash.png
+│   │   │   │   ├── SpaceShuttle-splash.png
+│   │   │   │   ├── SpaceShuttle-TAEM-set.xml
+│   │   │   │   ├── SpaceShuttle-TAEM-splash.png
+│   │   │   │   ├── Systems
+│   │   │   │   │   ├── antenna.xml
+│   │   │   │   │   ├── apu_hydraulics.xml
+│   │   │   │   │   ├── atcs.xml
+│   │   │   │   │   ├── autopilot.xml
+│   │   │   │   │   ├── cabin-lighting-filters.xml
+│   │   │   │   │   ├── carrier.xml
+│   │   │   │   │   ├── computations.xml
+│   │   │   │   │   ├── cws.xml
+│   │   │   │   │   ├── eclss.xml
+│   │   │   │   │   ├── electrical_power.xml
+│   │   │   │   │   ├── entry_guidance.xml
+│   │   │   │   │   ├── failures.xml
+│   │   │   │   │   ├── flight-recorder
+│   │   │   │   │   │   ├── components
+│   │   │   │   │   │   │   ├── damage.xml
+│   │   │   │   │   │   │   └── effects.xml
+│   │   │   │   │   │   └── flight-recorder.xml
+│   │   │   │   │   ├── ground-effects-filters.xml
+│   │   │   │   │   ├── ground_effects.xml
+│   │   │   │   │   ├── light.xml
+│   │   │   │   │   ├── mechanical.xml
+│   │   │   │   │   ├── mps.xml
+│   │   │   │   │   ├── navigation.xml
+│   │   │   │   │   ├── oms_hardware.xml
+│   │   │   │   │   ├── orbital_parameters.xml
+│   │   │   │   │   ├── pointing.xml
+│   │   │   │   │   ├── rcs_control.xml
+│   │   │   │   │   ├── rcs_hardware.xml
+│   │   │   │   │   ├── rms.xml
+│   │   │   │   │   ├── shuttle-generic-systems.xml
+│   │   │   │   │   ├── shuttle-instruments.xml
+│   │   │   │   │   ├── ssme-flame-computation.xml
+│   │   │   │   │   ├── throttle.xml
+│   │   │   │   │   └── thrust_vectoring.xml
+│   │   │   │   └── thumbnail.jpg
+│   │   │   └── X15
+│   │   │       ├── Engines
+│   │   │       │   ├── xlr99_nozzle.xml
+│   │   │       │   └── XLR99.xml
+│   │   │       ├── Instruments
+│   │   │       │   ├── accelerometer.xml
+│   │   │       │   ├── airspeed.xml
+│   │   │       │   ├── altimeter.xml
+│   │   │       │   ├── aoa-face.xml
+│   │   │       │   ├── aoa.xml
+│   │   │       │   ├── attitude-indicator.xml
+│   │   │       │   ├── autopilot.xml
+│   │   │       │   ├── center-cap.xml
+│   │   │       │   ├── clock.xml
+│   │   │       │   ├── controls.xml
+│   │   │       │   ├── dynamic-pressure-face.xml
+│   │   │       │   ├── dynamic_press.xml
+│   │   │       │   ├── flaps.xml
+│   │   │       │   ├── inertialclimb.xml
+│   │   │       │   ├── inertialheight.xml
+│   │   │       │   ├── inertialspeed.xml
+│   │   │       │   ├── nav1.xml
+│   │   │       │   ├── needle.xml
+│   │   │       │   ├── roll.xml
+│   │   │       │   ├── Textures
+│   │   │       │   │   ├── x15-faces-1.rgb
+│   │   │       │   │   └── x15-faces-2.rgb
+│   │   │       │   ├── X15-accelerometer-face.xml
+│   │   │       │   ├── X15-airspeed-face.xml
+│   │   │       │   ├── X15-altimeter-face.xml
+│   │   │       │   ├── X15-inertial-climb-face.xml
+│   │   │       │   ├── X15-inertial-height-face.xml
+│   │   │       │   ├── X15-inertial-speed-face.xml
+│   │   │       │   └── X15-roll-indicator-face.xml
+│   │   │       ├── Models
+│   │   │       │   ├── texture1.rgb
+│   │   │       │   ├── texture2.rgb
+│   │   │       │   ├── texture3.rgb
+│   │   │       │   ├── x150.rgb
+│   │   │       │   ├── x151.rgb
+│   │   │       │   ├── x152.rgb
+│   │   │       │   ├── x153.rgb
+│   │   │       │   ├── x154.rgb
+│   │   │       │   ├── x155.rgb
+│   │   │       │   ├── x156.rgb
+│   │   │       │   ├── x157.rgb
+│   │   │       │   ├── x158.rgb
+│   │   │       │   ├── X15.ac
+│   │   │       │   ├── X15_flight.ac
+│   │   │       │   ├── X15_landing.ac
+│   │   │       │   ├── X15_readme.txt
+│   │   │       │   └── X15.xml
+│   │   │       ├── Panels
+│   │   │       │   ├── Textures
+│   │   │       │   │   └── x15-bg.rgb
+│   │   │       │   └── X15-panel.xml
+│   │   │       ├── thumbnail.jpg
+│   │   │       ├── X15-new-set.xml
+│   │   │       ├── X15-new.xml
+│   │   │       ├── X15-set.xml
+│   │   │       └── X15.xml
+│   │   └── catalog.xml
+│   └── ThumbnailCache
+│       ├── 0048b299aa2dd46f2897d78b05d8fda79a7aa1ae.jpg
+│       ├── 029ad6fb3fa26384077ca838525b9e14e14ce096.jpg
+│       ├── 03e0d166a4df48418cfb88eb44c0867e89619c6b.jpg
+│       ├── 03ec89ffbd9610b3723f9de01d36eaa7b2aaa698.jpg
+│       ├── 04ead0ae845e0394e16021187230cbe5d40773b3.jpg
+│       ├── 06aba52b237acc1363764f5695dc6eb96c23a0ac.jpg
+│       ├── 08022a0077830224a511832e29ee9cf4ef1f8b98.jpg
+│       ├── 0d53b0b34fe90cb6cbb10199b6adcd5f66bdab58.jpg
+│       ├── 0e873c5d0636c1b7b2555351ab59a373849e4cfc.jpg
+│       ├── 180bf385838f5880da1d8d47c64c7cf366611e58.jpg
+│       ├── 1912ebf3d0aeabcd10f6c9fe2223c0cb33085d35.jpg
+│       ├── 1a6a7c6c028877f9a5f2f01d34adc4dd3bd6e46e.jpg
+│       ├── 1e5e8ccdf484ef16409409638e34b15f820bbff3.jpg
+│       ├── 2343464ce09cac932ed51e50309f88818817bd3f.jpg
+│       ├── 25966a51d259f66183a0b8bee910b0cb27dc823a.jpg
+│       ├── 29b767113ce098d7b08ef8180be34b4fb0eda46a.jpg
+│       ├── 2c473f23d46a3801fec9af5a054b15ef58efbb4a.jpg
+│       ├── 2e35bb78f194bc98ca3b65307ea7cab4110eb81e.jpg
+│       ├── 2f4a8c719a0adde4a1144f8f4758272e603e9a97.jpg
+│       ├── 302d4360850009652323d7597484f83aeaaada39.jpg
+│       ├── 30795f2ccf99c9f5f1dc89ade78a564559f2f965.jpg
+│       ├── 30f1f33bd06e9469b2cb1174b9887e17716cd84b.jpg
+│       ├── 3155e587235f04e4659000acce3f932a31aeca44.jpg
+│       ├── 326a261fd71515fc502ca4549a15b3ce6092bbb7.jpg
+│       ├── 33414eeac490020ec039ccd09ceae438400619ca.jpg
+│       ├── 37a0630c2d89f1f7d5d3e0fe11c0a5b0b5fafd41.jpg
+│       ├── 3ad6c33eed7faa94646ae649492d21199d45350d.jpg
+│       ├── 40c53095e38950c09c1d7445b14ea7c70b49d6b8.jpg
+│       ├── 414b6fbd6d5492158de4cb5d5b0b5b19ba94c644.jpg
+│       ├── 417e7c14835ed106d27eae628df63a050c7b3df2.jpg
+│       ├── 44f5174dbd0e97f78058b3286f13b297bcc38f6a.jpg
+│       ├── 49fd265bd0c9f765290bfc550e63724d494800c7.jpg
+│       ├── 4a1aa77f84fa00a171a3bda4bc7a1f220bc42506.jpg
+│       ├── 4bb28c56da39ea0c7aa8fc41aefd90451adc28c2.jpg
+│       ├── 4bf48f52fff16b75d9929805c370a9564b531783.jpg
+│       ├── 4c264dbd2dc9f45625914e9033d026ffa3e11c89.jpg
+│       ├── 4cd235bd4858b4276bb89ccf33d08b8176988419.jpg
+│       ├── 4d90985586fb0ab337980082991de0a0f93c5ec0.jpg
+│       ├── 4dff3ddf9d94597081520ccaabab82b8a35bab25.jpg
+│       ├── 4efd176c966493bfbd17494df993c56b545c6a06.jpg
+│       ├── 4fba019a9097ad606363dec0d8ad22769cabd25d.jpg
+│       ├── 53ddba0230c1f9a5f162e75b1673e649851c5ee8.jpg
+│       ├── 54af461ee444568659fe74aa0b1e6a090e63d76e.jpg
+│       ├── 5516a04a2135550ccd5af62df48b2ed249840a31.jpg
+│       ├── 554fbc0c46f2cc8078750fec0c3a0fe30b7cd125.jpg
+│       ├── 581f2e00e0c60d5a4981493b12f708994ba63c29.jpg
+│       ├── 59ec0131c17e2470955be906be99789b2a36aff9.jpg
+│       ├── 5a19ef247f866f58ce16c50883bd7054de256322.jpg
+│       ├── 5cabc8548d79b42af1720b5f9da3ba4086c66b60.jpg
+│       ├── 5cd1e19899127030b2f6d4386298de425648ba6e.jpg
+│       ├── 5d62a91a31c7019f1b5d93be2ea00e65e38b159f.jpg
+│       ├── 5df408f60bf66de3ef02541131b6d6de65770bec.jpg
+│       ├── 5f97ca80e20ef4874685ae62f8cce9ce3109d20d.jpg
+│       ├── 627ddc1b280e698b1cd48a519eece3c43b4a5408.jpg
+│       ├── 639ee3ab1fc1ead79e396d65d0eb9776bef82c52.jpg
+│       ├── 63f0d5a04645c7cfac715c6ce614226a190eef04.jpg
+│       ├── 69a411479e4e6519f2305850018b02a69511048e.jpg
+│       ├── 6e36e176eb5bbbd302023fba2f11d1bcd5333230.jpg
+│       ├── 70419de51e06a5531f440a21ce4161d3c726e5f1.jpg
+│       ├── 7131543b3a695419338f013aa3c4656389bc5394.jpg
+│       ├── 728db73d582ffd2f58dd0b3f52f1e5b6badb64b8.jpg
+│       ├── 740c105b01c585ac7e31d82b88c2bc1051f00feb.jpg
+│       ├── 748a70a32d4f176f6591fdaf782ef770c21e1b85.jpg
+│       ├── 761ff35491ff49ebcd4201dfd73f3df33585f4aa.jpg
+│       ├── 8135f817ab47ea98ba6804a306b7516ee4b755ad.jpg
+│       ├── 81720c8bf73d3fceb9c7c160f0c42968d149738b.jpg
+│       ├── 83779778632a7beb51db6f361b73825bda69d14f.jpg
+│       ├── 86ba6a8c92bcea36d63c3856885bb75606cfb200.jpg
+│       ├── 8720196b32ba17af27c2476a8497e0ad8e843920.jpg
+│       ├── 8d37bf2d6ccdd07b9877558fa2314561f077e1c7.jpg
+│       ├── 8f6ab7c8ee45b7109a4e07139db33657c68105ab.jpg
+│       ├── 928679002391e67b841c5e59f17576a7cc60654b.jpg
+│       ├── 960167b904563f5dd6973841036c4b1b52cead0a.jpg
+│       ├── 960faf48c414300ab1f5831b7a87d199ef7c1f3a.jpg
+│       ├── 968a30d98d8234009f501beb9165808f9cb770b7.jpg
+│       ├── 98d8dfee42d2b24fcc083c385c624dd0c0b52998.jpg
+│       ├── 9d2f7c6a0e1028caf976884c433a9fe693339b9e.jpg
+│       ├── 9d36b91571a109f6a06006d99b0d775342b2d065.jpg
+│       ├── 9f418cb4f2602da24632e8508c73048d57d957e0.jpg
+│       ├── a3b5c774ef05f655dd20bf01669e19c196612f29.jpg
+│       ├── a935c16037246c11e32631264d3e4d7a5106ec4c.jpg
+│       ├── a95d7c99a53a2c9a748372d9254f5b82819034fd.jpg
+│       ├── aabca6178a1b7aa12f42b14f99ccb174064a6119.jpg
+│       ├── ac02deb2375399a6f4c3c1cb056bcbc1db989405.jpg
+│       ├── b1a69207202d6cc643de386b205cf57605ebe107.jpg
+│       ├── b4fea4b0d422b6a7f7c238f1c7ebf091ada76c1e.jpg
+│       ├── b57ae80958da21b1f18596d1e4f65800c3c81de8.jpg
+│       ├── b68f82b6d7ea31843df276081ff13338fa17231c.jpg
+│       ├── b73efa56b615f3d1e49e811d03703168d20d75ef.jpg
+│       ├── b7a13a3fe81a58c2b03ecaad5e530855e6b644bf.jpg
+│       ├── b91d55ae3235d356aa3482c47786011c22401254.jpg
+│       ├── b9946ffd5d6ebe0f781c088fe4d64a93d203023a.jpg
+│       ├── baa535edf620ec5fe1be61c9cac19ad4d4a39f11.jpg
+│       ├── bb7368cbd78219345f9dfe0a0ba6d9f585e9fc42.jpg
+│       ├── bd2ad8f68fed05fea8ebd60be8071fd914092f83.jpg
+│       ├── bf66330d5b63fa3d36eec3f396b181168e9935a1.jpg
+│       ├── bfcd9ba7f5eb16ff2bc4862d1d021c557bc3d818.jpg
+│       ├── c0a63ed14ff46b68228ea3e2abe173565e4c8d38.jpg
+│       ├── c61b6123fb0862cf39db4857b3121c45316582c1.jpg
+│       ├── c9ca8f9dc1c0617d9b0054ffa71129e51de5f3d5.jpg
+│       ├── ca0d88ba4d9dabaf3e9ec41ad40ab60bd6a84612.jpg
+│       ├── cb7e4b19b4ed85aa953eb0d4998101102a96e0d1.jpg
+│       ├── d02a9a7aa71d72bec16665570f0cb0f809fb6b74.jpg
+│       ├── d1da83efbf830411fc4a08c32fcde964cb282b60.jpg
+│       ├── d1e7ec586f593f455296863f03ae57e78fe2022f.jpg
+│       ├── d2cb90f65d1a9f01c04f160e7cccf69ae01231a1.jpg
+│       ├── d2e11fb4f38b41f948e1690e56e01fb13b792e20.jpg
+│       ├── d4180e065bdcded83a03891d7cb376458193a957.jpg
+│       ├── d5f7143cd3641603b844b808482dcc7dfd1e7579.jpg
+│       ├── dac88a850c54470234efef1364d57afb81e1e9eb.jpg
+│       ├── dbe4b0b4eabaac168e936c5cbb684f89bc53aa10.jpg
+│       ├── e20dcf52f4d0c88763f174dce2fbfc8c4c5a9e6e.jpg
+│       ├── e385602ba7d12cefb1178dbb6920ce483951439b.jpg
+│       ├── e3bb08405d9273c9c1caf45d8bc4f3f8032860b0.jpg
+│       ├── e7b7e3f326558d12bfb417293272a73ef09aed19.jpg
+│       ├── e87e1d204d897291094d6af480916bce6587bf55.jpg
+│       ├── eb20b5202b14b492099e701e88283257b902b6c1.jpg
+│       ├── eb2e099080afd7f6dd7f7313ce7455f83f952bae.jpg
+│       ├── eb6edc15231ff23ad56e1866e20cd8161df201e7.jpg
+│       ├── edee5e729ca0c28295d3b542943897bee09a05cc.jpg
+│       ├── eeb4a7f268e970003d5cfd6ecf3f046fb7f03ec4.jpg
+│       ├── eebfd03cba72c496bbf4863b8c05a1ada98dc8cd.jpg
+│       ├── efb4a91faf2b5130dbbb1160bbc99b5cf2287fe7.jpg
+│       ├── f3d7df701ffcb6141d7ba3f59287bb291cf875bf.jpg
+│       ├── f41fd401e0d89e766483bda26ebf2dd67fc133b3.jpg
+│       ├── f61efa1ad91dc8b3a099912f7b91ea14d36ab20f.jpg
+│       ├── f956aa9c9f6609f3c4fba3ccc4c91d170b182afb.jpg
+│       ├── fb6a76fd349e658a7115bd444b1607b3c85c3855.jpg
+│       ├── fc9cd1732b1dc2a3d3daabeb9bd1415fbbcf16b2.jpg
+│       ├── fdf1dd629d03a8465588b5cb40c5773b630a3637.jpg
+│       ├── ff93148bfc62f9456b24818bebde53a57528d679.jpg
+│       └── ffeac7d1d8770dbb1d210b8ef66badaf66c72c86.jpg
+├── autosave_2020_3.xml
+├── Export
+│   └── Addons
+├── fgfs_0.log
+├── fgfs_10.log
+├── fgfs_1.log
+├── fgfs_2.log
+├── fgfs_3.log
+├── fgfs_4.log
+├── fgfs_5.log
+├── fgfs_6.log
+├── fgfs_7.log
+├── fgfs_8.log
+├── fgfs_9.log
+├── fgfs.log
+├── FlightGear
+│   └── FlightGear.ini
+├── navdata_2020_3.cache
+├── PreviewsCache
+│   ├── data8
+│   │   ├── 0
+│   │   ├── 1
+│   │   ├── 2
+│   │   ├── 3
+│   │   ├── 4
+│   │   ├── 5
+│   │   ├── 6
+│   │   ├── 7
+│   │   ├── 8
+│   │   ├── 9
+│   │   ├── a
+│   │   ├── b
+│   │   ├── c
+│   │   ├── d
+│   │   ├── e
+│   │   └── f
+│   └── prepared
+├── TerraSync
+└── TextureCache
+
+99 directories, 1320 files

@@ -1,11 +1,14 @@
 <?xml version="1.0"?>
 <PropertyList>
+    <!-- Mesh orbitron.ac from orbitron_lab_v5.gltf: engine stack on sled deck, tanks/plumbing/console. Tune offsets below if the rig sits wrong on the runway. -->
     <path>orbitron.ac</path>
 
     <offsets>
         <pitch-deg> 0 </pitch-deg> 
         <roll-deg> 0 </roll-deg> 
-        <heading-deg> 90 </heading-deg> <!-- Spun to face the camera -->
+        <heading-deg> 90 </heading-deg> <!-- Rotates the rig to point forward -->
+        
+        <y-m> 10.0 </y-m> <!-- Pulls the long nose of the 3D model 10 meters straight backward -->
         <z-m> -0.5 </z-m> 
     </offsets>
 

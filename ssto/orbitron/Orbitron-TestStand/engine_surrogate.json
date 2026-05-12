@@ -1,0 +1,54 @@
+{
+  "meta": {
+    "source_csv": "/home/catskills/Desktop/Aircraft/CatskillsFusionSSTO/ssto/orbitron/surrogate_sweep_results.csv",
+    "n_rows": 16,
+    "model": "bilinear",
+    "equation": "y=c0+c_t*T+c_c*C+c_tc*T*C",
+    "beam_model": "beam_screen_kw from WarpX rho_stabilizing_beam screen ROI + mapping in build_surrogate_map.beam_screen_kw_from_rho; beam_current_ma = beam_screen_kw/8."
+  },
+  "thrust_lbf_surface": {
+    "type": "bilinear",
+    "coeffs": {
+      "c0": -0.00010570062522674561,
+      "c_t": 0.000725653072095156,
+      "c_c": -657.0040929456368,
+      "c_tc": 6956.5171573876305
+    }
+  },
+  "mass_flow_kgps_surface": {
+    "type": "bilinear",
+    "coeffs": {
+      "c0": 4.589366366936076e-07,
+      "c_t": -2.4152164699309253e-06,
+      "c_c": -0.41062823309187757,
+      "c_tc": 4.347831210870148
+    }
+  },
+  "gross_power_mw_surface": {
+    "type": "bilinear",
+    "coeffs": {
+      "c0": 3.6251189383662563e-07,
+      "c_t": -2.4813030981007955e-06,
+      "c_c": -0.5748790163287527,
+      "c_tc": 6.086960545216127
+    }
+  },
+  "heat_kw_surface": {
+    "type": "bilinear",
+    "coeffs": {
+      "c0": -1.0570062414672066e-05,
+      "c_t": 7.25653069935106e-05,
+      "c_c": -65.70040929456388,
+      "c_tc": 695.6517157387634
+    }
+  },
+  "beam_screen_kw_surface": {
+    "type": "bilinear",
+    "coeffs": {
+      "c0": -10.779333677184752,
+      "c_t": 25.42202382245489,
+      "c_c": -18.277871867679096,
+      "c_tc": 677.0460307991874
+    }
+  }
+}

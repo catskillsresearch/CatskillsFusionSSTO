@@ -2,7 +2,9 @@ import os
 import re
 
 
-AC3D_FILE = os.path.abspath("./Orbitron-TestStand/Models/orbitron.ac")
+_ORBITRON_DIR = os.path.dirname(os.path.abspath(__file__))
+_DEFAULT_AC = os.path.join(_ORBITRON_DIR, "Orbitron-TestStand", "Models", "orbitron.ac")
+AC3D_FILE = os.path.abspath(os.environ.get("ORBITRON_AC_OUT", _DEFAULT_AC))
 SCREEN_NAME = "Screen"
 SCREEN_TEXTURE = 'texture "warpx_frame.png"\n'
 

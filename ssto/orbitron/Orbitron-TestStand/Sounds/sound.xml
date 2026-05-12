@@ -1,16 +1,262 @@
 <?xml version="1.0"?>
 <PropertyList>
+    <!--
+      Reactive soundscape (SpaceShuttle-style): volumes come from JSBSim orbitron_soundscape
+      (systems/orbitron_sfx/*_volume), computed every frame from controls + reactor + arcjet +
+      atmosphere — no scripted flight timeline. Horizontal stand: intake -X, exhaust +X.
+    -->
     <fx>
-        <reactor-start>
-            <name>Reactor Heavy Audio</name>
-            <!-- FG resolves sound paths relative to the aircraft ROOT folder -->
-            <path>Sounds/reactor_audio_heavy.wav</path>
+
+        <orbitron-core>
+            <name>Orbitron fusion core bed</name>
+            <mode>looped</mode>
+            <path>Sounds/orbitron_core_loop.wav</path>
             <condition>
                 <property>/sim/model/reactor/startup-trigger</property>
             </condition>
             <volume>
-                <factor>1.0</factor>
+                <property>/fdm/jsbsim/systems/orbitron_sfx/core_volume</property>
+                <factor>0.92</factor>
+                <offset>0.0</offset>
+                <min>0.0</min>
+                <max>1.0</max>
             </volume>
-        </reactor-start>
+            <pitch>
+                <property>/fdm/jsbsim/systems/reactor/gross-power-mw</property>
+                <factor>0.045</factor>
+                <offset>0.94</offset>
+                <min>0.82</min>
+                <max>1.18</max>
+            </pitch>
+            <position>
+                <x>0.55</x>
+                <y>0.0</y>
+                <z>1.05</z>
+            </position>
+            <reference-dist>4.0</reference-dist>
+            <max-dist>120.0</max-dist>
+        </orbitron-core>
+
+        <orbitron-inlet>
+            <name>Orbitron bellmouth / compressor ingestion</name>
+            <mode>looped</mode>
+            <path>Sounds/orbitron_inlet_loop.wav</path>
+            <condition>
+                <property>/sim/model/reactor/startup-trigger</property>
+            </condition>
+            <volume>
+                <property>/fdm/jsbsim/systems/orbitron_sfx/inlet_volume</property>
+                <factor>1.0</factor>
+                <offset>0.0</offset>
+                <min>0.0</min>
+                <max>1.0</max>
+            </volume>
+            <pitch>
+                <property>/controls/orbitron/compressor</property>
+                <factor>0.38</factor>
+                <offset>0.80</offset>
+                <min>0.72</min>
+                <max>1.38</max>
+            </pitch>
+            <position>
+                <x>-1.85</x>
+                <y>0.0</y>
+                <z>0.38</z>
+            </position>
+            <reference-dist>2.8</reference-dist>
+            <max-dist>100.0</max-dist>
+        </orbitron-inlet>
+
+        <orbitron-jet>
+            <name>Orbitron nozzle / cell exhaust</name>
+            <mode>looped</mode>
+            <path>Sounds/orbitron_jet_loop.wav</path>
+            <condition>
+                <property>/sim/model/reactor/startup-trigger</property>
+            </condition>
+            <volume>
+                <property>/fdm/jsbsim/systems/orbitron_sfx/nozzle_volume</property>
+                <factor>1.0</factor>
+                <offset>0.0</offset>
+                <min>0.0</min>
+                <max>1.0</max>
+            </volume>
+            <pitch>
+                <property>/fdm/jsbsim/systems/arcjet/thrust-lbf</property>
+                <factor>0.00011</factor>
+                <offset>0.86</offset>
+                <min>0.74</min>
+                <max>1.48</max>
+            </pitch>
+            <position>
+                <x>3.25</x>
+                <y>0.0</y>
+                <z>0.48</z>
+            </position>
+            <reference-dist>3.2</reference-dist>
+            <max-dist>140.0</max-dist>
+        </orbitron-jet>
+
+        <orbitron-dec-arc>
+            <name>Orbitron DEC / magnet arc crackle</name>
+            <mode>looped</mode>
+            <path>Sounds/orbitron_dec_arc_loop.wav</path>
+            <condition>
+                <property>/sim/model/reactor/startup-trigger</property>
+            </condition>
+            <volume>
+                <property>/fdm/jsbsim/systems/orbitron_sfx/dec_arc_volume</property>
+                <factor>1.0</factor>
+                <offset>0.0</offset>
+                <min>0.0</min>
+                <max>1.0</max>
+            </volume>
+            <pitch>
+                <property>/fdm/jsbsim/systems/arcjet/dec-voltage-mv</property>
+                <factor>0.055</factor>
+                <offset>0.88</offset>
+                <min>0.78</min>
+                <max>1.35</max>
+            </pitch>
+            <position>
+                <x>0.45</x>
+                <y>0.0</y>
+                <z>1.15</z>
+            </position>
+            <reference-dist>3.5</reference-dist>
+            <max-dist>110.0</max-dist>
+        </orbitron-dec-arc>
+
+        <orbitron-screen-beam>
+            <name>Orbitron viewport beam / sputter</name>
+            <mode>looped</mode>
+            <path>Sounds/orbitron_screen_sputter_loop.wav</path>
+            <condition>
+                <property>/sim/model/reactor/startup-trigger</property>
+            </condition>
+            <volume>
+                <property>/fdm/jsbsim/systems/orbitron_sfx/screen_beam_volume</property>
+                <factor>1.0</factor>
+                <offset>0.0</offset>
+                <min>0.0</min>
+                <max>1.0</max>
+            </volume>
+            <pitch>
+                <property>/fdm/jsbsim/systems/reactor/beam-current-ma</property>
+                <factor>0.0065</factor>
+                <offset>0.90</offset>
+                <min>0.82</min>
+                <max>1.35</max>
+            </pitch>
+            <position>
+                <x>-1.95</x>
+                <y>-3.35</y>
+                <z>1.55</z>
+            </position>
+            <reference-dist>2.2</reference-dist>
+            <max-dist>35.0</max-dist>
+        </orbitron-screen-beam>
+
+        <orbitron-motor-gen>
+            <name>Orbitron motor / turbofan generator</name>
+            <mode>looped</mode>
+            <path>Sounds/orbitron_motor_whine_loop.wav</path>
+            <condition>
+                <property>/sim/model/reactor/startup-trigger</property>
+            </condition>
+            <volume>
+                <property>/fdm/jsbsim/systems/orbitron_sfx/motor_generator_volume</property>
+                <factor>0.88</factor>
+                <offset>0.0</offset>
+                <min>0.0</min>
+                <max>1.0</max>
+            </volume>
+            <pitch>
+                <property>/controls/orbitron/compressor</property>
+                <factor>0.42</factor>
+                <offset>0.78</offset>
+                <min>0.70</min>
+                <max>1.42</max>
+            </pitch>
+            <position>
+                <x>-1.25</x>
+                <y>0.0</y>
+                <z>0.42</z>
+            </position>
+            <reference-dist>3.0</reference-dist>
+            <max-dist>90.0</max-dist>
+        </orbitron-motor-gen>
+
+        <orbitron-duct-heat>
+            <name>Orbitron heated duct air</name>
+            <mode>looped</mode>
+            <path>Sounds/orbitron_duct_heat_loop.wav</path>
+            <condition>
+                <property>/sim/model/reactor/startup-trigger</property>
+            </condition>
+            <volume>
+                <property>/fdm/jsbsim/systems/orbitron_sfx/duct_heat_volume</property>
+                <factor>1.0</factor>
+                <offset>0.0</offset>
+                <min>0.0</min>
+                <max>1.0</max>
+            </volume>
+            <pitch>
+                <property>/fdm/jsbsim/systems/arcjet/mass-flow-kgps</property>
+                <factor>0.065</factor>
+                <offset>0.90</offset>
+                <min>0.80</min>
+                <max>1.35</max>
+            </pitch>
+            <position>
+                <x>0.9</x>
+                <y>0.0</y>
+                <z>0.55</z>
+            </position>
+            <reference-dist>3.8</reference-dist>
+            <max-dist>115.0</max-dist>
+        </orbitron-duct-heat>
+
+        <orbitron-stressor>
+            <name>Orbitron off-design thermal stress</name>
+            <mode>looped</mode>
+            <path>Sounds/orbitron_stressor_loop.wav</path>
+            <condition>
+                <property>/sim/model/reactor/startup-trigger</property>
+            </condition>
+            <volume>
+                <property>/fdm/jsbsim/systems/orbitron_sfx/stressor_volume</property>
+                <factor>1.0</factor>
+                <offset>0.0</offset>
+                <min>0.0</min>
+                <max>1.0</max>
+            </volume>
+            <pitch>
+                <property>/fdm/jsbsim/systems/reactor/beam-current-ma</property>
+                <factor>0.0065</factor>
+                <offset>0.90</offset>
+                <min>0.82</min>
+                <max>1.35</max>
+            </pitch>
+            <position>
+                <x>1.4</x>
+                <y>0.0</y>
+                <z>0.9</z>
+            </position>
+            <reference-dist>5.0</reference-dist>
+            <max-dist>100.0</max-dist>
+        </orbitron-stressor>
+
+        <reactor-commissioning>
+            <name>Reactor commissioning (one-shot)</name>
+            <mode>once</mode>
+            <path>Sounds/reactor_audio_heavy.wav</path>
+            <condition>
+                <property>/sim/model/reactor/startup-commissioning-audio</property>
+            </condition>
+            <volume>
+                <factor>0.75</factor>
+            </volume>
+        </reactor-commissioning>
     </fx>
 </PropertyList>

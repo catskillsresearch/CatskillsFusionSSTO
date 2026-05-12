@@ -1,11 +1,15 @@
 import os
 import re
 import json
+import sys
+import traceback
 import bpy
 
 
+_ORBITRON_DIR = os.path.dirname(os.path.abspath(__file__))
 GLTF_FILE = os.path.abspath("orbitron_lab_v5.gltf")
-AC3D_FILE = os.path.abspath("./Orbitron-TestStand/Models/orbitron.ac")
+_DEFAULT_AC = os.path.join(_ORBITRON_DIR, "Orbitron-TestStand", "Models", "orbitron.ac")
+AC3D_FILE = os.path.abspath(os.environ.get("ORBITRON_AC_OUT", _DEFAULT_AC))
 GROUND_TRUTH_LINEAR = {
     "Optics_Table": (0.02, 0.02, 0.02),
     "Operator_Console": (0.02, 0.02, 0.02),
@@ -502,4 +506,12 @@ def execute_pipeline():
     return None
 
 
-bpy.app.timers.register(execute_pipeline, first_interval=0.2)
+# Batch mode (-b): timers often never run before exit — run pipeline synchronously.
+if bpy.app.background:
+    try:
+        execute_pipeline()
+    except Exception:
+        traceback.print_exc()
+        sys.exit(1)
+else:
+    bpy.app.timers.register(execute_pipeline, first_interval=0.2)

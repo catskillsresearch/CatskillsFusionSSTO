@@ -218,3 +218,6 @@ __marimo__/
 .streamlit/secrets.toml
 WarpX
 ssto/orbitron/diags
+
+# Makefile output: FlightGear aircraft tree + intermediates
+Aircraft/

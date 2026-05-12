@@ -1,0 +1,58 @@
+================================================================================
+GOAL 1 — WARPX CASE REVIEW: laminar_flow_2d.py (Orbitron crossed-field slice)
+================================================================================
+Source: ssto/orbitron/laminar_flow_2d.py
+
+1.1 SOLVER AND DIMENSIONALITY
+  - PICMI ElectromagneticSolver on a Cartesian2DGrid (WarpX RZ vs XY: here XY).
+  - WarpX 2D convention in this script: active plane X–Z, invariant Y; By is
+    “out of page” for E×B circulation in X–Z.
+  - Time step 1e-12 s, CFL 0.9, max_steps 500 — short diagnostic run, not a
+    converged steady-state reactor discharge.
+
+1.2 GEOMETRY (ANALYTIC, NOT MESHED CAD)
+  - r_anode = 0.05 m, r_cathode = 0.005 m matches “10 cm tube / 5 mm cathode”
+    order of magnitude for a poloidal slice of the device.
+  - Boundaries: Dirichlet fields on all sides; particles absorbing — walls are
+    ideal sinks, not a real high-voltage feedthrough stack.
+
+1.3 FIELDS
+  - E: radial analytic profile derived from V_cathode = -600 kV between
+    concentric notional cylinders (log(r) potential). Implemented as Ex, Ez
+    with a radial cutoff mask at r >= r_cathode.
+  - B: uniform By = 2.0 T (applied field, not self-consistent superconductor).
+  - These are “frozen” analytic applied fields — no magnetostatic solve, no
+    coil geometry, no ferromagnetics.
+
+1.4 SPECIES AND INITIAL CONDITIONS
+  - electrons: annular density 1 cm < r < 3 cm, n_e ~ 5e15 m^-3 (expression),
+    initialized with E×B drift momenta consistent with the analytic E field.
+    This is a diocotron / hollow-ring style setup, not a fusion burn model.
+  - stabilizing_beam: 100 discrete protons on a line at x=0.04 m, inward ux,
+    ParticleListDistribution — numerical shear / stabilization artifice.
+  - No boron, no alpha ash, no nuclear reaction modules, no neutrals, no
+    gas-phase chemistry, no bremsstrahlung deposition back to a solid mesh.
+
+1.5 WHAT THIS CASE IS GOOD FOR
+  - Visualizing low-order crossed-field electron dynamics and charge density
+    evolution in a cylindrical slice.
+  - Pipeline check: pywarpx → diags → yt animation / FG texture path.
+
+1.6 GAPS VS. DESIGN BRIEF (FUSION + ARCJET)
+  - Fusion: no p-B11 reactions, no DEC grid as a boundary object, no 4 MV
+    terminal physics — only the cathode-side -600 kV scale in E.
+  - Arcjet: no compressor inlet BC, no cold air mass flow, no neutral gas
+    background, no electron–neutral collisions, no Ohmic heating term tied to
+    DEC current channel through the gas.
+  - Next extension direction: see laminar_flow_2d_arcjet.py (seed channel,
+    optional heavy-ion tracer, expanded diagnostics) and PICMI docs for your
+    installed WarpX version for collisions / MCC / field ionization.
+
+1.7 POST-PROCESSING NOTE
+  - animate_plasma.py currently expects diags field rho_electrons only.
+    laminar_flow_2d_arcjet.py also requests rho_arc_channel_seed; extend the
+    yt field list or merge channels before GIF export when running the arcjet deck.
+
+================================================================================
+END REVIEW
+================================================================================
