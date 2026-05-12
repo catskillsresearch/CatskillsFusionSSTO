@@ -221,3 +221,14 @@ ssto/orbitron/diags
 
 # Makefile output: FlightGear aircraft tree + intermediates
 Aircraft/
+
+# Orbitron / WarpX run artifacts (regenerate; do not commit)
+**/Backtrace.*
+warpx_used_inputs
+ssto/orbitron/warpx_used_inputs
+ssto/orbitron/surrogate_sweep_results.csv
+ssto/orbitron/surrogate_sweep_work/
+ssto/orbitron/arcjet_outdoor_stand.gltf
+ssto/orbitron/arcjet_outdoor_stand.bin
+*~
+FlightGear
