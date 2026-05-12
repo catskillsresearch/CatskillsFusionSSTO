@@ -259,22 +259,18 @@ def main() -> int:
     ap.add_argument(
         "--work-dir",
         type=Path,
-        default=root / "ssto" / "orbitron" / "surrogate_sweep_work",
+        default=root / "build" / "orbitron" / "warpx-runs",
         help="Directory for per-run WarpX outputs",
     )
     ap.add_argument(
         "--out-csv",
         type=Path,
-        default=root / "ssto" / "orbitron" / "surrogate_sweep_results.csv",
+        default=root / "build" / "orbitron" / "surrogate_sweep_results.csv",
     )
     ap.add_argument(
         "--out-json",
         type=Path,
-        default=root
-        / "ssto"
-        / "orbitron"
-        / "Orbitron-TestStand"
-        / "engine_surrogate.json",
+        default=root / "Aircraft" / "Orbitron-TestStand" / "engine_surrogate.json",
     )
     ap.add_argument(
         "--warpx-python",

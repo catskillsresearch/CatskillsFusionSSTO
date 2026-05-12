@@ -1,24 +1,18 @@
 # Orbitron-TestStand → FlightGear under ./Aircraft (incremental).
-#
-# Usage (repo root):
-#   make help
-#   make                    # default: full WarpX surrogate sweep (slow) + mesh + sounds
-#   make SURROGATE=mesh     # fast: placeholder surrogate, still runs CadQuery + Blender
-#   make SURROGATE=dry      # yt/CSV fit without pywarpx
-#   make graph              # Mermaid dependency chart for mermaid.live
-#   make run-fgfs           # launch fgfs against ./Aircraft
-#
-# WarpX + pywarpx: set PYTHONPATH/LD_LIBRARY_PATH (see ./stand.sh) or use:
-#   ./stand.sh
-#
-# Optional passthrough to build_surrogate_map.py (warpx/dry only):
-#   make WARPX_MAKE_ARGS='--steps 600 --diag-period 100 --grid 4'
+# All computed assets (glTF, .ac, WAV, surrogate JSON) live under Aircraft/ only;
+# ssto/orbitron/Orbitron-TestStand/ holds source XML/Nasal/sound.xml only.
 
 REPO_ROOT := $(abspath .)
 ORBITRON := $(REPO_ROOT)/ssto/orbitron
 AIRCRAFT := $(REPO_ROOT)/Aircraft
 STAND := $(AIRCRAFT)/Orbitron-TestStand
 BUILD := $(REPO_ROOT)/build/orbitron
+
+# CadQuery / Blender / PIC inputs (sources)
+GLTF_LAB := $(STAND)/build/orbitron_lab_v5.gltf
+GLTF_ARC := $(STAND)/build/arcjet_outdoor_stand.gltf
+FUSION_CAD := $(ORBITRON)/fusion_arcjet_engine_cad.py
+LAB_CAD_SRC := $(ORBITRON)/full_reactor_cad.py $(FUSION_CAD)
 
 POETRY ?= poetry
 BLENDER ?= blender
@@ -29,6 +23,7 @@ export ORBITRON_AC_OUT := $(STAND)/Models/orbitron.ac
 
 WARPX_MAKE_ARGS ?=
 
+# Static aircraft sources only (no generated wav / .ac / surrogate in tree)
 STAND_SRC_FILES := $(shell find $(ORBITRON)/Orbitron-TestStand -type f \
 	'!' -path '*/Models/orbitron.ac' \
 	'!' -name 'engine_surrogate.json' \
@@ -40,6 +35,15 @@ SUR_DEP_ALL := \
 	$(ORBITRON)/laminar_flow_2d_arcjet.py
 
 MERMAID_OUT := $(STAND)/build/dependency_graph.mmd
+
+# Computed FlightGear model + audio (all under Aircraft/)
+MODEL_ARTIFACTS := \
+	$(GLTF_LAB) \
+	$(GLTF_ARC) \
+	$(STAND)/Models/orbitron.ac \
+	$(STAND)/engine_surrogate.json \
+	$(STAND)/Sounds/.sounds_built \
+	$(STAND)/build/surrogate_sweep_results.csv
 
 .PHONY: all help clean graph run-fgfs fg-ready
 
@@ -53,25 +57,15 @@ help:
 	@echo "  make run-fgfs       fgfs with --fg-aircraft=$(AIRCRAFT)"
 	@echo "  make clean          Remove $(AIRCRAFT) and $(BUILD) (not all of ./build if other projects use it)"
 	@echo "  Tip: after rm -rf build, either make clean or rm Aircraft/Orbitron-TestStand/.dirs so .dirs is recreated."
+	@echo "  Sources: $(ORBITRON)/Orbitron-TestStand/ (XML, Nasal, sound.xml). Built model: $(MODEL_ARTIFACTS)"
 	@echo "Use ./stand.sh for Poetry + WarpX library paths, then make."
 
-fg-ready: \
-	$(STAND)/.dirs \
-	$(STAND)/.static_synced \
-	$(ORBITRON)/orbitron_lab_v5.gltf \
-	$(ORBITRON)/arcjet_outdoor_stand.gltf \
-	$(STAND)/.orbitron_ac_done \
-	$(STAND)/engine_surrogate.json \
-	$(STAND)/Sounds/orbitron_core_loop.wav \
-	$(STAND)/build/orbitron_lab_v5.gltf \
-	$(STAND)/build/arcjet_outdoor_stand.gltf \
-	$(STAND)/build/surrogate_sweep_results.csv
+fg-ready: $(STAND)/.dirs $(STAND)/.static_synced $(MODEL_ARTIFACTS)
 
 $(STAND)/.dirs:
 	mkdir -p $(STAND)/Models $(STAND)/Nasal $(STAND)/Sounds $(STAND)/build $(BUILD)/warpx-runs
 	touch $@
 
-# Ensures build/orbitron exists if someone removed ./build but kept Aircraft/.dirs (stale stamp).
 $(BUILD)/warpx-runs:
 	mkdir -p '$(BUILD)' '$(BUILD)/warpx-runs'
 
@@ -80,23 +74,32 @@ $(STAND)/.static_synced: $(STAND_SRC_FILES) | $(STAND)/.dirs
 		$(ORBITRON)/Orbitron-TestStand/ $(STAND)/
 	touch $@
 
-$(ORBITRON)/orbitron_lab_v5.gltf: $(ORBITRON)/full_reactor_cad.py | $(STAND)/.dirs
-	cd $(ORBITRON) && $(POETRY) run python full_reactor_cad.py
+# --- CadQuery → glTF (Aircraft/.../build only) ---
+$(GLTF_LAB): $(LAB_CAD_SRC) | $(STAND)/.dirs
+	mkdir -p $(STAND)/build
+	cd $(ORBITRON) && ORBITRON_LAB_GLTF='$(GLTF_LAB)' $(POETRY) run python full_reactor_cad.py
 
-$(ORBITRON)/arcjet_outdoor_stand.gltf: $(ORBITRON)/arcjet_test_stand_cad.py | $(STAND)/.dirs
-	cd $(ORBITRON) && $(POETRY) run python arcjet_test_stand_cad.py
+$(GLTF_ARC): $(ORBITRON)/arcjet_test_stand_cad.py | $(STAND)/.dirs
+	mkdir -p $(STAND)/build
+	cd $(ORBITRON) && ORBITRON_ARCJET_GLTF='$(GLTF_ARC)' $(POETRY) run python arcjet_test_stand_cad.py
 
+# --- Blender + UV → orbitron.ac ---
 $(STAND)/.orbitron_ac_done: \
-		$(ORBITRON)/orbitron_lab_v5.gltf \
+		$(GLTF_LAB) \
 		$(ORBITRON)/build_ac3d.py \
 		$(ORBITRON)/fix_screen_uv.py \
 		| $(STAND)/.dirs $(STAND)/.static_synced
 	rm -f '$(STAND)/Models/orbitron.ac'
-	cd $(ORBITRON) && ORBITRON_AC_OUT='$(STAND)/Models/orbitron.ac' $(BLENDER) -b --python build_ac3d.py
+	cd $(ORBITRON) && ORBITRON_AC_OUT='$(STAND)/Models/orbitron.ac' ORBITRON_GLTF_IN='$(GLTF_LAB)' \
+		$(BLENDER) -b --python build_ac3d.py
 	test -f '$(STAND)/Models/orbitron.ac'
 	cd $(ORBITRON) && ORBITRON_AC_OUT='$(STAND)/Models/orbitron.ac' $(POETRY) run python fix_screen_uv.py
 	touch $@
 
+$(STAND)/Models/orbitron.ac: $(STAND)/.orbitron_ac_done
+	@test -f '$@'
+
+# --- Surrogate JSON (+ CSV under build/orbitron for warpx/dry) ---
 $(STAND)/engine_surrogate.json: $(SUR_DEP_ALL) $(BUILD)/warpx-runs | $(STAND)/.dirs
 	@if [ "$(SURROGATE)" = "warpx" ]; then \
 		echo "=== surrogate: WarpX sweep (SURROGATE=warpx) ==="; \
@@ -120,21 +123,14 @@ $(STAND)/engine_surrogate.json: $(SUR_DEP_ALL) $(BUILD)/warpx-runs | $(STAND)/.d
 		printf 'throttle,compressor\n0,0\n' > '$(BUILD)/surrogate_sweep_results.csv'; \
 	fi
 
-$(STAND)/Sounds/orbitron_core_loop.wav: \
+# --- Synthesized WAV beds (add_reactor_sound.py) ---
+$(STAND)/Sounds/.sounds_built: \
 		$(ORBITRON)/add_reactor_sound.py \
 		$(ORBITRON)/Orbitron-TestStand/Sounds/sound.xml \
 		| $(STAND)/.dirs $(STAND)/.static_synced
 	$(POETRY) run python $(ORBITRON)/add_reactor_sound.py --out-dir '$(STAND)/Sounds'
+	touch '$@'
 
-$(STAND)/build/orbitron_lab_v5.gltf: $(ORBITRON)/orbitron_lab_v5.gltf | $(STAND)/.dirs
-	mkdir -p $(STAND)/build
-	cp -f '$<' '$@'
-
-$(STAND)/build/arcjet_outdoor_stand.gltf: $(ORBITRON)/arcjet_outdoor_stand.gltf | $(STAND)/.dirs
-	mkdir -p $(STAND)/build
-	cp -f '$<' '$@'
-
-# Mirror CSV beside surrogate JSON (also under build/orbitron for WarpX/dry).
 $(STAND)/build/surrogate_sweep_results.csv: $(STAND)/engine_surrogate.json | $(STAND)/.dirs
 	mkdir -p '$(STAND)/build'
 	cp -f '$(BUILD)/surrogate_sweep_results.csv' '$@'
@@ -143,8 +139,10 @@ graph: | $(STAND)/.dirs
 	mkdir -p $(STAND)/build
 	@{ \
 	echo '%% Auto-generated by `make graph`. Paste into https://mermaid.live'; \
+	echo '%% Full artifact graph for Orbitron-TestStand (sources → build/orbitron → Aircraft).'; \
 	echo 'flowchart TD'; \
-	echo '  subgraph sources["Source repo"]'; \
+	echo '  subgraph SRC["Source repo (git) — not computed"]'; \
+	echo '    fusion["ssto/orbitron/fusion_arcjet_engine_cad.py"]'; \
 	echo '    lab_cad["ssto/orbitron/full_reactor_cad.py"]'; \
 	echo '    arc_cad["ssto/orbitron/arcjet_test_stand_cad.py"]'; \
 	echo '    blend["ssto/orbitron/build_ac3d.py"]'; \
@@ -153,41 +151,86 @@ graph: | $(STAND)/.dirs
 	echo '    smap["tools/build_surrogate_map.py"]'; \
 	echo '    wfit["tools/warpx_to_jsbsim_surrogate.py"]'; \
 	echo '    snd["ssto/orbitron/add_reactor_sound.py"]'; \
-	echo '    static["Orbitron-TestStand/* (excl. generated)"]'; \
+	echo '    setxml["Orbitron-TestStand/Orbitron-TestStand-set.xml"]'; \
+	echo '    jsbsim["Orbitron-TestStand/orbitron-jsbsim.xml"]'; \
+	echo '    oxml["Orbitron-TestStand/Models/Orbitron.xml"]'; \
+	echo '    wpng["Orbitron-TestStand/Models/warpx_frame.png"]'; \
+	echo '    soundxml["Orbitron-TestStand/Sounds/sound.xml"]'; \
+	echo '    nasal["Orbitron-TestStand/Nasal/*.nas"]'; \
+	echo '    fusion --> lab_cad'; \
 	echo '  end'; \
-	echo '  subgraph inter["Aircraft/Orbitron-TestStand/build + build/orbitron"]'; \
-	echo '    gltf_lab["build/orbitron_lab_v5.gltf (copy)"]'; \
-	echo '    gltf_arc["build/arcjet_outdoor_stand.gltf (copy)"]'; \
-	echo '    csv["surrogate_sweep_results.csv"]'; \
-	echo '    warpx_runs["warpx-runs/*"]'; \
+	echo '  subgraph BR["build/orbitron — WarpX + CSV (repo build dir)"]'; \
+	echo '    csv_br["surrogate_sweep_results.csv"]'; \
+	echo '    wruns["warpx-runs (one subdir per sweep cell)"]'; \
 	echo '  end'; \
-	echo '  subgraph fg["Aircraft/Orbitron-TestStand (FlightGear)"]'; \
+	echo '  subgraph AIR["Aircraft/Orbitron-TestStand — computed + synced"]'; \
+	echo '    gltf_lab["build/orbitron_lab_v5.gltf"]'; \
+	echo '    gltf_arc["build/arcjet_outdoor_stand.gltf"]'; \
+	echo '    ac_stamp[".orbitron_ac_done (stamp)"]'; \
 	echo '    ac["Models/orbitron.ac"]'; \
-	echo '    json["engine_surrogate.json"]'; \
-	echo '    wavs["Sounds/*.wav"]'; \
-	echo '    xml["*-set.xml, JSBSim, Nasal, sound.xml"]'; \
+	echo '    jsur["engine_surrogate.json"]'; \
+	echo '    csv_air["build/surrogate_sweep_results.csv (mirror)"]'; \
+	echo '    snd_stamp["Sounds/.sounds_built (stamp)"]'; \
+	echo '    wav_core["Sounds/orbitron_core_loop.wav"]'; \
+	echo '    wav_in["Sounds/orbitron_inlet_loop.wav"]'; \
+	echo '    wav_jet["Sounds/orbitron_jet_loop.wav"]'; \
+	echo '    wav_dec["Sounds/orbitron_dec_arc_loop.wav"]'; \
+	echo '    wav_scr["Sounds/orbitron_screen_sputter_loop.wav"]'; \
+	echo '    wav_mot["Sounds/orbitron_motor_whine_loop.wav"]'; \
+	echo '    wav_duct["Sounds/orbitron_duct_heat_loop.wav"]'; \
+	echo '    wav_str["Sounds/orbitron_stressor_loop.wav"]'; \
+	echo '    wav_heavy["Sounds/reactor_audio_heavy.wav"]'; \
+	echo '    mmd["build/dependency_graph.mmd (this file via make graph)"]'; \
 	echo '  end'; \
-	echo '  lab_cad -->|CadQuery| gltf_src["orbitron_lab_v5.gltf"]'; \
-	echo '  arc_cad -->|CadQuery| arc_src["arcjet_outdoor_stand.gltf"]'; \
-	echo '  gltf_src --> blend'; \
+	echo '  fgready["fg-ready (make default goal)"]'; \
+	echo '  lab_cad -->|ORBITRON_LAB_GLTF| gltf_lab'; \
+	echo '  arc_cad -->|ORBITRON_ARCJET_GLTF| gltf_arc'; \
+	echo '  gltf_lab -->|ORBITRON_GLTF_IN + Blender| blend'; \
 	echo '  blend --> ac'; \
 	echo '  uv --> ac'; \
-	echo '  gltf_src --> gltf_lab'; \
-	echo '  arc_src --> gltf_arc'; \
+	echo '  blend --> ac_stamp'; \
+	echo '  uv --> ac_stamp'; \
+	echo '  ac_stamp -.->|after touch| ac'; \
 	echo '  pic --> smap'; \
-	echo '  smap --> csv'; \
-	echo '  smap --> warpx_runs'; \
+	echo '  smap --> wruns'; \
+	echo '  smap --> csv_br'; \
 	echo '  smap --> wfit'; \
-	echo '  wfit --> json'; \
-	echo '  static --> xml'; \
-	echo '  snd --> wavs'; \
-	echo '  xml --> fgpack["fg-ready"]'; \
-	echo '  ac --> fgpack'; \
-	echo '  json --> fgpack'; \
-	echo '  wavs --> fgpack'; \
-	echo '  gltf_lab --> fgpack'; \
-	echo '  gltf_arc --> fgpack'; \
-	echo '  csv --> fgpack'; \
+	echo '  wfit --> jsur'; \
+	echo '  csv_br -->|cp| csv_air'; \
+	echo '  jsur -->|order| csv_air'; \
+	echo '  soundxml --> snd'; \
+	echo '  snd --> wav_core'; \
+	echo '  snd --> wav_in'; \
+	echo '  snd --> wav_jet'; \
+	echo '  snd --> wav_dec'; \
+	echo '  snd --> wav_scr'; \
+	echo '  snd --> wav_mot'; \
+	echo '  snd --> wav_duct'; \
+	echo '  snd --> wav_str'; \
+	echo '  snd --> wav_heavy'; \
+	echo '  snd --> snd_stamp'; \
+	echo '  setxml --> airsync["rsync → Aircraft"]'; \
+	echo '  jsbsim --> airsync'; \
+	echo '  oxml --> airsync'; \
+	echo '  wpng --> airsync'; \
+	echo '  nasal --> airsync'; \
+	echo '  airsync --> fgready'; \
+	echo '  gltf_lab --> fgready'; \
+	echo '  gltf_arc --> fgready'; \
+	echo '  ac --> fgready'; \
+	echo '  jsur --> fgready'; \
+	echo '  csv_air --> fgready'; \
+	echo '  wav_core --> fgready'; \
+	echo '  wav_in --> fgready'; \
+	echo '  wav_jet --> fgready'; \
+	echo '  wav_dec --> fgready'; \
+	echo '  wav_scr --> fgready'; \
+	echo '  wav_mot --> fgready'; \
+	echo '  wav_duct --> fgready'; \
+	echo '  wav_str --> fgready'; \
+	echo '  wav_heavy --> fgready'; \
+	echo '  snd_stamp --> fgready'; \
+	echo '  graph_run["make graph"] -.->|writes| mmd'; \
 	} > '$(MERMAID_OUT)'
 	@echo "Wrote $(MERMAID_OUT)"
 

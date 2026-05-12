@@ -2,7 +2,7 @@
 """
 Synthesize Orbitron / arcjet test-stand audio assets.
 
-Not part of the default mesh pipeline: run manually or use prototype_build.sh --with-sounds.
+Not part of the default mesh pipeline: run manually, prototype_build.sh --with-sounds, or `make` (writes to ../../Aircraft/Orbitron-TestStand/Sounds by default).
 
 Outputs (mono 44.1 kHz, suitable for FlightGear <mode>looped</mode>):
   - orbitron_core_loop.wav           — fusion / core plasma bed
@@ -194,7 +194,7 @@ def main() -> None:
     ap.add_argument(
         "--out-dir",
         default="",
-        help="Output directory (default: <this script>/Orbitron-TestStand/Sounds)",
+        help="Output directory (default: ../../Aircraft/Orbitron-TestStand/Sounds from this script, or $ORBITRON_SOUNDS_OUT)",
     )
     ap.add_argument(
         "--skip-commissioning",
@@ -209,7 +209,10 @@ def main() -> None:
     args = ap.parse_args()
 
     here = os.path.dirname(os.path.abspath(__file__))
-    out_dir = args.out_dir or os.path.join(here, "Orbitron-TestStand", "Sounds")
+    default_air = os.path.normpath(
+        os.path.join(here, "..", "..", "Aircraft", "Orbitron-TestStand", "Sounds")
+    )
+    out_dir = args.out_dir or os.environ.get("ORBITRON_SOUNDS_OUT") or default_air
     os.makedirs(out_dir, exist_ok=True)
 
     print("Synthesizing Orbitron sound beds →", out_dir)

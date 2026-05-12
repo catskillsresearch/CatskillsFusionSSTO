@@ -228,7 +228,13 @@ warpx_used_inputs
 ssto/orbitron/warpx_used_inputs
 ssto/orbitron/surrogate_sweep_results.csv
 ssto/orbitron/surrogate_sweep_work/
+ssto/orbitron/orbitron_lab_v5.gltf
+ssto/orbitron/orbitron_lab_v5.bin
 ssto/orbitron/arcjet_outdoor_stand.gltf
 ssto/orbitron/arcjet_outdoor_stand.bin
+ssto/orbitron/reactor_audio*.wav
+ssto/orbitron/Orbitron-TestStand/Sounds/*.wav
+ssto/orbitron/Orbitron-TestStand/Models/orbitron.ac
+ssto/orbitron/Orbitron-TestStand/engine_surrogate.json
 *~
 FlightGear

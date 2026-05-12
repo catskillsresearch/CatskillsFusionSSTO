@@ -7,7 +7,8 @@ import bpy
 
 
 _ORBITRON_DIR = os.path.dirname(os.path.abspath(__file__))
-GLTF_FILE = os.path.abspath("orbitron_lab_v5.gltf")
+_DEFAULT_GLTF = os.path.join(_ORBITRON_DIR, "orbitron_lab_v5.gltf")
+GLTF_FILE = os.path.abspath(os.environ.get("ORBITRON_GLTF_IN", _DEFAULT_GLTF))
 _DEFAULT_AC = os.path.join(_ORBITRON_DIR, "Orbitron-TestStand", "Models", "orbitron.ac")
 AC3D_FILE = os.path.abspath(os.environ.get("ORBITRON_AC_OUT", _DEFAULT_AC))
 GROUND_TRUTH_LINEAR = {

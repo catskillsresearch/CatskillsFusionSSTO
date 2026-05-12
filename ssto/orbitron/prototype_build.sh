@@ -29,7 +29,7 @@ Options:
   --skip-blender    Skip Blender -> orbitron.ac
   --skip-fix-uv     Skip fix_screen_uv.py
   --skip-surrogate  Skip engine_surrogate.json regen
-  --with-sounds     Regenerate WAV beds in Orbitron-TestStand/Sounds (add_reactor_sound.py)
+  --with-sounds     Synthesize WAV beds into Aircraft/Orbitron-TestStand/Sounds (add_reactor_sound.py)
   -h, --help        Show this help
 
 From repo root:  act && ssto/orbitron/prototype_build.sh
@@ -60,25 +60,32 @@ eval "$(poetry env activate)"
 
 cd "${ORBITRON_DIR}"
 
+STAND_AIR="${REPO_ROOT}/Aircraft/Orbitron-TestStand"
+mkdir -p "${STAND_AIR}/build" "${STAND_AIR}/Models" "${STAND_AIR}/Sounds"
+export ORBITRON_LAB_GLTF="${STAND_AIR}/build/orbitron_lab_v5.gltf"
+export ORBITRON_ARCJET_GLTF="${STAND_AIR}/build/arcjet_outdoor_stand.gltf"
+export ORBITRON_GLTF_IN="${STAND_AIR}/build/orbitron_lab_v5.gltf"
+export ORBITRON_AC_OUT="${STAND_AIR}/Models/orbitron.ac"
+
+GLTF_LAB="${ORBITRON_LAB_GLTF}"
+AC_OUT="${ORBITRON_AC_OUT}"
+SURROGATE_JSON="${STAND_AIR}/engine_surrogate.json"
+
 if [[ "${SKIP_CAD}" -eq 0 ]]; then
-  echo "== [1/5] CadQuery: orbitron_lab_v5.gltf (fusion + arcjet engine + console) =="
+  echo "== [1/5] CadQuery: orbitron_lab_v5.gltf → ${ORBITRON_LAB_GLTF} =="
   python full_reactor_cad.py
 else
   echo "== [1/5] CadQuery: skipped =="
 fi
 
 if [[ "${SKIP_CAD}" -eq 0 && "${SKIP_ARCJET}" -eq 0 ]]; then
-  echo "== [2/5] CadQuery: arcjet_outdoor_stand.gltf =="
+  echo "== [2/5] CadQuery: arcjet_outdoor_stand.gltf → ${ORBITRON_ARCJET_GLTF} =="
   python arcjet_test_stand_cad.py
 elif [[ "${SKIP_ARCJET}" -ne 0 ]]; then
   echo "== [2/5] CadQuery arcjet: skipped =="
 else
   echo "== [2/5] CadQuery arcjet: skipped (--skip-cad) =="
 fi
-
-GLTF_LAB="${ORBITRON_DIR}/orbitron_lab_v5.gltf"
-AC_OUT="${ORBITRON_DIR}/Orbitron-TestStand/Models/orbitron.ac"
-SURROGATE_JSON="${ORBITRON_DIR}/Orbitron-TestStand/engine_surrogate.json"
 
 if [[ ! -f "${GLTF_LAB}" ]]; then
   echo "error: missing ${GLTF_LAB} (run without --skip-cad or place glTF)" >&2
@@ -90,9 +97,8 @@ if [[ "${SKIP_BLENDER}" -eq 0 ]]; then
     echo "error: Blender not found (${BLENDER_BIN}). Install Blender or set BLENDER=..." >&2
     exit 1
   fi
-  echo "== [3/5] Blender -> Orbitron-TestStand/Models/orbitron.ac =="
+  echo "== [3/5] Blender -> ${AC_OUT} =="
   rm -f "${AC_OUT}"
-  # -b: batch (no UI). build_ac3d.py loads orbitron_lab_v5.gltf from CWD.
   "${BLENDER_BIN}" -b --python "${ORBITRON_DIR}/build_ac3d.py"
   if [[ ! -f "${AC_OUT}" ]]; then
     echo "error: Blender did not produce ${AC_OUT}" >&2
@@ -113,7 +119,7 @@ else
 fi
 
 if [[ "${SKIP_SURROGATE}" -eq 0 ]]; then
-  echo "== [5/5] Placeholder engine surrogate JSON =="
+  echo "== [5/5] Placeholder engine surrogate JSON → ${SURROGATE_JSON} =="
   cd "${REPO_ROOT}"
   python tools/warpx_to_jsbsim_surrogate.py --placeholder --out-json "${SURROGATE_JSON}"
 else
@@ -121,14 +127,14 @@ else
 fi
 
 if [[ "${WITH_SOUNDS}" -ne 0 ]]; then
-  echo "== [extra] Synthesize Orbitron WAV loops (Orbitron-TestStand/Sounds) =="
-  python "${ORBITRON_DIR}/add_reactor_sound.py" --out-dir "${ORBITRON_DIR}/Orbitron-TestStand/Sounds"
+  echo "== [extra] Synthesize Orbitron WAV loops → ${STAND_AIR}/Sounds =="
+  python "${ORBITRON_DIR}/add_reactor_sound.py" --out-dir "${STAND_AIR}/Sounds"
 fi
 
 echo ""
 echo "Prototype build OK."
 echo "  Main mesh:  ${AC_OUT}"
 echo "  Lab glTF:   ${GLTF_LAB}"
-echo "  Arcjet-only glTF (optional ref): ${ORBITRON_DIR}/arcjet_outdoor_stand.gltf"
+echo "  Arcjet-only glTF: ${ORBITRON_ARCJET_GLTF}"
 echo "  Surrogate:  ${SURROGATE_JSON}"
 echo "Fly: cd ${ORBITRON_DIR} && ./fs.sh"

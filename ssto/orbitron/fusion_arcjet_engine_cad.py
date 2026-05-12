@@ -7,7 +7,7 @@ about deck Y through the bell foot so the flow axis is roughly +X (intake toward
 -X, exhaust/detuner toward +X). Fuel farm, HV umbilical, and gas lines use
 LabInfrastructure; the operator console is shifted farther from the stand center.
 
-Exports orbitron_lab_v5.gltf for build_ac3d.py / prototype_build.sh.
+Exports lab glTF (default filename orbitron_lab_v5.gltf) for build_ac3d.py; path set via ORBITRON_LAB_GLTF or Makefile → Aircraft/.../build/.
 """
 from __future__ import annotations
 

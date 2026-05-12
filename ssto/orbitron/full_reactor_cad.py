@@ -93,6 +93,9 @@ class LabInfrastructure:
 # ASSEMBLE AND EXPORT — merged fusion + arcjet engine (single glTF)
 # ==========================================
 if __name__ == "__main__":
+    import os
+
     from fusion_arcjet_engine_cad import save_fusion_arcjet_engine
 
-    save_fusion_arcjet_engine("orbitron_lab_v5.gltf")
+    out = os.environ.get("ORBITRON_LAB_GLTF", "orbitron_lab_v5.gltf")
+    save_fusion_arcjet_engine(out)

@@ -99,6 +99,8 @@ def build_assembly() -> cq.Assembly:
 
 
 if __name__ == "__main__":
-    out = "arcjet_outdoor_stand.gltf"
+    import os
+
+    out = os.environ.get("ORBITRON_ARCJET_GLTF", "arcjet_outdoor_stand.gltf")
     build_assembly().save(out)
     print(f"Wrote {out}")
