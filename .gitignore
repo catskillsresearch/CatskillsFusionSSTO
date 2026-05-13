@@ -230,10 +230,6 @@ ssto/*.bin
 
 # Obsolete / non-FG repo art (screen texture may be added under Aircraft/…/Models only)
 ssto/orbitron/OrbitronTestStand.png
-Aircraft/Orbitron-TestStand/Models/warpx_frame.png
-Aircraft/Orbitron-TestStand/Sounds/*.wav
-Aircraft/Orbitron-TestStand/Models/orbitron.ac
-Aircraft/Orbitron-TestStand/engine_surrogate.json
 
 # Makefile output: FlightGear aircraft tree + intermediates
 Aircraft/

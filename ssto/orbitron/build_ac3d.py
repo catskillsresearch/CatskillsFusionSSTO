@@ -3,12 +3,22 @@ import re
 import json
 import sys
 import traceback
+from pathlib import Path
+
 import bpy
 
 
 _ORBITRON_DIR = os.path.dirname(os.path.abspath(__file__))
 _REPO_ROOT = os.path.normpath(os.path.join(_ORBITRON_DIR, "..", ".."))
-_PKG = os.environ.get("ORBITRON_AIRCRAFT_PKG", "Orbitron-TestStand")
+_REPO_ROOT_PATH = Path(_REPO_ROOT)
+_TOOLS = str(_REPO_ROOT_PATH / "tools")
+if _TOOLS not in sys.path:
+    sys.path.insert(0, _TOOLS)
+from orbitron_aircraft_pkg import aircraft_package_dir
+
+_PKG = os.environ.get("ORBITRON_AIRCRAFT_PKG") or aircraft_package_dir(
+    _REPO_ROOT_PATH
+)
 _DEFAULT_GLTF = os.path.normpath(
     os.path.join(_REPO_ROOT, "Aircraft", _PKG, "build", "orbitron_lab.gltf")
 )

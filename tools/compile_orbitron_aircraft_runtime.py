@@ -319,10 +319,14 @@ def main() -> int:
         return 1
     dst = out_dir / "orbitron-jsbsim.xml"
     raw = tmpl.read_text(encoding="utf-8")
-    raw = raw.replace(
-        '<fdm_config name="Orbitron-TestStand"',
-        f'<fdm_config name="{pkg}"',
-    )
+    token = "@AIRCRAFT_PACKAGE_DIR@"
+    if token not in raw:
+        print(
+            f"error: JSBSim template missing {token!r} placeholder: {tmpl}",
+            file=sys.stderr,
+        )
+        return 1
+    raw = raw.replace(token, pkg)
     dst.write_text(raw, encoding="utf-8")
     print("Wrote", dst, "(from template)")
     return 0
