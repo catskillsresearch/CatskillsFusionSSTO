@@ -1,0 +1,296 @@
+# Sole source of truth for synthesized Orbitron test-stand WAV beds and FlightGear sound.xml.
+# WAV:  poetry run python tools/sound_compiler.py --spec THIS_FILE --out-dir DIR
+# XML:  poetry run python tools/compile_sound_xml_from_yaml.py --spec THIS_FILE
+# All loops are mono 44.1 kHz, one second, seamless (suitable for FlightGear <mode>looped</mode>).
+
+schema_version: 1
+title: Orbitron lab / arcjet reactive sound beds
+narrative: |
+  Runtime mix follows the SpaceShuttle pattern: JSBSim orbitron_soundscape writes
+  systems/orbitron_sfx/*_volume; sound.xml binds samples to those properties.
+  Each entry ties part_mesh (CAD / logical name) to WAV synthesis plus flightgear bindings.
+
+sounds:
+  - part_mesh: fusion_reactor_stack
+    narrative: |
+      Electrical / magnet line plus a low “plasma” wash—what you feel standing near
+      the core when the surrogate says power is up.
+    description_formal: |
+      Recipe seamless_plasma_bed: 1.0 s mono @ 44100 Hz; integer-harmonic power line
+      partials at 60/120/180/240 Hz plus deterministic wideband texture seed=1,
+      amplitude-shaped with tanh for headroom.
+    file: orbitron_core_loop.wav
+    compile:
+      recipe: seamless_plasma_bed
+      params: {}
+    flightgear:
+      fx_tag: orbitron-core
+      display_name: Orbitron fusion core bed
+      mode: looped
+      condition:
+        property: /sim/model/reactor/startup-trigger
+      volume:
+        property: /fdm/jsbsim/systems/orbitron_sfx/core_volume
+        factor: 0.92
+        offset: 0.0
+        min: 0.0
+        max: 1.0
+      pitch:
+        property: /fdm/jsbsim/systems/reactor/gross-power-mw
+        factor: 0.045
+        offset: 0.94
+        min: 0.82
+        max: 1.18
+      position: { x: 0.55, y: 0.0, z: 1.05 }
+      reference_dist: 4.0
+      max_dist: 120.0
+
+  - part_mesh: Bellmouth_Inlet
+    narrative: |
+      Bellmouth and compressor ingestion: broadband hiss and slow beating highs,
+      like standing ahead of the intake plane on a ground rig.
+    description_formal: |
+      Recipe seamless_inlet_hiss: deterministic partial bank seed=2, AM carriers
+      400 Hz × 11 Hz and fixed 1200 Hz tone; tanh limiter.
+    file: orbitron_inlet_loop.wav
+    compile:
+      recipe: seamless_inlet_hiss
+      params: {}
+    flightgear:
+      fx_tag: orbitron-inlet
+      display_name: Orbitron bellmouth / compressor ingestion
+      mode: looped
+      condition:
+        property: /sim/model/reactor/startup-trigger
+      volume:
+        property: /fdm/jsbsim/systems/orbitron_sfx/inlet_volume
+        factor: 1.0
+        offset: 0.0
+        min: 0.0
+        max: 1.0
+      pitch:
+        property: /controls/orbitron/compressor
+        factor: 0.38
+        offset: 0.80
+        min: 0.72
+        max: 1.38
+      position: { x: -1.85, y: 0.0, z: 0.38 }
+      reference_dist: 2.8
+      max_dist: 100.0
+
+  - part_mesh: CD_Nozzle_Stub
+    narrative: |
+      Nozzle / cell broadband rumble for the propulsive tail when thrust is non-zero.
+    description_formal: |
+      Recipe seamless_jet_rumble: inharmonic partials 55/73/97 Hz, AM product 31×140 Hz,
+      texture seed=3; tanh limiter.
+    file: orbitron_jet_loop.wav
+    compile:
+      recipe: seamless_jet_rumble
+      params: {}
+    flightgear:
+      fx_tag: orbitron-jet
+      display_name: Orbitron nozzle / cell exhaust
+      mode: looped
+      condition:
+        property: /sim/model/reactor/startup-trigger
+      volume:
+        property: /fdm/jsbsim/systems/orbitron_sfx/nozzle_volume
+        factor: 1.0
+        offset: 0.0
+        min: 0.0
+        max: 1.0
+      pitch:
+        property: /fdm/jsbsim/systems/arcjet/thrust-lbf
+        factor: 0.00011
+        offset: 0.86
+        min: 0.74
+        max: 1.48
+      position: { x: 3.25, y: 0.0, z: 0.48 }
+      reference_dist: 3.2
+      max_dist: 140.0
+
+  - part_mesh: DEC_Grid
+    narrative: |
+      DEC and magnet-bus arc crackle—your “orange stack” electricity story without a
+      scripted timeline.
+    description_formal: |
+      Recipe seamless_dec_arc: AM 120×37 Hz, texture seed=4, additional AM bands,
+      HF burst product; tanh limiter.
+    file: orbitron_dec_arc_loop.wav
+    compile:
+      recipe: seamless_dec_arc
+      params: {}
+    flightgear:
+      fx_tag: orbitron-dec-arc
+      display_name: Orbitron DEC / magnet arc crackle
+      mode: looped
+      condition:
+        property: /sim/model/reactor/startup-trigger
+      volume:
+        property: /fdm/jsbsim/systems/orbitron_sfx/dec_arc_volume
+        factor: 1.0
+        offset: 0.0
+        min: 0.0
+        max: 1.0
+      pitch:
+        property: /fdm/jsbsim/systems/arcjet/dec-voltage-mv
+        factor: 0.055
+        offset: 0.88
+        min: 0.78
+        max: 1.35
+      position: { x: 0.45, y: 0.0, z: 1.15 }
+      reference_dist: 3.5
+      max_dist: 110.0
+
+  - part_mesh: Screen
+    narrative: |
+      Sparse impacts and HF hiss suggesting MeV-class beam on viewport / residual gas
+      (schematic, not a transport solve).
+    description_formal: |
+      Recipe seamless_screen_sputter: sparse texture seed=5, 2200×17 Hz and 880×29 Hz
+      products; tanh limiter.
+    file: orbitron_screen_sputter_loop.wav
+    compile:
+      recipe: seamless_screen_sputter
+      params: {}
+    flightgear:
+      fx_tag: orbitron-screen-beam
+      display_name: Orbitron viewport beam / sputter
+      mode: looped
+      condition:
+        property: /sim/model/reactor/startup-trigger
+      volume:
+        property: /fdm/jsbsim/systems/orbitron_sfx/screen_beam_volume
+        factor: 1.0
+        offset: 0.0
+        min: 0.0
+        max: 1.0
+      pitch:
+        property: /fdm/jsbsim/systems/reactor/beam-current-ma
+        factor: 0.0065
+        offset: 0.90
+        min: 0.82
+        max: 1.35
+      position: { x: -1.95, y: -3.35, z: 1.55 }
+      reference_dist: 2.2
+      max_dist: 35.0
+
+  - part_mesh: Compressor_Can
+    narrative: |
+      Tonal motor plus weak upper harmonics; pitch/volume in FG track compressor state.
+    description_formal: |
+      Recipe seamless_motor_whine: fundamentals 220/440/660 Hz, AM 330×6.5 Hz,
+      texture seed=6; tanh limiter.
+    file: orbitron_motor_whine_loop.wav
+    compile:
+      recipe: seamless_motor_whine
+      params: {}
+    flightgear:
+      fx_tag: orbitron-motor-gen
+      display_name: Orbitron motor / turbofan generator
+      mode: looped
+      condition:
+        property: /sim/model/reactor/startup-trigger
+      volume:
+        property: /fdm/jsbsim/systems/orbitron_sfx/motor_generator_volume
+        factor: 0.88
+        offset: 0.0
+        min: 0.0
+        max: 1.0
+      pitch:
+        property: /controls/orbitron/compressor
+        factor: 0.42
+        offset: 0.78
+        min: 0.70
+        max: 1.42
+      position: { x: -1.25, y: 0.0, z: 0.42 }
+      reference_dist: 3.0
+      max_dist: 90.0
+
+  - part_mesh: Blast_Detuner
+    narrative: |
+      Heated-air / secondary-duct turbulence under off-design massflow (conceptual).
+    description_formal: |
+      Recipe seamless_duct_heat: partials 68/142 Hz, AM 41×210, texture seed=7,
+      slow 3 Hz depth modulation; tanh limiter.
+    file: orbitron_duct_heat_loop.wav
+    compile:
+      recipe: seamless_duct_heat
+      params: {}
+    flightgear:
+      fx_tag: orbitron-duct-heat
+      display_name: Orbitron heated duct air
+      mode: looped
+      condition:
+        property: /sim/model/reactor/startup-trigger
+      volume:
+        property: /fdm/jsbsim/systems/orbitron_sfx/duct_heat_volume
+        factor: 1.0
+        offset: 0.0
+        min: 0.0
+        max: 1.0
+      pitch:
+        property: /fdm/jsbsim/systems/arcjet/mass-flow-kgps
+        factor: 0.065
+        offset: 0.90
+        min: 0.80
+        max: 1.35
+      position: { x: 0.9, y: 0.0, z: 0.55 }
+      reference_dist: 3.8
+      max_dist: 115.0
+
+  - part_mesh: Thrust_Sled_Frame
+    narrative: |
+      Ominous sub and beating partials when thermal surrogate disagrees with thrust
+      (stressor channel in soundscape).
+    description_formal: |
+      Recipe seamless_stressor: 42/51 Hz beating pair, AM 38×2.3 Hz, texture seed=8;
+      tanh limiter.
+    file: orbitron_stressor_loop.wav
+    compile:
+      recipe: seamless_stressor
+      params: {}
+    flightgear:
+      fx_tag: orbitron-stressor
+      display_name: Orbitron off-design thermal stress
+      mode: looped
+      condition:
+        property: /sim/model/reactor/startup-trigger
+      volume:
+        property: /fdm/jsbsim/systems/orbitron_sfx/stressor_volume
+        factor: 1.0
+        offset: 0.0
+        min: 0.0
+        max: 1.0
+      pitch:
+        property: /fdm/jsbsim/systems/reactor/beam-current-ma
+        factor: 0.0065
+        offset: 0.90
+        min: 0.82
+        max: 1.35
+      position: { x: 1.4, y: 0.0, z: 0.9 }
+      reference_dist: 5.0
+      max_dist: 100.0
+
+  - part_mesh: Operator_Console
+    narrative: |
+      Legacy one-shot “commissioning theatre” timeline (10 s) for demos; not looped
+      in the reactive soundscape.
+    description_formal: |
+      Recipe commissioning_timeline: duration_s=10 @ 44100 Hz; piecewise hum, spin-up,
+      clack, convolved rumble, gated crackle; tanh master; optional ffmpeg mux not part
+      of recipe.
+    file: reactor_audio_heavy.wav
+    compile:
+      recipe: commissioning_timeline
+      params:
+        duration_s: 10.0
+    flightgear:
+      fx_tag: reactor-commissioning
+      display_name: Reactor commissioning (one-shot)
+      mode: once
+      condition:
+        property: /sim/model/reactor/startup-commissioning-audio
+      volume:
+        factor: 0.75

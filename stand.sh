@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
 # Poetry env + repo-local WarpX (pywarpx) paths, then GNU make.
 #
-# Default build includes: CadQuery → orbitron_lab_v5_from_cad.gltf → nested
-# orbitron_lab_v5.gltf (fusion_arcjet_engine tree) → Blender → orbitron.ac,
-# surrogate, sounds, Mermaid graphs. See Makefile GLTF_LAB / GLTF_LAB_CAD.
+# Default build: assembly YAML → orbitron_lab_flat.gltf → orbitron_lab.gltf → Blender → orbitron.ac,
+# surrogate, sounds from orbitron_sound_assets.yaml, Mermaid graphs. See Makefile GLTF_LAB_FLAT / GLTF_LAB.
 # Preview nested lab in Blender: ./bl.sh   (or ./bl.sh --collections)
 #
 # Usage (repo root):
@@ -11,6 +10,9 @@
 #   ./stand.sh SURROGATE=mesh
 #   ./stand.sh graph
 #   ./stand.sh run-fgfs
+#
+# Full from-scratch regression (default SURROGATE=warpx in Makefile): move Aircraft aside,
+# then ./stand.sh — see Makefile help "Cold-tree regression".
 
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")" && pwd)"

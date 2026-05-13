@@ -2,20 +2,23 @@
 """Emit Mermaid from orbitron.ac: physical AC3D tree and optional logical assemblies.
 
 Physical tree: OBJECT / kids under world. Logical tree: nested subgraphs from
-orbitron_logical_assemblies.json (parts / mesh_parts, members, logical_only
+orbitron_logical_assemblies.yaml (parts / mesh_parts, members, logical_only
 subcomponents, connections[], glossary[]). Mesh names must match orbitron.ac.
 """
 from __future__ import annotations
 
 import argparse
 import html
-import json
 import re
 import sys
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
+
+import yaml
+
+from orbitron_logical_assemblies_spec import load_logical_assemblies_spec
 
 
 @dataclass
@@ -176,13 +179,7 @@ def mesh_parts_list(spec: dict[str, Any]) -> list[str]:
 
 
 def load_assemblies_json(path: Path) -> dict[str, Any]:
-    data = json.loads(path.read_text(encoding="utf-8"))
-    if not isinstance(data, dict) or "root" not in data or "groups" not in data:
-        raise ValueError("assemblies JSON must have top-level keys 'root' and 'groups'")
-    groups = data["groups"]
-    if not isinstance(groups, dict):
-        raise ValueError("'groups' must be an object")
-    return data
+    return load_logical_assemblies_spec(path)
 
 
 def _logical_only_keys(groups: dict[str, Any]) -> set[str]:
@@ -242,12 +239,12 @@ def validate_assemblies(mesh_names: set[str], data: dict[str, Any]) -> None:
     extra = sorted(set(part_to_group) - mesh_names)
     if missing:
         raise ValueError(
-            "assemblies JSON does not cover all mesh objects: "
+            "assemblies spec does not cover all mesh objects: "
             + ", ".join(missing)
         )
     if extra:
         raise ValueError(
-            "assemblies JSON references unknown mesh names: " + ", ".join(extra)
+            "assemblies spec references unknown mesh names: " + ", ".join(extra)
         )
 
     logical_keys = _logical_only_keys(groups)
@@ -482,10 +479,12 @@ def main() -> int:
         help="Output for physical AC tree (.mmd)",
     )
     ap.add_argument(
+        "--assemblies-spec",
         "--assemblies-json",
+        dest="assemblies_spec",
         type=Path,
         default=None,
-        help="orbitron_logical_assemblies.json (logical nested subgraphs)",
+        help="orbitron_logical_assemblies.yaml (or legacy .json); logical nested subgraphs",
     )
     ap.add_argument(
         "--logical-out",
@@ -518,19 +517,19 @@ def main() -> int:
 
     logical_out = args.logical_out
     if logical_out is not None:
-        aj = args.assemblies_json
+        aj = args.assemblies_spec
         if aj is None:
-            print("error: --logical-out requires --assemblies-json", file=sys.stderr)
+            print("error: --logical-out requires --assemblies-spec", file=sys.stderr)
             return 1
         aj = aj.resolve()
         if not aj.is_file():
-            print(f"error: assemblies JSON not found: {aj}", file=sys.stderr)
+            print(f"error: assemblies spec not found: {aj}", file=sys.stderr)
             return 1
         mesh_names = {c.name for c in root.children}
         try:
             data = load_assemblies_json(aj)
             validate_assemblies(mesh_names, data)
-        except (ValueError, json.JSONDecodeError) as e:
+        except (ValueError, yaml.YAMLError) as e:
             print(f"error: {e}", file=sys.stderr)
             return 1
         logical = emit_logical_mermaid(data, ac_path, aj, note, mesh_names)

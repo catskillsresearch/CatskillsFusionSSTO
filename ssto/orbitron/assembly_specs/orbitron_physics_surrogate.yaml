@@ -1,0 +1,105 @@
+# Compiler input for Orbitron surrogate sweep: WarpX PIC case, reductions, engineering map.
+# Consumed by tools/build_surrogate_map.py (--physics-spec) and emitted PICMI overrides
+# for ssto/orbitron/laminar_flow_2d_arcjet.py (--overrides JSON).
+#
+# Formal blocks document intent; picmi.expression_bundle is the vetted machine contract
+# (preset names + numeric slots only) compiled by tools/warpx_expression_presets.py.
+
+schema_version: 1
+title: Orbitron 2D arcjet surrogate — physics spec
+
+narrative: |
+  A coarse 2D electrostatic slice drives deposited densities; the surrogate pipeline
+  reduces last-plotfile |rho_electrons| and beam charge in a notional viewport ROI,
+  then maps proxies to JSBSim-facing scalars. PICMI remains Python (WarpX); this file
+  is the single place to change grids, ROI geometry, sweep layout, and placeholder
+  engineering gains without editing reduction code.
+
+formal:
+  compiled_expressions_contract: |
+    Analytic E-field and species density/momentum strings are never taken verbatim from
+    YAML. Only picmi.expression_bundle is machine-read: each entry is { preset, slots }
+    where preset is a name registered in tools/warpx_expression_presets.py and slots
+    are bounded floats validated at compile time. Presets emit AMReX parser-safe
+    strings; laminar_flow_2d_arcjet.py injects pre-formatted numeric literals (_wx)
+    for geometry and densities. To add physics: register a new preset in Python, then
+    reference it here — do not add raw expression text to YAML.
+  picmi_case: |
+    Cartesian2D; cylindrical analytic E from cathode–anode radii; uniform B_y;
+    electron ring + arc_channel_seed densities scaled by throttle/compressor;
+    stabilizing_beam particle list; field diagnostic rho_electrons, rho_arc_channel_seed,
+    rho_stabilizing_beam.
+  beam_viewport_reduction: |
+    On the last density_diag plotfile, mean |rho_beam| where
+      x < x_cutoff_m  ∧  |z| < z_half_width_m  ∧  r_inner_m < sqrt(x^2+z^2) < r_outer_m
+    with r = sqrt(x^2+z^2) in simulation coordinates (horizontal stand: beam from +x).
+  surrogate_map: |
+    CSV targets use normalized rho_e vs sweep median and ROI beam charge vs median;
+    beam_screen_kw = beam_current_ma * beam_screen_kw_per_ma (defaults match legacy 8 MV story).
+
+warpx_sweep:
+  arcjet_script: ssto/orbitron/laminar_flow_2d_arcjet.py
+  work_dir: build/orbitron/warpx-runs
+  default_steps: 500
+  default_diag_period: 100
+
+picmi:
+  # Vetted template layer: preset IDs + numeric slots only (see formal.compiled_expressions_contract).
+  expression_bundle:
+    version: 1
+    applied_E:
+      preset: orbitron_cylindrical_radial_e_xz
+      slots: {}
+    electron_ring_density:
+      preset: orbitron_annulus_uniform_density_xz
+      slots: {}
+    electron_ring_momentum:
+      preset: orbitron_exb_ring_momentum_xz
+      slots:
+        r_floor_m: 1.0e-4
+    arc_channel_seed_density:
+      preset: orbitron_annulus_uniform_density_xz
+      slots:
+        r_outer_scale: 0.98
+  base_n_e: 5.0e15
+  base_arc_seed: 1.0e14
+  ring_density_scale: { throttle_offset: 0.15, throttle_gain: 0.85 }
+  arc_seed_scale: { compressor_offset: 0.15, compressor_gain: 0.85 }
+  grid:
+    number_of_cells: [256, 256]
+  domain:
+    half_extent_m: 0.05
+  electrostatic:
+    r_anode_m: 0.05
+    r_cathode_m: 0.005
+    V_cathode_v: -600000.0
+    B_axial_tesla: 2.0
+  species_geometry:
+    electron_ring_inner_m: 0.01
+    electron_ring_outer_m: 0.03
+    arc_channel_inner_m: 0.035
+  timestep:
+    dt_s: 1.0e-12
+    cfl: 0.9
+  beam_list:
+    x_m: 0.04
+    z_half_span_m: 0.01
+    n_particles: 100
+    ux_m_s: -3000000.0
+    weight: 1.0e10
+
+reductions:
+  beam_viewport_roi:
+    x_cutoff_m: -0.005
+    z_half_width_m: 0.022
+    r_inner_m: 0.012
+    r_outer_m: 0.048
+
+surrogate_engineering:
+  # beam_screen_kw = beam_current_ma * beam_screen_kw_per_ma (legacy 8.0 ≈ 8 MV story)
+  beam_screen_kw_per_ma: 8.0
+  beam_current_scale_ma: 95.0
+  thrust_lbf_scale: 4000.0
+  mass_flow_kgps_scale: 2.5
+  gross_power_mw_scale: 3.5
+  heat_kw_scale: 400.0

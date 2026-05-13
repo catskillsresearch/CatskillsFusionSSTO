@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
-"""Rewrite orbitron_lab_v5.gltf node tree to match orbitron_logical_assemblies.json.
+"""Rewrite nested ``orbitron_lab.gltf`` node tree to match ``orbitron_logical_assemblies.yaml``.
 
-CadQuery emits one root with all mesh nodes as direct children. This script inserts
-assembly empties so Blender (and other glTF viewers) show the same nesting as the
-JSON: one root (default name fusion_arcjet_engine) and recursive assembly nodes,
-with mesh leaves unchanged (same node indices, names, transforms).
+The flat input glTF comes from assembly YAML via ``tools/compile_assembly_yaml.py``
+(``orbitron_lab_flat.gltf``), then ``tools/copy_gltf_with_stem.py`` to normalize the
+buffer URI to ``orbitron_lab.bin``. This script inserts assembly empties so Blender
+(and other glTF viewers) show the same nesting as the spec: one root (default name
+fusion_arcjet_engine) and recursive assembly nodes, with mesh leaves unchanged
+(same node indices, names, transforms). Mesh indices are stripped from any pre-existing
+``children`` lists first so no mesh is parented twice (Blender 5.x glTF import requires this).
 
-Run after full_reactor_cad.py; before build_ac3d.py. Requires stdlib only.
+Run after stem copy; before build_ac3d.py. Requires PyYAML (Poetry env).
 """
 from __future__ import annotations
 
@@ -18,6 +21,8 @@ import sys
 from pathlib import Path
 from typing import Any
 
+from orbitron_logical_assemblies_spec import load_logical_assemblies_spec
+
 
 def mesh_parts_list(spec: dict[str, Any]) -> list[str]:
     mp = spec.get("mesh_parts")
@@ -27,10 +32,7 @@ def mesh_parts_list(spec: dict[str, Any]) -> list[str]:
 
 
 def load_assemblies(path: Path) -> dict[str, Any]:
-    data = json.loads(path.read_text(encoding="utf-8"))
-    if "groups" not in data or "root" not in data:
-        raise ValueError("assemblies file needs root and groups")
-    return data
+    return load_logical_assemblies_spec(path)
 
 
 def collect_mesh_names(groups: dict[str, Any], root_key: str) -> set[str]:
@@ -68,6 +70,38 @@ def validate_assemblies_for_gltf(mesh_in_gltf: set[str], data: dict[str, Any]) -
         )
 
 
+def detach_mesh_nodes_from_existing_parents(
+    nodes: list[dict[str, Any]],
+    mesh_indices: set[int],
+    scenes: list[dict[str, Any]] | None,
+) -> None:
+    """
+    CadQuery (and similar) exporters may keep a deep node tree where mesh leaves still
+    appear under original parents. ``nest_gltf_nodes`` then appends the same mesh index
+    under new assembly nodes → two parents → Blender glTF importer asserts
+    ``vnodes[child].parent is None`` in vnode.py. Strip mesh indices from all existing
+    ``children`` lists (and from scene root lists) before attaching the new tree.
+    """
+    for n in nodes:
+        ch = n.get("children")
+        if not ch:
+            continue
+        new_ch = [c for c in ch if c not in mesh_indices]
+        if new_ch:
+            n["children"] = new_ch
+        else:
+            n.pop("children", None)
+    for sc in scenes or []:
+        roots = sc.get("nodes")
+        if not roots:
+            continue
+        new_roots = [idx for idx in roots if idx not in mesh_indices]
+        if new_roots:
+            sc["nodes"] = new_roots
+        elif nodes:
+            sc["nodes"] = [0]
+
+
 def nest_gltf_nodes(
     gltf: dict[str, Any],
     groups: dict[str, Any],
@@ -79,6 +113,10 @@ def nest_gltf_nodes(
     for i, n in enumerate(nodes):
         if n.get("mesh") is not None and n.get("name"):
             name_to_mesh_node[str(n["name"])] = i
+
+    detach_mesh_nodes_from_existing_parents(
+        nodes, set(name_to_mesh_node.values()), gltf.get("scenes")
+    )
 
     def append_node(node: dict[str, Any]) -> int:
         idx = len(nodes)
@@ -158,13 +196,15 @@ def align_sidecar_bin_to_stem(gltf_path: Path, gltf: dict[str, Any]) -> None:
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description="Nest glTF nodes from orbitron_logical_assemblies.json")
-    ap.add_argument("--gltf", type=Path, required=True, help="Path to orbitron_lab_v5.gltf (rewritten in place)")
+    ap = argparse.ArgumentParser(description="Nest glTF nodes from orbitron_logical_assemblies.yaml")
+    ap.add_argument("--gltf", type=Path, required=True, help="Path to orbitron_lab.gltf (rewritten in place)")
     ap.add_argument(
+        "--assemblies-spec",
         "--assemblies-json",
         type=Path,
         required=True,
-        help="orbitron_logical_assemblies.json",
+        dest="assemblies_spec",
+        help="orbitron_logical_assemblies.yaml (or legacy .json)",
     )
     ap.add_argument(
         "--root-name",
@@ -174,17 +214,17 @@ def main() -> int:
     ap.add_argument(
         "--root-group",
         default="test_stand",
-        help="JSON groups key for the scene root (default: test_stand)",
+        help="YAML groups key for the scene root (default: test_stand)",
     )
     args = ap.parse_args()
 
     gltf_path = args.gltf.resolve()
-    asm_path = args.assemblies_json.resolve()
+    asm_path = args.assemblies_spec.resolve()
     if not gltf_path.is_file():
         print(f"error: glTF not found: {gltf_path}", file=sys.stderr)
         return 1
     if not asm_path.is_file():
-        print(f"error: assemblies JSON not found: {asm_path}", file=sys.stderr)
+        print(f"error: assemblies spec not found: {asm_path}", file=sys.stderr)
         return 1
 
     data = load_assemblies(asm_path)

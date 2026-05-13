@@ -1,4 +1,4 @@
-# Invoked by bl.sh:  blender --factory-startup --python this_file -- /path/to/orbitron_lab_v5.gltf
+# Invoked by bl.sh:  blender --factory-startup --python this_file -- /path/to/orbitron_lab.gltf
 # Imports the nested lab glTF into an empty factory scene (GUI or background).
 
 from __future__ import annotations

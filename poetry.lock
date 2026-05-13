@@ -6188,4 +6188,4 @@ ytdata = ["yt[hdf5]"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.12"
-content-hash = "86bc2afedcfd3198c7f4d92e3c8cd289f59e2bf9fc6792125b05ffc7a43025e9"
+content-hash = "23c174911d223b2ea9892dd4f56d121266f1ed3dea291da0c2d20ecbbb02628a"

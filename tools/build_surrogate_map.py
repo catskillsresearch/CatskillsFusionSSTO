@@ -4,11 +4,11 @@ End-to-end surrogate map generation for Orbitron FlightGear / JSBSim.
 
 Steps:
   1) Grid over (throttle, compressor) in [0, 1]
-  2) For each point: run ssto/orbitron/laminar_flow_2d_arcjet.py with isolated diags dir
+  2) For each point: run laminar_flow_2d_arcjet.py with PICMI overrides from
+     ssto/orbitron/assembly_specs/orbitron_physics_surrogate.yaml (see --physics-spec)
   3) Reduce last WarpX plotfile: mean |rho_electrons|; mean |rho_stabilizing_beam| in a
      notional viewport ROI (toward -X, horizontal stand convention) and domain mean
-  4) Build CSV scalars: thrust, mdot, power, heat from rho_e proxy; beam_screen_kw /
-     beam_current_ma from beam ROI + 8 MV equivalent mapping (beam_screen_kw_from_rho)
+  4) Build CSV scalars from rho proxies using surrogate_engineering scales in YAML
   5) Run tools/warpx_to_jsbsim_surrogate.py -> engine_surrogate.json (bilinear surfaces)
 
 WarpX Python: set WARPX_PYTHON to the interpreter that has pywarpx (often not Poetry).
@@ -27,6 +27,12 @@ import os
 import subprocess
 import sys
 from pathlib import Path
+
+_TOOLS = Path(__file__).resolve().parent
+if str(_TOOLS) not in sys.path:
+    sys.path.insert(0, str(_TOOLS))
+
+import orbitron_physics_spec as _phys  # noqa: E402
 
 
 def _repo_root() -> Path:
@@ -76,7 +82,14 @@ def _beam_rho_field(ds) -> tuple[str, str] | None:
     return None
 
 
-def reduce_last_plotfile_beam_screen_kw_proxy(diags_parent: Path) -> tuple[float, float]:
+def reduce_last_plotfile_beam_screen_kw_proxy(
+    diags_parent: Path,
+    *,
+    x_cutoff_m: float = -0.005,
+    z_half_width_m: float = 0.022,
+    r_inner_m: float = 0.012,
+    r_outer_m: float = 0.048,
+) -> tuple[float, float]:
     """
     From last WarpX density plotfile:
       * rho_beam_dom: mean |rho_stabilizing_beam| over domain (beam activity proxy)
@@ -125,7 +138,12 @@ def reduce_last_plotfile_beam_screen_kw_proxy(diags_parent: Path) -> tuple[float
     xm, zm = np.meshgrid(x1d, z1d, indexing="ij")
     r = np.sqrt(xm * xm + zm * zm)
     # Beam injected at +x, travels -x; “screen” side: upstream half-space, slit, outside cathode
-    mask = (xm < -0.005) & (np.abs(zm) < 0.022) & (r > 0.012) & (r < 0.048)
+    mask = (
+        (xm < x_cutoff_m)
+        & (np.abs(zm) < z_half_width_m)
+        & (r > r_inner_m)
+        & (r < r_outer_m)
+    )
     dom_mean = float(np.mean(rho_b))
     if not np.any(mask):
         return float("nan"), dom_mean
@@ -139,6 +157,7 @@ def beam_screen_kw_from_rho(
     rho_screen_ref: float,
     throttle: float,
     compressor: float,
+    eng: dict[str, float] | None = None,
 ) -> tuple[float, float]:
     """
     Map reduced beam charge proxies to engineering scalars for surrogate fitting.
@@ -147,8 +166,11 @@ def beam_screen_kw_from_rho(
     screen, from P ~ I_eff * V with V = 8 MV story (same order as Shuttle: physics in
     FDM, FG only reads levels).
 
-    beam_current_ma: I_ma = P_kw / 8 (consistent with 8 MV equivalent DC transfer).
+    beam_current_ma: I_ma = P_kw / beam_screen_kw_per_ma (consistent with equivalent DC story).
     """
+    eng = eng or {}
+    k_ma = float(eng.get("beam_current_scale_ma", 95.0))
+    k_kw = float(eng.get("beam_screen_kw_per_ma", 8.0))
     t = max(0.0, min(1.0, throttle))
     c = max(0.0, min(1.0, compressor))
     if math.isfinite(rho_screen) and math.isfinite(rho_screen_ref) and rho_screen_ref > 0:
@@ -160,8 +182,8 @@ def beam_screen_kw_from_rho(
         leak = min(2.0, max(0.2, rho_screen / (rho_dom + 1e-30)))
         rn *= 0.35 + 0.65 * min(1.0, leak)
     # mA scale: NBI throttle opens confinement / coupling to beam line
-    beam_current_ma = 95.0 * rn * (0.15 + 0.85 * t) * (0.25 + 0.75 * c)
-    beam_screen_kw = beam_current_ma * 8.0
+    beam_current_ma = k_ma * rn * (0.15 + 0.85 * t) * (0.25 + 0.75 * c)
+    beam_screen_kw = beam_current_ma * k_kw
     return beam_screen_kw, beam_current_ma
 
 
@@ -189,6 +211,7 @@ def run_one_warpx(
     run_dir: Path,
     steps: int,
     diag_period: int,
+    picmi_overrides_json: Path | None,
 ) -> None:
     run_dir.mkdir(parents=True, exist_ok=True)
     write_dir = str(run_dir / "diags")
@@ -206,6 +229,8 @@ def run_one_warpx(
         "--diag-period",
         str(diag_period),
     ]
+    if picmi_overrides_json is not None:
+        cmd.extend(["--overrides", str(picmi_overrides_json)])
     subprocess.run(cmd, cwd=str(arcjet_script.parent), check=True)
 
 
@@ -217,19 +242,23 @@ def scalar_outputs(
     rho_beam_screen: float,
     rho_beam_dom: float,
     rho_beam_screen_ref: float,
+    eng: dict[str, float] | None = None,
 ) -> tuple[float, float, float, float, float, float]:
     """Map PIC proxy + controls to surrogate CSV targets (engineering placeholders)."""
+    eng = eng or {}
     if math.isfinite(rho_mean) and rho_ref > 0 and math.isfinite(rho_ref):
         rn = max(0.15, min(3.0, rho_mean / rho_ref))
     else:
         rn = 1.0
     t = max(0.0, min(1.0, throttle))
     c = max(0.0, min(1.0, compressor))
-    thrust_lbf = 4000.0 * t * c * rn
-    mass_flow_kgps = 2.5 * t * c * rn
-    gross_power_mw = 3.5 * t * c * rn
-    heat_kw = 400.0 * t * c * rn
-    bkw, bma = beam_screen_kw_from_rho(rho_beam_screen, rho_beam_dom, rho_beam_screen_ref, t, c)
+    thrust_lbf = float(eng.get("thrust_lbf_scale", 4000.0)) * t * c * rn
+    mass_flow_kgps = float(eng.get("mass_flow_kgps_scale", 2.5)) * t * c * rn
+    gross_power_mw = float(eng.get("gross_power_mw_scale", 3.5)) * t * c * rn
+    heat_kw = float(eng.get("heat_kw_scale", 400.0)) * t * c * rn
+    bkw, bma = beam_screen_kw_from_rho(
+        rho_beam_screen, rho_beam_dom, rho_beam_screen_ref, t, c, eng=eng
+    )
     return thrust_lbf, mass_flow_kgps, gross_power_mw, heat_kw, bkw, bma
 
 
@@ -278,9 +307,31 @@ def main() -> int:
         help="Python with pywarpx (default: $WARPX_PYTHON or this interpreter)",
     )
     ap.add_argument("--print-set-xml", action="store_true")
+    ap.add_argument(
+        "--physics-spec",
+        type=Path,
+        default=None,
+        help="orbitron_physics_surrogate.yaml (default: ssto/orbitron/assembly_specs/…)",
+    )
     args = ap.parse_args()
 
-    arcjet_script = root / "ssto" / "orbitron" / "laminar_flow_2d_arcjet.py"
+    phys_path = args.physics_spec or _phys.default_physics_spec_path(root)
+    if not phys_path.is_file():
+        print(f"error: physics spec not found: {phys_path}", file=sys.stderr)
+        return 1
+    ph = _phys.load_physics_spec(phys_path)
+    picmi_json = root / "build" / "orbitron" / "generated" / "picmi_overrides.json"
+    _phys.write_picmi_overrides(picmi_json, ph)
+    x_cutoff_m, z_half_width_m, r_inner_m, r_outer_m = _phys.beam_roi_tuple(ph)
+    eng = _phys.engineering_scalars(ph)
+
+    warpx_sw = ph.get("warpx_sweep") or {}
+    arcjet_rel = str(warpx_sw.get("arcjet_script", "ssto/orbitron/laminar_flow_2d_arcjet.py"))
+    arcjet_script = (root / arcjet_rel).resolve()
+    if not arcjet_script.is_file():
+        print(f"error: arcjet PICMI script not found: {arcjet_script}", file=sys.stderr)
+        return 1
+
     surrogate_tool = root / "tools" / "warpx_to_jsbsim_surrogate.py"
 
     if args.throttle_points and args.compressor_points:
@@ -313,6 +364,7 @@ def main() -> int:
                     run_dir=run_dir,
                     steps=args.steps,
                     diag_period=args.diag_period,
+                    picmi_overrides_json=picmi_json,
                 )
             except subprocess.CalledProcessError as e:
                 print(f"error: WarpX run failed: {e}", file=sys.stderr)
@@ -324,7 +376,13 @@ def main() -> int:
                 print(f"warning: reduction failed ({ex}); using rho_mean=nan", file=sys.stderr)
                 rho_m = float("nan")
             try:
-                rho_bs, rho_bd = reduce_last_plotfile_beam_screen_kw_proxy(diags)
+                rho_bs, rho_bd = reduce_last_plotfile_beam_screen_kw_proxy(
+                    diags,
+                    x_cutoff_m=x_cutoff_m,
+                    z_half_width_m=z_half_width_m,
+                    r_inner_m=r_inner_m,
+                    r_outer_m=r_outer_m,
+                )
             except Exception as ex:
                 print(f"warning: beam reduction failed ({ex}); beam fields nan", file=sys.stderr)
                 rho_bs, rho_bd = float("nan"), float("nan")
@@ -357,7 +415,7 @@ def main() -> int:
         )
         for throttle, compressor, rho_m, rho_bs, rho_bd, run_dir in raw_rows:
             tl, md, gp, hk, bkw, bma = scalar_outputs(
-                throttle, compressor, rho_m, rho_ref, rho_bs, rho_bd, rho_beam_screen_ref
+                throttle, compressor, rho_m, rho_ref, rho_bs, rho_bd, rho_beam_screen_ref, eng=eng
             )
             w.writerow(
                 [

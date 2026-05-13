@@ -89,13 +89,8 @@ class LabInfrastructure:
         
         return hv, gas, meth
 
-# ==========================================
-# ASSEMBLE AND EXPORT — merged fusion + arcjet engine (single glTF)
-# ==========================================
 if __name__ == "__main__":
-    import os
-
-    from fusion_arcjet_engine_cad import save_fusion_arcjet_engine
-
-    out = os.environ.get("ORBITRON_LAB_GLTF", "orbitron_lab_v5.gltf")
-    save_fusion_arcjet_engine(out)
+    raise SystemExit(
+        "Lab glTF is built only via Makefile: assembly YAML → tools/compile_assembly_yaml.py. "
+        "This file supplies CadQuery templates for the YAML compiler."
+    )

@@ -1,5 +1,5 @@
 """
-Arcjet / outdoor test-stand parts (also used inside fusion_arcjet_engine_cad).
+Arcjet / outdoor test-stand parts (used by YAML ``templates_registry``).
 
 Standalone export: arcjet_outdoor_stand.gltf (horizontal duct on sled, same rotation as lab).
 """
@@ -60,7 +60,7 @@ def nozzle_stub(throat_r: float = 0.045, exit_r: float = 0.09, length: float = 0
 
 
 def _horizontal_about_deck_y(solid: cq.Workplane, deck_z: float = 0.0, angle: float = 90.0) -> cq.Workplane:
-    """Match fusion_arcjet_engine_cad: vertical duct → horizontal +X flow along deck."""
+    """Rotate duct geometry from vertical +Z stack to horizontal +X (pivot at deck bell foot)."""
     p = (0.0, 0.0, float(deck_z))
     return solid.rotate(p, (0.0, 1.0, float(deck_z)), float(angle))
 

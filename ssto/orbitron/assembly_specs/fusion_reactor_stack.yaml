@@ -1,0 +1,87 @@
+# Assembly B — p-B11 Orbitron tube stack (electrodes, insulators, magnet, NBI).
+# Compile alone: poetry run python tools/compile_assembly_yaml.py --spec ssto/orbitron/assembly_specs/fusion_reactor_stack.yaml --out /tmp/B_reactor.gltf
+
+schema_version: 1
+
+assembly:
+  id: fusion_reactor_stack
+  title: Fusion reactor core stack (horizontal test layout)
+  narrative: |
+    After the compressor can, the flowpath hosts the crossed-field fusion hardware:
+    niobium anode shell, DEC grid, cathode tip stack, ceramic insulators, solenoid
+    block, and the side NBI injector. In the narrative these ride in one vertical
+    column in CadQuery, then share the same deck pivot as the bell so the column
+    becomes a horizontal spine along +X. Load cells are not in this file—they sit on
+    the thrust deck in the test-stand YAML so you can validate the core without the
+    farm plumbing cluttering the view.
+
+includes: []
+
+instances:
+  - id: Anode
+    narrative: |
+      Main niobium anode cylinder with end openings; defines the outer pressure vessel
+      for the core region before gas turns the corner toward the CD nozzle downstream.
+    template: orbitron_anode
+    params: {}
+    color: [0.8, 0.8, 0.85]
+    transform_chain:
+      - { op: translate, xyz: [0.0, 0.0, 0.75] }
+      - { op: rotate_y_about_point, pivot: [0.0, 0.0, 0.15], angle_deg: 90.0 }
+
+  - id: DEC_Grid
+    narrative: |
+      DEC grid insert—your “orange” accent in the viewport—sits radially inside the
+      anode and carries the high-gradient region that couples to the arc / plenum
+      narrative in the logical assemblies JSON.
+    template: orbitron_dec_grid
+    params: {}
+    color: [0.8, 0.6, 0.1]
+    transform_chain:
+      - { op: translate, xyz: [0.0, 0.0, 0.75] }
+      - { op: rotate_y_about_point, pivot: [0.0, 0.0, 0.15], angle_deg: 90.0 }
+
+  - id: Cathode
+    narrative: |
+      Cathode stack on axis; electrically and thermally the hot end of the gap that
+      pairs with the anode / grid story in the design brief.
+    template: orbitron_cathode
+    params: {}
+    color: [0.2, 0.8, 0.9]
+    transform_chain:
+      - { op: translate, xyz: [0.0, 0.0, 0.75] }
+      - { op: rotate_y_about_point, pivot: [0.0, 0.0, 0.15], angle_deg: 90.0 }
+
+  - id: Insulators
+    narrative: |
+      Ceramic standoff / insulator geometry isolating HV sections from the yoke and
+      duct shell in the coarse mesh.
+    template: orbitron_insulators
+    params: {}
+    color: [0.9, 0.9, 0.9]
+    transform_chain:
+      - { op: translate, xyz: [0.0, 0.0, 0.75] }
+      - { op: rotate_y_about_point, pivot: [0.0, 0.0, 0.15], angle_deg: 90.0 }
+
+  - id: Magnet
+    narrative: |
+      Solenoid yoke volume around the stack; sets the 2 T class axial narrative even
+      though the PIC case is separate from this decorative solid.
+    template: orbitron_magnet
+    params: {}
+    color: [0.2, 0.2, 0.2]
+    transform_chain:
+      - { op: translate, xyz: [0.0, 0.0, 0.75] }
+      - { op: rotate_y_about_point, pivot: [0.0, 0.0, 0.15], angle_deg: 90.0 }
+
+  - id: NBI_Injector
+    narrative: |
+      Neutral beamline stub sticking out the side of the core; in a full design this
+      would clear the duct and cryostat routing—here it is a short green-grey cylinder
+      plus flange for pick naming in FlightGear.
+    template: orbitron_nbi
+    params: {}
+    color: [0.3, 0.6, 0.4]
+    transform_chain:
+      - { op: translate, xyz: [0.0, 0.0, 0.75] }
+      - { op: rotate_y_about_point, pivot: [0.0, 0.0, 0.15], angle_deg: 90.0 }

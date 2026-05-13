@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Orbitron test stand: CadQuery -> glTF -> Blender .ac -> fix_screen_uv -> surrogate JSON.
+# Orbitron test stand: YAML lab glTF (via make) -> Blender .ac -> fix_screen_uv -> surrogate JSON.
 # Run: act && ./prototype_build.sh   (-h for options)
 #
 # Prefer from repo root: ./stand.sh SURROGATE=mesh   (writes Aircraft/Orbitron-TestStand; see Makefile).
@@ -19,17 +19,17 @@ WITH_SOUNDS=0
 
 usage() {
   cat <<'EOF'
-Rerun-friendly Orbitron test stand build (CadQuery -> glTF -> Blender .ac -> UV -> surrogate).
+Rerun-friendly Orbitron test stand build (YAML lab glTF -> Blender .ac -> UV -> surrogate).
 
 Usage: prototype_build.sh [options]
 
 Options:
-  --skip-cad        Skip CadQuery exports
+  --skip-cad        Skip lab + arcjet glTF generation (make / CadQuery arcjet)
   --skip-arcjet     Skip arcjet_outdoor_stand.gltf only
   --skip-blender    Skip Blender -> orbitron.ac
   --skip-fix-uv     Skip fix_screen_uv.py
   --skip-surrogate  Skip engine_surrogate.json regen
-  --with-sounds     Synthesize WAV beds into Aircraft/Orbitron-TestStand/Sounds (add_reactor_sound.py)
+  --with-sounds     Synthesize WAV beds (orbitron_sound_assets.yaml → sound_compiler.py)
   -h, --help        Show this help
 
 From repo root:  act && ssto/orbitron/prototype_build.sh
@@ -62,9 +62,9 @@ cd "${ORBITRON_DIR}"
 
 STAND_AIR="${REPO_ROOT}/Aircraft/Orbitron-TestStand"
 mkdir -p "${STAND_AIR}/build" "${STAND_AIR}/Models" "${STAND_AIR}/Sounds"
-export ORBITRON_LAB_GLTF="${STAND_AIR}/build/orbitron_lab_v5.gltf"
+export ORBITRON_LAB_GLTF="${STAND_AIR}/build/orbitron_lab.gltf"
 export ORBITRON_ARCJET_GLTF="${STAND_AIR}/build/arcjet_outdoor_stand.gltf"
-export ORBITRON_GLTF_IN="${STAND_AIR}/build/orbitron_lab_v5.gltf"
+export ORBITRON_GLTF_IN="${STAND_AIR}/build/orbitron_lab.gltf"
 export ORBITRON_AC_OUT="${STAND_AIR}/Models/orbitron.ac"
 
 GLTF_LAB="${ORBITRON_LAB_GLTF}"
@@ -72,10 +72,12 @@ AC_OUT="${ORBITRON_AC_OUT}"
 SURROGATE_JSON="${STAND_AIR}/engine_surrogate.json"
 
 if [[ "${SKIP_CAD}" -eq 0 ]]; then
-  echo "== [1/5] CadQuery: orbitron_lab_v5.gltf → ${ORBITRON_LAB_GLTF} =="
-  python full_reactor_cad.py
+  echo "== [1/5] Lab glTF (YAML → nested orbitron_lab.gltf via make orbitron-lab-gltf) → ${ORBITRON_LAB_GLTF} =="
+  cd "${REPO_ROOT}"
+  make orbitron-lab-gltf
+  cd "${ORBITRON_DIR}"
 else
-  echo "== [1/5] CadQuery: skipped =="
+  echo "== [1/5] Lab glTF: skipped =="
 fi
 
 if [[ "${SKIP_CAD}" -eq 0 && "${SKIP_ARCJET}" -eq 0 ]]; then
@@ -127,8 +129,11 @@ else
 fi
 
 if [[ "${WITH_SOUNDS}" -ne 0 ]]; then
-  echo "== [extra] Synthesize Orbitron WAV loops → ${STAND_AIR}/Sounds =="
-  python "${ORBITRON_DIR}/add_reactor_sound.py" --out-dir "${STAND_AIR}/Sounds"
+  echo "== [extra] sound_compiler → ${STAND_AIR}/Sounds =="
+  cd "${REPO_ROOT}"
+  poetry run python tools/sound_compiler.py \
+    --spec "${REPO_ROOT}/ssto/orbitron/assembly_specs/orbitron_sound_assets.yaml" \
+    --out-dir "${STAND_AIR}/Sounds"
 fi
 
 echo ""

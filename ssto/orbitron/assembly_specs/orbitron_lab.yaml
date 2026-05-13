@@ -1,0 +1,68 @@
+# Assembly D — full Orbitron fusion arcjet lab = includes A, B, C + propulsive tail (nozzle + detuner).
+# Full build: make orbitron-lab-gltf   (writes …/build/orbitron_lab.gltf)
+
+schema_version: 1
+
+assembly:
+  id: orbitron_lab
+  title: Orbitron fusion arcjet laboratory (composed from sub-assemblies)
+  narrative: |
+    This is the “final integration” view: bring the deck and services (C), bolt the
+    air path (A) and fusion spine (B) onto the same world frame, then add the CD nozzle
+    stub and blast detuner as the propulsive tail (D-only instances) so hot gas leaves
+    along +X toward the detuner cans. The order of includes below is only for Outliner
+    grouping—every leaf mesh is already placed in world coordinates, so you can still
+    compile A, B, or C alone and see a coherent sub-assembly without double transforms.
+    Use Blender’s right-hand tree to expand test_stand_and_services → …, then
+    air_breathing_intake → …, then fusion_reactor_stack → …, and finally the nozzle /
+    detuner children of this root.
+
+includes:
+  - file: test_stand_and_services.yaml
+    node_name: test_stand_and_services
+    narrative: |
+      C — rails, sled, tanks, rigid lines, console, load cells. Lay the pad first in
+      the real build; here it is just the first child assembly so you can isolate pad
+      + farm geometry before looking at the duct.
+
+  - file: air_breathing_intake.yaml
+    node_name: air_breathing_intake
+    narrative: |
+      A — bellmouth + compressor can, sharing the deck pivot story with the YAML layout.
+
+  - file: fusion_reactor_stack.yaml
+    node_name: fusion_reactor_stack
+    narrative: |
+      B — electrodes, insulators, magnet, NBI; stacked and rotated with the same pivot
+      as the bell so the crossed-field hardware reads as one horizontal spine.
+
+instances:
+  - id: CD_Nozzle_Stub
+    narrative: |
+      Short converging–diverging loft downstream of the 2 m anode stack; carries the
+      propulsive_nozzle story from orbitron_logical_assemblies.yaml even though finer
+      plenum / contour nodes remain logical-only there.
+    template: nozzle_stub
+    params:
+      throat_r: 0.045
+      exit_r: 0.09
+      length: 0.2
+    color: [0.2, 0.2, 0.22]
+    transform_chain:
+      - { op: translate, xyz: [0.0, 0.0, 2.75] }
+      - { op: rotate_y_about_point, pivot: [0.0, 0.0, 0.15], angle_deg: 90.0 }
+
+  - id: Blast_Detuner
+    narrative: |
+      Short blast / shock detuner sleeve after the nozzle exit plane—same deck pivot
+      rule, translated downstream by the nozzle length so the detuner hangs off the +X
+      tail of the rig.
+    template: blast_detuner
+    params:
+      inner_r: 0.35
+      wall: 0.04
+      length: 2.0
+    color: [0.35, 0.35, 0.38]
+    transform_chain:
+      - { op: translate, xyz: [0.0, 0.0, 2.95] }
+      - { op: rotate_y_about_point, pivot: [0.0, 0.0, 0.15], angle_deg: 90.0 }

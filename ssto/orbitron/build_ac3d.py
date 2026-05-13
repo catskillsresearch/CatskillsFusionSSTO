@@ -7,7 +7,9 @@ import bpy
 
 
 _ORBITRON_DIR = os.path.dirname(os.path.abspath(__file__))
-_DEFAULT_GLTF = os.path.join(_ORBITRON_DIR, "orbitron_lab_v5.gltf")
+_DEFAULT_GLTF = os.path.normpath(
+    os.path.join(_ORBITRON_DIR, "..", "..", "Aircraft", "Orbitron-TestStand", "build", "orbitron_lab.gltf")
+)
 GLTF_FILE = os.path.abspath(os.environ.get("ORBITRON_GLTF_IN", _DEFAULT_GLTF))
 _DEFAULT_AC = os.path.join(_ORBITRON_DIR, "Orbitron-TestStand", "Models", "orbitron.ac")
 AC3D_FILE = os.path.abspath(os.environ.get("ORBITRON_AC_OUT", _DEFAULT_AC))

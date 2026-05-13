@@ -1,6 +1,7 @@
 # Orbitron-TestStand → FlightGear under ./Aircraft (incremental).
 # All computed assets (glTF, .ac, WAV, surrogate JSON) live under Aircraft/ only;
-# ssto/orbitron/Orbitron-TestStand/ holds source XML/Nasal/sound.xml only.
+# ssto/orbitron/Orbitron-TestStand/ holds source XML/Nasal; Sounds/sound.xml is generated
+# from assembly_specs/orbitron_sound_assets.yaml (tools/compile_sound_xml_from_yaml.py).
 
 REPO_ROOT := $(abspath .)
 ORBITRON := $(REPO_ROOT)/ssto/orbitron
@@ -8,13 +9,12 @@ AIRCRAFT := $(REPO_ROOT)/Aircraft
 STAND := $(AIRCRAFT)/Orbitron-TestStand
 BUILD := $(REPO_ROOT)/build/orbitron
 
-# CadQuery / Blender / PIC inputs (sources)
-# CadQuery → flat glTF → nested glTF (Blender / FG use nested file).
-GLTF_LAB_CAD := $(STAND)/build/orbitron_lab_v5_from_cad.gltf
-GLTF_LAB := $(STAND)/build/orbitron_lab_v5.gltf
+# Lab glTF: assembly YAML → flat → stem-normalized → nest → Blender → .ac.
+# Arcjet-only glTF still from CadQuery (arcjet_test_stand_cad.py).
+GLTF_LAB_FLAT := $(STAND)/build/orbitron_lab_flat.gltf
+GLTF_LAB := $(STAND)/build/orbitron_lab.gltf
 GLTF_ARC := $(STAND)/build/arcjet_outdoor_stand.gltf
-FUSION_CAD := $(ORBITRON)/fusion_arcjet_engine_cad.py
-LAB_CAD_SRC := $(ORBITRON)/full_reactor_cad.py $(FUSION_CAD)
+COPY_GLTF_STEM := $(REPO_ROOT)/tools/copy_gltf_with_stem.py
 
 POETRY ?= poetry
 BLENDER ?= blender
@@ -34,25 +34,59 @@ STAND_SRC_FILES := $(shell find $(ORBITRON)/Orbitron-TestStand -type f \
 SUR_DEP_ALL := \
 	$(REPO_ROOT)/tools/build_surrogate_map.py \
 	$(REPO_ROOT)/tools/warpx_to_jsbsim_surrogate.py \
+	$(REPO_ROOT)/tools/warpx_expression_presets.py \
+	$(ORBITRON_PHYSICS_SPEC) \
+	$(ORBITRON_PHYSICS_SPEC_PY) \
 	$(ORBITRON)/laminar_flow_2d_arcjet.py
 
 MERMAID_OUT := $(STAND)/build/dependency_graph.mmd
 PARTS_MERMAID := $(STAND)/build/orbitron_ac_parts_hierarchy.mmd
 PARTS_LOGICAL_MERMAID := $(STAND)/build/orbitron_logical_assemblies.mmd
 ORBITRON_MODEL_XML := $(ORBITRON)/Orbitron-TestStand/Models/Orbitron.xml
-ASSEMBLIES_JSON := $(ORBITRON)/Orbitron-TestStand/orbitron_logical_assemblies.json
+ASSEMBLY_SPECS_DIR := $(ORBITRON)/assembly_specs
+ORBITRON_LOGICAL_ASSEMBLIES := $(ASSEMBLY_SPECS_DIR)/orbitron_logical_assemblies.yaml
+LOGICAL_ASSEMBLIES_SPEC_PY := $(REPO_ROOT)/tools/orbitron_logical_assemblies_spec.py
+
+# YAML assembly specs → glTF (A/B/C/D). First artifacts in fg-ready: rebuilt only when
+# these YAMLs or the compiler / CadQuery templates they call change.
+ORBITRON_LAB_YAMLS := \
+	$(ASSEMBLY_SPECS_DIR)/air_breathing_intake.yaml \
+	$(ASSEMBLY_SPECS_DIR)/fusion_reactor_stack.yaml \
+	$(ASSEMBLY_SPECS_DIR)/test_stand_and_services.yaml \
+	$(ASSEMBLY_SPECS_DIR)/orbitron_lab.yaml \
+	$(ORBITRON_LOGICAL_ASSEMBLIES)
+GLTF_YAML_A := $(STAND)/build/air_breathing_intake_from_yaml.gltf
+GLTF_YAML_B := $(STAND)/build/fusion_reactor_stack_from_yaml.gltf
+GLTF_YAML_C := $(STAND)/build/test_stand_and_services_from_yaml.gltf
+YAML_LAB_GLTF_ARTIFACTS := $(GLTF_YAML_A) $(GLTF_YAML_B) $(GLTF_YAML_C) $(GLTF_LAB)
+ORBITRON_SOUND_ASSETS := $(ASSEMBLY_SPECS_DIR)/orbitron_sound_assets.yaml
+SOUND_COMPILER := $(REPO_ROOT)/tools/sound_compiler.py
+COMPILE_SOUND_XML := $(REPO_ROOT)/tools/compile_sound_xml_from_yaml.py
+ORBITRON_SOUND_XML := $(ORBITRON)/Orbitron-TestStand/Sounds/sound.xml
+ORBITRON_PHYSICS_SPEC := $(ASSEMBLY_SPECS_DIR)/orbitron_physics_surrogate.yaml
+ORBITRON_PHYSICS_SPEC_PY := $(REPO_ROOT)/tools/orbitron_physics_spec.py
+YAML_LAB_COMPILER_DEPS := \
+	$(REPO_ROOT)/tools/compile_assembly_yaml.py \
+	$(REPO_ROOT)/tools/yaml_assembly/compiler.py \
+	$(REPO_ROOT)/tools/yaml_assembly/transform_ops.py \
+	$(REPO_ROOT)/tools/yaml_assembly/templates_registry.py \
+	$(COPY_GLTF_STEM) \
+	$(ORBITRON)/arcjet_test_stand_cad.py \
+	$(ORBITRON)/full_reactor_cad.py
 
 # Inputs that define the build graph (edit Makefile subgraph block when topology changes).
-GRAPH_INPUTS := Makefile $(LAB_CAD_SRC) $(ORBITRON)/arcjet_test_stand_cad.py \
+GRAPH_INPUTS := Makefile $(ORBITRON_LAB_YAMLS) $(YAML_LAB_COMPILER_DEPS) \
+	$(ORBITRON_SOUND_ASSETS) $(SOUND_COMPILER) $(COMPILE_SOUND_XML) \
+	$(ORBITRON_PHYSICS_SPEC) $(ORBITRON_PHYSICS_SPEC_PY) $(REPO_ROOT)/tools/warpx_expression_presets.py \
 	$(ORBITRON)/build_ac3d.py $(ORBITRON)/fix_screen_uv.py $(SUR_DEP_ALL) \
-	$(ORBITRON)/add_reactor_sound.py \
 	$(REPO_ROOT)/tools/orbitron_ac_hierarchy_mmd.py \
 	$(REPO_ROOT)/tools/gltf_nest_from_assemblies.py \
-	$(ASSEMBLIES_JSON)
+	$(LOGICAL_ASSEMBLIES_SPEC_PY) \
+	$(ORBITRON_LOGICAL_ASSEMBLIES)
 
 # Computed FlightGear model + audio (all under Aircraft/)
 MODEL_ARTIFACTS := \
-	$(GLTF_LAB) \
+	$(YAML_LAB_GLTF_ARTIFACTS) \
 	$(GLTF_ARC) \
 	$(STAND)/Models/orbitron.ac \
 	$(STAND)/engine_surrogate.json \
@@ -62,18 +96,22 @@ MODEL_ARTIFACTS := \
 	$(PARTS_MERMAID) \
 	$(PARTS_LOGICAL_MERMAID)
 
-.PHONY: all help clean graph parts-graph open-lab run-fgfs fg-ready
+.PHONY: all help clean graph parts-graph open-lab run-fgfs fg-ready yaml-lab-gltfs orbitron-lab-gltf
 
 all: fg-ready
 
 help:
 	@echo "Orbitron-TestStand Makefile"
-	@echo "  make / make all     Build $(STAND); fg-ready includes $(MERMAID_OUT), $(PARTS_MERMAID), $(PARTS_LOGICAL_MERMAID) (SURROGATE=$(SURROGATE))"
-	@echo "  SURROGATE=warpx|dry|mesh   Surrogate source (warpx is slow)"
+	@echo "  make / make all     Build $(STAND); YAML lab → $(GLTF_LAB), arcjet glTF, .ac, surrogate, sounds from $(ORBITRON_SOUND_ASSETS), $(MERMAID_OUT), … (SURROGATE=$(SURROGATE))"
+	@echo "  SURROGATE=warpx|dry|mesh   Surrogate source (default warpx = full sweep; dry|mesh = fast placeholders)"
+	@echo "  Cold-tree regression: mv Aircraft Aircraft.bak && ./stand.sh   # rebuilds everything incl. WarpX surrogate"
 	@echo "  make graph          Regenerate $(MERMAID_OUT) only (also runs as part of make all)"
 	@echo "  make parts-graph    Regenerate mesh Mermaid: $(PARTS_MERMAID) + $(PARTS_LOGICAL_MERMAID)"
 	@echo "  make open-lab       Launch Blender on nested $(GLTF_LAB) (same as ./bl.sh)"
+	@echo "  make orbitron-lab-gltf  Build only $(GLTF_LAB) (YAML flat → stem → nest); for scripts / CI"
 	@echo "  ./bl.sh             Blender + nested lab glTF; ./bl.sh --collections for VIEW__* isolate collections"
+	@echo "  make yaml-lab-gltfs  Only the four YAML-driven glTFs (same rules as make all; optional shortcut)"
+	@echo "  ORBITRON_LAB_GLTF=... ./bl.sh   Override glTF path (default: $(GLTF_LAB); e.g. flat debug: …/orbitron_lab_flat.gltf)"
 	@echo "  make run-fgfs       fgfs with --fg-aircraft=$(AIRCRAFT)"
 	@echo "  make clean          Remove $(AIRCRAFT) and $(BUILD) (not all of ./build if other projects use it)"
 	@echo "  Tip: after rm -rf build, either make clean or rm Aircraft/Orbitron-TestStand/.dirs so .dirs is recreated."
@@ -89,30 +127,57 @@ $(STAND)/.dirs:
 $(BUILD)/warpx-runs:
 	mkdir -p '$(BUILD)' '$(BUILD)/warpx-runs'
 
-$(STAND)/.static_synced: $(STAND_SRC_FILES) | $(STAND)/.dirs
+$(ORBITRON_SOUND_XML): $(ORBITRON_SOUND_ASSETS) $(COMPILE_SOUND_XML)
+	cd '$(REPO_ROOT)' && $(POETRY) run python $(COMPILE_SOUND_XML) \
+		--spec '$(ORBITRON_SOUND_ASSETS)' --out '$(ORBITRON_SOUND_XML)'
+
+$(STAND)/.static_synced: $(STAND_SRC_FILES) $(ORBITRON_SOUND_XML) | $(STAND)/.dirs
 	rsync -a --exclude='Models/orbitron.ac' --exclude='engine_surrogate.json' --exclude='*.wav' \
 		$(ORBITRON)/Orbitron-TestStand/ $(STAND)/
 	touch $@
 
-# --- CadQuery → flat glTF ---
-$(GLTF_LAB_CAD): $(LAB_CAD_SRC) | $(STAND)/.dirs
-	mkdir -p $(STAND)/build
-	cd $(ORBITRON) && ORBITRON_LAB_GLTF='$(GLTF_LAB_CAD)' $(POETRY) run python full_reactor_cad.py
+$(GLTF_YAML_A): $(ASSEMBLY_SPECS_DIR)/air_breathing_intake.yaml $(YAML_LAB_COMPILER_DEPS) | $(STAND)/.dirs
+	cd '$(REPO_ROOT)' && $(POETRY) run python tools/compile_assembly_yaml.py \
+		--spec '$(ASSEMBLY_SPECS_DIR)/air_breathing_intake.yaml' --out '$@'
 
-# --- Nest glTF node tree (orbitron_logical_assemblies.json) for Blender inspection ---
-$(GLTF_LAB): $(GLTF_LAB_CAD) $(ASSEMBLIES_JSON) $(REPO_ROOT)/tools/gltf_nest_from_assemblies.py | $(STAND)/.dirs
-	cp -f '$(GLTF_LAB_CAD)' '$(GLTF_LAB)'
+$(GLTF_YAML_B): $(ASSEMBLY_SPECS_DIR)/fusion_reactor_stack.yaml $(YAML_LAB_COMPILER_DEPS) | $(STAND)/.dirs
+	cd '$(REPO_ROOT)' && $(POETRY) run python tools/compile_assembly_yaml.py \
+		--spec '$(ASSEMBLY_SPECS_DIR)/fusion_reactor_stack.yaml' --out '$@'
+
+$(GLTF_YAML_C): $(ASSEMBLY_SPECS_DIR)/test_stand_and_services.yaml $(YAML_LAB_COMPILER_DEPS) | $(STAND)/.dirs
+	cd '$(REPO_ROOT)' && $(POETRY) run python tools/compile_assembly_yaml.py \
+		--spec '$(ASSEMBLY_SPECS_DIR)/test_stand_and_services.yaml' --out '$@'
+
+$(GLTF_LAB_FLAT): $(ORBITRON_LAB_YAMLS) $(YAML_LAB_COMPILER_DEPS) | $(STAND)/.dirs
+	mkdir -p $(STAND)/build
+	cd '$(REPO_ROOT)' && $(POETRY) run python tools/compile_assembly_yaml.py \
+		--spec '$(ASSEMBLY_SPECS_DIR)/orbitron_lab.yaml' --out '$@'
+
+# --- Nested lab glTF (stem-normalized buffer name, then logical assemblies nest) ---
+$(GLTF_LAB): $(GLTF_LAB_FLAT) $(COPY_GLTF_STEM) $(ORBITRON_LOGICAL_ASSEMBLIES) $(LOGICAL_ASSEMBLIES_SPEC_PY) $(REPO_ROOT)/tools/gltf_nest_from_assemblies.py | $(STAND)/.dirs
+	mkdir -p $(STAND)/build
+	cd '$(REPO_ROOT)' && $(POETRY) run python tools/copy_gltf_with_stem.py \
+		--src '$(GLTF_LAB_FLAT)' --dst '$(GLTF_LAB)'
 	python3 '$(REPO_ROOT)/tools/gltf_nest_from_assemblies.py' \
-		--gltf '$(GLTF_LAB)' --assemblies-json '$(ASSEMBLIES_JSON)' \
+		--gltf '$(GLTF_LAB)' --assemblies-spec '$(ORBITRON_LOGICAL_ASSEMBLIES)' \
 		--root-name fusion_arcjet_engine
+
+# Stable entry for scripts: builds $(GLTF_LAB) regardless of absolute vs relative cwd quirks.
+orbitron-lab-gltf: $(GLTF_LAB)
+
+yaml-lab-gltfs: $(YAML_LAB_GLTF_ARTIFACTS)
 
 $(GLTF_ARC): $(ORBITRON)/arcjet_test_stand_cad.py | $(STAND)/.dirs
 	mkdir -p $(STAND)/build
 	cd $(ORBITRON) && ORBITRON_ARCJET_GLTF='$(GLTF_ARC)' $(POETRY) run python arcjet_test_stand_cad.py
 
 # --- Blender + UV → orbitron.ac ---
+# Real deps on surrogate + sounds (not only order-only): GNU make may otherwise schedule
+# Blender before WarpX / sound_compiler; cold-tree regression must finish PIC + audio first.
 $(STAND)/.orbitron_ac_done: \
 		$(GLTF_LAB) \
+		$(STAND)/engine_surrogate.json \
+		$(STAND)/Sounds/.sounds_built \
 		$(ORBITRON)/build_ac3d.py \
 		$(ORBITRON)/fix_screen_uv.py \
 		| $(STAND)/.dirs $(STAND)/.static_synced
@@ -150,12 +215,12 @@ $(STAND)/engine_surrogate.json: $(SUR_DEP_ALL) $(BUILD)/warpx-runs | $(STAND)/.d
 		printf 'throttle,compressor\n0,0\n' > '$(BUILD)/surrogate_sweep_results.csv'; \
 	fi
 
-# --- Synthesized WAV beds (add_reactor_sound.py) ---
+# --- Synthesized WAV beds (orbitron_sound_assets.yaml → sound_compiler.py) ---
 $(STAND)/Sounds/.sounds_built: \
-		$(ORBITRON)/add_reactor_sound.py \
-		$(ORBITRON)/Orbitron-TestStand/Sounds/sound.xml \
+		$(ORBITRON_SOUND_ASSETS) $(SOUND_COMPILER) $(COMPILE_SOUND_XML) \
+		$(ORBITRON_SOUND_XML) \
 		| $(STAND)/.dirs $(STAND)/.static_synced
-	$(POETRY) run python $(ORBITRON)/add_reactor_sound.py --out-dir '$(STAND)/Sounds'
+	$(POETRY) run python $(SOUND_COMPILER) --spec '$(ORBITRON_SOUND_ASSETS)' --out-dir '$(STAND)/Sounds'
 	touch '$@'
 
 $(STAND)/build/surrogate_sweep_results.csv: $(STAND)/engine_surrogate.json | $(STAND)/.dirs
@@ -173,16 +238,21 @@ $(MERMAID_OUT): $(GRAPH_INPUTS) | $(STAND)/.dirs
 	echo '  wfit_py["tools/warpx_to_jsbsim_surrogate.py"]'; \
 	echo '  smap_py -->|subprocess| pic_py["ssto/orbitron/laminar_flow_2d_arcjet.py"]'; \
 	echo '  smap_py -->|subprocess| wfit_py'; \
-	echo '  subgraph CQ["CadQuery"]'; \
-	echo '    cq_in["inputs: solid geometry in Python"]'; \
-	echo '    fusion_py["fusion_arcjet_engine_cad.py"]'; \
-	echo '    lab_py["full_reactor_cad.py"]'; \
+	echo '  subgraph LAB["Orbitron lab glTF (YAML → .ac)"]'; \
+	echo '    y_specs["ssto/orbitron/assembly_specs/*.yaml"]'; \
+	echo '    y_compile["tools/compile_assembly_yaml.py"]'; \
+	echo '    y_specs --> y_compile'; \
+	echo '    y_compile --> gltf_flat0["…/orbitron_lab_flat.gltf"]'; \
+	echo '    copy_stem["tools/copy_gltf_with_stem.py"]'; \
+	echo '    gltf_flat0 --> copy_stem'; \
+	echo '    copy_stem --> gltf_lab["…/orbitron_lab.gltf"]'; \
+	echo '    nest_py["tools/gltf_nest_from_assemblies.py"]'; \
+	echo '    asm_yaml2["orbitron_logical_assemblies.yaml"]'; \
+	echo '    asm_yaml2 --> nest_py'; \
+	echo '    gltf_lab --> nest_py'; \
+	echo '  end'; \
+	echo '  subgraph CQ["CadQuery (arcjet-only)"]'; \
 	echo '    arc_py["arcjet_test_stand_cad.py"]'; \
-	echo '    cq_in --> fusion_py'; \
-	echo '    cq_in --> arc_py'; \
-	echo '    fusion_py -->|import| lab_py'; \
-	echo '    lab_py --> gltf_lab["Aircraft/.../build/orbitron_lab_v5.gltf"]'; \
-	echo '    lab_py --> bin_lab["Aircraft/.../build/orbitron_lab_v5.bin"]'; \
 	echo '    arc_py --> gltf_arc["Aircraft/.../build/arcjet_outdoor_stand.gltf"]'; \
 	echo '    arc_py --> bin_arc["Aircraft/.../build/arcjet_outdoor_stand.bin"]'; \
 	echo '  end'; \
@@ -195,14 +265,16 @@ $(MERMAID_OUT): $(GRAPH_INPUTS) | $(STAND)/.dirs
 	echo '    parts_py["tools/orbitron_ac_hierarchy_mmd.py"]'; \
 	echo '    ac --> parts_py'; \
 	echo '    foxml -.->|offset header| parts_py'; \
-	echo '    asm_json["repo …/orbitron_logical_assemblies.json"]'; \
-	echo '    asm_json --> parts_py'; \
+	echo '    asm_yaml["repo …/orbitron_logical_assemblies.yaml"]'; \
+	echo '    asm_yaml --> parts_py'; \
 	echo '    parts_py --> parts_flat["Aircraft/…/build/orbitron_ac_parts_hierarchy.mmd"]'; \
 	echo '    parts_py --> parts_logical["Aircraft/…/build/orbitron_logical_assemblies.mmd"]'; \
 	echo '    mk_parts["Makefile: parts-graph"] --> parts_flat'; \
 	echo '    mk_parts --> parts_logical'; \
 	echo '  end'; \
 	echo '  subgraph WX["WarpX PIC"]'; \
+	echo '    phy_yaml["orbitron_physics_surrogate.yaml"]'; \
+	echo '    phy_yaml -->|picmi_overrides.json| smap_py'; \
 	echo '    wx_in["inputs: PIC deck + WarpX"]'; \
 	echo '    wx_in --> pic_py'; \
 	echo '    pic_py --> wruns["build/orbitron/warpx-runs/*"]'; \
@@ -215,10 +287,12 @@ $(MERMAID_OUT): $(GRAPH_INPUTS) | $(STAND)/.dirs
 	echo '  csv_br --> mk_cp'; \
 	echo '  jsur -.->|ordering| mk_cp'; \
 	echo '  mk_cp --> csv_air["Aircraft/.../build/surrogate_sweep_results.csv"]'; \
-	echo '  subgraph SND["add_reactor_sound"]'; \
-	echo '    snd_in["input: repo Sounds/sound.xml"]'; \
-	echo '    snd_py["add_reactor_sound.py"]'; \
-	echo '    snd_in --> snd_py'; \
+	echo '  subgraph SND["sounds (YAML compilers)"]'; \
+	echo '    snd_yaml["orbitron_sound_assets.yaml"]'; \
+	echo '    snd_xml_py["compile_sound_xml_from_yaml.py"]'; \
+	echo '    snd_py["sound_compiler.py"]'; \
+	echo '    snd_yaml --> snd_xml_py --> fsnd["repo …/Sounds/sound.xml"]'; \
+	echo '    snd_yaml --> snd_py'; \
 	echo '    snd_py --> w1["Aircraft/.../Sounds/orbitron_core_loop.wav"]'; \
 	echo '    snd_py --> w2["Aircraft/.../Sounds/orbitron_inlet_loop.wav"]'; \
 	echo '    snd_py --> w3["Aircraft/.../Sounds/orbitron_jet_loop.wav"]'; \
@@ -272,12 +346,12 @@ graph: $(MERMAID_OUT)
 
 # Mesh part inclusion tree (Mermaid); complements dependency_graph.mmd (build pipeline).
 # Physical AC tree + logical assembly Mermaid (grouped rule: one recipe, two outputs).
-$(PARTS_MERMAID) $(PARTS_LOGICAL_MERMAID) &: $(REPO_ROOT)/tools/orbitron_ac_hierarchy_mmd.py $(STAND)/Models/orbitron.ac $(ORBITRON_MODEL_XML) $(ASSEMBLIES_JSON) | $(STAND)/.dirs
+$(PARTS_MERMAID) $(PARTS_LOGICAL_MERMAID) &: $(REPO_ROOT)/tools/orbitron_ac_hierarchy_mmd.py $(STAND)/Models/orbitron.ac $(ORBITRON_MODEL_XML) $(ORBITRON_LOGICAL_ASSEMBLIES) | $(STAND)/.dirs
 	mkdir -p $(STAND)/build
 	cd $(REPO_ROOT) && python3 tools/orbitron_ac_hierarchy_mmd.py \
 		--ac '$(STAND)/Models/orbitron.ac' \
 		--orbitron-xml '$(ORBITRON_MODEL_XML)' \
-		--assemblies-json '$(ASSEMBLIES_JSON)' \
+		--assemblies-spec '$(ORBITRON_LOGICAL_ASSEMBLIES)' \
 		-o '$(PARTS_MERMAID)' \
 		--logical-out '$(PARTS_LOGICAL_MERMAID)'
 

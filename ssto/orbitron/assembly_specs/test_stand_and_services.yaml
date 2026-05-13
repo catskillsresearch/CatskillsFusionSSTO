@@ -1,0 +1,197 @@
+# Assembly C — rails, thrust sled, fuel farm, rigid services, operator console, load cells.
+# Compile alone: poetry run python tools/compile_assembly_yaml.py --spec ssto/orbitron/assembly_specs/test_stand_and_services.yaml --out /tmp/C_stand.gltf
+
+schema_version: 1
+
+assembly:
+  id: test_stand_and_services
+  title: Test stand deck, rails, utilities, and operator station
+  narrative: |
+    Picture the outdoor sled rig: parallel rails on the pad, a thrust frame dropped
+    between them with a thin deck on top, then load cells at the deck corners to read
+    axial thrust. Off to the +Y side sit the hydrogen, diborane, and cryo-methane
+    tanks with decals; rigid pipe sweeps and an HV umbilical jog away from the screen
+    so the operator can see telemetry. The console cluster is shifted in −Y / −X so
+    a human can stand clear of the +X exhaust line. None of the air-breathing duct
+    pieces live here—compile this YAML alone to verify the farm and sled before merging.
+
+includes: []
+
+instances:
+  - id: Thrust_Sled_Frame
+    narrative: |
+      Longitudinal rails, cross ties, and deck slab from arcjet_test_stand_cad; sits
+      slightly dropped in Z so the deck top matches the bell pivot height used by the
+      engine YAMLs.
+    template: thrust_sled_frame
+    params:
+      length: 2.2
+      width: 1.0
+      rail_h: 0.08
+    color: [0.35, 0.35, 0.38]
+    transform_chain:
+      - { op: translate, xyz: [0.0, 0.0, -0.12] }
+
+  - id: Rail_Left
+    narrative: |
+      Filleted beam spanning the pad along local X at +Y rail index; supports the sled
+      rails narrative even though the mesh is only a stand-in block.
+    template: rail_beam
+    params:
+      span: 3.5
+    color: [0.35, 0.35, 0.38]
+    transform_chain:
+      - { op: translate, xyz: [0.0, 0.55, -0.1] }
+
+  - id: Rail_Right
+    narrative: |
+      Partner rail at −Y; keep parallel to Rail_Left so the sled can translate axially
+      under thrust without yawing (conceptually—no wheel detail in this coarse mesh).
+    template: rail_beam
+    params:
+      span: 3.5
+    color: [0.35, 0.35, 0.38]
+    transform_chain:
+      - { op: translate, xyz: [0.0, -0.55, -0.1] }
+
+  - id: Tank_Hydrogen
+    narrative: |
+      Red H2 cylinder at the fuel farm; dotted-line connections in the logical JSON
+      describe flex jumpers toward the shared fuel-gas mesh.
+    template: lab_tank_hydrogen
+    params: {}
+    color: [0.8, 0.1, 0.1]
+    transform_chain: []
+
+  - id: Tank_Diborane
+    narrative: |
+      Green B2H6 / tracer tank between hydrogen and cryo methane in the farm layout.
+    template: lab_tank_diborane
+    params: {}
+    color: [0.1, 0.6, 0.2]
+    transform_chain: []
+
+  - id: Tank_Cryo_Methane
+    narrative: |
+      Larger dewar for cryo methane; pairs with cryostat piping mesh and the CH4 text
+      decal on the side.
+    template: lab_tank_cryo_methane
+    params: {}
+    color: [0.7, 0.7, 0.8]
+    transform_chain: []
+
+  - id: Decal_H2
+    narrative: |
+      Flat stencil text “HYDROGEN” on the tank—marking only, not a separate fluid.
+    template: lab_decal_h2
+    params: {}
+    color: [0.9, 0.9, 0.9]
+    transform_chain: []
+
+  - id: Decal_B2H6
+    narrative: |
+      “DIBORANE” stencil on the center tank.
+    template: lab_decal_b2h6
+    params: {}
+    color: [0.9, 0.9, 0.9]
+    transform_chain: []
+
+  - id: Decal_CH4
+    narrative: |
+      Dark “LIQUID METHANE” stencil on the cryo dewar for contrast.
+    template: lab_decal_ch4
+    params: {}
+    color: [0.1, 0.1, 0.1]
+    transform_chain: []
+
+  - id: High_Voltage_Umbilical
+    narrative: |
+      Orange segmented HV route jogged to the right in LabInfrastructure so it does
+      not occlude the operator screen; schematic toward the cathode in the JSON graph.
+    template: lab_hv_umbilical
+    params: {}
+    color: [0.9, 0.4, 0.0]
+    transform_chain: []
+
+  - id: Fuel_Gas_Lines
+    narrative: |
+      One merged mesh carrying the H2 / CH4 / B2H6 routing story—fine for FlightGear
+      pick filters, less ideal for per-line FEA.
+    template: lab_fuel_gas_lines
+    params: {}
+    color: [0.2, 0.2, 0.2]
+    transform_chain: []
+
+  - id: Cryo_Methane_Piping
+    narrative: |
+      CH4 cryostat / fill circuit segments merged with the methane tank narrative.
+    template: lab_cryo_methane_piping
+    params: {}
+    color: [0.8, 0.8, 0.85]
+    transform_chain: []
+
+  - id: Operator_Console
+    narrative: |
+      Desk + tilted panel + battery block; shifted by CONSOLE_OFFSET_M in the parent
+      lab narrative so the operator stands clear of the plume line.
+    template: lab_operator_console_desk
+    params: {}
+    color: [0.15, 0.15, 0.15]
+    transform_chain:
+      - { op: translate, xyz: [-1.4, -2.3, 0.0] }
+
+  - id: Screen
+    narrative: |
+      Flat display solid in front of the tilted panel; same offset as the desk so it
+      rides with the console cluster.
+    template: lab_operator_screen
+    params: {}
+    color: [0.05, 0.05, 0.05]
+    transform_chain:
+      - { op: translate, xyz: [-1.4, -2.3, 0.0] }
+
+  - id: Big_Red_Button
+    narrative: |
+      Small red cylinder on the panel—commissioning / abort vibe, not a separate sim
+      channel in this mesh-only export.
+    template: lab_big_red_button
+    params: {}
+    color: [0.9, 0.0, 0.0]
+    transform_chain:
+      - { op: translate, xyz: [-1.4, -2.3, 0.0] }
+
+  - id: LoadCell_0
+    narrative: |
+      Corner load-cell puck (+X, +Y deck corner) for thrust bookkeeping.
+    template: load_cell_puck
+    params: {}
+    color: [0.9, 0.75, 0.1]
+    transform_chain:
+      - { op: translate, xyz: [0.7, 0.35, 0.17] }
+
+  - id: LoadCell_1
+    narrative: |
+      Corner load-cell puck (−X, +Y).
+    template: load_cell_puck
+    params: {}
+    color: [0.9, 0.75, 0.1]
+    transform_chain:
+      - { op: translate, xyz: [-0.7, 0.35, 0.17] }
+
+  - id: LoadCell_2
+    narrative: |
+      Corner load-cell puck (+X, −Y).
+    template: load_cell_puck
+    params: {}
+    color: [0.9, 0.75, 0.1]
+    transform_chain:
+      - { op: translate, xyz: [0.7, -0.35, 0.17] }
+
+  - id: LoadCell_3
+    narrative: |
+      Corner load-cell puck (−X, −Y).
+    template: load_cell_puck
+    params: {}
+    color: [0.9, 0.75, 0.1]
+    transform_chain:
+      - { op: translate, xyz: [-0.7, -0.35, 0.17] }

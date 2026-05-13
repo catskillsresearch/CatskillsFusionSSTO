@@ -217,7 +217,12 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 WarpX
-ssto/orbitron/diags
+# Orbitron repo-root CAD exports / diagnostics (outputs belong under Aircraft/…/build)
+ssto/orbitron/*.gltf
+ssto/orbitron/*.bin
+ssto/orbitron/*.mp4
+ssto/orbitron/*.gif
+ssto/orbitron/diags/
 
 # Makefile output: FlightGear aircraft tree + intermediates
 Aircraft/
@@ -228,8 +233,8 @@ warpx_used_inputs
 ssto/orbitron/warpx_used_inputs
 ssto/orbitron/surrogate_sweep_results.csv
 ssto/orbitron/surrogate_sweep_work/
-ssto/orbitron/orbitron_lab_v5.gltf
-ssto/orbitron/orbitron_lab_v5.bin
+ssto/orbitron/orbitron_lab.gltf
+ssto/orbitron/orbitron_lab.bin
 ssto/orbitron/arcjet_outdoor_stand.gltf
 ssto/orbitron/arcjet_outdoor_stand.bin
 ssto/orbitron/reactor_audio*.wav

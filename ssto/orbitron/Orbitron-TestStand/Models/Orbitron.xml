@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <PropertyList>
-    <!-- Mesh orbitron.ac from orbitron_lab_v5.gltf: engine stack on sled deck, tanks/plumbing/console. Tune offsets below if the rig sits wrong on the runway. -->
+    <!-- Mesh orbitron.ac from orbitron_lab.gltf: engine stack on sled deck, tanks/plumbing/console. Tune offsets below if the rig sits wrong on the runway. -->
     <path>orbitron.ac</path>
 
     <offsets>

@@ -1,7 +1,7 @@
 # Run with Blender's Python (not system python3).
 # Example:
 #   blender --background --python tools/blender_orbitron_viewport_collections.py -- \
-#     /path/to/Aircraft/Orbitron-TestStand/build/orbitron_lab_v5.gltf
+#     /path/to/Aircraft/Orbitron-TestStand/build/orbitron_lab.gltf
 #
 # Imports the nested glTF (from make + gltf_nest_from_assemblies.py), then creates
 # four VIEW__* collections matching the top-level children of fusion_arcjet_engine
