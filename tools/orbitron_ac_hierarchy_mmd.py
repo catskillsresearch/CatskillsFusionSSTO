@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Emit Mermaid from orbitron.ac: physical AC3D tree and optional logical assemblies.
 
-Physical tree: OBJECT / kids (usually flat under world). Logical tree: nested
-subgraphs from orbitron_logical_assemblies.json (mesh names must match .ac).
+Physical tree: OBJECT / kids under world. Logical tree: nested subgraphs from
+orbitron_logical_assemblies.json (parts / mesh_parts, members, logical_only
+subcomponents, connections[], glossary[]). Mesh names must match orbitron.ac.
 """
 from __future__ import annotations
 
@@ -154,6 +155,26 @@ def part_node_id(mesh_name: str) -> str:
     return "p_" + s
 
 
+def logical_node_id(group_key: str) -> str:
+    s = re.sub(r"[^a-zA-Z0-9_]", "_", group_key)
+    if not s:
+        s = "logical"
+    return "log_" + s
+
+
+def mesh_parts_list(spec: dict[str, Any]) -> list[str]:
+    """Mesh objects declared on this group (synonym keys: mesh_parts, parts)."""
+    mp = spec.get("mesh_parts")
+    if mp is not None:
+        if not isinstance(mp, list):
+            raise ValueError("mesh_parts must be a list")
+        return [str(x) for x in mp]
+    p = spec.get("parts", [])
+    if not isinstance(p, list):
+        raise ValueError("parts must be a list")
+    return [str(x) for x in p]
+
+
 def load_assemblies_json(path: Path) -> dict[str, Any]:
     data = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(data, dict) or "root" not in data or "groups" not in data:
@@ -164,11 +185,13 @@ def load_assemblies_json(path: Path) -> dict[str, Any]:
     return data
 
 
-def validate_assemblies(
-    mesh_names: set[str],
-    root_key: str,
-    groups: dict[str, Any],
-) -> None:
+def _logical_only_keys(groups: dict[str, Any]) -> set[str]:
+    return {k for k, v in groups.items() if isinstance(v, dict) and v.get("logical_only")}
+
+
+def validate_assemblies(mesh_names: set[str], data: dict[str, Any]) -> None:
+    root_key = str(data["root"])
+    groups: dict[str, Any] = data["groups"]
     if root_key not in groups:
         raise ValueError(f"root group {root_key!r} not found in groups")
 
@@ -180,9 +203,18 @@ def validate_assemblies(
         for m in spec.get("members", []):
             if m not in groups:
                 raise ValueError(f"group {key!r} references unknown member {m!r}")
-        for p in spec.get("parts", []):
+        for p in mesh_parts_list(spec):
             if not isinstance(p, str):
-                raise ValueError(f"group {key!r} has non-string part name")
+                raise ValueError(f"group {key!r} has non-string mesh part name")
+        if spec.get("logical_only"):
+            if spec.get("mesh_parts") is not None or spec.get("parts"):
+                raise ValueError(
+                    f"logical_only group {key!r} must not declare mesh parts/parts"
+                )
+            if spec.get("members"):
+                raise ValueError(
+                    f"logical_only group {key!r} must not have members (use a composite parent)"
+                )
 
     part_to_group: dict[str, str] = {}
 
@@ -191,12 +223,15 @@ def validate_assemblies(
             raise ValueError(f"cycle in assembly members involving {key!r}")
         stack.add(key)
         spec = groups[key]
+        if spec.get("logical_only"):
+            stack.remove(key)
+            return
         for m in spec.get("members", []):
             visit(m, stack)
-        for p in spec.get("parts", []):
+        for p in mesh_parts_list(spec):
             if p in part_to_group:
                 raise ValueError(
-                    f"part {p!r} listed in both {part_to_group[p]!r} and {key!r}"
+                    f"mesh object {p!r} listed in both {part_to_group[p]!r} and {key!r}"
                 )
             part_to_group[p] = key
         stack.remove(key)
@@ -215,30 +250,113 @@ def validate_assemblies(
             "assemblies JSON references unknown mesh names: " + ", ".join(extra)
         )
 
+    logical_keys = _logical_only_keys(groups)
+    for i, conn in enumerate(data.get("connections", [])):
+        if not isinstance(conn, dict):
+            raise ValueError(f"connections[{i}] must be an object")
+        a = conn.get("from")
+        b = conn.get("to")
+        if not isinstance(a, str) or not isinstance(b, str):
+            raise ValueError(f"connections[{i}] needs string from and to")
+        for end in (a, b):
+            if end not in mesh_names and end not in logical_keys:
+                raise ValueError(
+                    f"connections[{i}] endpoint {end!r} is not a mesh name "
+                    "or a logical_only group key"
+                )
+        k = conn.get("kind", "solid")
+        if k not in ("solid", "dotted"):
+            raise ValueError(f"connections[{i}] kind must be 'solid' or 'dotted'")
+
+    _emit_glossary_lines(data)
+
+
+def _emit_glossary_lines(data: dict[str, Any]) -> list[str]:
+    out: list[str] = []
+    glossary = data.get("glossary")
+    if not glossary:
+        return out
+    if not isinstance(glossary, list):
+        raise ValueError("'glossary' must be a list")
+    out.append("%% --- Glossary (engineering terms used in the diagram) ---")
+    for i, entry in enumerate(glossary):
+        if not isinstance(entry, dict):
+            raise ValueError(f"glossary[{i}] must be an object")
+        term = entry.get("term", "")
+        defin = entry.get("definition", "")
+        if not isinstance(term, str) or not isinstance(defin, str):
+            raise ValueError(f"glossary[{i}] needs string term and definition")
+        line = f"{term}: {defin}"
+        max_chunk = 96
+        prefix = "%% "
+        while line:
+            chunk = line[:max_chunk]
+            out.append(prefix + chunk)
+            line = line[max_chunk:]
+    out.append("%% --- End glossary ---")
+    return out
+
+
+def _resolve_connection_endpoint(
+    name: str, mesh_names: set[str], logical_keys: set[str]
+) -> str:
+    if name in mesh_names:
+        return part_node_id(name)
+    if name in logical_keys:
+        return logical_node_id(name)
+    raise ValueError(f"unknown connection endpoint {name!r}")
+
+
+def _mermaid_link_label_text(label: str) -> str:
+    """Quote edge labels so /, |, (), etc. do not break the flowchart lexer."""
+    inner = label.replace("\\", "\\\\").replace('"', "'")
+    return f'"{inner}"'
+
+
+def _emit_connection_line(
+    conn: dict[str, Any], ac_mesh_names: set[str], logical_keys: set[str]
+) -> str:
+    a = _resolve_connection_endpoint(str(conn["from"]), ac_mesh_names, logical_keys)
+    b = _resolve_connection_endpoint(str(conn["to"]), ac_mesh_names, logical_keys)
+    kind = conn.get("kind", "solid")
+    label = conn.get("label", "")
+    if not isinstance(label, str):
+        raise ValueError("connection label must be a string")
+    if label:
+        quoted = _mermaid_link_label_text(label)
+        if kind == "dotted":
+            return f"  {a} -.->|{quoted}| {b}"
+        return f"  {a} -->|{quoted}| {b}"
+    if kind == "dotted":
+        return f"  {a} -.-> {b}"
+    return f"  {a} --> {b}"
+
 
 def emit_logical_mermaid(
     data: dict[str, Any],
     ac_path: Path,
     assemblies_json: Path,
     xml_note: str | None,
+    ac_mesh_names: set[str],
 ) -> str:
     root_key = str(data["root"])
     groups: dict[str, Any] = data["groups"]
-
     lines: list[str] = []
     lines.append("%% Auto-generated by tools/orbitron_ac_hierarchy_mmd.py (logical view)")
     lines.append(f'%% Source mesh: {ac_path.as_posix()}')
     lines.append(f'%% Assembly map: {assemblies_json.as_posix()}')
     lines.append(
-        "%% Nesting is engineering grouping only; AC file remains a flat sibling list under world."
+        "%% Nesting is engineering grouping; dashed edges are schematic / not separate AC objects."
     )
     if xml_note:
         for row in xml_note.splitlines():
             lines.append(f"%% {row}")
+    lines.extend(_emit_glossary_lines(data))
     lines.append("flowchart TB")
 
     subgraph_style_queue: list[tuple[str, int]] = []
     mesh_part_ids: list[str] = []
+    logical_node_ids: list[str] = []
 
     def render_group(key: str, depth: int) -> None:
         pad = "  " * depth
@@ -246,19 +364,44 @@ def emit_logical_mermaid(
         gid = subgraph_id(key)
         subgraph_style_queue.append((gid, depth))
         title = subgraph_title_html(str(spec["title"]))
+
+        if spec.get("logical_only"):
+            lines.append(f'{pad}subgraph {gid}["{title}"]')
+            if depth == 1:
+                lines.append(f"{pad}  direction TB")
+            nid = logical_node_id(key)
+            logical_node_ids.append(nid)
+            detail = str(spec.get("detail", ""))
+            inner_title = html.escape(str(spec["title"]), quote=True)
+            if detail:
+                inner = (
+                    f"<b>{inner_title}</b><br/><small>{html.escape(detail, quote=True)}</small>"
+                )
+            else:
+                inner = f"<b>{inner_title}</b>"
+            lines.append(f'{pad}  {nid}["{inner}"]')
+            lines.append(f"{pad}end")
+            return
+
         lines.append(f'{pad}subgraph {gid}["{title}"]')
         if depth == 1:
             lines.append(f"{pad}  direction TB")
-        for mk in spec.get("members", []):
-            render_group(str(mk), depth + 1)
-        for pname in spec.get("parts", []):
+        mp = mesh_parts_list(spec)
+        for pname in mp:
             pid = part_node_id(str(pname))
             mesh_part_ids.append(pid)
             plab = mermaid_escape_label(str(pname))
             lines.append(f'{pad}  {pid}["{plab}<br/><small>mesh</small>"]')
+        for mk in spec.get("members", []):
+            render_group(str(mk), depth + 1)
         lines.append(f"{pad}end")
 
     render_group(root_key, 1)
+
+    logical_keys = _logical_only_keys(groups)
+    for conn in data.get("connections", []):
+        if isinstance(conn, dict):
+            lines.append(_emit_connection_line(conn, ac_mesh_names, logical_keys))
 
     for gid, depth in subgraph_style_queue:
         fill = _SUBGRAPH_FILL_ODD if depth % 2 == 1 else _SUBGRAPH_FILL_EVEN
@@ -271,11 +414,19 @@ def emit_logical_mermaid(
         lines.append(
             "  classDef meshNode fill:#EDE7F6,stroke:#5E35B1,stroke-width:1px,color:#222"
         )
-        # Avoid one enormous `class` line (some renderers choke on very long lines).
         chunk = 12
         for i in range(0, len(mesh_part_ids), chunk):
             batch = ",".join(mesh_part_ids[i : i + chunk])
             lines.append(f"  class {batch} meshNode")
+
+    if logical_node_ids:
+        lines.append(
+            "  classDef logicalNode fill:#E8F5E9,stroke:#2E7D32,stroke-width:1px,color:#1b5e20"
+        )
+        ch = 14
+        for i in range(0, len(logical_node_ids), ch):
+            batch = ",".join(logical_node_ids[i : i + ch])
+            lines.append(f"  class {batch} logicalNode")
 
     return "\n".join(lines) + "\n"
 
@@ -378,11 +529,11 @@ def main() -> int:
         mesh_names = {c.name for c in root.children}
         try:
             data = load_assemblies_json(aj)
-            validate_assemblies(mesh_names, str(data["root"]), data["groups"])
+            validate_assemblies(mesh_names, data)
         except (ValueError, json.JSONDecodeError) as e:
             print(f"error: {e}", file=sys.stderr)
             return 1
-        logical = emit_logical_mermaid(data, ac_path, aj, note)
+        logical = emit_logical_mermaid(data, ac_path, aj, note, mesh_names)
         logical_path = logical_out.resolve()
         logical_path.parent.mkdir(parents=True, exist_ok=True)
         logical_path.write_text(logical, encoding="utf-8")

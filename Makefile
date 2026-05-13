@@ -9,6 +9,8 @@ STAND := $(AIRCRAFT)/Orbitron-TestStand
 BUILD := $(REPO_ROOT)/build/orbitron
 
 # CadQuery / Blender / PIC inputs (sources)
+# CadQuery → flat glTF → nested glTF (Blender / FG use nested file).
+GLTF_LAB_CAD := $(STAND)/build/orbitron_lab_v5_from_cad.gltf
 GLTF_LAB := $(STAND)/build/orbitron_lab_v5.gltf
 GLTF_ARC := $(STAND)/build/arcjet_outdoor_stand.gltf
 FUSION_CAD := $(ORBITRON)/fusion_arcjet_engine_cad.py
@@ -45,6 +47,7 @@ GRAPH_INPUTS := Makefile $(LAB_CAD_SRC) $(ORBITRON)/arcjet_test_stand_cad.py \
 	$(ORBITRON)/build_ac3d.py $(ORBITRON)/fix_screen_uv.py $(SUR_DEP_ALL) \
 	$(ORBITRON)/add_reactor_sound.py \
 	$(REPO_ROOT)/tools/orbitron_ac_hierarchy_mmd.py \
+	$(REPO_ROOT)/tools/gltf_nest_from_assemblies.py \
 	$(ASSEMBLIES_JSON)
 
 # Computed FlightGear model + audio (all under Aircraft/)
@@ -69,6 +72,8 @@ help:
 	@echo "  SURROGATE=warpx|dry|mesh   Surrogate source (warpx is slow)"
 	@echo "  make graph          Regenerate $(MERMAID_OUT) only (also runs as part of make all)"
 	@echo "  make parts-graph    Regenerate mesh Mermaid: $(PARTS_MERMAID) + $(PARTS_LOGICAL_MERMAID)"
+	@echo "  Blender: import $(GLTF_LAB) for nested fusion_arcjet_engine tree; optional:"
+	@echo "    blender --python $(REPO_ROOT)/tools/blender_orbitron_viewport_collections.py -- '$(GLTF_LAB)'"
 	@echo "  make run-fgfs       fgfs with --fg-aircraft=$(AIRCRAFT)"
 	@echo "  make clean          Remove $(AIRCRAFT) and $(BUILD) (not all of ./build if other projects use it)"
 	@echo "  Tip: after rm -rf build, either make clean or rm Aircraft/Orbitron-TestStand/.dirs so .dirs is recreated."
@@ -89,10 +94,17 @@ $(STAND)/.static_synced: $(STAND_SRC_FILES) | $(STAND)/.dirs
 		$(ORBITRON)/Orbitron-TestStand/ $(STAND)/
 	touch $@
 
-# --- CadQuery → glTF (Aircraft/.../build only) ---
-$(GLTF_LAB): $(LAB_CAD_SRC) | $(STAND)/.dirs
+# --- CadQuery → flat glTF ---
+$(GLTF_LAB_CAD): $(LAB_CAD_SRC) | $(STAND)/.dirs
 	mkdir -p $(STAND)/build
-	cd $(ORBITRON) && ORBITRON_LAB_GLTF='$(GLTF_LAB)' $(POETRY) run python full_reactor_cad.py
+	cd $(ORBITRON) && ORBITRON_LAB_GLTF='$(GLTF_LAB_CAD)' $(POETRY) run python full_reactor_cad.py
+
+# --- Nest glTF node tree (orbitron_logical_assemblies.json) for Blender inspection ---
+$(GLTF_LAB): $(GLTF_LAB_CAD) $(ASSEMBLIES_JSON) $(REPO_ROOT)/tools/gltf_nest_from_assemblies.py | $(STAND)/.dirs
+	cp -f '$(GLTF_LAB_CAD)' '$(GLTF_LAB)'
+	python3 '$(REPO_ROOT)/tools/gltf_nest_from_assemblies.py' \
+		--gltf '$(GLTF_LAB)' --assemblies-json '$(ASSEMBLIES_JSON)' \
+		--root-name fusion_arcjet_engine
 
 $(GLTF_ARC): $(ORBITRON)/arcjet_test_stand_cad.py | $(STAND)/.dirs
 	mkdir -p $(STAND)/build
