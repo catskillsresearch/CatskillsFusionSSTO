@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 # Poetry env + repo-local WarpX (pywarpx) paths, then GNU make.
 #
+# Default build includes: CadQuery → orbitron_lab_v5_from_cad.gltf → nested
+# orbitron_lab_v5.gltf (fusion_arcjet_engine tree) → Blender → orbitron.ac,
+# surrogate, sounds, Mermaid graphs. See Makefile GLTF_LAB / GLTF_LAB_CAD.
+# Preview nested lab in Blender: ./bl.sh   (or ./bl.sh --collections)
+#
 # Usage (repo root):
 #   ./stand.sh
 #   ./stand.sh SURROGATE=mesh

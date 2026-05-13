@@ -62,7 +62,7 @@ MODEL_ARTIFACTS := \
 	$(PARTS_MERMAID) \
 	$(PARTS_LOGICAL_MERMAID)
 
-.PHONY: all help clean graph parts-graph run-fgfs fg-ready
+.PHONY: all help clean graph parts-graph open-lab run-fgfs fg-ready
 
 all: fg-ready
 
@@ -72,8 +72,8 @@ help:
 	@echo "  SURROGATE=warpx|dry|mesh   Surrogate source (warpx is slow)"
 	@echo "  make graph          Regenerate $(MERMAID_OUT) only (also runs as part of make all)"
 	@echo "  make parts-graph    Regenerate mesh Mermaid: $(PARTS_MERMAID) + $(PARTS_LOGICAL_MERMAID)"
-	@echo "  Blender: import $(GLTF_LAB) for nested fusion_arcjet_engine tree; optional:"
-	@echo "    blender --python $(REPO_ROOT)/tools/blender_orbitron_viewport_collections.py -- '$(GLTF_LAB)'"
+	@echo "  make open-lab       Launch Blender on nested $(GLTF_LAB) (same as ./bl.sh)"
+	@echo "  ./bl.sh             Blender + nested lab glTF; ./bl.sh --collections for VIEW__* isolate collections"
 	@echo "  make run-fgfs       fgfs with --fg-aircraft=$(AIRCRAFT)"
 	@echo "  make clean          Remove $(AIRCRAFT) and $(BUILD) (not all of ./build if other projects use it)"
 	@echo "  Tip: after rm -rf build, either make clean or rm Aircraft/Orbitron-TestStand/.dirs so .dirs is recreated."
@@ -282,6 +282,14 @@ $(PARTS_MERMAID) $(PARTS_LOGICAL_MERMAID) &: $(REPO_ROOT)/tools/orbitron_ac_hier
 		--logical-out '$(PARTS_LOGICAL_MERMAID)'
 
 parts-graph: $(PARTS_MERMAID) $(PARTS_LOGICAL_MERMAID)
+
+# Nested glTF is built by fg-ready / $(GLTF_LAB); this only opens Blender (no CadQuery run).
+open-lab:
+	@if ! test -f '$(GLTF_LAB)'; then \
+		echo "error: missing $(GLTF_LAB) — run ./stand.sh first." >&2; \
+		exit 1; \
+	fi
+	@$(REPO_ROOT)/bl.sh
 
 run-fgfs: fg-ready
 	cd $(REPO_ROOT) && fgfs --fg-aircraft=$(AIRCRAFT) --aircraft=Orbitron-TestStand \
