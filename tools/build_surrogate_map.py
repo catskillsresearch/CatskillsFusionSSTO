@@ -33,6 +33,7 @@ if str(_TOOLS) not in sys.path:
     sys.path.insert(0, str(_TOOLS))
 
 import orbitron_physics_spec as _phys  # noqa: E402
+from orbitron_aircraft_pkg import aircraft_package_dir  # noqa: E402
 
 
 def _repo_root() -> Path:
@@ -264,6 +265,7 @@ def scalar_outputs(
 
 def main() -> int:
     root = _repo_root()
+    _pkg = aircraft_package_dir(root)
     ap = argparse.ArgumentParser(description="Build surrogate map from WarpX sweep + fit JSON")
     ap.add_argument("--grid", type=int, default=4, help="NxN grid in [0,1] (default 4 => 16 runs)")
     ap.add_argument(
@@ -299,7 +301,7 @@ def main() -> int:
     ap.add_argument(
         "--out-json",
         type=Path,
-        default=root / "Aircraft" / "Orbitron-TestStand" / "engine_surrogate.json",
+        default=root / "Aircraft" / _pkg / "engine_surrogate.json",
     )
     ap.add_argument(
         "--warpx-python",
@@ -451,7 +453,10 @@ def main() -> int:
     print("Running:", " ".join(cmd))
     subprocess.run(cmd, cwd=str(root), check=True)
     print(f"Surrogate JSON: {args.out_json}")
-    print("Place engine_surrogate.json beside Orbitron-TestStand-set.xml; surrogate_load.nas loads it at startup.")
+    print(
+        "Place engine_surrogate.json beside the aircraft *-set.xml; "
+        "surrogate_load.nas loads it at startup."
+    )
     return 0
 
 

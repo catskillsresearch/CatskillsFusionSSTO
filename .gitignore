@@ -230,7 +230,10 @@ ssto/*.bin
 
 # Obsolete / non-FG repo art (screen texture may be added under Aircraft/…/Models only)
 ssto/orbitron/OrbitronTestStand.png
-ssto/orbitron/Orbitron-TestStand/Models/warpx_frame.png
+Aircraft/Orbitron-TestStand/Models/warpx_frame.png
+Aircraft/Orbitron-TestStand/Sounds/*.wav
+Aircraft/Orbitron-TestStand/Models/orbitron.ac
+Aircraft/Orbitron-TestStand/engine_surrogate.json
 
 # Makefile output: FlightGear aircraft tree + intermediates
 Aircraft/
@@ -246,8 +249,5 @@ ssto/orbitron/orbitron_lab.bin
 ssto/orbitron/arcjet_outdoor_stand.gltf
 ssto/orbitron/arcjet_outdoor_stand.bin
 ssto/orbitron/reactor_audio*.wav
-ssto/orbitron/Orbitron-TestStand/Sounds/*.wav
-ssto/orbitron/Orbitron-TestStand/Models/orbitron.ac
-ssto/orbitron/Orbitron-TestStand/engine_surrogate.json
 *~
 FlightGear

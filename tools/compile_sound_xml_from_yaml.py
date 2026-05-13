@@ -14,6 +14,8 @@ from typing import Any, Mapping
 
 import yaml
 
+from orbitron_aircraft_pkg import aircraft_package_dir
+
 
 def _text(parent: ET.Element, tag: str, value: str | float | int) -> None:
     el = ET.SubElement(parent, tag)
@@ -137,7 +139,7 @@ def render_sound_xml(spec_path: Path) -> str:
 
 
 def _default_sound_xml_path(spec_path: Path) -> Path:
-    """``<repo>/Aircraft/Orbitron-TestStand/Sounds/sound.xml`` for the standard spec layout."""
+    """``<repo>/Aircraft/<aircraft.package_dir>/Sounds/sound.xml`` for the standard spec layout."""
     spec_path = spec_path.resolve()
     parents = spec_path.parents
     if len(parents) < 4:
@@ -149,7 +151,8 @@ def _default_sound_xml_path(spec_path: Path) -> Path:
             "default --out only applies when --spec is under "
             f"{expected_asm} (got {spec_path}); pass --out explicitly"
         )
-    return (repo_root / "Aircraft" / "Orbitron-TestStand" / "Sounds" / "sound.xml").resolve()
+    pkg = aircraft_package_dir(repo_root)
+    return (repo_root / "Aircraft" / pkg / "Sounds" / "sound.xml").resolve()
 
 
 def main() -> int:
@@ -159,7 +162,7 @@ def main() -> int:
         "--out",
         type=Path,
         default=None,
-        help="Output sound.xml (default: Aircraft/Orbitron-TestStand/Sounds/sound.xml under repo root)",
+        help="Output sound.xml (default: Aircraft/<aircraft.package_dir>/Sounds/sound.xml under repo root)",
     )
     args = ap.parse_args()
     spec = args.spec.resolve()

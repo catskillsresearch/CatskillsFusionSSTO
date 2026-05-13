@@ -1,0 +1,194 @@
+# Declarative spec for Nasal loaded by FlightGear (generated under Aircraft/<package_dir>/Nasal/).
+# Consumed by: tools/compile_orbitron_nasal.py
+# Do not edit .nas by hand; change this file and run make.
+
+schema_version: 1
+spec_kind: orbitron_nasal
+title: Orbitron test stand — generated Nasal
+
+surrogate_load:
+  header: |
+    Load engine_surrogate.json (from WarpX reduction) into /sim/model/orbitron/surrogate/*
+    so orbitron-jsbsim.xml can read bilinear control-surface coefficients.
+    Runs once at aircraft init. (Generated from orbitron_nasal.yaml.)
+  fg_surrogate_root: /sim/model/orbitron/surrogate
+  json_filename: engine_surrogate.json
+  init_delay_sec: 0
+  aircraft_dir_probe:
+    max_attempts: 24
+    interval_sec: 0.05
+  surfaces:
+    - fg_prefix: thrust
+      json_bilinear: thrust_lbf_surface
+      json_linear_fallback: thrust_lbf_vs_throttle
+    - fg_prefix: mdot
+      json_bilinear: mass_flow_kgps_surface
+      json_linear_fallback: mass_flow_kgps_vs_throttle
+    - fg_prefix: power
+      json_bilinear: gross_power_mw_surface
+    - fg_prefix: heat
+      json_bilinear: heat_kw_surface
+  beam_screen_optional:
+    json_bilinear: beam_screen_kw_surface
+    fg_prefix: beam-screen-kw
+
+reactor_ui:
+  class_name: ReactorUI
+  canvas:
+    name: Reactor_Telemetry
+    size: [1024, 1200]
+    view: [1024, 1200]
+    mipmapping: 1
+  colors:
+    outer_fill: [0.06, 0.08, 0.12, 1.0]
+    inner_fill: [0.0, 0.0, 0.0, 1.0]
+    hud_text: [0, 1, 0]
+    title: [1, 0.8, 0]
+  fonts:
+    title: { path: LiberationFonts/LiberationSans-Bold.ttf, size: 56 }
+    hud: { path: LiberationFonts/LiberationMono-Bold.ttf, size: 44 }
+    debug: { path: LiberationFonts/LiberationMono-Bold.ttf, size: 20 }
+  title:
+    text: ORBITRON + ARCJET TEST STAND
+    position: [512, 100]
+  probe_nodes:
+    - Screen
+    - screen
+    - Operator_Console
+    - operator_console
+    - Optics_Table
+    - optics_table
+    - Big_Red_Button
+    - big_red_button
+  timer_hz: 10
+  main_rows:
+    - id: state
+      y: 210
+      kind: bool_word
+      prefix: "Startup Trigger: "
+      prop: /sim/model/reactor/startup-trigger
+      true_word: "ON"
+      false_word: "OFF"
+    - id: nbi
+      y: 300
+      kind: scaled_float
+      prop: /controls/reactor/throttle
+      scale: 100.0
+      sprintf: "NBI Flow: %.2f sccm"
+    - id: comp
+      y: 390
+      kind: float
+      prop: /controls/orbitron/compressor
+      sprintf: "Compressor: %.2f"
+    - id: power
+      y: 480
+      kind: float
+      prop: /fdm/jsbsim/systems/reactor/gross-power-mw
+      sprintf: "Gross Power: %.3f MW"
+      hud_placeholder: "Gross Power: 0.00 MW"
+    - id: amps
+      y: 570
+      kind: float
+      prop: /fdm/jsbsim/systems/reactor/current-amps
+      sprintf: "DEC Current: %.3f A"
+    - id: decv
+      y: 660
+      kind: float
+      prop: /fdm/jsbsim/systems/arcjet/dec-voltage-mv
+      sprintf: "DEC Bias: %.1f MV"
+    - id: heat
+      y: 750
+      kind: float
+      prop: /fdm/jsbsim/systems/reactor/heat-kw
+      sprintf: "Brem. Heat: %.1f kW"
+      hud_placeholder: "Brem. Heat: 0.00 kW"
+    - id: q
+      y: 840
+      kind: float
+      prop: /fdm/jsbsim/systems/reactor/q-factor
+      sprintf: "Q-Factor: %.2f"
+    - id: thrust
+      y: 930
+      kind: float
+      prop: /fdm/jsbsim/systems/arcjet/thrust-lbf
+      sprintf: "Thrust: %.0f lbf"
+    - id: mdot
+      y: 1020
+      kind: float
+      prop: /fdm/jsbsim/systems/arcjet/mass-flow-kgps
+      sprintf: "Mass Flow: %.3f kg/s"
+    - id: load
+      y: 1110
+      kind: float
+      prop: /fdm/jsbsim/systems/arcjet/load-cell-avg-lbf
+      sprintf: "Load Cell Avg: %.0f lbf"
+    - id: beam
+      y: 1165
+      kind: sprintf2
+      fmt: "Viewport beam: %.1f kW  |  %.2f mA"
+      props:
+        - /fdm/jsbsim/systems/reactor/beam-screen-deposition-kw
+        - /fdm/jsbsim/systems/reactor/beam-current-ma
+  debug_window:
+    title: Arcjet / Reactor Telemetry
+    size: [460, 500]
+    background: [0.03, 0.03, 0.03, 0.90]
+    line_start_y: 28
+    line_step: 38
+    label_x: 16
+    rows:
+      - label_static: "Startup Trigger: OFF"
+        kind: bool_word
+        prefix: "Startup Trigger: "
+        prop: /sim/model/reactor/startup-trigger
+        true_word: "ON"
+        false_word: "OFF"
+      - label_static: "NBI Flow: 0.00 sccm"
+        kind: scaled_float
+        prop: /controls/reactor/throttle
+        scale: 100.0
+        sprintf: "NBI Flow: %.2f sccm"
+      - label_static: "Compressor: 0.00"
+        kind: float
+        prop: /controls/orbitron/compressor
+        sprintf: "Compressor: %.2f"
+      - label_static: "Gross Power: 0.00 MW"
+        kind: float
+        prop: /fdm/jsbsim/systems/reactor/gross-power-mw
+        sprintf: "Gross Power: %.3f MW"
+      - label_static: "DEC Current: 0.000 A"
+        kind: float
+        prop: /fdm/jsbsim/systems/reactor/current-amps
+        sprintf: "DEC Current: %.3f A"
+      - label_static: "DEC Bias: 0.0 MV"
+        kind: float
+        prop: /fdm/jsbsim/systems/arcjet/dec-voltage-mv
+        sprintf: "DEC Bias: %.1f MV"
+      - label_static: "Brem. Heat: 0.0 kW"
+        kind: float
+        prop: /fdm/jsbsim/systems/reactor/heat-kw
+        sprintf: "Brem. Heat: %.1f kW"
+      - label_static: "Beam viewport: 0.0 kW (WarpX ROI)"
+        kind: float
+        prop: /fdm/jsbsim/systems/reactor/beam-screen-deposition-kw
+        sprintf: "Beam viewport: %.1f kW"
+      - label_static: "Beam current: 0.00 mA (8 MV eq.)"
+        kind: float
+        prop: /fdm/jsbsim/systems/reactor/beam-current-ma
+        sprintf: "Beam current: %.2f mA"
+      - label_static: "Thrust: 0 lbf"
+        kind: float
+        prop: /fdm/jsbsim/systems/arcjet/thrust-lbf
+        sprintf: "Thrust: %.0f lbf"
+      - label_static: "Mass Flow: 0.000 kg/s"
+        kind: float
+        prop: /fdm/jsbsim/systems/arcjet/mass-flow-kgps
+        sprintf: "Mass Flow: %.3f kg/s"
+      - label_static: "Load Cell Avg: 0 lbf"
+        kind: float
+        prop: /fdm/jsbsim/systems/arcjet/load-cell-avg-lbf
+        sprintf: "Load Cell Avg: %.0f lbf"
+      - label_static: "Q-Factor: 0.00"
+        kind: float
+        prop: /fdm/jsbsim/systems/reactor/q-factor
+        sprintf: "Q-Factor: %.2f"

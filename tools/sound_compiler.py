@@ -13,8 +13,7 @@ import sys
 from pathlib import Path
 from typing import Any, Callable
 
-import numpy as np
-import yaml
+from orbitron_aircraft_pkg import aircraft_package_dir
 from scipy.io import wavfile
 
 SAMPLE_RATE = 44100
@@ -217,7 +216,7 @@ def main() -> int:
         "--out-dir",
         type=Path,
         default=None,
-        help="Output Sounds directory (default: Aircraft/Orbitron-TestStand/Sounds from repo root)",
+        help="Output Sounds directory (default: Aircraft/<aircraft.package_dir>/Sounds from repo root)",
     )
     args = ap.parse_args()
     spec = args.spec.resolve()
@@ -226,12 +225,13 @@ def main() -> int:
         return 1
 
     root = Path(__file__).resolve().parents[1]
+    _pkg = aircraft_package_dir(root)
     out_dir = args.out_dir
     if out_dir is None:
         out_dir = Path(
             os.environ.get(
                 "ORBITRON_SOUNDS_OUT",
-                str(root / "Aircraft" / "Orbitron-TestStand" / "Sounds"),
+                str(root / "Aircraft" / _pkg / "Sounds"),
             )
         )
     out_dir = out_dir.resolve()

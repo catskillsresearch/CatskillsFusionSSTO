@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Emit Orbitron-TestStand-set.xml, Models/Orbitron.xml, and orbitron-jsbsim.xml under Aircraft/.
+"""Emit <aircraft.package_dir>-set.xml, Models/Orbitron.xml, and orbitron-jsbsim.xml under Aircraft/.
 
 YAML: ssto/orbitron/assembly_specs/orbitron_aircraft_flightgear.yaml
 Physics (optional): surrogate_engineering corner scales → /sim/model/orbitron/surrogate/* bilinear ctc.
@@ -8,7 +8,6 @@ JSBSim: copy tools/templates/orbitron-jsbsim.xml (structure); full JSBSim-in-YAM
 from __future__ import annotations
 
 import argparse
-import shutil
 import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
@@ -251,7 +250,7 @@ def main() -> int:
         "--out-dir",
         type=Path,
         required=True,
-        help="Aircraft/Orbitron-TestStand directory",
+        help="Aircraft/<aircraft.package_dir>/ directory (basename must match YAML)",
     )
     args = ap.parse_args()
     spec_path = args.aircraft_spec.resolve()
@@ -282,12 +281,30 @@ def main() -> int:
                     physics_eng = se
 
     out_dir = args.out_dir.resolve()
+    ac = data.get("aircraft")
+    if not isinstance(ac, dict):
+        print("error: missing aircraft mapping", file=sys.stderr)
+        return 1
+    pkg = ac.get("package_dir")
+    if not isinstance(pkg, str) or not pkg.strip():
+        print("error: aircraft.package_dir must be a non-empty string", file=sys.stderr)
+        return 1
+    pkg = pkg.strip()
+    if out_dir.name != pkg:
+        print(
+            f"error: --out-dir basename {out_dir.name!r} must equal "
+            f"aircraft.package_dir {pkg!r}",
+            file=sys.stderr,
+        )
+        return 1
+
     models = out_dir / "Models"
     models.mkdir(parents=True, exist_ok=True)
 
     set_text = _build_set_xml(fg, physics_eng)
-    (out_dir / "Orbitron-TestStand-set.xml").write_text(set_text, encoding="utf-8")
-    print("Wrote", out_dir / "Orbitron-TestStand-set.xml")
+    set_name = f"{pkg}-set.xml"
+    (out_dir / set_name).write_text(set_text, encoding="utf-8")
+    print("Wrote", out_dir / set_name)
 
     model_text = _build_orbitron_model_xml(fg_model)
     (models / "Orbitron.xml").write_text(model_text, encoding="utf-8")
@@ -301,7 +318,12 @@ def main() -> int:
         print(f"error: JSBSim template not found: {tmpl}", file=sys.stderr)
         return 1
     dst = out_dir / "orbitron-jsbsim.xml"
-    shutil.copyfile(tmpl, dst)
+    raw = tmpl.read_text(encoding="utf-8")
+    raw = raw.replace(
+        '<fdm_config name="Orbitron-TestStand"',
+        f'<fdm_config name="{pkg}"',
+    )
+    dst.write_text(raw, encoding="utf-8")
     print("Wrote", dst, "(from template)")
     return 0
 

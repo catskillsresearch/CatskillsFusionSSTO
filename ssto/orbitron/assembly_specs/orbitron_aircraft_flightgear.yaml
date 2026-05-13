@@ -1,4 +1,4 @@
-# FlightGear aircraft shell + model placement (Orbitron-TestStand-set.xml, Models/Orbitron.xml).
+# FlightGear aircraft shell + model placement (*-set.xml, Models/Orbitron.xml).
 # orbitron-jsbsim.xml is emitted from tools/templates/orbitron-jsbsim.xml (structure) until
 # a full JSBSim AST exists in YAML.
 #
@@ -9,6 +9,10 @@
 schema_version: 1
 spec_kind: orbitron_aircraft_flightgear
 title: Orbitron-TestStand FlightGear + model placement
+
+# FlightGear aircraft directory name under $FG_AIRCRAFT (and basename of *-set.xml).
+aircraft:
+  package_dir: Orbitron-TestStand
 
 fg_set:
   surrogate_from_physics: true

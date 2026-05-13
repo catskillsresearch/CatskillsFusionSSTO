@@ -30,11 +30,11 @@ section_c_goal_artifact_map: |
   3 → assembly_specs/orbitron_operator_console_spec.yaml
   4 → arcjet_test_stand_cad.py + tools/templates/orbitron-jsbsim.xml +
       assembly_specs/orbitron_aircraft_flightgear.yaml (→ Aircraft/… set.xml, Orbitron.xml, jsbsim copy) +
-      Orbitron-TestStand/Nasal/reactor_ui.nas
-  5 → tools/warpx_to_jsbsim_surrogate.py + Aircraft/Orbitron-TestStand/engine_surrogate.json (generated)
+      assembly_specs/orbitron_nasal.yaml (→ Aircraft/…/Nasal/*.nas via compile_orbitron_nasal.py)
+  5 → tools/warpx_to_jsbsim_surrogate.py + Aircraft/<pkg>/engine_surrogate.json (generated)
 
 section_d_surrogate_to_runtime: |
-  Defaults in Orbitron-TestStand-set.xml under /sim/model/orbitron/surrogate/*.
-  engine_surrogate.json (same folder as -set.xml) loaded by Nasal/surrogate_load.nas.
+  Defaults in *-set.xml under /sim/model/orbitron/surrogate/*.
+  engine_surrogate.json (same folder as -set.xml) loaded by Nasal/surrogate_load.nas (generated from orbitron_nasal.yaml).
   orbitron-jsbsim.xml thrust and mass-flow read those props (linear in throttle,
   scaled by active * compressor). Tool flag: --print-set-xml.

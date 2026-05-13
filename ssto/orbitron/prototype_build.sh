@@ -2,7 +2,7 @@
 # Orbitron test stand: YAML lab glTF (via make) -> Blender .ac -> fix_screen_uv -> surrogate JSON.
 # Run: act && ./prototype_build.sh   (-h for options)
 #
-# Prefer from repo root: ./stand.sh SURROGATE=mesh   (writes Aircraft/Orbitron-TestStand; see Makefile).
+# Prefer from repo root: ./stand.sh SURROGATE=mesh   (writes Aircraft/<aircraft.package_dir>; see Makefile).
 
 set -euo pipefail
 
@@ -58,15 +58,16 @@ if ! command -v poetry >/dev/null 2>&1; then
 fi
 eval "$(poetry env activate)"
 
-cd "${ORBITRON_DIR}"
-
-STAND_AIR="${REPO_ROOT}/Aircraft/Orbitron-TestStand"
+PKG="$(python3 tools/orbitron_aircraft_paths.py package_dir --repo-root "${REPO_ROOT}")"
+STAND_AIR="${REPO_ROOT}/Aircraft/${PKG}"
 mkdir -p "${STAND_AIR}/build" "${STAND_AIR}/Models" "${STAND_AIR}/Sounds"
+export ORBITRON_AIRCRAFT_PKG="${PKG}"
 export ORBITRON_LAB_GLTF="${STAND_AIR}/build/orbitron_lab.gltf"
 export ORBITRON_ARCJET_GLTF="${STAND_AIR}/build/arcjet_outdoor_stand.gltf"
 export ORBITRON_GLTF_IN="${STAND_AIR}/build/orbitron_lab.gltf"
 export ORBITRON_AC_OUT="${STAND_AIR}/Models/orbitron.ac"
 
+cd "${ORBITRON_DIR}"
 GLTF_LAB="${ORBITRON_LAB_GLTF}"
 AC_OUT="${ORBITRON_AC_OUT}"
 SURROGATE_JSON="${STAND_AIR}/engine_surrogate.json"

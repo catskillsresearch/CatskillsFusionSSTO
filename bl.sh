@@ -7,14 +7,15 @@
 #   BLENDER=/path/to/blender ./bl.sh
 #
 # Optional: open a different lab glTF (e.g. make yaml-lab-gltfs master):
-#   ORBITRON_LAB_GLTF=Aircraft/Orbitron-TestStand/build/orbitron_lab_flat.gltf ./bl.sh
+#   ORBITRON_LAB_GLTF=Aircraft/<pkg>/build/orbitron_lab_flat.gltf ./bl.sh
 #
 # Optional: after import, run viewport collections helper (VIEW__* collections):
 #   ./bl.sh --collections
 
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")" && pwd)"
-GLTF="${ROOT}/Aircraft/Orbitron-TestStand/build/orbitron_lab.gltf"
+PKG="$(python3 "${ROOT}/tools/orbitron_aircraft_paths.py" package_dir --repo-root "${ROOT}")"
+GLTF="${ROOT}/Aircraft/${PKG}/build/orbitron_lab.gltf"
 if [[ -n "${ORBITRON_LAB_GLTF:-}" ]]; then
   if [[ "${ORBITRON_LAB_GLTF}" == /* ]]; then
     GLTF="${ORBITRON_LAB_GLTF}"

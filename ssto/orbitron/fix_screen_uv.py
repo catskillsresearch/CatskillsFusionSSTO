@@ -3,7 +3,9 @@ import re
 
 
 _ORBITRON_DIR = os.path.dirname(os.path.abspath(__file__))
-_DEFAULT_AC = os.path.join(_ORBITRON_DIR, "Orbitron-TestStand", "Models", "orbitron.ac")
+_REPO_ROOT = os.path.normpath(os.path.join(_ORBITRON_DIR, "..", ".."))
+_PKG = os.environ.get("ORBITRON_AIRCRAFT_PKG", "Orbitron-TestStand")
+_DEFAULT_AC = os.path.join(_REPO_ROOT, "Aircraft", _PKG, "Models", "orbitron.ac")
 AC3D_FILE = os.path.abspath(os.environ.get("ORBITRON_AC_OUT", _DEFAULT_AC))
 SCREEN_NAME = "Screen"
 # AC material references this basename; place the PNG next to orbitron.ac (e.g. under Aircraft/…/Models) if used.

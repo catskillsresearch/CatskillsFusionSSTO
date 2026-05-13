@@ -2,7 +2,7 @@
 """
 Synthesize Orbitron / arcjet test-stand audio assets.
 
-Not part of the default mesh pipeline: run manually, prototype_build.sh --with-sounds, or `make` (writes to ../../Aircraft/Orbitron-TestStand/Sounds by default).
+Not part of the default mesh pipeline: run manually, prototype_build.sh --with-sounds, or `make` (writes to ../../Aircraft/<aircraft.package_dir>/Sounds by default).
 
 Outputs (mono 44.1 kHz, suitable for FlightGear <mode>looped</mode>):
   - orbitron_core_loop.wav           — fusion / core plasma bed
@@ -26,6 +26,8 @@ from __future__ import annotations
 import argparse
 import os
 import subprocess
+import sys
+from pathlib import Path
 from typing import Tuple
 
 import numpy as np
@@ -194,7 +196,7 @@ def main() -> None:
     ap.add_argument(
         "--out-dir",
         default="",
-        help="Output directory (default: ../../Aircraft/Orbitron-TestStand/Sounds from this script, or $ORBITRON_SOUNDS_OUT)",
+        help="Output directory (default: ../../Aircraft/<aircraft.package_dir>/Sounds from this script, or $ORBITRON_SOUNDS_OUT)",
     )
     ap.add_argument(
         "--skip-commissioning",
@@ -209,9 +211,14 @@ def main() -> None:
     args = ap.parse_args()
 
     here = os.path.dirname(os.path.abspath(__file__))
-    default_air = os.path.normpath(
-        os.path.join(here, "..", "..", "Aircraft", "Orbitron-TestStand", "Sounds")
-    )
+    repo = os.path.normpath(os.path.join(here, "..", ".."))
+    tools_dir = os.path.join(repo, "tools")
+    if tools_dir not in sys.path:
+        sys.path.insert(0, tools_dir)
+    from orbitron_aircraft_pkg import aircraft_package_dir  # noqa: E402
+
+    pkg = aircraft_package_dir(Path(repo))
+    default_air = os.path.normpath(os.path.join(repo, "Aircraft", pkg, "Sounds"))
     out_dir = args.out_dir or os.environ.get("ORBITRON_SOUNDS_OUT") or default_air
     os.makedirs(out_dir, exist_ok=True)
 

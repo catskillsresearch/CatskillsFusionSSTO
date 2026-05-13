@@ -18,7 +18,15 @@ from typing import Any
 
 import yaml
 
+from orbitron_aircraft_pkg import aircraft_package_dir
 from orbitron_logical_assemblies_spec import load_logical_assemblies_spec
+
+_REPO_ROOT = Path(__file__).resolve().parents[1]
+_ORBITRON_PKG = aircraft_package_dir(_REPO_ROOT)
+_DEFAULT_ORBITRON_AC = _REPO_ROOT / "Aircraft" / _ORBITRON_PKG / "Models" / "orbitron.ac"
+_DEFAULT_PARTS_MMD = (
+    _REPO_ROOT / "Aircraft" / _ORBITRON_PKG / "build" / "orbitron_ac_parts_hierarchy.mmd"
+)
 
 
 @dataclass
@@ -462,7 +470,7 @@ def main() -> int:
     ap.add_argument(
         "--ac",
         type=Path,
-        default=Path("Aircraft/Orbitron-TestStand/Models/orbitron.ac"),
+        default=_DEFAULT_ORBITRON_AC,
         help="Path to orbitron.ac",
     )
     ap.add_argument(
@@ -475,7 +483,7 @@ def main() -> int:
         "-o",
         "--out",
         type=Path,
-        default=Path("Aircraft/Orbitron-TestStand/build/orbitron_ac_parts_hierarchy.mmd"),
+        default=_DEFAULT_PARTS_MMD,
         help="Output for physical AC tree (.mmd)",
     )
     ap.add_argument(

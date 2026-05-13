@@ -2,7 +2,7 @@
 Arcjet / outdoor test-stand parts (used by YAML ``templates_registry``).
 
 Standalone export: ``arcjet_outdoor_stand.gltf`` (+ sibling ``.bin``) under
-``Aircraft/Orbitron-TestStand/build/`` by default (override with ``ORBITRON_ARCJET_GLTF``).
+``Aircraft/<aircraft.package_dir>/build/`` by default (override with ``ORBITRON_ARCJET_GLTF``).
 """
 from __future__ import annotations
 
@@ -101,10 +101,16 @@ def build_assembly() -> cq.Assembly:
 
 if __name__ == "__main__":
     import os
+    import sys
     from pathlib import Path
 
     _repo = Path(__file__).resolve().parent.parent.parent
-    _default = _repo / "Aircraft" / "Orbitron-TestStand" / "build" / "arcjet_outdoor_stand.gltf"
+    _tools = _repo / "tools"
+    if str(_tools) not in sys.path:
+        sys.path.insert(0, str(_tools))
+    from orbitron_aircraft_pkg import aircraft_package_dir  # noqa: E402
+
+    _default = _repo / "Aircraft" / aircraft_package_dir(_repo) / "build" / "arcjet_outdoor_stand.gltf"
     out = Path(os.environ.get("ORBITRON_ARCJET_GLTF", _default))
     out.parent.mkdir(parents=True, exist_ok=True)
     build_assembly().save(str(out))

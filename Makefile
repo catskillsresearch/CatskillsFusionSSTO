@@ -1,13 +1,14 @@
-# Orbitron-TestStand → FlightGear under ./Aircraft (incremental).
-# All computed assets (glTF, .ac, WAV, surrogate JSON, sound.xml, Orbitron-TestStand-set.xml,
-# orbitron-jsbsim.xml, Models/Orbitron.xml) live under Aircraft/ only;
-# ssto/orbitron/Orbitron-TestStand/ holds Nasal + paths consumed at runtime; shell XML from
-# assembly_specs/orbitron_aircraft_flightgear.yaml (tools/compile_orbitron_aircraft_runtime.py).
+# Orbitron test stand → FlightGear under ./Aircraft (incremental).
+# All computed assets (glTF, .ac, WAV, surrogate JSON, sound.xml, *-set.xml from YAML,
+# orbitron-jsbsim.xml, Models/Orbitron.xml, Nasal from orbitron_nasal.yaml) live under Aircraft/ only.
+# Aircraft package name: assembly_specs/orbitron_aircraft_flightgear.yaml → aircraft.package_dir
+# (tools/orbitron_aircraft_paths.py). Shell XML: tools/compile_orbitron_aircraft_runtime.py.
 
 REPO_ROOT := $(abspath .)
+ORBITRON_PKG := $(shell python3 '$(REPO_ROOT)/tools/orbitron_aircraft_paths.py' package_dir --repo-root '$(REPO_ROOT)')
 ORBITRON := $(REPO_ROOT)/ssto/orbitron
 AIRCRAFT := $(REPO_ROOT)/Aircraft
-STAND := $(AIRCRAFT)/Orbitron-TestStand
+STAND := $(AIRCRAFT)/$(ORBITRON_PKG)
 BUILD := $(REPO_ROOT)/build/orbitron
 
 # Lab glTF: assembly YAML → flat → stem-normalized → nest → Blender → .ac.
@@ -23,18 +24,9 @@ SURROGATE ?= warpx
 GRID ?= 4
 
 export ORBITRON_AC_OUT := $(STAND)/Models/orbitron.ac
+export ORBITRON_AIRCRAFT_PKG := $(ORBITRON_PKG)
 
 WARPX_MAKE_ARGS ?=
-
-# Static aircraft sources only (no generated wav / .ac / surrogate in tree)
-STAND_SRC_FILES := $(shell find $(ORBITRON)/Orbitron-TestStand -type f \
-	'!' -path '*/Models/orbitron.ac' \
-	'!' -path '*/Models/Orbitron.xml' \
-	'!' -name 'Orbitron-TestStand-set.xml' \
-	'!' -name 'orbitron-jsbsim.xml' \
-	'!' -name 'engine_surrogate.json' \
-	'!' -name 'sound.xml' \
-	'!' -name '*.wav' 2>/dev/null)
 
 MERMAID_OUT := $(STAND)/build/dependency_graph.mmd
 PARTS_MERMAID := $(STAND)/build/orbitron_ac_parts_hierarchy.mmd
@@ -63,9 +55,13 @@ ORBITRON_PHYSICS_SPEC := $(ASSEMBLY_SPECS_DIR)/orbitron_physics_surrogate.yaml
 ORBITRON_PHYSICS_SPEC_PY := $(REPO_ROOT)/tools/orbitron_physics_spec.py
 ORBITRON_MODEL_XML := $(STAND)/Models/Orbitron.xml
 ORBITRON_AIRCRAFT_SPEC := $(ASSEMBLY_SPECS_DIR)/orbitron_aircraft_flightgear.yaml
+ORBITRON_NASAL_SPEC := $(ASSEMBLY_SPECS_DIR)/orbitron_nasal.yaml
+ORBITRON_AIRCRAFT_PATHS := $(REPO_ROOT)/tools/orbitron_aircraft_paths.py
+COMPILE_ORBITRON_NASAL := $(REPO_ROOT)/tools/compile_orbitron_nasal.py
 COMPILE_AIRCRAFT_RUNTIME := $(REPO_ROOT)/tools/compile_orbitron_aircraft_runtime.py
 JSBSIM_TEMPLATE := $(REPO_ROOT)/tools/templates/orbitron-jsbsim.xml
-STAND_FG_SET := $(STAND)/Orbitron-TestStand-set.xml
+STAND_FG_SET := $(STAND)/$(ORBITRON_PKG)-set.xml
+STAND_NASAL := $(STAND)/Nasal/surrogate_load.nas $(STAND)/Nasal/reactor_ui.nas
 STAND_JSBSIM_XML := $(STAND)/orbitron-jsbsim.xml
 SUR_DEP_ALL := \
 	$(REPO_ROOT)/tools/build_surrogate_map.py \
@@ -86,7 +82,8 @@ YAML_LAB_COMPILER_DEPS := \
 # Inputs that define the build graph (edit Makefile subgraph block when topology changes).
 GRAPH_INPUTS := Makefile $(ORBITRON_LAB_YAMLS) $(YAML_LAB_COMPILER_DEPS) \
 	$(ORBITRON_SOUND_ASSETS) $(SOUND_COMPILER) $(COMPILE_SOUND_XML) \
-	$(ORBITRON_AIRCRAFT_SPEC) $(COMPILE_AIRCRAFT_RUNTIME) $(JSBSIM_TEMPLATE) \
+	$(ORBITRON_AIRCRAFT_SPEC) $(ORBITRON_AIRCRAFT_PATHS) $(REPO_ROOT)/tools/orbitron_aircraft_pkg.py $(COMPILE_AIRCRAFT_RUNTIME) $(JSBSIM_TEMPLATE) \
+	$(ORBITRON_NASAL_SPEC) $(COMPILE_ORBITRON_NASAL) \
 	$(ORBITRON_PHYSICS_SPEC) $(ORBITRON_PHYSICS_SPEC_PY) $(REPO_ROOT)/tools/warpx_expression_presets.py \
 	$(ORBITRON)/build_ac3d.py $(ORBITRON)/fix_screen_uv.py $(SUR_DEP_ALL) \
 	$(REPO_ROOT)/tools/orbitron_ac_hierarchy_mmd.py \
@@ -111,7 +108,7 @@ MODEL_ARTIFACTS := \
 all: fg-ready
 
 help:
-	@echo "Orbitron-TestStand Makefile"
+	@echo "Orbitron test stand Makefile (aircraft id: $(ORBITRON_PKG))"
 	@echo "  make / make all     Build $(STAND); YAML lab → $(GLTF_LAB), arcjet glTF, .ac, surrogate, sounds from $(ORBITRON_SOUND_ASSETS), $(MERMAID_OUT), … (SURROGATE=$(SURROGATE))"
 	@echo "  SURROGATE=warpx|dry|mesh   Surrogate source (default warpx = full sweep; dry|mesh = fast placeholders)"
 	@echo "  Cold-tree regression: mv Aircraft Aircraft.bak && ./stand.sh   # rebuilds everything incl. WarpX surrogate"
@@ -124,11 +121,11 @@ help:
 	@echo "  ORBITRON_LAB_GLTF=... ./bl.sh   Override glTF path (default: $(GLTF_LAB); e.g. flat debug: …/orbitron_lab_flat.gltf)"
 	@echo "  make run-fgfs       fgfs with --fg-aircraft=$(AIRCRAFT)"
 	@echo "  make clean          Remove $(AIRCRAFT) and $(BUILD) (not all of ./build if other projects use it)"
-	@echo "  Tip: after rm -rf build, either make clean or rm Aircraft/Orbitron-TestStand/.dirs so .dirs is recreated."
-	@echo "  Sources: $(ORBITRON)/Orbitron-TestStand/ (XML, Nasal); sound.xml + WAV under $(STAND)/Sounds/. Built model: $(MODEL_ARTIFACTS)"
+	@echo "  Tip: after rm -rf build, either make clean or rm $(STAND)/.dirs so .dirs is recreated."
+	@echo "  Nasal is generated from $(ORBITRON_NASAL_SPEC); sound.xml + WAV under $(STAND)/Sounds/. Built model: $(MODEL_ARTIFACTS)"
 	@echo "Use ./stand.sh for Poetry + WarpX library paths, then make."
 
-fg-ready: $(STAND)/.dirs $(STAND)/.static_synced $(MODEL_ARTIFACTS)
+fg-ready: $(STAND)/.dirs $(STAND_NASAL) $(STAND_FG_SET) $(STAND_JSBSIM_XML) $(ORBITRON_MODEL_XML) $(MODEL_ARTIFACTS)
 
 $(STAND)/.dirs:
 	mkdir -p $(STAND)/Models $(STAND)/Nasal $(STAND)/Sounds $(STAND)/build $(BUILD)/warpx-runs
@@ -136,6 +133,10 @@ $(STAND)/.dirs:
 
 $(BUILD)/warpx-runs:
 	mkdir -p '$(BUILD)' '$(BUILD)/warpx-runs'
+
+$(STAND_NASAL) &: $(ORBITRON_NASAL_SPEC) $(COMPILE_ORBITRON_NASAL) | $(STAND)/.dirs
+	cd '$(REPO_ROOT)' && $(POETRY) run python $(COMPILE_ORBITRON_NASAL) \
+		--spec '$(ORBITRON_NASAL_SPEC)' --out-dir '$(STAND)/Nasal'
 
 $(ORBITRON_SOUND_XML): $(ORBITRON_SOUND_ASSETS) $(COMPILE_SOUND_XML) | $(STAND)/.dirs
 	cd '$(REPO_ROOT)' && $(POETRY) run python $(COMPILE_SOUND_XML) \
@@ -148,13 +149,6 @@ $(STAND_FG_SET) $(STAND_JSBSIM_XML) $(ORBITRON_MODEL_XML) &: \
 		--aircraft-spec '$(ORBITRON_AIRCRAFT_SPEC)' \
 		--physics-spec '$(ORBITRON_PHYSICS_SPEC)' \
 		--out-dir '$(STAND)'
-
-$(STAND)/.static_synced: $(STAND_SRC_FILES) $(ORBITRON_SOUND_XML) $(STAND_FG_SET) $(STAND_JSBSIM_XML) $(ORBITRON_MODEL_XML) | $(STAND)/.dirs
-	rsync -a --exclude='Models/orbitron.ac' --exclude='Models/Orbitron.xml' \
-		--exclude='Orbitron-TestStand-set.xml' --exclude='orbitron-jsbsim.xml' \
-		--exclude='engine_surrogate.json' --exclude='*.wav' \
-		$(ORBITRON)/Orbitron-TestStand/ $(STAND)/
-	touch $@
 
 $(GLTF_YAML_A): $(ASSEMBLY_SPECS_DIR)/air_breathing_intake.yaml $(YAML_LAB_COMPILER_DEPS) | $(STAND)/.dirs
 	cd '$(REPO_ROOT)' && $(POETRY) run python tools/compile_assembly_yaml.py \
@@ -200,7 +194,7 @@ $(STAND)/.orbitron_ac_done: \
 		$(STAND)/Sounds/.sounds_built \
 		$(ORBITRON)/build_ac3d.py \
 		$(ORBITRON)/fix_screen_uv.py \
-		| $(STAND)/.dirs $(STAND)/.static_synced
+		| $(STAND)/.dirs $(STAND_NASAL)
 	rm -f '$(STAND)/Models/orbitron.ac'
 	cd $(ORBITRON) && ORBITRON_AC_OUT='$(STAND)/Models/orbitron.ac' ORBITRON_GLTF_IN='$(GLTF_LAB)' \
 		$(BLENDER) -b --python build_ac3d.py
@@ -239,7 +233,7 @@ $(STAND)/engine_surrogate.json: $(SUR_DEP_ALL) $(BUILD)/warpx-runs | $(STAND)/.d
 $(STAND)/Sounds/.sounds_built: \
 		$(ORBITRON_SOUND_ASSETS) $(SOUND_COMPILER) $(COMPILE_SOUND_XML) \
 		$(ORBITRON_SOUND_XML) \
-		| $(STAND)/.dirs $(STAND)/.static_synced
+		| $(STAND)/.dirs $(STAND_NASAL)
 	$(POETRY) run python $(SOUND_COMPILER) --spec '$(ORBITRON_SOUND_ASSETS)' --out-dir '$(STAND)/Sounds'
 	touch '$@'
 
@@ -330,15 +324,15 @@ $(MERMAID_OUT): $(GRAPH_INPUTS) | $(STAND)/.dirs
 	echo '    fg_air_yaml --> fg_air_py'; \
 	echo '    phy2["orbitron_physics_surrogate.yaml"] --> fg_air_py'; \
 	echo '    fg_jsb_tmpl --> fg_air_py'; \
-	echo '    fg_air_py --> a_set["Aircraft/…/Orbitron-TestStand-set.xml"]'; \
+	echo '    fg_air_py --> a_set["Aircraft/…/*-set.xml"]'; \
 	echo '    fg_air_py --> a_jsb["Aircraft/…/orbitron-jsbsim.xml"]'; \
 	echo '    fg_air_py --> a_ox["Aircraft/…/Models/Orbitron.xml"]'; \
 	echo '  end'; \
-	echo '  subgraph SYNC["Makefile rsync"]'; \
-	echo '    rsync["rsync → Aircraft"]'; \
-	echo '    fnas["repo …/Nasal/*.nas"] --> rsync'; \
+	echo '  subgraph NAS["Nasal (YAML → .nas)"]'; \
+	echo '    nas_yaml["orbitron_nasal.yaml"]'; \
+	echo '    nas_py["compile_orbitron_nasal.py"]'; \
+	echo '    nas_yaml --> nas_py --> a_nas["Aircraft/…/Nasal/*.nas"]'; \
 	echo '  end'; \
-	echo '  rsync --> a_nas["Aircraft/…/Nasal/*.nas"]'; \
 	echo '  subgraph FG["FlightGear"]'; \
 	echo '    fg["fgfs"]'; \
 	echo '  end'; \
@@ -386,7 +380,7 @@ open-lab:
 	@$(REPO_ROOT)/bl.sh
 
 run-fgfs: fg-ready
-	cd $(REPO_ROOT) && fgfs --fg-aircraft=$(AIRCRAFT) --aircraft=Orbitron-TestStand \
+	cd $(REPO_ROOT) && fgfs --fg-aircraft=$(AIRCRAFT) --aircraft=$(ORBITRON_PKG) \
 		--airport=BIKF --parkpos=East-Apron-119 --timeofday=noon --ai-traffic=0 \
 		--real-weather-fetch=0 --clouds3d=0 \
 		--prop:/sim/sound/chatter/volume=0.0 --prop:/sim/sound/atc/volume=0.0 \

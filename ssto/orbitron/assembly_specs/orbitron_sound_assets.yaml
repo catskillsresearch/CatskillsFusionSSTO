@@ -1,7 +1,7 @@
 # Sole source of truth for synthesized Orbitron test-stand WAV beds and FlightGear sound.xml.
 # WAV:  poetry run python tools/sound_compiler.py --spec THIS_FILE --out-dir DIR
 # XML:  poetry run python tools/compile_sound_xml_from_yaml.py --spec THIS_FILE
-#       (writes Aircraft/Orbitron-TestStand/Sounds/sound.xml by default; see --out).
+#       (writes Aircraft/<aircraft.package_dir>/Sounds/sound.xml by default; see --out).
 # All loops are mono 44.1 kHz, one second, seamless (suitable for FlightGear <mode>looped</mode>).
 
 schema_version: 1

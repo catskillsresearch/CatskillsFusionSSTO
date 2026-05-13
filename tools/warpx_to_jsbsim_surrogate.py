@@ -155,7 +155,7 @@ def main() -> int:
     ap.add_argument(
         "--print-set-xml",
         action="store_true",
-        help="Print Orbitron-TestStand-set.xml default block matching the JSON",
+        help="Print FG *-set.xml default block matching the JSON",
     )
     args = ap.parse_args()
 
