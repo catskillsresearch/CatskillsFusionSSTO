@@ -169,7 +169,7 @@ yaml-lab-gltfs: $(YAML_LAB_GLTF_ARTIFACTS)
 
 $(GLTF_ARC): $(ORBITRON)/arcjet_test_stand_cad.py | $(STAND)/.dirs
 	mkdir -p $(STAND)/build
-	cd $(ORBITRON) && ORBITRON_ARCJET_GLTF='$(GLTF_ARC)' $(POETRY) run python arcjet_test_stand_cad.py
+	cd '$(REPO_ROOT)' && ORBITRON_ARCJET_GLTF='$(GLTF_ARC)' $(POETRY) run python '$(ORBITRON)/arcjet_test_stand_cad.py'
 
 # --- Blender + UV → orbitron.ac ---
 # Real deps on surrogate + sounds (not only order-only): GNU make may otherwise schedule

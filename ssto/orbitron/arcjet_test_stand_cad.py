@@ -1,7 +1,8 @@
 """
 Arcjet / outdoor test-stand parts (used by YAML ``templates_registry``).
 
-Standalone export: arcjet_outdoor_stand.gltf (horizontal duct on sled, same rotation as lab).
+Standalone export: ``arcjet_outdoor_stand.gltf`` (+ sibling ``.bin``) under
+``Aircraft/Orbitron-TestStand/build/`` by default (override with ``ORBITRON_ARCJET_GLTF``).
 """
 from __future__ import annotations
 
@@ -100,7 +101,11 @@ def build_assembly() -> cq.Assembly:
 
 if __name__ == "__main__":
     import os
+    from pathlib import Path
 
-    out = os.environ.get("ORBITRON_ARCJET_GLTF", "arcjet_outdoor_stand.gltf")
-    build_assembly().save(out)
+    _repo = Path(__file__).resolve().parent.parent.parent
+    _default = _repo / "Aircraft" / "Orbitron-TestStand" / "build" / "arcjet_outdoor_stand.gltf"
+    out = Path(os.environ.get("ORBITRON_ARCJET_GLTF", _default))
+    out.parent.mkdir(parents=True, exist_ok=True)
+    build_assembly().save(str(out))
     print(f"Wrote {out}")
