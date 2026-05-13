@@ -136,6 +136,22 @@ def render_sound_xml(spec_path: Path) -> str:
     return '<?xml version="1.0"?>\n' + ET.tostring(root, encoding="unicode")
 
 
+def _default_sound_xml_path(spec_path: Path) -> Path:
+    """``<repo>/Aircraft/Orbitron-TestStand/Sounds/sound.xml`` for the standard spec layout."""
+    spec_path = spec_path.resolve()
+    parents = spec_path.parents
+    if len(parents) < 4:
+        raise ValueError(f"spec path too shallow for default output: {spec_path}")
+    repo_root = parents[3]
+    expected_asm = (repo_root / "ssto" / "orbitron" / "assembly_specs").resolve()
+    if spec_path.parent.resolve() != expected_asm:
+        raise ValueError(
+            "default --out only applies when --spec is under "
+            f"{expected_asm} (got {spec_path}); pass --out explicitly"
+        )
+    return (repo_root / "Aircraft" / "Orbitron-TestStand" / "Sounds" / "sound.xml").resolve()
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--spec", type=Path, required=True, help="orbitron_sound_assets.yaml")
@@ -143,7 +159,7 @@ def main() -> int:
         "--out",
         type=Path,
         default=None,
-        help="Output sound.xml (default: Orbitron-TestStand/Sounds/sound.xml beside spec)",
+        help="Output sound.xml (default: Aircraft/Orbitron-TestStand/Sounds/sound.xml under repo root)",
     )
     args = ap.parse_args()
     spec = args.spec.resolve()
@@ -152,9 +168,7 @@ def main() -> int:
         return 1
     out = args.out
     if out is None:
-        # spec is …/orbitron/assembly_specs/orbitron_sound_assets.yaml
-        orbitron_dir = spec.parents[1]
-        out = orbitron_dir / "Orbitron-TestStand" / "Sounds" / "sound.xml"
+        out = _default_sound_xml_path(spec)
     out = out.resolve()
     text = render_sound_xml(spec)
     out.parent.mkdir(parents=True, exist_ok=True)

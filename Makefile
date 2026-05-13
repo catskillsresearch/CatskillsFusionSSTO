@@ -1,7 +1,7 @@
 # Orbitron-TestStand → FlightGear under ./Aircraft (incremental).
-# All computed assets (glTF, .ac, WAV, surrogate JSON) live under Aircraft/ only;
-# ssto/orbitron/Orbitron-TestStand/ holds source XML/Nasal; Sounds/sound.xml is generated
-# from assembly_specs/orbitron_sound_assets.yaml (tools/compile_sound_xml_from_yaml.py).
+# All computed assets (glTF, .ac, WAV, surrogate JSON, sound.xml) live under Aircraft/ only;
+# ssto/orbitron/Orbitron-TestStand/ holds source XML/Nasal; sound.xml is generated there from
+# assembly_specs/orbitron_sound_assets.yaml (tools/compile_sound_xml_from_yaml.py).
 
 REPO_ROOT := $(abspath .)
 ORBITRON := $(REPO_ROOT)/ssto/orbitron
@@ -29,6 +29,7 @@ WARPX_MAKE_ARGS ?=
 STAND_SRC_FILES := $(shell find $(ORBITRON)/Orbitron-TestStand -type f \
 	'!' -path '*/Models/orbitron.ac' \
 	'!' -name 'engine_surrogate.json' \
+	'!' -name 'sound.xml' \
 	'!' -name '*.wav' 2>/dev/null)
 
 SUR_DEP_ALL := \
@@ -62,7 +63,7 @@ YAML_LAB_GLTF_ARTIFACTS := $(GLTF_YAML_A) $(GLTF_YAML_B) $(GLTF_YAML_C) $(GLTF_L
 ORBITRON_SOUND_ASSETS := $(ASSEMBLY_SPECS_DIR)/orbitron_sound_assets.yaml
 SOUND_COMPILER := $(REPO_ROOT)/tools/sound_compiler.py
 COMPILE_SOUND_XML := $(REPO_ROOT)/tools/compile_sound_xml_from_yaml.py
-ORBITRON_SOUND_XML := $(ORBITRON)/Orbitron-TestStand/Sounds/sound.xml
+ORBITRON_SOUND_XML := $(STAND)/Sounds/sound.xml
 ORBITRON_PHYSICS_SPEC := $(ASSEMBLY_SPECS_DIR)/orbitron_physics_surrogate.yaml
 ORBITRON_PHYSICS_SPEC_PY := $(REPO_ROOT)/tools/orbitron_physics_spec.py
 YAML_LAB_COMPILER_DEPS := \
@@ -115,7 +116,7 @@ help:
 	@echo "  make run-fgfs       fgfs with --fg-aircraft=$(AIRCRAFT)"
 	@echo "  make clean          Remove $(AIRCRAFT) and $(BUILD) (not all of ./build if other projects use it)"
 	@echo "  Tip: after rm -rf build, either make clean or rm Aircraft/Orbitron-TestStand/.dirs so .dirs is recreated."
-	@echo "  Sources: $(ORBITRON)/Orbitron-TestStand/ (XML, Nasal, sound.xml). Built model: $(MODEL_ARTIFACTS)"
+	@echo "  Sources: $(ORBITRON)/Orbitron-TestStand/ (XML, Nasal); sound.xml + WAV under $(STAND)/Sounds/. Built model: $(MODEL_ARTIFACTS)"
 	@echo "Use ./stand.sh for Poetry + WarpX library paths, then make."
 
 fg-ready: $(STAND)/.dirs $(STAND)/.static_synced $(MODEL_ARTIFACTS)
@@ -127,7 +128,7 @@ $(STAND)/.dirs:
 $(BUILD)/warpx-runs:
 	mkdir -p '$(BUILD)' '$(BUILD)/warpx-runs'
 
-$(ORBITRON_SOUND_XML): $(ORBITRON_SOUND_ASSETS) $(COMPILE_SOUND_XML)
+$(ORBITRON_SOUND_XML): $(ORBITRON_SOUND_ASSETS) $(COMPILE_SOUND_XML) | $(STAND)/.dirs
 	cd '$(REPO_ROOT)' && $(POETRY) run python $(COMPILE_SOUND_XML) \
 		--spec '$(ORBITRON_SOUND_ASSETS)' --out '$(ORBITRON_SOUND_XML)'
 
@@ -291,7 +292,7 @@ $(MERMAID_OUT): $(GRAPH_INPUTS) | $(STAND)/.dirs
 	echo '    snd_yaml["orbitron_sound_assets.yaml"]'; \
 	echo '    snd_xml_py["compile_sound_xml_from_yaml.py"]'; \
 	echo '    snd_py["sound_compiler.py"]'; \
-	echo '    snd_yaml --> snd_xml_py --> fsnd["repo …/Sounds/sound.xml"]'; \
+	echo '    snd_yaml --> snd_xml_py --> a_snd["Aircraft/…/Sounds/sound.xml"]'; \
 	echo '    snd_yaml --> snd_py'; \
 	echo '    snd_py --> w1["Aircraft/.../Sounds/orbitron_core_loop.wav"]'; \
 	echo '    snd_py --> w2["Aircraft/.../Sounds/orbitron_inlet_loop.wav"]'; \
@@ -309,13 +310,11 @@ $(MERMAID_OUT): $(GRAPH_INPUTS) | $(STAND)/.dirs
 	echo '    fjsb["repo …/orbitron-jsbsim.xml"] --> rsync'; \
 	echo '    foxml["repo …/Models/Orbitron.xml"] --> rsync'; \
 	echo '    fnas["repo …/Nasal/*.nas"] --> rsync'; \
-	echo '    fsnd["repo …/Sounds/sound.xml"] --> rsync'; \
 	echo '  end'; \
 	echo '  rsync --> a_set["Aircraft/…/Orbitron-TestStand-set.xml"]'; \
 	echo '  rsync --> a_jsb["Aircraft/…/orbitron-jsbsim.xml"]'; \
 	echo '  rsync --> a_ox["Aircraft/…/Models/Orbitron.xml"]'; \
 	echo '  rsync --> a_nas["Aircraft/…/Nasal/*.nas"]'; \
-	echo '  rsync --> a_snd["Aircraft/…/Sounds/sound.xml"]'; \
 	echo '  subgraph FG["FlightGear"]'; \
 	echo '    fg["fgfs"]'; \
 	echo '  end'; \
