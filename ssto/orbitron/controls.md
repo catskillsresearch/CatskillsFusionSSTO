@@ -1,7 +1,9 @@
 
 
 
-Here is your complete Systems Engineer operations cheat sheet for the Orbitron Test Stand. 
+Here is your complete Systems Engineer operations cheat sheet for the Orbitron Test Stand.
+
+Full operator-console design (interlocks, power sequence, telemetry, alarms, HITL checkpoints) is in `assembly_specs/orbitron_operator_console_spec.yaml`.
 
 ### ⚙️ Reactor Operation (Custom Keybinds)
 | Key / Input | Action | What it does in the Simulation |

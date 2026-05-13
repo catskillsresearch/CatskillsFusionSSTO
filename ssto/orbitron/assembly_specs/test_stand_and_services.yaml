@@ -1,4 +1,5 @@
 # Assembly C — rails, thrust sled, fuel farm, rigid services, operator console, load cells.
+# Operator-console sequencing / interlocks / telemetry (design intent): orbitron_operator_console_spec.yaml
 # Compile alone: poetry run python tools/compile_assembly_yaml.py --spec ssto/orbitron/assembly_specs/test_stand_and_services.yaml --out /tmp/C_stand.gltf
 
 schema_version: 1
@@ -133,7 +134,8 @@ instances:
   - id: Operator_Console
     narrative: |
       Desk + tilted panel + battery block; shifted by CONSOLE_OFFSET_M in the parent
-      lab narrative so the operator stands clear of the plume line.
+      lab narrative so the operator stands clear of the plume line. Behavioural spec
+      (interlocks, DEC sequence, telemetry): orbitron_operator_console_spec.yaml.
     template: lab_operator_console_desk
     params: {}
     color: [0.15, 0.15, 0.15]

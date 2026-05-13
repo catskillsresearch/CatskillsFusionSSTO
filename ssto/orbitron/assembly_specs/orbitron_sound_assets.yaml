@@ -9,6 +9,8 @@ narrative: |
   Runtime mix follows the SpaceShuttle pattern: JSBSim orbitron_soundscape writes
   systems/orbitron_sfx/*_volume; sound.xml binds samples to those properties.
   Each entry ties part_mesh (CAD / logical name) to WAV synthesis plus flightgear bindings.
+  Sequencing, interlocks, and full telemetry catalog for the operator station live in
+  orbitron_operator_console_spec.yaml (human-in-the-loop spec; not read by this compiler).
 
 sounds:
   - part_mesh: fusion_reactor_stack

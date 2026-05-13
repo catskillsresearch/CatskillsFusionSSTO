@@ -1,4 +1,5 @@
 # Compiler input for Orbitron surrogate sweep: WarpX PIC case, reductions, engineering map.
+# Cursor session workflow (Plan/Agent, checkpoints): assembly_specs/orbitron_repo_session_workflow.yaml
 # Consumed by tools/build_surrogate_map.py (--physics-spec) and emitted PICMI overrides
 # for ssto/orbitron/laminar_flow_2d_arcjet.py (--overrides JSON).
 #
@@ -14,6 +15,11 @@ narrative: |
   then maps proxies to JSBSim-facing scalars. PICMI remains Python (WarpX); this file
   is the single place to change grids, ROI geometry, sweep layout, and placeholder
   engineering gains without editing reduction code.
+
+  Human-readable rationale for the simpler legacy deck ``laminar_flow_2d.py`` (crossed-field
+  slice only), post-processing notes, and design-brief gap analysis are folded under
+  ``formal:`` as ``laminar_flow_2d_py_case_review``, ``design_brief_gaps_fusion_arcjet``,
+  and ``postprocessing_animate_plasma_note`` (migrated from the old WARPX_CASE_REVIEW.txt).
 
 formal:
   compiled_expressions_contract: |
@@ -36,6 +42,56 @@ formal:
   surrogate_map: |
     CSV targets use normalized rho_e vs sweep median and ROI beam charge vs median;
     beam_screen_kw = beam_current_ma * beam_screen_kw_per_ma (defaults match legacy 8 MV story).
+
+  # --- Narratives migrated from WARPX_CASE_REVIEW.txt (laminar_flow_2d.py); not machine-read ---
+  laminar_flow_2d_py_case_review: |
+    Source script: ssto/orbitron/laminar_flow_2d.py — Orbitron crossed-field slice deck.
+    This is not the YAML-driven surrogate sweep (see warpx_sweep.arcjet_script); it shares
+    the same order-of-magnitude geometry and field scales but omits arc channel seed scaling.
+
+    Solver and dimensionality:
+    - PICMI ElectromagneticSolver on a Cartesian2DGrid (WarpX XY slice, not RZ).
+    - Active plane X–Z, invariant Y; By is “out of page” for E×B circulation in X–Z.
+    - Time step 1e-12 s, CFL 0.9, max_steps 500 — short diagnostic run, not a converged
+      steady-state reactor discharge.
+
+    Geometry (analytic, not meshed CAD):
+    - r_anode = 0.05 m, r_cathode = 0.005 m matches ~10 cm tube / 5 mm cathode poloidal-slice scale.
+    - Boundaries: Dirichlet fields on all sides; particles absorbing — walls are ideal sinks,
+      not a real high-voltage feedthrough stack.
+
+    Fields:
+    - E: radial analytic profile from V_cathode = -600 kV between concentric notional cylinders
+      (log(r) potential). Implemented as Ex, Ez with a radial cutoff mask at r >= r_cathode.
+    - B: uniform By = 2.0 T (applied field, not self-consistent superconductor).
+    - “Frozen” analytic applied fields — no magnetostatic solve, no coil geometry, no ferromagnetics.
+
+    Species and initial conditions:
+    - electrons: annular density 1 cm < r < 3 cm, n_e ~ 5e15 m^-3 (expression), initialized with
+      E×B drift momenta consistent with the analytic E field — diocotron / hollow-ring style setup,
+      not a fusion burn model.
+    - stabilizing_beam: 100 discrete protons on a line at x = 0.04 m, inward ux,
+      ParticleListDistribution — numerical shear / stabilization artifice.
+    - No boron, no alpha ash, no nuclear reaction modules, no neutrals, no gas-phase chemistry,
+      no bremsstrahlung deposition back to a solid mesh.
+
+    What this case is good for:
+    - Visualizing low-order crossed-field electron dynamics and charge density evolution in a slice.
+    - Pipeline check: pywarpx → diags → yt animation / FG texture path.
+
+  design_brief_gaps_fusion_arcjet: |
+    Fusion: no p-B11 reactions, no DEC grid as a boundary object, no 4 MV terminal physics —
+    only the cathode-side -600 kV scale in E.
+    Arcjet: no compressor inlet BC, no cold air mass flow, no neutral gas background,
+    no electron–neutral collisions, no Ohmic heating term tied to DEC current channel through the gas.
+    Next extension direction: laminar_flow_2d_arcjet.py (seed channel, optional heavy-ion tracer,
+    expanded diagnostics) and PICMI docs for the installed WarpX version for collisions / MCC /
+    field ionization.
+
+  postprocessing_animate_plasma_note: |
+    animate_plasma.py currently expects diags field rho_electrons only.
+    laminar_flow_2d_arcjet.py also requests rho_arc_channel_seed; extend the yt field list or
+    merge channels before GIF export when running the arcjet deck.
 
 warpx_sweep:
   arcjet_script: ssto/orbitron/laminar_flow_2d_arcjet.py

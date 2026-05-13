@@ -1,3 +1,11 @@
+"""Orbitron laminar-flow WarpX PIC case (2D crossed-field slice).
+
+Engineering rationale, limitations, and post-processing notes for this deck (vs the
+YAML-driven ``laminar_flow_2d_arcjet.py`` sweep) live in
+``assembly_specs/orbitron_physics_surrogate.yaml`` under ``formal:`` —
+``laminar_flow_2d_py_case_review``, ``design_brief_gaps_fusion_arcjet``,
+``postprocessing_animate_plasma_note``.
+"""
 import numpy as np
 from pywarpx import picmi
 

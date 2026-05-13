@@ -1,0 +1,157 @@
+# Human-in-the-loop operator console: interlocks, sequencing, telemetry, alarms.
+# Not consumed by compile_assembly_yaml.py (no mesh); companion to test stand YAML + FG/JSBSim.
+# Source: former OPERATOR_CONSOLE_SPEC.txt (content lives only here now).
+
+schema_version: 1
+spec_kind: orbitron_operator_console
+title: Air-breathing electric jet test stand — operator console specification
+
+narrative: |
+  Hot-fire style sequencing, interlocks, and telemetry for the outdoor sled + detuner
+  configuration. Map each logical item to FlightGear under /controls/orbitron/* or
+  /sim/model/orbitron/* and mirror engineering truth under /fdm/jsbsim/systems/* for
+  JSBSim. Implementation in Nasal, orbitron-jsbsim.xml, and Canvas lags this spec;
+  use this file as the checklist when wiring new properties.
+
+property_roots:
+  flightgear_controls: /controls/orbitron
+  flightgear_sim_model: /sim/model/orbitron
+  reactor_throttle: /controls/reactor/throttle
+  jsbsim_systems: /fdm/jsbsim/systems
+
+safety_interlocks:
+  - id: IL-01
+    description: Site perimeter clear + personnel key switch
+    arms: ARM prop (master arm permissive chain)
+    suggested_properties: {}
+  - id: IL-02
+    description: Detuner alignment pin engaged
+    arms: ARM prop
+    suggested_properties: {}
+  - id: IL-03
+    description: Cryo methane jacket flow OK
+    arms: Allow magnet / DEC bias sequencing
+    suggested_properties: {}
+  - id: IL-04
+    description: HV ground grid continuity test pass
+    arms: Enable DEC
+    suggested_properties: {}
+  - id: IL-05
+    description: Blast deflector water deluge pressure (if modeled)
+    arms: Arc enable
+    suggested_properties: {}
+
+power_sequencing:
+  - step: A
+    description: Black-start battery online, bus voltage display
+    flightgear_notes: Panel + annunciator bus; tie to battery / bus props when modeled.
+  - step: B
+    description: Superconducting magnet ramp (with simulated quench trip)
+    flightgear_notes: Interlock with IL-03 where applicable.
+  - step: C
+    description: NBI / fuel (H2 + B2H6) flow
+    flightgear_notes: Tie to existing /controls/reactor/throttle (W/S keys in sim).
+  - step: D
+    description: Electric compressor motor contactor
+    flightgear_notes: /controls/orbitron/compressor (0–1 demand; see orbitron_sound_assets.yaml pitch bindings).
+  - step: E
+    description: DEC bias ramp to nominal 4 MV (simulated as enable + slew rate cap)
+    flightgear_notes: DEC enable + ramp props under JSBSim orbitron / DEC systems when implemented.
+  - step: F
+    description: Arc strike permissive — only if D and E true
+    flightgear_notes: /controls/orbitron/arc-enable
+
+primary_controls:
+  - name: MASTER ARM
+    kind: guarded_toggle
+    description: Gates permissives for propulsive sequence.
+  - name: COMPRESSOR SPEED / INLET GUIDE
+    kind: knob_0_1
+    description: Mass flow demand; drives /controls/orbitron/compressor.
+  - name: ARC CURRENT COMMAND
+    kind: optional_override
+    description: Default 0.875 A at full DEC when modeled.
+  - name: NBI / REACTOR THROTTLE
+    kind: existing_keys
+    description: W/S keys; keep tied to /controls/reactor/throttle.
+  - name: EMERGENCY SHUTDOWN
+    kind: guarded_action
+    description: Dumps arc, opens compressor bleed, holds sled brakes.
+
+telemetry_engine_reactor:
+  - quantity: Gross electrical power
+    unit: MW
+    property: /fdm/jsbsim/systems/reactor/gross-power-mw
+  - quantity: DEC voltage
+    unit: MV
+    property: extend_when_implemented
+    notes: Pair with DEC current (A) for arc column impedance estimate.
+  - quantity: DEC current
+    unit: A
+    property: extend_when_implemented
+  - quantity: Bremsstrahlung / anode heat load
+    unit: kW
+    property: /fdm/jsbsim/systems/reactor/heat-kw
+  - quantity: Q-factor
+    unit: dimensionless
+    property: fusion_bookkeeping_optional
+    notes: Optional hide in arcjet-only display modes.
+  - quantity: Arc channel light / UV proxy
+    unit: arbitrary
+    property: future_from_surrogate_brightness
+    notes: Map from surrogate “brightness” when available.
+
+telemetry_air_path_thrust:
+  - quantity: Compressor corrected speed
+    property: stub_ok
+  - quantity: Inlet total pressure / temperature
+    property: stub_ok
+  - quantity: Mass flow
+    unit: kg/s
+    property: /fdm/jsbsim/systems/arcjet/mass-flow-kgps
+  - quantity: Nozzle throat static P/T
+    property: stubs_for_0d
+  - quantity: Gross thrust
+    unit: lbf
+    property: /fdm/jsbsim/systems/arcjet/thrust-lbf
+  - quantity: Specific impulse surrogate
+    unit: s
+    property: derived_thrust_over_mdot_g0
+    notes: Derived thrust / (mdot * g0).
+
+telemetry_structural_sled:
+  - quantity: Four load cells
+    unit: lbf
+    property: per_corner_when_implemented
+    notes: Average + imbalance alarm in console logic.
+  - quantity: Rail displacement
+    unit: in
+    property: if_modeled
+  - quantity: Sled longitudinal acceleration
+    property: if_modeled
+
+alarms_annunciators:
+  - id: ARC_UNSTABLE
+    description: Oscillation index from surrogate crossing threshold.
+  - id: THRUST_LIMIT
+    description: e.g. greater than 4200 lbf.
+  - id: DETUNER_OVERPRESSURE
+    description: Blast detuner / sleeve overpressure.
+  - id: QUENCH_CRYO_LOSS
+    description: Magnet quench or cryo loss trip.
+
+human_in_the_loop_checkpoints:
+  narrative: |
+    After each software milestone, run these panel states and log property trees to the
+    flight recorder for regression evidence.
+  stages:
+    - id: 1
+      description: Cold panel — all props nominal OFF.
+    - id: 2
+      description: Magnet only.
+    - id: 3
+      description: Compressor windmilling.
+    - id: 4
+      description: Low-power arc.
+    - id: 5
+      description: Full thrust bracket.
