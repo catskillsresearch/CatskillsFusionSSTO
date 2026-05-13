@@ -224,6 +224,14 @@ ssto/orbitron/*.mp4
 ssto/orbitron/*.gif
 ssto/orbitron/diags/
 
+# ssto/ root: CAD script exports (regenerate under Aircraft/…/build or local only)
+ssto/*.gltf
+ssto/*.bin
+
+# Obsolete / non-FG repo art (screen texture may be added under Aircraft/…/Models only)
+ssto/orbitron/OrbitronTestStand.png
+ssto/orbitron/Orbitron-TestStand/Models/warpx_frame.png
+
 # Makefile output: FlightGear aircraft tree + intermediates
 Aircraft/
 

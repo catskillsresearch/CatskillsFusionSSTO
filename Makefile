@@ -308,14 +308,12 @@ $(MERMAID_OUT): $(GRAPH_INPUTS) | $(STAND)/.dirs
 	echo '    fset["repo …/Orbitron-TestStand-set.xml"] --> rsync'; \
 	echo '    fjsb["repo …/orbitron-jsbsim.xml"] --> rsync'; \
 	echo '    foxml["repo …/Models/Orbitron.xml"] --> rsync'; \
-	echo '    fpng["repo …/Models/warpx_frame.png"] --> rsync'; \
 	echo '    fnas["repo …/Nasal/*.nas"] --> rsync'; \
 	echo '    fsnd["repo …/Sounds/sound.xml"] --> rsync'; \
 	echo '  end'; \
 	echo '  rsync --> a_set["Aircraft/…/Orbitron-TestStand-set.xml"]'; \
 	echo '  rsync --> a_jsb["Aircraft/…/orbitron-jsbsim.xml"]'; \
 	echo '  rsync --> a_ox["Aircraft/…/Models/Orbitron.xml"]'; \
-	echo '  rsync --> a_png["Aircraft/…/Models/warpx_frame.png"]'; \
 	echo '  rsync --> a_nas["Aircraft/…/Nasal/*.nas"]'; \
 	echo '  rsync --> a_snd["Aircraft/…/Sounds/sound.xml"]'; \
 	echo '  subgraph FG["FlightGear"]'; \
@@ -324,7 +322,6 @@ $(MERMAID_OUT): $(GRAPH_INPUTS) | $(STAND)/.dirs
 	echo '  a_set --> fg'; \
 	echo '  a_jsb --> fg'; \
 	echo '  a_ox --> fg'; \
-	echo '  a_png --> fg'; \
 	echo '  a_nas --> fg'; \
 	echo '  a_snd --> fg'; \
 	echo '  ac --> fg'; \
