@@ -28,8 +28,9 @@ section_c_goal_artifact_map: |
       postprocessing_animate_plasma_note).
   2 → ssto/orbitron/laminar_flow_2d_arcjet.py
   3 → assembly_specs/orbitron_operator_console_spec.yaml
-  4 → ssto/orbitron/arcjet_test_stand_cad.py + Orbitron-TestStand/orbitron-jsbsim.xml +
-      Orbitron-TestStand-set.xml + Orbitron-TestStand/Nasal/reactor_ui.nas
+  4 → arcjet_test_stand_cad.py + tools/templates/orbitron-jsbsim.xml +
+      assembly_specs/orbitron_aircraft_flightgear.yaml (→ Aircraft/… set.xml, Orbitron.xml, jsbsim copy) +
+      Orbitron-TestStand/Nasal/reactor_ui.nas
   5 → tools/warpx_to_jsbsim_surrogate.py + Aircraft/Orbitron-TestStand/engine_surrogate.json (generated)
 
 section_d_surrogate_to_runtime: |

@@ -1,7 +1,8 @@
 # Orbitron-TestStand → FlightGear under ./Aircraft (incremental).
-# All computed assets (glTF, .ac, WAV, surrogate JSON, sound.xml) live under Aircraft/ only;
-# ssto/orbitron/Orbitron-TestStand/ holds source XML/Nasal; sound.xml is generated there from
-# assembly_specs/orbitron_sound_assets.yaml (tools/compile_sound_xml_from_yaml.py).
+# All computed assets (glTF, .ac, WAV, surrogate JSON, sound.xml, Orbitron-TestStand-set.xml,
+# orbitron-jsbsim.xml, Models/Orbitron.xml) live under Aircraft/ only;
+# ssto/orbitron/Orbitron-TestStand/ holds Nasal + paths consumed at runtime; shell XML from
+# assembly_specs/orbitron_aircraft_flightgear.yaml (tools/compile_orbitron_aircraft_runtime.py).
 
 REPO_ROOT := $(abspath .)
 ORBITRON := $(REPO_ROOT)/ssto/orbitron
@@ -28,22 +29,16 @@ WARPX_MAKE_ARGS ?=
 # Static aircraft sources only (no generated wav / .ac / surrogate in tree)
 STAND_SRC_FILES := $(shell find $(ORBITRON)/Orbitron-TestStand -type f \
 	'!' -path '*/Models/orbitron.ac' \
+	'!' -path '*/Models/Orbitron.xml' \
+	'!' -name 'Orbitron-TestStand-set.xml' \
+	'!' -name 'orbitron-jsbsim.xml' \
 	'!' -name 'engine_surrogate.json' \
 	'!' -name 'sound.xml' \
 	'!' -name '*.wav' 2>/dev/null)
 
-SUR_DEP_ALL := \
-	$(REPO_ROOT)/tools/build_surrogate_map.py \
-	$(REPO_ROOT)/tools/warpx_to_jsbsim_surrogate.py \
-	$(REPO_ROOT)/tools/warpx_expression_presets.py \
-	$(ORBITRON_PHYSICS_SPEC) \
-	$(ORBITRON_PHYSICS_SPEC_PY) \
-	$(ORBITRON)/laminar_flow_2d_arcjet.py
-
 MERMAID_OUT := $(STAND)/build/dependency_graph.mmd
 PARTS_MERMAID := $(STAND)/build/orbitron_ac_parts_hierarchy.mmd
 PARTS_LOGICAL_MERMAID := $(STAND)/build/orbitron_logical_assemblies.mmd
-ORBITRON_MODEL_XML := $(ORBITRON)/Orbitron-TestStand/Models/Orbitron.xml
 ASSEMBLY_SPECS_DIR := $(ORBITRON)/assembly_specs
 ORBITRON_LOGICAL_ASSEMBLIES := $(ASSEMBLY_SPECS_DIR)/orbitron_logical_assemblies.yaml
 LOGICAL_ASSEMBLIES_SPEC_PY := $(REPO_ROOT)/tools/orbitron_logical_assemblies_spec.py
@@ -66,6 +61,19 @@ COMPILE_SOUND_XML := $(REPO_ROOT)/tools/compile_sound_xml_from_yaml.py
 ORBITRON_SOUND_XML := $(STAND)/Sounds/sound.xml
 ORBITRON_PHYSICS_SPEC := $(ASSEMBLY_SPECS_DIR)/orbitron_physics_surrogate.yaml
 ORBITRON_PHYSICS_SPEC_PY := $(REPO_ROOT)/tools/orbitron_physics_spec.py
+ORBITRON_MODEL_XML := $(STAND)/Models/Orbitron.xml
+ORBITRON_AIRCRAFT_SPEC := $(ASSEMBLY_SPECS_DIR)/orbitron_aircraft_flightgear.yaml
+COMPILE_AIRCRAFT_RUNTIME := $(REPO_ROOT)/tools/compile_orbitron_aircraft_runtime.py
+JSBSIM_TEMPLATE := $(REPO_ROOT)/tools/templates/orbitron-jsbsim.xml
+STAND_FG_SET := $(STAND)/Orbitron-TestStand-set.xml
+STAND_JSBSIM_XML := $(STAND)/orbitron-jsbsim.xml
+SUR_DEP_ALL := \
+	$(REPO_ROOT)/tools/build_surrogate_map.py \
+	$(REPO_ROOT)/tools/warpx_to_jsbsim_surrogate.py \
+	$(REPO_ROOT)/tools/warpx_expression_presets.py \
+	$(ORBITRON_PHYSICS_SPEC) \
+	$(ORBITRON_PHYSICS_SPEC_PY) \
+	$(ORBITRON)/laminar_flow_2d_arcjet.py
 YAML_LAB_COMPILER_DEPS := \
 	$(REPO_ROOT)/tools/compile_assembly_yaml.py \
 	$(REPO_ROOT)/tools/yaml_assembly/compiler.py \
@@ -78,6 +86,7 @@ YAML_LAB_COMPILER_DEPS := \
 # Inputs that define the build graph (edit Makefile subgraph block when topology changes).
 GRAPH_INPUTS := Makefile $(ORBITRON_LAB_YAMLS) $(YAML_LAB_COMPILER_DEPS) \
 	$(ORBITRON_SOUND_ASSETS) $(SOUND_COMPILER) $(COMPILE_SOUND_XML) \
+	$(ORBITRON_AIRCRAFT_SPEC) $(COMPILE_AIRCRAFT_RUNTIME) $(JSBSIM_TEMPLATE) \
 	$(ORBITRON_PHYSICS_SPEC) $(ORBITRON_PHYSICS_SPEC_PY) $(REPO_ROOT)/tools/warpx_expression_presets.py \
 	$(ORBITRON)/build_ac3d.py $(ORBITRON)/fix_screen_uv.py $(SUR_DEP_ALL) \
 	$(REPO_ROOT)/tools/orbitron_ac_hierarchy_mmd.py \
@@ -132,8 +141,18 @@ $(ORBITRON_SOUND_XML): $(ORBITRON_SOUND_ASSETS) $(COMPILE_SOUND_XML) | $(STAND)/
 	cd '$(REPO_ROOT)' && $(POETRY) run python $(COMPILE_SOUND_XML) \
 		--spec '$(ORBITRON_SOUND_ASSETS)' --out '$(ORBITRON_SOUND_XML)'
 
-$(STAND)/.static_synced: $(STAND_SRC_FILES) $(ORBITRON_SOUND_XML) | $(STAND)/.dirs
-	rsync -a --exclude='Models/orbitron.ac' --exclude='engine_surrogate.json' --exclude='*.wav' \
+$(STAND_FG_SET) $(STAND_JSBSIM_XML) $(ORBITRON_MODEL_XML) &: \
+		$(ORBITRON_AIRCRAFT_SPEC) $(ORBITRON_PHYSICS_SPEC) $(COMPILE_AIRCRAFT_RUNTIME) $(JSBSIM_TEMPLATE) \
+		| $(STAND)/.dirs
+	cd '$(REPO_ROOT)' && $(POETRY) run python $(COMPILE_AIRCRAFT_RUNTIME) \
+		--aircraft-spec '$(ORBITRON_AIRCRAFT_SPEC)' \
+		--physics-spec '$(ORBITRON_PHYSICS_SPEC)' \
+		--out-dir '$(STAND)'
+
+$(STAND)/.static_synced: $(STAND_SRC_FILES) $(ORBITRON_SOUND_XML) $(STAND_FG_SET) $(STAND_JSBSIM_XML) $(ORBITRON_MODEL_XML) | $(STAND)/.dirs
+	rsync -a --exclude='Models/orbitron.ac' --exclude='Models/Orbitron.xml' \
+		--exclude='Orbitron-TestStand-set.xml' --exclude='orbitron-jsbsim.xml' \
+		--exclude='engine_surrogate.json' --exclude='*.wav' \
 		$(ORBITRON)/Orbitron-TestStand/ $(STAND)/
 	touch $@
 
@@ -304,16 +323,21 @@ $(MERMAID_OUT): $(GRAPH_INPUTS) | $(STAND)/.dirs
 	echo '    snd_py --> w8["Aircraft/.../Sounds/orbitron_stressor_loop.wav"]'; \
 	echo '    snd_py --> w9["Aircraft/.../Sounds/reactor_audio_heavy.wav"]'; \
 	echo '  end'; \
+	echo '  subgraph FGAIR["FG aircraft shell (YAML → XML)"]'; \
+	echo '    fg_air_yaml["orbitron_aircraft_flightgear.yaml"]'; \
+	echo '    fg_air_py["compile_orbitron_aircraft_runtime.py"]'; \
+	echo '    fg_jsb_tmpl["tools/templates/orbitron-jsbsim.xml"]'; \
+	echo '    fg_air_yaml --> fg_air_py'; \
+	echo '    phy2["orbitron_physics_surrogate.yaml"] --> fg_air_py'; \
+	echo '    fg_jsb_tmpl --> fg_air_py'; \
+	echo '    fg_air_py --> a_set["Aircraft/…/Orbitron-TestStand-set.xml"]'; \
+	echo '    fg_air_py --> a_jsb["Aircraft/…/orbitron-jsbsim.xml"]'; \
+	echo '    fg_air_py --> a_ox["Aircraft/…/Models/Orbitron.xml"]'; \
+	echo '  end'; \
 	echo '  subgraph SYNC["Makefile rsync"]'; \
 	echo '    rsync["rsync → Aircraft"]'; \
-	echo '    fset["repo …/Orbitron-TestStand-set.xml"] --> rsync'; \
-	echo '    fjsb["repo …/orbitron-jsbsim.xml"] --> rsync'; \
-	echo '    foxml["repo …/Models/Orbitron.xml"] --> rsync'; \
 	echo '    fnas["repo …/Nasal/*.nas"] --> rsync'; \
 	echo '  end'; \
-	echo '  rsync --> a_set["Aircraft/…/Orbitron-TestStand-set.xml"]'; \
-	echo '  rsync --> a_jsb["Aircraft/…/orbitron-jsbsim.xml"]'; \
-	echo '  rsync --> a_ox["Aircraft/…/Models/Orbitron.xml"]'; \
 	echo '  rsync --> a_nas["Aircraft/…/Nasal/*.nas"]'; \
 	echo '  subgraph FG["FlightGear"]'; \
 	echo '    fg["fgfs"]'; \
@@ -342,7 +366,7 @@ graph: $(MERMAID_OUT)
 
 # Mesh part inclusion tree (Mermaid); complements dependency_graph.mmd (build pipeline).
 # Physical AC tree + logical assembly Mermaid (grouped rule: one recipe, two outputs).
-$(PARTS_MERMAID) $(PARTS_LOGICAL_MERMAID) &: $(REPO_ROOT)/tools/orbitron_ac_hierarchy_mmd.py $(STAND)/Models/orbitron.ac $(ORBITRON_MODEL_XML) $(ORBITRON_LOGICAL_ASSEMBLIES) | $(STAND)/.dirs
+$(PARTS_MERMAID) $(PARTS_LOGICAL_MERMAID) &: $(REPO_ROOT)/tools/orbitron_ac_hierarchy_mmd.py $(STAND)/Models/orbitron.ac $(ORBITRON_MODEL_XML) $(ORBITRON_LOGICAL_ASSEMBLIES) $(ORBITRON_AIRCRAFT_SPEC) $(COMPILE_AIRCRAFT_RUNTIME) $(JSBSIM_TEMPLATE) | $(STAND)/.dirs
 	mkdir -p $(STAND)/build
 	cd $(REPO_ROOT) && python3 tools/orbitron_ac_hierarchy_mmd.py \
 		--ac '$(STAND)/Models/orbitron.ac' \

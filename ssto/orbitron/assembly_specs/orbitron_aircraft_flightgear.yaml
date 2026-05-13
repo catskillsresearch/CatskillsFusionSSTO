@@ -1,0 +1,75 @@
+# FlightGear aircraft shell + model placement (Orbitron-TestStand-set.xml, Models/Orbitron.xml).
+# orbitron-jsbsim.xml is emitted from tools/templates/orbitron-jsbsim.xml (structure) until
+# a full JSBSim AST exists in YAML.
+#
+# Consumed by: tools/compile_orbitron_aircraft_runtime.py
+# Bilinear surrogate corner scales (thrust / mdot / power / heat ctc) default from
+# orbitron_physics_surrogate.yaml surrogate_engineering when fg_set.surrogate_from_physics: true.
+
+schema_version: 1
+spec_kind: orbitron_aircraft_flightgear
+title: Orbitron-TestStand FlightGear + model placement
+
+fg_set:
+  surrogate_from_physics: true
+  # /sim/model/orbitron/surrogate/* bilinear c0, ct, cc, ctc (beam row is FG-specific stubs)
+  surrogate_beam_screen_kw:
+    c0: 0
+    ct: 55
+    cc: 48
+    ctc: 320
+  description: Orbitron p-B11 Test Stand
+  author: Catskills Aerospace
+  status: alpha
+  minimum_fg_version: 2020.3.0
+  flight_model: jsb
+  aero: orbitron-jsbsim
+  model_path: Models/Orbitron.xml
+  reactor_flags:
+    startup_trigger: false
+    debug_ui_window: false
+    startup_commissioning_audio: false
+  sound:
+    path: Sounds/sound.xml
+    chatter_volume: 0.0
+    atc_volume: 0.0
+    avionics_volume: 0.0
+  view_operator:
+    name: Operator View
+    type: lookfrom
+    internal: true
+    x_offset_m: 0.0
+    y_offset_m: 2.0
+    z_offset_m: 2.0
+    pitch_offset_deg: -8.0
+  controls_defaults:
+    reactor_throttle: 0.0
+    orbitron_compressor: 0.0
+  keyboard:
+    - { key_n: 32, name: SPACE, desc: Toggle Reactor Ignition, toggle_property: /sim/model/reactor/startup-trigger }
+    - { key_n: 119, name: w, desc: Increase NBI Injection, adjust_property: /controls/reactor/throttle, step: 0.1, min: 0.0, max: 1.0 }
+    - { key_n: 115, name: s, desc: Decrease NBI Injection, adjust_property: /controls/reactor/throttle, step: -0.1, min: 0.0, max: 1.0 }
+    - { key_n: 109, name: m, desc: Toggle Reactor Telemetry Debug Window, toggle_property: /sim/model/reactor/debug-ui-window }
+    - { key_n: 117, name: u, desc: Increase compressor command, adjust_property: /controls/orbitron/compressor, step: 0.1, min: 0.0, max: 1.0 }
+    - { key_n: 106, name: j, desc: Decrease compressor command, adjust_property: /controls/orbitron/compressor, step: -0.1, min: 0.0, max: 1.0 }
+  nasal:
+    - { id: surrogate_load, file: Nasal/surrogate_load.nas }
+    - { id: reactor_ui, file: Nasal/reactor_ui.nas }
+
+fg_model_orbitron_xml:
+  ac_path: orbitron.ac
+  comment: Mesh orbitron.ac from orbitron_lab.gltf; tune offsets if the rig sits wrong on the runway.
+  offsets:
+    pitch_deg: 0
+    roll_deg: 0
+    heading_deg: 90
+    y_m: 10.0
+    z_m: -0.5
+  pick_animations:
+    - object_name: Big_Red_Button
+      button: 0
+      repeatable: false
+      toggle_property: /sim/model/reactor/startup-trigger
+
+jsbsim:
+  template_file: orbitron-jsbsim.xml

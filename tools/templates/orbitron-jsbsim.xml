@@ -1,4 +1,6 @@
 <?xml version="1.0"?>
+<!-- Source: tools/templates/orbitron-jsbsim.xml — copied to Aircraft/Orbitron-TestStand by
+     tools/compile_orbitron_aircraft_runtime.py (see assembly_specs/orbitron_aircraft_flightgear.yaml). -->
 <fdm_config name="Orbitron-TestStand" version="2.0" release="BETA"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="http://jsbsim.sourceforge.net/JSBSim.xsd">
