@@ -24,6 +24,15 @@ assembly:
     **B₂H₆** is the engineered **gaseous boron carrier** to the injector/NBI path; **H₂**
     is the **NBI co-injectant** (stability / proton inventory); **CH₄** (liquid) is
     primarily **thermal management**, not the boron carrier.
+
+    **``fusion_arcjet_engine`` (glTF / scene root):** FlightGear and Blender see this
+    name as the **nested export root** wrapping ``test_stand``. **Scale-up architecture
+    (flight article):** on the order of **~1000** niobium **anode discharge channels**
+    (boron inventory per cell after dissociation narrative) packed in a **hex-close** or
+    similar **cluster**, all **inside one common solenoid / magnet bore**—one magnetic
+    volume, many parallel pressure boundaries. **This lab mesh** is the **1×1 surrogate**:
+    **one ``Magnet``**, **one ``Anode``**, same logical air path and services discipline
+    as the multi-cell article, without modeling the full bundle.
 logical:
   root: test_stand
   scene_root_name: fusion_arcjet_engine
@@ -56,8 +65,8 @@ logical:
   - term: Liquid methane thermal loop
     definition: Cryogenic liquid CH₄ used as a working fluid for **anode / boundary
       Bremsstrahlung heat removal** and related plant cryogenics in this concept; it
-      is **not** the boron carrier. Coarse CAD may still route a CH₄ leg alongside
-      injectant trunks for visual continuity—see instance narratives for roles.
+      is **not** the boron carrier. In the lab glTF, routing is through ``Cryo_Methane_Piping``
+      under ``methane_tank_assy`` (the redundant CH₄ leg on the old combined injectant trunk was removed).
   connections:
   - from: Tank_Hydrogen
     to: Pipe_H2_Feed
@@ -72,15 +81,11 @@ logical:
     label: B2H6 line — gaseous boron carrier to NBI / injector manifold
     kind: dotted
   - from: Pipe_H2_Feed
-    to: Fuel_Gas_Lines
-    label: H2 injectant trunk toward magnet / NBI manifold (co-fed with B2H6)
-    kind: dotted
-  - from: Pipe_CH4_Feed
-    to: Fuel_Gas_Lines
-    label: Liquid CH4 service — thermal / plant manifold (mesh shares trunk with injectants)
+    to: Helium_Trunk_Line
+    label: H2 injectant trunk toward magnet / NBI manifold
     kind: dotted
   - from: Pipe_B2H6_Feed
-    to: Fuel_Gas_Lines
+    to: Boron_Trunk_Line
     label: B2H6 injectant trunk toward magnet / NBI manifold
     kind: dotted
   - from: Pipe_H2_Feed
@@ -112,8 +117,16 @@ logical:
     label: inlet → compressor
     kind: solid
   - from: Compressor_Can
+    to: Reactor_Bay_Inlet_Shroud
+    label: compressor discharge into reactor bay annulus jacket (outer shell)
+    kind: solid
+  - from: Reactor_Bay_Inlet_Shroud
+    to: Magnet
+    label: jacket bridges gap to solenoid shell; bore clears niobium / plasma boundary
+    kind: solid
+  - from: Reactor_Bay_Inlet_Shroud
     to: BD_Annulus_Sleeve
-    label: compressed air into reactor bay / annulus
+    label: same annulus / bypass circuit continues downstream toward detuner
     kind: dotted
   - from: BD_Annulus_Sleeve
     to: BD_Shock_Detuner_Core
@@ -164,81 +177,79 @@ logical:
         last; FlightGear is a visualization / integration discipline, not the end product.'
       members:
       - control_panel_stand
+      - thrust_sled
       - supply_tanks
       - fluid_and_electrical_services
       - air_breathing_engine
     control_panel_stand:
-      title: Control panel and stand
+      title: Control panel and operator station
+      detail: Desk, screen, emergency stop, and HV umbilical breakout toward the reactor
+        (rails and thrust deck are a separate ``thrust_sled`` assembly).
+      members:
+      - hv_umbilical
       parts:
+      - Big_Red_Button
       - Operator_Console
+      - Screen
+    thrust_sled:
+      title: Thrust sled
+      detail: Longitudinal rails and deck slab that carry the engine article on the pad;
+        thrust bookkeeping load cells remain on the fusion reactor group in this lab spec.
+      parts:
       - Rail_Left
       - Rail_Right
       - Thrust_Sled_Frame
-      - Screen
-      - Big_Red_Button
     supply_tanks:
       title: Supply tanks
+      members:
+      - tank_assy
+    tank_assy:
+      title: Tank farm assemblies
+      detail: One logical cluster per species; each child assembly carries **tank +
+        decal + tank-end valve boss + routed trunk** so sub-glTF exports read as coherent
+        packages. ``helium_tank_assy`` is a **bundle name** for the protium / H₂ injectant
+        hardware in this lab mesh.
+      members:
+      - methane_tank_assy
+      - boron_tank_assy
+      - helium_tank_assy
+    methane_tank_assy:
+      title: Methane tank assembly (cryo service)
+      detail: Liquid **CH₄** dewar, stencil, dewar-roof valve boss, and **cryostat leg**
+        to the magnet rim tap. The old black **CH₄ leg** on the combined ``Fuel_Gas_Lines``
+        trunk duplicated this thermal story; it was **removed**—only this assembly + ``Cryo_Methane_Piping``
+        carry CH₄ routing in coarse CAD.
       parts:
       - Tank_Cryo_Methane
-      - Tank_Diborane
-      - Tank_Hydrogen
-    fluid_and_electrical_services:
-      title: Cryo piping, fuel distribution, decals, HV umbilical
-      members:
-      - cryo_methane_services
-      - fuel_gas_distribution
-      - hv_umbilical
-      - decal_cluster
-    cryo_methane_services:
-      title: Cryo methane / LH2-style services
-      parts:
-      - Cryo_Methane_Piping
-    fuel_gas_distribution:
-      title: Fuel gas distribution (tank valves + rigid trunk)
-      members:
-      - pipe_h2_feed
-      - pipe_ch4_feed
-      - pipe_b2h6_feed
-      - fuel_gas_trunk
-    fuel_gas_trunk:
-      title: Rigid trunk to reactor magnet inlets
-      detail: Coarse CAD trunk carrying H₂ and B₂H₆ injectant services plus a CH₄
-        plant leg; CH₄ primary role is thermal / cryogenic service, not boron feed.
-      parts:
-      - Fuel_Gas_Lines
-    pipe_h2_feed:
-      title: H2 feed line assembly
-      detail: H2-compatible tubing to the NBI / injector manifold; co-injectant with
-        B₂H₆ for discharge stability (design narrative) and hydrogenic / proton inventory
-        for p-¹¹B after ionization—not the liquid CH₄ thermal loop.
-      parts:
-      - Pipe_H2_Feed
-    pipe_ch4_feed:
-      title: CH4 feed line assembly
-      detail: Cryogenic liquid CH₄ from the dewar toward plant thermal routing (anode
-        / boundary heat rejection in the design basis). Coarse mesh may share trunk
-        geometry with H₂/B₂H₆ injectant lines; roles differ—see glossary and assembly
-        narrative.
-      parts:
+      - Decal_CH4
       - Pipe_CH4_Feed
-    pipe_b2h6_feed:
-      title: B2H6 feed line assembly
-      detail: Low-flow diborane line (toxic / pyrophoric handling class) to the NBI
-        / injector train—gaseous boron carrier; joins the H₂ injectant tree toward the
-        manifold. Isotopic spec on boron (¹¹B enrichment vs natural ~80% ¹¹B) is a
-        procurement / neutronics matter, not implied by the mesh alone.
+      - Cryo_Methane_Piping
+    boron_tank_assy:
+      title: Boron (B₂H₆) tank assembly
+      detail: Diborane cylinder, stencil, tank-roof valve boss, and **dedicated** B₂H₆ injectant trunk.
       parts:
+      - Tank_Diborane
+      - Decal_B2H6
       - Pipe_B2H6_Feed
+      - Boron_Trunk_Line
+    helium_tank_assy:
+      title: Helium tank assembly (protium / H₂ injectant)
+      detail: Bundle name **Helium** for export grouping; meshes are **gaseous hydrogen**
+        (NBI co-injectant), not a helium ash loop.
+      parts:
+      - Tank_Hydrogen
+      - Decal_H2
+      - Pipe_H2_Feed
+      - Helium_Trunk_Line
+    fluid_and_electrical_services:
+      title: Auxiliary services (placeholder)
+      detail: Fuel and cryo tank assemblies live under ``supply_tanks.tank_assy``. This
+        node is reserved for future non-tank service bundles in the glTF tree.
+      members: []
     hv_umbilical:
       title: High voltage umbilical
       parts:
       - High_Voltage_Umbilical
-    decal_cluster:
-      title: Tank decals (marking only)
-      parts:
-      - Decal_B2H6
-      - Decal_CH4
-      - Decal_H2
     fusion_hot_gas_outlet:
       title: Core exhaust / outlet plane
       detail: Working fluid and enthalpy exit from the fusion package toward the CD
@@ -247,11 +258,13 @@ logical:
       - Fusion_Hot_Gas_Outlet
     fusion_reactor:
       title: Fusion reactor assembly
-      detail: 'p-¹¹B-class crossed-field electrostatic narrative: boron enters as B₂H₆
-        gas to the NBI/injector path (not solid boron); protons from hydrogenic inventory
-        after dissociation. Primary headline channel ``¹H + ¹¹B → 3 ⁴He``. Wall power
-        (Bremsstrahlung-scale in the design article) requires active anode thermal
-        management—liquid CH₄ loop in the plant basis.'
+      detail: '**Scale note:** flight article is **many anode channels (~1000) in a
+        hex-close cluster** under **one** common ``Magnet`` bore; this lab exports **one
+        anode + one magnet** as a surrogate. p-¹¹B-class crossed-field electrostatic narrative:
+        boron enters as B₂H₆ gas to the NBI/injector path (not solid boron); protons
+        from hydrogenic inventory after dissociation. Primary headline channel ``¹H + ¹¹B → 3 ⁴He``.
+        Wall power (Bremsstrahlung-scale in the design article) requires active anode
+        thermal management—liquid CH₄ loop in the plant basis.'
       members:
       - fusion_hot_gas_outlet
       parts:
@@ -286,16 +299,32 @@ logical:
       - BD_Bracket_Seals
     blast_detuner_assembly:
       title: Blast detuner module (annulus shell, core insert, flange hardware)
+      detail: Coarse **lab-scale** bypass duct between magnet OD and nozzle plenum; insert
+        **conditions shocks in the bypass stream** (not acoustic silencing). Fusion
+        exhaust is a **separate** path through ``Fusion_Hot_Gas_Outlet``—see instance
+        narratives.
       members:
       - bd_annulus_path
       - bd_shock_detuner_core
       - bd_brackets_seals
+    reactor_inlet_jacket:
+      title: Reactor bay inlet jacket (compressor → annulus)
+      detail: Coarse **outer shell** in the axial gap between the compressor housing
+        and the solenoid. **Design intent:** working air feeds the **annulus / jacket
+        path** around the niobium pressure boundary, then continues toward the blast-detuner
+        module—not through the plasma bore. The compressor **centre bore** to the anode
+        face is **structural / sealing** in this mesh, not the main propulsive air path.
+      parts:
+      - Reactor_Bay_Inlet_Shroud
     reactor_duct_shielding:
       title: Reactor bay duct & shielding
       members:
       - blast_detuner_assembly
     turbofan_intake:
       title: Electric turbofan / inlet path
+      detail: Bellmouth + compressor can sit **outside the anode on −X** (not buried
+        in the bore) so the mesh reads **air in −X → fusion bay → hot gas +X → CD
+        nozzle**.
       parts:
       - Bellmouth_Inlet
       - Compressor_Can
@@ -327,6 +356,7 @@ logical:
       title: Reactor bay (fusion core inside the engine flowpath)
       members:
       - fusion_reactor
+      - reactor_inlet_jacket
       - reactor_duct_shielding
     air_breathing_engine:
       title: Air-breathing engine (reactor module embedded in the duct)
@@ -432,8 +462,7 @@ instances:
     narrative: 'Larger dewar for **liquid CH₄**. **Role:** primary plant fluid for
       **anode / boundary thermal management** (Bremsstrahlung-scale wall heat in the
       design article)—not the boron carrier. Pairs with **Cryo_Methane_Piping** and the
-      CH₄ decal; coarse CAD may also show a CH₄ leg on **Fuel_Gas_Lines** for visual
-      continuity with the injectant trunks.
+      CH₄ decal under ``methane_tank_assy``; dewar-roof boss is ``Pipe_CH4_Feed``.
 
       '
     template: lab_tank_cryo_methane
@@ -533,145 +562,45 @@ instances:
         from_port: console_hv_header
         to_port: reactor_magnet_hv_feed
         radius: 0.018
-        description: Segmented jog clear of the screen, then climb to the solenoid
-          top centre.
+        description: Segmented jog from console cluster toward the solenoid crown feed.
         waypoints:
-        - - -0.55
-          - -1.45
-          - 1.42
-        - - 0.1
-          - -0.5
+        - - -0.35
+          - -3.15
+          - 1.32
+        - - 0.18
+          - -1.05
+          - 1.2
+        - - 0.46
+          - -0.12
           - 0.78
-        - - 0.52
-          - -0.05
-          - 0.48
+        - - 0.55
+          - 0.0
+          - 0.45
     color:
     - 0.9
     - 0.4
     - 0.0
     transform_chain: []
-  Fuel_Gas_Lines:
-    narrative: 'Polylines from farm tank tops to **separate** magnet-shell inlets—H₂
-      and B₂H₆ are **NBI injectant** services; the CH₄ leg in this coarse mesh is the
-      **liquid methane plant / thermal** service routed with the same trunk for layout
-      continuity (see assembly narrative and glossary). Anchors in ``LabInfrastructure.fuel_line_connector_anchors()``.
+  Helium_Trunk_Line:
+    narrative: 'Dedicated **H₂ injectant** polyline from the H₂ tank roof port to the
+      magnet farm-face inlet (subset of the former combined ``Fuel_Gas_Lines`` mesh).
+      Bundled under ``helium_tank_assy`` for sub-assembly export.
 
       '
-    template: lab_fuel_gas_lines
-    params:
-      include_port_markers: false
-      connectivity_spec:
-        physical_story: 'H₂ and B₂H₆ are the **NBI / injector** pair: hydrogen for stability
-          and hydrogenic inventory, diborane as the **gaseous boron carrier** (p-¹¹B
-          after dissociation). The CH₄ leg routed on the same trunk in this mesh is the
-          **liquid methane thermal / plant** circuit—**not** a boron feed—see ``Liquid
-          methane thermal loop`` in the glossary.
+    template: lab_h2_injectant_trunk
+    params: {}
+    color:
+    - 0.2
+    - 0.2
+    - 0.2
+    transform_chain: []
+  Boron_Trunk_Line:
+    narrative: 'Dedicated **B₂H₆ injectant** polyline from the diborane tank roof to the
+      magnet inlet (subset of the former combined ``Fuel_Gas_Lines`` mesh).
 
-          '
-        links:
-        - link_id: h2_service
-          service: process_h2
-          from_region: fuel_farm_h2_tank
-          to_region: reactor_magnet_shell_farm_face
-          routing_intent: arc_over_deck_then_h2_side_inlet
-        - link_id: b2h6_service
-          service: diborane_nbi_boron_carrier
-          from_region: fuel_farm_b2h6_tank
-          to_region: reactor_magnet_shell_farm_face
-          routing_intent: arc_over_deck_then_centre_inlet
-        - link_id: ch4_service
-          service: liquid_methane_thermal_loop
-          from_region: fuel_farm_ch4_dewar
-          to_region: reactor_magnet_shell_farm_face
-          routing_intent: arc_over_deck_then_ch4_side_inlet
-      connector_ports:
-      - id: tank_h2_out
-        anchor: fuel_farm_h2_tank_top
-        offset:
-        - 0.0
-        - 0.0
-        - 0.0
-        description: H2 cylinder top centre (matches CadQuery fuel farm).
-      - id: reactor_h2_in
-        anchor: reactor_fuel_h2_in
-        offset:
-        - 0.0
-        - 0.0
-        - 0.0
-        description: Magnet +Y shell inlet on the H₂-ward side of the solenoid (spread
-          in +X).
-      - id: tank_b2h6_out
-        anchor: fuel_farm_b2h6_tank_top
-        offset:
-        - 0.0
-        - 0.0
-        - 0.0
-        description: Diborane cylinder top centre.
-      - id: reactor_b2h6_in
-        anchor: reactor_fuel_b2h6_in
-        offset:
-        - 0.0
-        - 0.0
-        - 0.0
-        description: Magnet +Y shell inlet near tube centreline for the **B₂H₆ / boron**
-          injectant leg.
-      - id: tank_ch4_out
-        anchor: fuel_farm_ch4_dewar_top
-        offset:
-        - 0.0
-        - 0.0
-        - 0.0
-        description: Cryo methane dewar top centre (shorter dewar than H2/B2).
-      - id: reactor_ch4_in
-        anchor: reactor_fuel_ch4_in
-        offset:
-        - 0.0
-        - 0.0
-        - 0.0
-        description: Magnet +Y shell inlet on the −X side for the **liquid CH₄ thermal /
-          plant** leg (coarse mesh; anode jacket detail not modeled explicitly).
-      connector_links:
-      - id: h2_service
-        service: process_h2
-        from_port: tank_h2_out
-        to_port: reactor_h2_in
-        radius: 0.02
-        description: Hydrogen — polyline clears the deck edge then meets the magnet
-          back face.
-        waypoints:
-        - - 0.62
-          - 0.82
-          - 0.98
-        - - 0.76
-          - 0.36
-          - 0.38
-      - id: b2h6_service
-        service: diborane_nbi_boron_carrier
-        from_port: tank_b2h6_out
-        to_port: reactor_b2h6_in
-        radius: 0.02
-        description: Diborane — gaseous boron carrier to NBI / injector manifold.
-        waypoints:
-        - - 0.04
-          - 0.82
-          - 0.96
-        - - 0.38
-          - 0.36
-          - 0.32
-      - id: ch4_service
-        service: liquid_methane_thermal_loop
-        from_port: tank_ch4_out
-        to_port: reactor_ch4_in
-        radius: 0.028
-        description: Liquid CH₄ — thermal / plant service toward magnet routing (mesh
-          shares trunk with injectants).
-        waypoints:
-        - - -0.52
-          - 0.88
-          - 0.82
-        - - 0.02
-          - 0.42
-          - 0.34
+      '
+    template: lab_b2h6_injectant_trunk
+    params: {}
     color:
     - 0.2
     - 0.2
@@ -680,8 +609,7 @@ instances:
   Cryo_Methane_Piping:
     narrative: 'Light-grey **cryostat** leg: liquid **CH₄** from the dewar to a high
       tap on the magnet shell for **anode / boundary thermal management** (paired with
-      **Tank_Cryo_Methane**). Visually distinct from the black **Fuel_Gas_Lines** injectant
-      trunk. Air-path compressor hardware stays under ``air_breathing_engine``.
+      **Tank_Cryo_Methane** under ``methane_tank_assy``). Air-path compressor hardware stays under ``air_breathing_engine``.
 
       '
     template: lab_cryo_methane_piping
@@ -799,8 +727,8 @@ instances:
       - -2.3
       - 0.0
   Pipe_H2_Feed:
-    narrative: 'H2 service valve / flex-jumper boss at the hydrogen tank roof (mates
-      Fuel_Gas_Lines trunk).
+    narrative: 'H₂ service valve / flex-jumper boss at the hydrogen tank roof (tank-end
+      fitting for ``Helium_Trunk_Line``).
 
       '
     template: lab_fuel_feed_valve
@@ -832,7 +760,7 @@ instances:
       - 1.2
       - 1.165
   Pipe_CH4_Feed:
-    narrative: 'Cryo methane dewar roof valve boss (process leg anchor near Fuel_Gas_Lines).
+    narrative: 'Cryo methane dewar roof valve boss (tank-end fitting for ``Cryo_Methane_Piping``).
 
       '
     template: lab_fuel_feed_valve
@@ -912,22 +840,22 @@ instances:
       - -0.35
       - 0.17
   Bellmouth_Inlet:
-    narrative: 'Coarse axisymmetric bellmouth: big mouth toward −X, throat toward
-      the compressor.
+    narrative: 'Coarse axisymmetric bellmouth: **large flare (−X)** reads as turbofan
+      / ram intake;
 
-      Sits with its foot on the deck reference height, then the whole vertical stack
-      is
+      throat mates the compressor stub on the **anode inlet plane** (−X face of the
+      core).
 
-      rotated +90° about deck Y through that foot so the bell lies along +X like a
-
-      ground-test ram path rather than a vertical tabletop toy.
+      Foot on deck height, rotate +90° about deck Y so the duct axis is +X, then
+      shift **−1 m in X** so the intake sits **outside** the niobium shell instead
+      of inside the bore.
 
       '
     template: bellmouth_flare
     params:
-      inlet_r: 0.18
-      throat_r: 0.05
-      length: 0.35
+      inlet_r: 0.3
+      throat_r: 0.06
+      length: 0.45
     color:
     - 0.55
     - 0.58
@@ -944,18 +872,23 @@ instances:
       - 0.0
       - 0.15
       angle_deg: 90.0
+    - op: translate
+      xyz:
+      - -1.0
+      - 0.0
+      - 0.0
   Compressor_Can:
-    narrative: 'Simple motor/compressor housing shell around the duct, stacked above
-      the bell
-
-      along the pre-rotation +Z axis, then rotated with the same deck pivot so it
-
-      lands on-axis behind the bellmouth along +X.
+    narrative: 'Motor/compressor housing on the **intake (−X) train** (stacked with
+      the bell, same pivot, then **−1 m X**). **Centre bore** meets the niobium inlet
+      flange for **structural / sealing** geometry in this coarse mesh; **propulsive
+      air** is intended to leave the housing **into the outer jacket** and is modeled
+      by **Reactor_Bay_Inlet_Shroud** feeding the annulus around the core—not through
+      the plasma volume.
 
       '
     template: compressor_housing
     params:
-      od: 0.14
+      od: 0.16
       length: 0.25
     color:
     - 0.55
@@ -966,13 +899,37 @@ instances:
       xyz:
       - 0.0
       - 0.0
-      - 0.5
+      - 0.6
     - op: rotate_y_about_point
       pivot:
       - 0.0
       - 0.0
       - 0.15
       angle_deg: 90.0
+    - op: translate
+      xyz:
+      - -1.0
+      - 0.0
+      - 0.0
+  Reactor_Bay_Inlet_Shroud:
+    narrative: 'Annulus jacket stub in the **axial gap** between compressor housing
+      (−X) and solenoid shell: OD matches the magnet band, ID clears the anode / flange.
+      Makes the **compressor → bay annulus → detuner** path visible; centreline bore
+      to the anode remains **seal / structure**, not shop air through the discharge.
+
+      '
+    template: bay_inlet_annulus_shroud
+    params: {}
+    color:
+    - 0.42
+    - 0.44
+    - 0.48
+    transform_chain:
+    - op: translate
+      xyz:
+      - 0.0
+      - 0.0
+      - 0.15
   Fusion_Hot_Gas_Outlet:
     narrative: 'Thin outlet ring at the anode / bay exhaust plane—structural stand-in
       for the
@@ -1004,10 +961,11 @@ instances:
       - 0.0
       - 0.0
   Anode:
-    narrative: 'Main niobium anode cylinder with end openings; outer pressure boundary
-      for the core before flow turns toward the CD nozzle. **Design basis:** Bremsstrahlung-scale
-      wall heat is removed by a **liquid CH₄ cooling jacket** (plant narrative)—not
-      modeled as separate surface mesh here.
+    narrative: 'Niobium pressure shell with **asymmetric ends**: **−Z** (intake after
+      lab rotation) carries a **bolted mounting flange** and open bore for the compressor
+      train; **+Z** carries a **thicker exhaust boss** toward the outlet ring. Five
+      shallow **OD jacket rings** stand in for liquid CH₄ jacket segmentation. Same
+      inner clearance as the legacy thin-wall cylinder for DEC / cathode inserts.
 
       '
     template: orbitron_anode
@@ -1153,9 +1111,11 @@ instances:
       - 0.15
       angle_deg: 90.0
   Nozzle_Inlet_Plenum:
-    narrative: 'Converging adapter / plenum stub immediately downstream of Fusion_Hot_Gas_Outlet;
+    narrative: 'Converging adapter / plenum stub **mated to Fusion_Hot_Gas_Outlet**
+      (+X core exhaust);
 
-      first axial segment of the propulsive_nozzle assembly.
+      first segment of the propulsive nozzle (pre-rotation +Z positions map to +X
+      along the same axis as the core).
 
       '
     template: nozzle_inlet_plenum
@@ -1169,7 +1129,7 @@ instances:
       xyz:
       - 0.0
       - 0.0
-      - 2.75
+      - 1.75
     - op: rotate_y_about_point
       pivot:
       - 0.0
@@ -1192,7 +1152,7 @@ instances:
       xyz:
       - 0.0
       - 0.0
-      - 2.82
+      - 1.82
     - op: rotate_y_about_point
       pivot:
       - 0.0
@@ -1215,7 +1175,7 @@ instances:
       xyz:
       - 0.0
       - 0.0
-      - 2.87
+      - 1.87
     - op: rotate_y_about_point
       pivot:
       - 0.0
@@ -1223,12 +1183,18 @@ instances:
       - 0.15
       angle_deg: 90.0
   BD_Annulus_Sleeve:
-    narrative: 'Annulus passage shell routing compressor / bypass air around the shock
-      detuner core.
+    narrative: '**Outer bypass duct** segment: annular shell sized to the lab solenoid
+      OD, sitting **immediately downstream of the magnet** and feeding the **propulsive
+      air path** toward the CD nozzle. Coarse mesh: flow is in the **ring gap** around
+      the central shock insert, **not** through the niobium plasma bore.
 
       '
     template: bd_annulus_sleeve
-    params: {}
+    params:
+      inner_flow_r: 0.1
+      annulus_gap: 0.034
+      wall: 0.018
+      length: 0.14
     color:
     - 0.35
     - 0.35
@@ -1238,7 +1204,7 @@ instances:
       xyz:
       - 0.0
       - 0.0
-      - 2.95
+      - 1.5
     - op: rotate_y_about_point
       pivot:
       - 0.0
@@ -1246,12 +1212,16 @@ instances:
       - 0.15
       angle_deg: 90.0
   BD_Shock_Detuner_Core:
-    narrative: 'Central insert volume that conditions shocks before flow reaches the
-      bolting flange.
+    narrative: '**Fluidic shock / blast conditioning insert** (not an acoustic silencer):
+      a porous or multi-port cavity narrative that **softens pressure spikes** in the
+      bypass stream before the flange to the nozzle plenum. Solid shown **inside** the
+      annulus sleeve bore; working air passes **around** it in the sleeve gap.
 
       '
     template: bd_shock_core_insert
-    params: {}
+    params:
+      radius: 0.082
+      length: 0.09
     color:
     - 0.32
     - 0.32
@@ -1261,7 +1231,7 @@ instances:
       xyz:
       - 0.0
       - 0.0
-      - 3.15
+      - 1.48
     - op: rotate_y_about_point
       pivot:
       - 0.0
@@ -1269,12 +1239,18 @@ instances:
       - 0.15
       angle_deg: 90.0
   BD_Bracket_Seals:
-    narrative: 'Bolted flange + seal land tying the detuner module to the nozzle plenum
-      / duct shell.
+    narrative: 'Seal land / bolted flange **between detuner module and nozzle plenum**:
+      closes the bypass duct **before** the CD nozzle hardware. **Fusion hot gas** is
+      a separate narrative path through ``Fusion_Hot_Gas_Outlet`` into the nozzle train;
+      this flange is primarily the **air-breathing bypass** load path.
 
       '
     template: bd_bracket_seal_flange
-    params: {}
+    params:
+      outer_r: 0.152
+      inner_r: 0.058
+      thickness: 0.036
+      n_bolts: 8
     color:
     - 0.38
     - 0.38
@@ -1284,7 +1260,7 @@ instances:
       xyz:
       - 0.0
       - 0.0
-      - 4.83
+      - 1.585
     - op: rotate_y_about_point
       pivot:
       - 0.0

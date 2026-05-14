@@ -7,6 +7,7 @@ from typing import Any, Callable
 import cadquery as cq
 
 from arcjet_test_stand_cad import (
+    bay_inlet_annulus_shroud,
     bd_annulus_sleeve,
     bd_bracket_seal_flange,
     bd_shock_core_insert,
@@ -22,7 +23,13 @@ from arcjet_test_stand_cad import (
     rail_beam,
     thrust_sled_frame,
 )
-from full_reactor_cad import IntegratedOrbitronTube, LabInfrastructure, fusion_exhaust_outlet_ring
+from full_reactor_cad import (
+    IntegratedOrbitronTube,
+    LabInfrastructure,
+    fusion_exhaust_outlet_ring,
+    lab_b2h6_injectant_trunk_params,
+    lab_h2_injectant_trunk_params,
+)
 
 from yaml_assembly.connector_routing import build_connector_routing
 
@@ -43,6 +50,15 @@ def tpl_compressor_housing(**params: Any) -> cq.Workplane:
     return compressor_housing(
         od=float(params.get("od", 0.14)),
         length=float(params.get("length", 0.25)),
+    )
+
+
+def tpl_bay_inlet_annulus_shroud(**params: Any) -> cq.Workplane:
+    return bay_inlet_annulus_shroud(
+        x0=float(params.get("x0", -0.31)),
+        length=float(params.get("length", 0.175)),
+        outer_r=float(params.get("outer_r", 0.149)),
+        inner_r=float(params.get("inner_r", 0.088)),
     )
 
 
@@ -215,6 +231,18 @@ def tpl_lab_fuel_gas_lines(**params: Any) -> cq.Workplane:
     return gas
 
 
+def tpl_lab_h2_injectant_trunk(**params: Any) -> cq.Workplane:
+    anchors = LabInfrastructure().fuel_line_connector_anchors()
+    merged = {**lab_h2_injectant_trunk_params(), **params}
+    return build_connector_routing(merged, anchors)
+
+
+def tpl_lab_b2h6_injectant_trunk(**params: Any) -> cq.Workplane:
+    anchors = LabInfrastructure().fuel_line_connector_anchors()
+    merged = {**lab_b2h6_injectant_trunk_params(), **params}
+    return build_connector_routing(merged, anchors)
+
+
 def tpl_lab_cryo_methane_piping(**params: Any) -> cq.Workplane:
     if params.get("connector_ports") and params.get("connector_links"):
         anchors = LabInfrastructure().cryo_methane_connector_anchors()
@@ -241,6 +269,7 @@ def tpl_lab_big_red_button(**_: Any) -> cq.Workplane:
 TEMPLATE_REGISTRY: dict[str, Callable[..., cq.Workplane]] = {
     "bellmouth_flare": tpl_bellmouth_flare,
     "compressor_housing": tpl_compressor_housing,
+    "bay_inlet_annulus_shroud": tpl_bay_inlet_annulus_shroud,
     "nozzle_stub": tpl_nozzle_stub,
     "nozzle_inlet_plenum": tpl_nozzle_inlet_plenum,
     "nozzle_cd_contour": tpl_nozzle_cd_contour,
@@ -268,6 +297,8 @@ TEMPLATE_REGISTRY: dict[str, Callable[..., cq.Workplane]] = {
     "lab_decal_ch4": tpl_lab_decal_ch4,
     "lab_hv_umbilical": tpl_lab_hv_umbilical,
     "lab_fuel_gas_lines": tpl_lab_fuel_gas_lines,
+    "lab_h2_injectant_trunk": tpl_lab_h2_injectant_trunk,
+    "lab_b2h6_injectant_trunk": tpl_lab_b2h6_injectant_trunk,
     "lab_cryo_methane_piping": tpl_lab_cryo_methane_piping,
     "lab_operator_console_desk": tpl_lab_operator_console_desk,
     "lab_operator_screen": tpl_lab_operator_screen,

@@ -23,6 +23,24 @@ def compressor_housing(od: float = 0.14, length: float = 0.25) -> cq.Workplane:
     return shell.cut(bore)
 
 
+def bay_inlet_annulus_shroud(
+    x0: float = -0.31,
+    length: float = 0.175,
+    outer_r: float = 0.149,
+    inner_r: float = 0.088,
+) -> cq.Workplane:
+    """Hollow shell along +X bridging compressor housing and solenoid OD.
+
+    Coarse stand-in for **compressor discharge into the reactor-bay annulus** (working
+    air outside the niobium plasma boundary). Built in lab axes: bore clears the
+    anode + inlet flange; OD matches the magnet shell radius band used in
+    ``IntegratedOrbitronTube``.
+    """
+    shell = cq.Workplane("YZ").workplane(offset=x0).circle(outer_r).extrude(length)
+    bore = cq.Workplane("YZ").workplane(offset=x0 - 0.001).circle(inner_r).extrude(length + 0.02)
+    return shell.cut(bore)
+
+
 def thrust_sled_frame(
     length: float = 2.2, width: float = 1.0, rail_h: float = 0.08
 ) -> cq.Workplane:
