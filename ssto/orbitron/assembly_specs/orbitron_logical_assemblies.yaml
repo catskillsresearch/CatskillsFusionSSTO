@@ -1,6 +1,8 @@
 # Logical assembly tree + glossary + schematic connections for nested lab glTF and Mermaid.
 # Consumed by tools/gltf_nest_from_assemblies.py and tools/orbitron_ac_hierarchy_mmd.py (via
 # tools/orbitron_logical_assemblies_spec.py).
+# Every group below either lists ``parts`` / ``mesh_parts`` or ``members`` that resolve to meshes;
+# connection endpoints are glTF / AC mesh object names.
 
 root: test_stand
 glossary:
@@ -10,47 +12,46 @@ glossary:
     or feed gas around a central module before it rejoins a core or nozzle.'
 - term: Blast / shock detuner
   definition: 'A short fluidic insert or multi-port cavity whose job is to tame abrupt pressure spikes
-    (blasts or strong shocks) so upstream hardware sees gentler gradients. In a diagram it is treated
-    as an assembly: annulus path, detuner core geometry, and structural/sealing hardware—even when CAD
-    is merged into one mesh.'
+    (blasts or strong shocks) so upstream hardware sees gentler gradients. This lab mesh splits the coarse
+    module into an annulus sleeve, a central insert, and a bolting / seal flange at the nozzle interface.'
 - term: CD (convergent–divergent) nozzle
   definition: A supersonic nozzle with a converging section, a minimum-area throat, and a diverging section.
-    The stub mesh in FG is one envelope; operationally it still has an inlet plenum interface, the contoured
-    CD passage, and exit flanges/struts.
+    The lab exports three coarse solids (inlet plenum adapter, throat-forward CD segment, divergent exit)
+    that tile axially behind the reactor outlet ring.
 connections:
 - from: Tank_Hydrogen
-  to: pipe_h2_feed
+  to: Pipe_H2_Feed
   label: tank fitting / flex jumper
   kind: dotted
 - from: Tank_Cryo_Methane
-  to: pipe_ch4_feed
+  to: Pipe_CH4_Feed
   label: CH4 service from cryo methane tank
   kind: dotted
 - from: Tank_Diborane
-  to: pipe_b2h6_feed
+  to: Pipe_B2H6_Feed
   label: B2H6 blend / tracer line
   kind: dotted
-- from: pipe_h2_feed
+- from: Pipe_H2_Feed
   to: Fuel_Gas_Lines
-  label: same CAD mesh carries all three feeds
+  label: trunk carries blended routing to magnet inlets
   kind: dotted
-- from: pipe_ch4_feed
+- from: Pipe_CH4_Feed
   to: Fuel_Gas_Lines
-  label: same CAD mesh carries all three feeds
+  label: trunk carries blended routing to magnet inlets
   kind: dotted
-- from: pipe_b2h6_feed
+- from: Pipe_B2H6_Feed
   to: Fuel_Gas_Lines
-  label: same CAD mesh carries all three feeds
+  label: trunk carries blended routing to magnet inlets
   kind: dotted
-- from: pipe_h2_feed
+- from: Pipe_H2_Feed
   to: DEC_Grid
   label: H2 toward grid / plenum region (schematic)
   kind: dotted
-- from: pipe_ch4_feed
+- from: Pipe_CH4_Feed
   to: DEC_Grid
   label: CH4 toward grid (schematic)
   kind: dotted
-- from: pipe_b2h6_feed
+- from: Pipe_B2H6_Feed
   to: DEC_Grid
   label: B2H6 toward blend point (schematic)
   kind: dotted
@@ -71,52 +72,48 @@ connections:
   label: inlet → compressor
   kind: solid
 - from: Compressor_Can
-  to: bd_annulus_path
-  label: compressed air into reactor bay / annulus (schematic)
+  to: BD_Annulus_Sleeve
+  label: compressed air into reactor bay / annulus
   kind: dotted
-- from: bd_annulus_path
-  to: bd_shock_detuner_core
+- from: BD_Annulus_Sleeve
+  to: BD_Shock_Detuner_Core
   label: annulus gas into detuner throat
   kind: solid
-- from: bd_shock_detuner_core
-  to: bd_brackets_seals
+- from: BD_Shock_Detuner_Core
+  to: BD_Bracket_Seals
   label: pressure loads & seals
   kind: solid
-- from: bd_annulus_path
+- from: BD_Annulus_Sleeve
   to: DEC_Grid
   label: conditioned flow couples core periphery
   kind: dotted
-- from: bd_shock_detuner_core
+- from: BD_Shock_Detuner_Core
   to: Magnet
   label: shock management near magnetic volume (concept)
   kind: dotted
-- from: fusion_hot_gas_outlet
-  to: nozzle_inlet_plenum
+- from: Fusion_Hot_Gas_Outlet
+  to: Nozzle_Inlet_Plenum
   label: core exhaust plane → nozzle inlet
   kind: solid
 - from: DEC_Grid
-  to: fusion_hot_gas_outlet
+  to: Fusion_Hot_Gas_Outlet
   label: grid plenum toward outlet (schematic)
   kind: dotted
-- from: nozzle_inlet_plenum
-  to: nozzle_cd_contour
+- from: Nozzle_Inlet_Plenum
+  to: Nozzle_CD_Contour
   label: inlet conditioning → CD contour
   kind: solid
-- from: nozzle_cd_contour
-  to: nozzle_exit_hardware
+- from: Nozzle_CD_Contour
+  to: Nozzle_Exit_Hardware
   label: contour → exit struts / flange
   kind: solid
-- from: nozzle_inlet_plenum
-  to: fusion_hot_gas_outlet
+- from: Nozzle_Inlet_Plenum
+  to: Fusion_Hot_Gas_Outlet
   label: axis / interface alignment
   kind: dotted
-- from: nozzle_cd_contour
-  to: CD_Nozzle_Stub
-  label: geometry inside one mesh
-  kind: dotted
-- from: bd_brackets_seals
-  to: CD_Nozzle_Stub
-  label: duct shell ties to nozzle flange (concept)
+- from: BD_Bracket_Seals
+  to: Nozzle_Inlet_Plenum
+  label: detuner flange mates nozzle plenum
   kind: dotted
 groups:
   test_stand:
@@ -153,28 +150,34 @@ groups:
     parts:
     - Cryo_Methane_Piping
   fuel_gas_distribution:
-    title: Fuel gas distribution (one mesh — three service assemblies)
-    mesh_parts:
-    - Fuel_Gas_Lines
+    title: Fuel gas distribution (tank valves + rigid trunk)
     members:
     - pipe_h2_feed
     - pipe_ch4_feed
     - pipe_b2h6_feed
+    - fuel_gas_trunk
+  fuel_gas_trunk:
+    title: Rigid trunk to reactor magnet inlets
+    parts:
+    - Fuel_Gas_Lines
   pipe_h2_feed:
-    logical_only: true
     title: H2 feed line assembly
     detail: H2-compatible tubing, filters, flex section, and fittings sized for hydrogen service; terminates
       in connectors toward the reactor manifold / grid region.
+    parts:
+    - Pipe_H2_Feed
   pipe_ch4_feed:
-    logical_only: true
     title: CH4 feed line assembly
     detail: Cryogenic methane-rated line from the methane tank to the blend manifold; includes thermal
       breaks and service valves (concept).
+    parts:
+    - Pipe_CH4_Feed
   pipe_b2h6_feed:
-    logical_only: true
     title: B2H6 / blend feed line assembly
     detail: Low-flow diborane or blend line with compatible seals and trace heating where needed; joins
       the CH4/H2 plumbing tree (concept).
+    parts:
+    - Pipe_B2H6_Feed
   hv_umbilical:
     title: High voltage umbilical
     parts:
@@ -186,10 +189,11 @@ groups:
     - Decal_CH4
     - Decal_H2
   fusion_hot_gas_outlet:
-    logical_only: true
     title: Core exhaust / outlet plane
-    detail: Working fluid and enthalpy exit from the fusion package toward the CD nozzle; not a separate
-      AC object—shown for attachment topology only.
+    detail: Working fluid and enthalpy exit from the fusion package toward the CD nozzle; represented as a
+      thin outlet ring mesh at the anode exit plane.
+    parts:
+    - Fusion_Hot_Gas_Outlet
   fusion_reactor:
     title: Fusion reactor assembly
     members:
@@ -206,24 +210,25 @@ groups:
     - LoadCell_2
     - LoadCell_3
   bd_annulus_path:
-    logical_only: true
     title: Annulus flow path
     detail: Ring-shaped bypass / conditioning passage carrying compressor or bypass air around the core
       before it meets the detuner throat or re-enters the core periphery.
+    parts:
+    - BD_Annulus_Sleeve
   bd_shock_detuner_core:
-    logical_only: true
     title: Shock detuner core
     detail: Shaped insert or multi-port cavity that softens or redirects shocks so downstream structures
       (magnet, grid, nozzle interface) see bounded gradients.
+    parts:
+    - BD_Shock_Detuner_Core
   bd_brackets_seals:
-    logical_only: true
     title: Detuner structure, seals, and interfaces
     detail: Load path hardware, seals, and flanges that tie the detuner insert to the duct shell and to
       the nozzle / reactor hardpoints.
+    parts:
+    - BD_Bracket_Seals
   blast_detuner_assembly:
-    title: Blast detuner module (single mesh — multi-part function)
-    mesh_parts:
-    - Blast_Detuner
+    title: Blast detuner module (annulus shell, core insert, flange hardware)
     members:
     - bd_annulus_path
     - bd_shock_detuner_core
@@ -238,23 +243,24 @@ groups:
     - Bellmouth_Inlet
     - Compressor_Can
   nozzle_inlet_plenum:
-    logical_only: true
     title: Nozzle inlet plenum / adapter
     detail: Turns the reactor outlet / bay flow into a uniform annulus or round feed for the CD contour;
       carries structural interface to the reactor shell.
+    parts:
+    - Nozzle_Inlet_Plenum
   nozzle_cd_contour:
-    logical_only: true
     title: CD contour / throat region
     detail: Converging section, minimum-area throat, and start of divergent flaps—supersonic design intent
-      even if merged in one mesh.
+      in a coarse segmented mesh.
+    parts:
+    - Nozzle_CD_Contour
   nozzle_exit_hardware:
-    logical_only: true
     title: Exit hardware & flange
     detail: Exit struts, flange to thrust frame, and instrumentation bosses at the nozzle tail.
+    parts:
+    - Nozzle_Exit_Hardware
   propulsive_nozzle:
     title: Propulsive nozzle assembly
-    mesh_parts:
-    - CD_Nozzle_Stub
     members:
     - nozzle_inlet_plenum
     - nozzle_cd_contour

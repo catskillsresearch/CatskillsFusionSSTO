@@ -7,15 +7,24 @@ from typing import Any, Callable
 import cadquery as cq
 
 from arcjet_test_stand_cad import (
+    bd_annulus_sleeve,
+    bd_bracket_seal_flange,
+    bd_shock_core_insert,
     bellmouth_flare,
     blast_detuner,
     compressor_housing,
+    lab_fuel_feed_valve,
     load_cell_puck,
+    nozzle_cd_contour,
+    nozzle_exit_hardware,
+    nozzle_inlet_plenum,
     nozzle_stub,
     rail_beam,
     thrust_sled_frame,
 )
-from full_reactor_cad import IntegratedOrbitronTube, LabInfrastructure
+from full_reactor_cad import IntegratedOrbitronTube, LabInfrastructure, fusion_exhaust_outlet_ring
+
+from yaml_assembly.connector_routing import build_connector_routing
 
 
 def _tube() -> tuple[cq.Workplane, ...]:
@@ -50,6 +59,71 @@ def tpl_blast_detuner(**params: Any) -> cq.Workplane:
         inner_r=float(params.get("inner_r", 0.35)),
         wall=float(params.get("wall", 0.04)),
         length=float(params.get("length", 2.0)),
+    )
+
+
+def tpl_nozzle_inlet_plenum(**params: Any) -> cq.Workplane:
+    return nozzle_inlet_plenum(
+        inlet_r=float(params.get("inlet_r", 0.056)),
+        mid_r=float(params.get("mid_r", 0.048)),
+        length=float(params.get("length", 0.07)),
+    )
+
+
+def tpl_nozzle_cd_contour(**params: Any) -> cq.Workplane:
+    return nozzle_cd_contour(
+        r0=float(params.get("r0", 0.048)),
+        throat_r=float(params.get("throat_r", 0.045)),
+        length=float(params.get("length", 0.05)),
+    )
+
+
+def tpl_nozzle_exit_hardware(**params: Any) -> cq.Workplane:
+    return nozzle_exit_hardware(
+        throat_r=float(params.get("throat_r", 0.045)),
+        exit_r=float(params.get("exit_r", 0.09)),
+        length=float(params.get("length", 0.08)),
+    )
+
+
+def tpl_bd_annulus_sleeve(**params: Any) -> cq.Workplane:
+    return bd_annulus_sleeve(
+        inner_flow_r=float(params.get("inner_flow_r", 0.34)),
+        annulus_gap=float(params.get("annulus_gap", 0.048)),
+        wall=float(params.get("wall", 0.042)),
+        length=float(params.get("length", 0.75)),
+    )
+
+
+def tpl_bd_shock_core_insert(**params: Any) -> cq.Workplane:
+    return bd_shock_core_insert(
+        radius=float(params.get("radius", 0.29)),
+        length=float(params.get("length", 0.9)),
+    )
+
+
+def tpl_bd_bracket_seal_flange(**params: Any) -> cq.Workplane:
+    return bd_bracket_seal_flange(
+        outer_r=float(params.get("outer_r", 0.42)),
+        inner_r=float(params.get("inner_r", 0.33)),
+        thickness=float(params.get("thickness", 0.06)),
+        n_bolts=int(params.get("n_bolts", 8)),
+    )
+
+
+def tpl_lab_fuel_feed_valve(**params: Any) -> cq.Workplane:
+    return lab_fuel_feed_valve(
+        body_r=float(params.get("body_r", 0.045)),
+        stem_r=float(params.get("stem_r", 0.018)),
+        stem_h=float(params.get("stem_h", 0.055)),
+    )
+
+
+def tpl_orbitron_exhaust_outlet_ring(**params: Any) -> cq.Workplane:
+    return fusion_exhaust_outlet_ring(
+        outer_r=float(params.get("outer_r", 0.082)),
+        inner_r=float(params.get("inner_r", 0.055)),
+        thickness=float(params.get("thickness", 0.016)),
     )
 
 
@@ -125,17 +199,26 @@ def tpl_lab_decal_ch4(**_: Any) -> cq.Workplane:
     return _infra().build_fuel_farm()[5]
 
 
-def tpl_lab_hv_umbilical(**_: Any) -> cq.Workplane:
+def tpl_lab_hv_umbilical(**params: Any) -> cq.Workplane:
+    if params.get("connector_ports") and params.get("connector_links"):
+        anchors = LabInfrastructure().hv_connector_anchors()
+        return build_connector_routing(params, anchors)
     hv, _, _ = _infra().build_rigid_plumbing()
     return hv
 
 
-def tpl_lab_fuel_gas_lines(**_: Any) -> cq.Workplane:
+def tpl_lab_fuel_gas_lines(**params: Any) -> cq.Workplane:
+    if params.get("connector_ports") and params.get("connector_links"):
+        anchors = LabInfrastructure().fuel_line_connector_anchors()
+        return build_connector_routing(params, anchors)
     _, gas, _ = _infra().build_rigid_plumbing()
     return gas
 
 
-def tpl_lab_cryo_methane_piping(**_: Any) -> cq.Workplane:
+def tpl_lab_cryo_methane_piping(**params: Any) -> cq.Workplane:
+    if params.get("connector_ports") and params.get("connector_links"):
+        anchors = LabInfrastructure().cryo_methane_connector_anchors()
+        return build_connector_routing(params, anchors)
     _, _, meth = _infra().build_rigid_plumbing()
     return meth
 
@@ -159,7 +242,15 @@ TEMPLATE_REGISTRY: dict[str, Callable[..., cq.Workplane]] = {
     "bellmouth_flare": tpl_bellmouth_flare,
     "compressor_housing": tpl_compressor_housing,
     "nozzle_stub": tpl_nozzle_stub,
+    "nozzle_inlet_plenum": tpl_nozzle_inlet_plenum,
+    "nozzle_cd_contour": tpl_nozzle_cd_contour,
+    "nozzle_exit_hardware": tpl_nozzle_exit_hardware,
     "blast_detuner": tpl_blast_detuner,
+    "bd_annulus_sleeve": tpl_bd_annulus_sleeve,
+    "bd_shock_core_insert": tpl_bd_shock_core_insert,
+    "bd_bracket_seal_flange": tpl_bd_bracket_seal_flange,
+    "lab_fuel_feed_valve": tpl_lab_fuel_feed_valve,
+    "orbitron_exhaust_outlet_ring": tpl_orbitron_exhaust_outlet_ring,
     "thrust_sled_frame": tpl_thrust_sled_frame,
     "rail_beam": tpl_rail_beam,
     "load_cell_puck": tpl_load_cell_puck,

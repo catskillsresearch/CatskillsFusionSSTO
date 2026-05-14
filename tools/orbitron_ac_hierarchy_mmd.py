@@ -2,8 +2,7 @@
 """Emit Mermaid from orbitron.ac: physical AC3D tree and optional logical assemblies.
 
 Physical tree: OBJECT / kids under world. Logical tree: nested subgraphs from
-orbitron_logical_assemblies.yaml (parts / mesh_parts, members, logical_only
-subcomponents, connections[], glossary[]). Mesh names must match orbitron.ac.
+orbitron_logical_assemblies.yaml (nested lab / Mermaid logical graph). Mesh names must match orbitron.ac.
 """
 from __future__ import annotations
 

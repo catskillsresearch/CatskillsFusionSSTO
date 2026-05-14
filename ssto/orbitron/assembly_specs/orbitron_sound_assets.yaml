@@ -81,7 +81,7 @@ sounds:
       reference_dist: 2.8
       max_dist: 100.0
 
-  - part_mesh: CD_Nozzle_Stub
+  - part_mesh: Nozzle_Exit_Hardware
     narrative: |
       Nozzle / cell broadband rumble for the propulsive tail when thrust is non-zero.
     description_formal: |
@@ -211,7 +211,7 @@ sounds:
       reference_dist: 3.0
       max_dist: 90.0
 
-  - part_mesh: Blast_Detuner
+  - part_mesh: BD_Annulus_Sleeve
     narrative: |
       Heated-air / secondary-duct turbulence under off-design massflow (conceptual).
     description_formal: |

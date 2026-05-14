@@ -8,14 +8,14 @@ assembly:
   title: Orbitron fusion arcjet laboratory (composed from sub-assemblies)
   narrative: |
     This is the “final integration” view: bring the deck and services (C), bolt the
-    air path (A) and fusion spine (B) onto the same world frame, then add the CD nozzle
-    stub and blast detuner as the propulsive tail (D-only instances) so hot gas leaves
+    air path (A) and fusion spine (B) onto the same world frame, then add the segmented
+    CD nozzle and blast-detuner hardware as the propulsive tail (D-only instances) so hot gas leaves
     along +X toward the detuner cans. The order of includes below is only for Outliner
     grouping—every leaf mesh is already placed in world coordinates, so you can still
     compile A, B, or C alone and see a coherent sub-assembly without double transforms.
     Use Blender’s right-hand tree to expand test_stand_and_services → …, then
-    air_breathing_intake → …, then fusion_reactor_stack → …, and finally the nozzle /
-    detuner children of this root.
+    air_breathing_intake → …, then fusion_reactor_stack → …, and finally the segmented
+    nozzle plus blast-detuner hardware on the +X tail.
 
 includes:
   - file: test_stand_and_services.yaml
@@ -37,32 +37,63 @@ includes:
       as the bell so the crossed-field hardware reads as one horizontal spine.
 
 instances:
-  - id: CD_Nozzle_Stub
+  - id: Nozzle_Inlet_Plenum
     narrative: |
-      Short converging–diverging loft downstream of the 2 m anode stack; carries the
-      propulsive_nozzle story from orbitron_logical_assemblies.yaml even though finer
-      plenum / contour nodes remain logical-only there.
-    template: nozzle_stub
-    params:
-      throat_r: 0.045
-      exit_r: 0.09
-      length: 0.2
+      Converging adapter / plenum stub immediately downstream of Fusion_Hot_Gas_Outlet;
+      first axial segment of the propulsive_nozzle assembly.
+    template: nozzle_inlet_plenum
+    params: {}
     color: [0.2, 0.2, 0.22]
     transform_chain:
       - { op: translate, xyz: [0.0, 0.0, 2.75] }
       - { op: rotate_y_about_point, pivot: [0.0, 0.0, 0.15], angle_deg: 90.0 }
 
-  - id: Blast_Detuner
+  - id: Nozzle_CD_Contour
     narrative: |
-      Short blast / shock detuner sleeve after the nozzle exit plane—same deck pivot
-      rule, translated downstream by the nozzle length so the detuner hangs off the +X
-      tail of the rig.
-    template: blast_detuner
-    params:
-      inner_r: 0.35
-      wall: 0.04
-      length: 2.0
+      Throat-forward CD segment between plenum adapter and divergent exit hardware.
+    template: nozzle_cd_contour
+    params: {}
+    color: [0.22, 0.22, 0.24]
+    transform_chain:
+      - { op: translate, xyz: [0.0, 0.0, 2.82] }
+      - { op: rotate_y_about_point, pivot: [0.0, 0.0, 0.15], angle_deg: 90.0 }
+
+  - id: Nozzle_Exit_Hardware
+    narrative: |
+      Divergent nozzle tail / exit hardware chunk mated to the blast-detuner flange.
+    template: nozzle_exit_hardware
+    params: {}
+    color: [0.18, 0.18, 0.2]
+    transform_chain:
+      - { op: translate, xyz: [0.0, 0.0, 2.87] }
+      - { op: rotate_y_about_point, pivot: [0.0, 0.0, 0.15], angle_deg: 90.0 }
+
+  - id: BD_Annulus_Sleeve
+    narrative: |
+      Annulus passage shell routing compressor / bypass air around the shock detuner core.
+    template: bd_annulus_sleeve
+    params: {}
     color: [0.35, 0.35, 0.38]
     transform_chain:
       - { op: translate, xyz: [0.0, 0.0, 2.95] }
+      - { op: rotate_y_about_point, pivot: [0.0, 0.0, 0.15], angle_deg: 90.0 }
+
+  - id: BD_Shock_Detuner_Core
+    narrative: |
+      Central insert volume that conditions shocks before flow reaches the bolting flange.
+    template: bd_shock_core_insert
+    params: {}
+    color: [0.32, 0.32, 0.36]
+    transform_chain:
+      - { op: translate, xyz: [0.0, 0.0, 3.15] }
+      - { op: rotate_y_about_point, pivot: [0.0, 0.0, 0.15], angle_deg: 90.0 }
+
+  - id: BD_Bracket_Seals
+    narrative: |
+      Bolted flange + seal land tying the detuner module to the nozzle plenum / duct shell.
+    template: bd_bracket_seal_flange
+    params: {}
+    color: [0.38, 0.38, 0.42]
+    transform_chain:
+      - { op: translate, xyz: [0.0, 0.0, 4.83] }
       - { op: rotate_y_about_point, pivot: [0.0, 0.0, 0.15], angle_deg: 90.0 }

@@ -11,13 +11,24 @@ assembly:
     niobium anode shell, DEC grid, cathode tip stack, ceramic insulators, solenoid
     block, and the side NBI injector. In the narrative these ride in one vertical
     column in CadQuery, then share the same deck pivot as the bell so the column
-    becomes a horizontal spine along +X. Load cells are not in this file—they sit on
-    the thrust deck in the test-stand YAML so you can validate the core without the
-    farm plumbing cluttering the view.
+    becomes a horizontal spine along +X. The exhaust outlet ring lives here so the
+    core export stays self-contained for Blender checks (load cells remain on the thrust deck YAML).
 
 includes: []
 
 instances:
+  - id: Fusion_Hot_Gas_Outlet
+    narrative: |
+      Thin outlet ring at the anode / bay exhaust plane—structural stand-in for the
+      fusion_hot_gas_outlet assembly in orbitron_logical_assemblies.yaml.
+    template: orbitron_exhaust_outlet_ring
+    params: {}
+    color: [0.75, 0.76, 0.8]
+    transform_chain:
+      - { op: translate, xyz: [0.0, 0.0, 0.75] }
+      - { op: rotate_y_about_point, pivot: [0.0, 0.0, 0.15], angle_deg: 90.0 }
+      - { op: translate, xyz: [1.02, 0.0, 0.0] }
+
   - id: Anode
     narrative: |
       Main niobium anode cylinder with end openings; defines the outer pressure vessel

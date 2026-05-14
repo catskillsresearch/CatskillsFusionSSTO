@@ -5,10 +5,11 @@ The flat input glTF comes from assembly YAML via ``tools/compile_assembly_yaml.p
 (``orbitron_lab_flat.gltf``), then ``tools/copy_gltf_with_stem.py`` to normalize the
 buffer URI to ``orbitron_lab.bin``. This script inserts assembly empties so Blender
 (and other glTF viewers) show the same nesting as the spec: one root (default name
-fusion_arcjet_engine) and recursive assembly nodes. Mesh leaves keep the same node
-indices, names, and mesh indices; mesh ``children`` entries are stripped from any
-pre-existing parents first so no mesh is parented twice (Blender 5.x glTF import
-requires this). Local transforms on mesh nodes are then rewritten so world-space
+fusion_arcjet_engine) and recursive assembly nodes. YAML groups with ``logical_only`` are
+omitted from the glTF tree (they remain in the YAML for Mermaid / ``connections[]`` only).
+Mesh leaves keep the same node indices, names, and mesh indices; mesh ``children`` entries
+are stripped from any pre-existing parents first so no mesh is parented twice (Blender 5.x
+glTF import requires this). Local transforms on mesh nodes are then rewritten so world-space
 placement matches the pre-detach CadQuery tree (otherwise parts drift apart).
 
 Run after stem copy; before build_ac3d.py. Requires PyYAML and NumPy (Poetry env).
@@ -221,15 +222,17 @@ def nest_gltf_nodes(
         nodes.append(node)
         return idx
 
-    def build_group(key: str) -> int:
+    def build_group(key: str) -> int | None:
         spec = groups[key]
         if spec.get("logical_only"):
-            return append_node({"name": key})
+            return None
 
         idx = append_node({"name": key, "children": []})
         child_indices: list[int] = []
         for mk in spec.get("members", []):
-            child_indices.append(build_group(str(mk)))
+            ci = build_group(str(mk))
+            if ci is not None:
+                child_indices.append(ci)
         for pname in mesh_parts_list(spec):
             mi = name_to_mesh_node.get(pname)
             if mi is None:
@@ -246,7 +249,11 @@ def nest_gltf_nodes(
     if not top_members:
         raise ValueError("root group has no members")
 
-    top_indices = [build_group(mk) for mk in top_members]
+    top_indices: list[int] = []
+    for mk in top_members:
+        ti = build_group(mk)
+        if ti is not None:
+            top_indices.append(ti)
     nodes[0]["name"] = root_node_name
     nodes[0]["children"] = top_indices
 

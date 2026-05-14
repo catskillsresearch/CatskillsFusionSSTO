@@ -1,5 +1,23 @@
 import cadquery as cq
 
+# Shared pose for reactor stack instances in fusion_reactor_stack.yaml (CadQuery → world).
+_FUSION_STACK_TRANSFORMS: list[dict[str, object]] = [
+    {"op": "translate", "xyz": [0.0, 0.0, 0.75]},
+    {"op": "rotate_y_about_point", "pivot": [0.0, 0.0, 0.15], "angle_deg": 90.0},
+]
+
+
+def fusion_exhaust_outlet_ring(
+    outer_r: float = 0.082,
+    inner_r: float = 0.055,
+    thickness: float = 0.016,
+) -> cq.Workplane:
+    """Thin annular flange at the anode / bay exhaust plane (coarse commissioning mesh)."""
+    disc = cq.Workplane("XY").circle(outer_r).extrude(thickness)
+    bore = cq.Workplane("XY").circle(inner_r).extrude(thickness + 0.01)
+    return disc.cut(bore)
+
+
 class IntegratedOrbitronTube:
     """The 3.5 MW p-B11 Reactor Core"""
     def build(self):
@@ -25,7 +43,41 @@ class IntegratedOrbitronTube:
 
 class LabInfrastructure:
     """The Test Facility (Rigid Pipes + Decals)"""
-    
+
+    @staticmethod
+    def fusion_stack_transforms() -> list[dict[str, object]]:
+        return list(_FUSION_STACK_TRANSFORMS)
+
+    def _magnet_world_bbox(self):
+        """Axis-aligned bbox of the solenoid ``Magnet`` solid after the fusion stack pose."""
+        from yaml_assembly.transform_ops import apply_transform_chain
+
+        *_, mag, _ = IntegratedOrbitronTube().build()
+        mag_w = apply_transform_chain(mag, _FUSION_STACK_TRANSFORMS)
+        return mag_w.val().BoundingBox()
+
+    def magnet_shell_connector_anchors(self) -> dict[str, tuple[float, float, float]]:
+        """Service points on the **magnet** shell (reference lab art: HV on top, fuel on farm side).
+
+        Tanks sit at +Y; the magnet’s +Y-facing surface is used for three separated process
+        gas inlets. HV terminates above the core; cryo CH₄ uses a high-Z / −X “rim” tap.
+        """
+        bb = self._magnet_world_bbox()
+        cx = (bb.xmin + bb.xmax) * 0.5
+        cy = (bb.ymin + bb.ymax) * 0.5
+        cz = (bb.zmin + bb.zmax) * 0.5
+        skin = 0.018
+        y_farm = bb.ymax + skin
+        z_top = bb.zmax + skin
+        # Spread along +X with the H₂ tank (decks +Y): right-ish, center, left-ish for CH₄ dewar.
+        return {
+            "reactor_magnet_fuel_h2_in": (cx + 0.24, y_farm, cz + 0.06),
+            "reactor_magnet_fuel_b2h6_in": (cx + 0.02, y_farm, cz + 0.02),
+            "reactor_magnet_fuel_ch4_in": (cx - 0.26, y_farm, cz - 0.02),
+            "reactor_magnet_hv_feed": (cx, cy, z_top),
+            "reactor_magnet_cryo_ch4_tap": (bb.xmin + 0.22, cy - 0.06, z_top),
+        }
+
     def build_table(self):
         legs = (cq.Workplane("XY").box(0.1, 0.1, 1.0).translate((0.6, 0.3, 0.5))
                 .union(cq.Workplane("XY").box(0.1, 0.1, 1.0).translate((-0.6, 0.3, 0.5)))
@@ -60,6 +112,47 @@ class LabInfrastructure:
         txt_ch4 = cq.Workplane("XZ").text("LIQUID METHANE", 0.05, 0.001).translate((-0.7, 0.949, 0.45))
         
         return h2, b2h6, dewar, txt_h2, txt_b2, txt_ch4
+
+    def fuel_line_connector_anchors(self) -> dict[str, tuple[float, float, float]]:
+        """World-space points for fuel routing (tank tops + magnet-shell inlets).
+
+        Tank tops match ``build_fuel_farm()``. Reactor-side points sit on the solenoid
+        ``Magnet`` bbox after the same ``transform_chain`` as ``fusion_reactor_stack.yaml``,
+        on the +Y farm-facing shell with X spread so the three services stay distinct.
+        """
+        z_trim = 0.035
+        h2_top = (0.6, 1.2, 1.2 - z_trim)
+        b2_top = (0.0, 1.2, 1.2 - z_trim)
+        ch4_top = (-0.7, 1.2, 0.9 - z_trim)
+
+        mag_ports = self.magnet_shell_connector_anchors()
+        return {
+            "fuel_farm_h2_tank_top": h2_top,
+            "fuel_farm_b2h6_tank_top": b2_top,
+            "fuel_farm_ch4_dewar_top": ch4_top,
+            "reactor_fuel_h2_in": mag_ports["reactor_magnet_fuel_h2_in"],
+            "reactor_fuel_b2h6_in": mag_ports["reactor_magnet_fuel_b2h6_in"],
+            "reactor_fuel_ch4_in": mag_ports["reactor_magnet_fuel_ch4_in"],
+        }
+
+    def hv_connector_anchors(self) -> dict[str, tuple[float, float, float]]:
+        """HV umbilical: operator console → magnet shell top (schematic feed; sim logic is XML/Nasal)."""
+        mag_ports = self.magnet_shell_connector_anchors()
+        console_hv = (-1.22, -2.32, 1.22)
+        return {
+            "console_hv_header": console_hv,
+            "reactor_magnet_hv_feed": mag_ports["reactor_magnet_hv_feed"],
+        }
+
+    def cryo_methane_connector_anchors(self) -> dict[str, tuple[float, float, float]]:
+        """Cryostat / CH₄ fill path: dewar roof → magnet high-side tap (reference lab layout)."""
+        z_trim = 0.035
+        dewar_top = (-0.7, 1.2, 0.9 - z_trim)
+        mag_ports = self.magnet_shell_connector_anchors()
+        return {
+            "cryo_ch4_dewar_out": dewar_top,
+            "reactor_magnet_cryo_ch4_tap": mag_ports["reactor_magnet_cryo_ch4_tap"],
+        }
 
     def build_rigid_plumbing(self):
         # CHANGED: Jogged the HV line 0.45m to the right so it doesn't block the screen

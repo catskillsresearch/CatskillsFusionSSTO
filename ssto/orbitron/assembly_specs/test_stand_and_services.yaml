@@ -16,6 +16,12 @@ assembly:
     a human can stand clear of the +X exhaust line. None of the air-breathing duct
     pieces live here—compile this YAML alone to verify the farm and sled before merging.
 
+    **Connectivity:** routed services (fuel, HV, cryo pipe) carry an optional
+    ``connectivity_spec`` inside ``params`` with ``physical_story`` and per-link
+    ``link_id`` / ``service`` / ``routing_intent`` fields. The compiler validates that
+    every ``link_id`` matches a ``connector_links[].id`` so narratives stay tied to
+    geometry. Anchor coordinates for those links resolve in ``full_reactor_cad.LabInfrastructure``.
+
 includes: []
 
 instances:
@@ -107,27 +113,176 @@ instances:
 
   - id: High_Voltage_Umbilical
     narrative: |
-      Orange segmented HV route jogged to the right in LabInfrastructure so it does
-      not occlude the operator screen; schematic toward the cathode in the JSON graph.
+      Schematic high-voltage umbilical from the operator console toward the reactor
+      solenoid shell (reference lab art: orange service reaches the magnet crown, not a
+      buried cathode tap). Real sequencing and interlocks stay in Nasal / XML; this
+      mesh only shows a plausible bus run the operator can see.
     template: lab_hv_umbilical
-    params: {}
+    params:
+      include_port_markers: false
+      connectivity_spec:
+        physical_story: |
+          The console cluster energizes / supervises the core. The visible orange path is
+          a coarse HV bus analogue; it must jog clear of the screen, stay visually
+          distinct from fuel lines, and terminate on the magnet where a feedthrough would
+          enter the yoke in a full design.
+        links:
+          - link_id: hv_service
+            service: high_voltage_schematic
+            from_region: operator_console_cluster
+            to_region: reactor_magnet_shell
+            routing_intent: jog_clear_screen_then_climb_to_magnet_crown
+      connector_ports:
+        - id: console_hv_header
+          anchor: console_hv_header
+          offset: [0.0, 0.0, 0.0]
+          description: HV header beside the shifted console / screen cluster.
+        - id: reactor_magnet_hv_feed
+          anchor: reactor_magnet_hv_feed
+          offset: [0.0, 0.0, 0.0]
+          description: Magnet shell crown after fusion_reactor_stack.yaml pose (see LabInfrastructure.magnet_shell_connector_anchors).
+      connector_links:
+        - id: hv_service
+          service: high_voltage_schematic
+          from_port: console_hv_header
+          to_port: reactor_magnet_hv_feed
+          radius: 0.018
+          description: Segmented jog clear of the screen, then climb to the solenoid top centre.
+          waypoints:
+            - [-0.55, -1.45, 1.42]
+            - [0.1, -0.5, 0.78]
+            - [0.52, -0.05, 0.48]
     color: [0.9, 0.4, 0.0]
     transform_chain: []
 
   - id: Fuel_Gas_Lines
     narrative: |
-      One merged mesh carrying the H2 / CH4 / B2H6 routing story—fine for FlightGear
-      pick filters, less ideal for per-line FEA.
+      Three process-gas polylines from the farm tank tops to **separate** inlets on the
+      magnet’s +Y (farm-facing) shell—matching the mental model “tanks behind the rig,
+      lines sweep forward, meet the black solenoid from the back,” not three tubes into
+      one DEC point. Anchor keys resolve in ``LabInfrastructure.fuel_line_connector_anchors()``;
+      ``connectivity_spec`` documents service roles for humans and for compiler validation.
     template: lab_fuel_gas_lines
-    params: {}
+    params:
+      include_port_markers: false
+      connectivity_spec:
+        physical_story: |
+          H₂ is the primary working gas, B₂H₆ is the tracer / minority blend leg, and CH₄
+          is the cryo methane leg that also pairs with the light cryostat pipe. Each leg
+          should stay visually separated on the reactor shell so the mesh reads as three
+          commissioning circuits, not a bundle jammed into the grid.
+        links:
+          - link_id: h2_service
+            service: process_h2
+            from_region: fuel_farm_h2_tank
+            to_region: reactor_magnet_shell_farm_face
+            routing_intent: arc_over_deck_then_h2_side_inlet
+          - link_id: b2h6_service
+            service: diborane_tracer
+            from_region: fuel_farm_b2h6_tank
+            to_region: reactor_magnet_shell_farm_face
+            routing_intent: arc_over_deck_then_centre_inlet
+          - link_id: ch4_service
+            service: cryo_methane_process
+            from_region: fuel_farm_ch4_dewar
+            to_region: reactor_magnet_shell_farm_face
+            routing_intent: arc_over_deck_then_ch4_side_inlet
+      connector_ports:
+        - id: tank_h2_out
+          anchor: fuel_farm_h2_tank_top
+          offset: [0.0, 0.0, 0.0]
+          description: H2 cylinder top centre (matches CadQuery fuel farm).
+        - id: reactor_h2_in
+          anchor: reactor_fuel_h2_in
+          offset: [0.0, 0.0, 0.0]
+          description: Magnet +Y shell inlet on the H₂-ward side of the solenoid (spread in +X).
+        - id: tank_b2h6_out
+          anchor: fuel_farm_b2h6_tank_top
+          offset: [0.0, 0.0, 0.0]
+          description: Diborane cylinder top centre.
+        - id: reactor_b2h6_in
+          anchor: reactor_fuel_b2h6_in
+          offset: [0.0, 0.0, 0.0]
+          description: Magnet +Y shell inlet near tube centreline for the tracer leg.
+        - id: tank_ch4_out
+          anchor: fuel_farm_ch4_dewar_top
+          offset: [0.0, 0.0, 0.0]
+          description: Cryo methane dewar top centre (shorter dewar than H2/B2).
+        - id: reactor_ch4_in
+          anchor: reactor_fuel_ch4_in
+          offset: [0.0, 0.0, 0.0]
+          description: Magnet +Y shell inlet on the −X side toward the CH₄ dewar.
+      connector_links:
+        - id: h2_service
+          service: process_h2
+          from_port: tank_h2_out
+          to_port: reactor_h2_in
+          radius: 0.02
+          description: Hydrogen — polyline clears the deck edge then meets the magnet back face.
+          waypoints:
+            - [0.62, 0.82, 0.98]
+            - [0.76, 0.36, 0.38]
+        - id: b2h6_service
+          service: diborane_tracer
+          from_port: tank_b2h6_out
+          to_port: reactor_b2h6_in
+          radius: 0.02
+          description: Diborane / blend line with a mid run biased toward tube centreline.
+          waypoints:
+            - [0.04, 0.82, 0.96]
+            - [0.38, 0.36, 0.32]
+        - id: ch4_service
+          service: cryo_methane_process
+          from_port: tank_ch4_out
+          to_port: reactor_ch4_in
+          radius: 0.028
+          description: Cryogenic methane line from the dewar toward the −X magnet inlet.
+          waypoints:
+            - [-0.52, 0.88, 0.82]
+            - [0.02, 0.42, 0.34]
     color: [0.2, 0.2, 0.2]
     transform_chain: []
 
   - id: Cryo_Methane_Piping
     narrative: |
-      CH4 cryostat / fill circuit segments merged with the methane tank narrative.
+      Separate light-grey **cryostat** leg for liquid methane (distinct from the black
+      process-gas CH₄ run): dewar roof to a high-side tap on the magnet shell, matching
+      reference lab art where the grey line climbs and meets the solenoid near the top
+      / inboard face. Compressor plumbing for the air path remains in air_breathing_intake.
     template: lab_cryo_methane_piping
-    params: {}
+    params:
+      include_port_markers: false
+      connectivity_spec:
+        physical_story: |
+          The dewar stores CH₄ for both process and cryostat narratives; this mesh is the
+          “cryo fill / vent” analogue that visually ties the dewar to the core without
+          pretending to be the turbofan methane duct.
+        links:
+          - link_id: cryo_fill
+            service: cryo_ch4_cryostat_fill
+            from_region: fuel_farm_ch4_dewar
+            to_region: reactor_magnet_shell_high_tap
+            routing_intent: rise_then_bridge_deck_to_magnet_rim
+      connector_ports:
+        - id: cryo_ch4_dewar_out
+          anchor: cryo_ch4_dewar_out
+          offset: [0.0, 0.0, 0.0]
+          description: Dewar roof / cryostat breakout (same world point as fuel farm CH₄ top).
+        - id: reactor_magnet_cryo_ch4_tap
+          anchor: reactor_magnet_cryo_ch4_tap
+          offset: [0.0, 0.0, 0.0]
+          description: Magnet crown / inboard rim tap (see LabInfrastructure.magnet_shell_connector_anchors).
+      connector_links:
+        - id: cryo_fill
+          service: cryo_ch4_cryostat_fill
+          from_port: cryo_ch4_dewar_out
+          to_port: reactor_magnet_cryo_ch4_tap
+          radius: 0.022
+          description: Rise from dewar, jog inboard, terminate high on the solenoid shell.
+          waypoints:
+            - [-0.48, 0.9, 0.9]
+            - [-0.08, 0.38, 0.55]
+            - [0.04, 0.06, 0.4]
     color: [0.8, 0.8, 0.85]
     transform_chain: []
 
@@ -161,6 +316,33 @@ instances:
     color: [0.9, 0.0, 0.0]
     transform_chain:
       - { op: translate, xyz: [-1.4, -2.3, 0.0] }
+
+  - id: Pipe_H2_Feed
+    narrative: |
+      H2 service valve / flex-jumper boss at the hydrogen tank roof (mates Fuel_Gas_Lines trunk).
+    template: lab_fuel_feed_valve
+    params: {}
+    color: [0.35, 0.35, 0.38]
+    transform_chain:
+      - { op: translate, xyz: [0.6, 1.2, 1.165] }
+
+  - id: Pipe_B2H6_Feed
+    narrative: |
+      Diborane tracer leg valve boss atop the center cylinder.
+    template: lab_fuel_feed_valve
+    params: {}
+    color: [0.35, 0.35, 0.38]
+    transform_chain:
+      - { op: translate, xyz: [0.0, 1.2, 1.165] }
+
+  - id: Pipe_CH4_Feed
+    narrative: |
+      Cryo methane dewar roof valve boss (process leg anchor near Fuel_Gas_Lines).
+    template: lab_fuel_feed_valve
+    params: {}
+    color: [0.35, 0.35, 0.38]
+    transform_chain:
+      - { op: translate, xyz: [-0.7, 1.2, 0.865] }
 
   - id: LoadCell_0
     narrative: |
