@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Copy a .gltf and its external .bin buffer(s), rewriting buffer URIs to match the destination stem.
 
-Used when promoting e.g. ``orbitron_lab_flat.gltf`` to ``orbitron_lab.gltf``
-so the sidecar buffer name matches the new file prefix (nest / Blender expect consistent stems).
+Utility for renaming glTF sidecars so buffer filenames match the new file prefix (some
+tools expect consistent stems). The main Orbitron lab build writes ``orbitron_lab.gltf`` directly.
 """
 from __future__ import annotations
 

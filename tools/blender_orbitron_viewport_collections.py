@@ -3,7 +3,7 @@
 #   blender --background --python tools/blender_orbitron_viewport_collections.py -- \
 #     /path/to/Aircraft/<aircraft.package_dir>/build/orbitron_lab.gltf
 #
-# Imports the nested glTF (from make + gltf_nest_from_assemblies.py), then creates
+# Imports the lab glTF (from ``make`` / ``compile_assembly_yaml.py``), then creates
 # four VIEW__* collections matching the top-level children of fusion_arcjet_engine
 # and moves each branch's meshes into its collection. Toggle collection visibility
 # in the Outliner to isolate one assembly at a time (meshes unlinked from the default

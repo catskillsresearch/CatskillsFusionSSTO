@@ -14,7 +14,7 @@ narrative: |
   orbitron_operator_console_spec.yaml (human-in-the-loop spec; not read by this compiler).
 
 sounds:
-  - part_mesh: fusion_reactor_stack
+  - part_mesh: fusion_reactor
     narrative: |
       Electrical / magnet line plus a low “plasma” wash—what you feel standing near
       the core when the surrogate says power is up.

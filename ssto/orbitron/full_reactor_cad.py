@@ -1,6 +1,6 @@
 import cadquery as cq
 
-# Shared pose for reactor stack instances in fusion_reactor_stack.yaml (CadQuery → world).
+# Shared pose for reactor stack instances in ``orbitron_lab.yaml`` (CadQuery → world).
 _FUSION_STACK_TRANSFORMS: list[dict[str, object]] = [
     {"op": "translate", "xyz": [0.0, 0.0, 0.75]},
     {"op": "rotate_y_about_point", "pivot": [0.0, 0.0, 0.15], "angle_deg": 90.0},
@@ -117,7 +117,7 @@ class LabInfrastructure:
         """World-space points for fuel routing (tank tops + magnet-shell inlets).
 
         Tank tops match ``build_fuel_farm()``. Reactor-side points sit on the solenoid
-        ``Magnet`` bbox after the same ``transform_chain`` as ``fusion_reactor_stack.yaml``,
+        ``Magnet`` bbox after the same ``transform_chain`` as the fusion reactor instances in ``orbitron_lab.yaml``,
         on the +Y farm-facing shell with X spread so the three services stay distinct.
         """
         z_trim = 0.035

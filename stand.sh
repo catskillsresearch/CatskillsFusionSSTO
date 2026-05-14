@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Poetry env + repo-local WarpX (pywarpx) paths, then GNU make.
 #
-# Default build: assembly YAML → orbitron_lab_flat.gltf → orbitron_lab.gltf → Blender → orbitron.ac,
-# surrogate, sounds from orbitron_sound_assets.yaml, Mermaid graphs. See Makefile GLTF_LAB_FLAT / GLTF_LAB.
+# Default build: unified assembly YAML → orbitron_lab.gltf → Blender → orbitron.ac,
+# surrogate, sounds from orbitron_sound_assets.yaml, Mermaid graphs. See Makefile GLTF_LAB.
 # Preview nested lab in Blender: ./bl.sh   (or ./bl.sh --collections)
 #
 # Usage (repo root):

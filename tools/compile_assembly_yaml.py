@@ -1,21 +1,18 @@
 #!/usr/bin/env python3
-"""Compile hierarchical assembly YAML → glTF (nested CadQuery Assembly).
+"""Compile assembly YAML → glTF (CadQuery ``Assembly`` tree).
 
 The Makefile lab mesh path uses this as the **sole layout source** for
-``orbitron_lab_flat.gltf`` / ``orbitron_lab.gltf`` (after stem copy and
-``gltf_nest_from_assemblies.py``).
+``orbitron_lab.gltf``. Schema v2 (``orbitron_lab.yaml``) carries geometry
+(``instances``) and hierarchy (``logical.groups``) in one file; the exporter
+builds a nested ``cq.Assembly`` so the glTF node tree matches the logical tree.
 
 Usage (repo root, with Poetry env that has cadquery + pyyaml)::
 
   poetry run python tools/compile_assembly_yaml.py \\
     --spec ssto/orbitron/assembly_specs/orbitron_lab.yaml \\
-    --out /tmp/orbitron_lab_flat.gltf
+    --out /tmp/orbitron_lab.gltf
 
-Sub-assemblies only (same YAML files referenced by the root)::
-
-  poetry run python tools/compile_assembly_yaml.py \\
-    --spec ssto/orbitron/assembly_specs/air_breathing_intake.yaml \\
-    --out /tmp/intake_only.gltf
+Schema v1 (``includes`` + list ``instances``) remains for small ad hoc specs.
 
 Why glTF: matches the existing Orbitron pipeline (Blender ``build_ac3d.py`` → ``.ac`` for FlightGear).
 """

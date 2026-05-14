@@ -2,7 +2,8 @@
 """Emit Mermaid from orbitron.ac: physical AC3D tree and optional logical assemblies.
 
 Physical tree: OBJECT / kids under world. Logical tree: nested subgraphs from
-orbitron_logical_assemblies.yaml (nested lab / Mermaid logical graph). Mesh names must match orbitron.ac.
+``orbitron_lab.yaml`` (``logical.groups``) or a legacy logical-only YAML / JSON.
+Mesh names must match orbitron.ac.
 """
 from __future__ import annotations
 
@@ -22,6 +23,7 @@ from orbitron_logical_assemblies_spec import load_logical_assemblies_spec
 
 _REPO_ROOT = Path(__file__).resolve().parents[1]
 _ORBITRON_PKG = aircraft_package_dir(_REPO_ROOT)
+_DEFAULT_ASSEMBLIES_SPEC = _REPO_ROOT / "ssto" / "orbitron" / "assembly_specs" / "orbitron_lab.yaml"
 _DEFAULT_ORBITRON_AC = _REPO_ROOT / "Aircraft" / _ORBITRON_PKG / "Models" / "orbitron.ac"
 _DEFAULT_PARTS_MMD = (
     _REPO_ROOT / "Aircraft" / _ORBITRON_PKG / "build" / "orbitron_ac_parts_hierarchy.mmd"
@@ -490,8 +492,8 @@ def main() -> int:
         "--assemblies-json",
         dest="assemblies_spec",
         type=Path,
-        default=None,
-        help="orbitron_logical_assemblies.yaml (or legacy .json); logical nested subgraphs",
+        default=_DEFAULT_ASSEMBLIES_SPEC,
+        help="orbitron_lab.yaml (schema v2) or legacy logical-only .yaml / .json",
     )
     ap.add_argument(
         "--logical-out",
@@ -525,9 +527,6 @@ def main() -> int:
     logical_out = args.logical_out
     if logical_out is not None:
         aj = args.assemblies_spec
-        if aj is None:
-            print("error: --logical-out requires --assemblies-spec", file=sys.stderr)
-            return 1
         aj = aj.resolve()
         if not aj.is_file():
             print(f"error: assemblies spec not found: {aj}", file=sys.stderr)

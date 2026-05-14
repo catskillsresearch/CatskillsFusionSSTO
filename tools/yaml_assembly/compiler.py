@@ -1,7 +1,8 @@
-"""Load assembly YAML (with hierarchical includes) and build a nested CadQuery Assembly."""
+"""Load unified assembly YAML (schema v2) and build a nested ``cq.Assembly`` for glTF export."""
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 from typing import Any
 
@@ -16,8 +17,96 @@ def _color(rgb: list[Any] | tuple[Any, ...]) -> cq.Color:
     return cq.Color(float(rgb[0]), float(rgb[1]), float(rgb[2]))
 
 
+def mesh_parts_list(spec: dict[str, Any]) -> list[str]:
+    mp = spec.get("mesh_parts")
+    if mp is not None:
+        return [str(x) for x in mp]
+    return [str(x) for x in spec.get("parts", [])]
+
+
+def collect_mesh_names_from_groups(groups: dict[str, Any], root_key: str) -> set[str]:
+    found: set[str] = set()
+
+    def visit(key: str) -> None:
+        spec = groups[key]
+        if spec.get("logical_only"):
+            return
+        for mk in spec.get("members", []):
+            visit(str(mk))
+        for p in mesh_parts_list(spec):
+            found.add(p)
+
+    visit(root_key)
+    return found
+
+
+def validate_gltf_mesh_names_match_logical(out_gltf: Path, logical_doc: dict[str, Any]) -> None:
+    """Every mesh in glTF must appear in the logical tree under ``root``; no extras."""
+    root = str(logical_doc["root"])
+    groups: dict[str, Any] = logical_doc["groups"]
+    gltf = json.loads(out_gltf.read_text(encoding="utf-8"))
+    mesh_in_gltf = {
+        str(n["name"])
+        for n in gltf.get("nodes", [])
+        if n.get("mesh") is not None and n.get("name")
+    }
+    json_meshes = collect_mesh_names_from_groups(groups, root)
+    missing = sorted(mesh_in_gltf - json_meshes)
+    extra = sorted(json_meshes - mesh_in_gltf)
+    if missing:
+        raise ValueError("logical tree missing mesh names present in glTF: " + ", ".join(missing))
+    if extra:
+        raise ValueError("logical tree lists mesh names not in glTF: " + ", ".join(extra))
+
+
+def build_group_node(key: str, groups: dict[str, Any], instances: dict[str, Any]) -> cq.Assembly:
+    if key not in groups:
+        raise KeyError(f"unknown logical group {key!r}")
+    spec = groups[key]
+    assy = cq.Assembly(name=key)
+    for m in spec.get("members", []):
+        mk = str(m)
+        assy.add(build_group_node(mk, groups, instances), name=mk)
+    for pname in mesh_parts_list(spec):
+        if pname not in instances:
+            raise KeyError(f"group {key!r} references unknown instance {pname!r}")
+        inst = instances[pname]
+        tid = str(inst["template"])
+        params = inst.get("params") or {}
+        if not isinstance(params, dict):
+            raise TypeError(f"instances[{pname!r}].params must be a mapping")
+        solid = build_template(tid, params)
+        solid = apply_transform_chain(solid, inst.get("transform_chain"))
+        col = inst.get("color")
+        if col is None:
+            raise ValueError(f"instances[{pname!r}] missing color [r,g,b]")
+        assy.add(solid, name=pname, color=_color(col))
+    return assy
+
+
+def build_assembly_from_unified(data: dict[str, Any]) -> cq.Assembly:
+    """Schema v2: ``logical.groups`` + ``instances`` → nested CadQuery assembly (glTF tree)."""
+    if int(data.get("schema_version", 1)) < 2:
+        raise ValueError("build_assembly_from_unified requires schema_version >= 2")
+    logical = data["logical"]
+    groups = logical["groups"]
+    root = str(logical["root"])
+    root_scene = str(logical.get("scene_root_name") or "fusion_arcjet_engine")
+    instances = data["instances"]
+    if not isinstance(instances, dict):
+        raise TypeError("instances must be a mapping of mesh id → instance body")
+    top = cq.Assembly(name=root_scene)
+    root_spec = groups.get(root)
+    if root_spec is None:
+        raise ValueError(f"logical.root {root!r} missing from groups")
+    for m in root_spec.get("members", []):
+        mk = str(m)
+        top.add(build_group_node(mk, groups, instances), name=mk)
+    return top
+
+
 def build_assembly_from_yaml(spec_path: Path, visiting: set[str] | None = None) -> cq.Assembly:
-    """Recursively load ``spec_path`` and return a nested ``cq.Assembly`` (names for glTF / Blender outliner)."""
+    """Schema v1 (legacy): recursive ``includes`` + list ``instances`` — kept for ad-hoc tools."""
     resolved = spec_path.resolve()
     key = str(resolved)
     if visiting is None:
@@ -27,6 +116,8 @@ def build_assembly_from_yaml(spec_path: Path, visiting: set[str] | None = None) 
     visiting.add(key)
     try:
         data: dict[str, Any] = yaml.safe_load(resolved.read_text(encoding="utf-8"))
+        if int(data.get("schema_version", 1)) >= 2 and "logical" in data and "instances" in data:
+            return build_assembly_from_unified(data)
         if not isinstance(data, dict):
             raise ValueError(f"Root of YAML must be a mapping: {resolved}")
         meta = data.get("assembly") or {}
@@ -65,6 +156,14 @@ def build_assembly_from_yaml(spec_path: Path, visiting: set[str] | None = None) 
 
 
 def compile_to_gltf(spec_path: Path, out_gltf: Path) -> None:
-    """Build assembly from YAML and write glTF (same path CadQuery uses for downstream .ac tooling)."""
+    """Build assembly from YAML and write glTF (nested tree for schema v2)."""
     out_gltf.parent.mkdir(parents=True, exist_ok=True)
-    build_assembly_from_yaml(spec_path).save(str(out_gltf))
+    raw = yaml.safe_load(spec_path.read_text(encoding="utf-8"))
+    assy = build_assembly_from_yaml(spec_path)
+    assy.save(str(out_gltf))
+    if int(raw.get("schema_version", 1)) >= 2 and raw.get("logical"):
+        logical_flat = {
+            "root": raw["logical"]["root"],
+            "groups": raw["logical"]["groups"],
+        }
+        validate_gltf_mesh_names_match_logical(out_gltf, logical_flat)

@@ -1,8 +1,8 @@
 """
-Arcjet / outdoor test-stand parts (used by YAML ``templates_registry``).
+Arcjet / outdoor test-stand **geometry builders** (used by ``tools/yaml_assembly/templates_registry``).
 
-Standalone export: ``arcjet_outdoor_stand.gltf`` (+ sibling ``.bin``) under
-``Aircraft/<aircraft.package_dir>/build/`` by default (override with ``ORBITRON_ARCJET_GLTF``).
+Lab layout and export are **only** via ``orbitron_lab.yaml`` → ``make orbitron-lab-gltf``; this module
+does not write glTF on its own.
 """
 from __future__ import annotations
 
@@ -120,68 +120,3 @@ def lab_fuel_feed_valve(body_r: float = 0.045, stem_r: float = 0.018, stem_h: fl
     stem = cq.Workplane("XY").circle(stem_r).extrude(stem_h).translate((0.0, 0.0, 0.04))
     return base.union(stem)
 
-
-def _horizontal_about_deck_y(solid: cq.Workplane, deck_z: float = 0.0, angle: float = 90.0) -> cq.Workplane:
-    """Rotate duct geometry from vertical +Z stack to horizontal +X (pivot at deck bell foot)."""
-    p = (0.0, 0.0, float(deck_z))
-    return solid.rotate(p, (0.0, 1.0, float(deck_z)), float(angle))
-
-
-def build_assembly() -> cq.Assembly:
-    c_steel = cq.Color(0.35, 0.35, 0.38)
-    c_ti = cq.Color(0.55, 0.58, 0.62)
-    c_ablative = cq.Color(0.2, 0.2, 0.22)
-    c_sensor = cq.Color(0.9, 0.75, 0.1)
-
-    z_deck = 0.0
-    bell = _horizontal_about_deck_y(bellmouth_flare(), z_deck)
-    comp = _horizontal_about_deck_y(compressor_housing().translate((0, 0, 0.35)), z_deck)
-    z_n = 2.75
-    zd = 2.95
-    noz1 = _horizontal_about_deck_y(nozzle_inlet_plenum().translate((0, 0, z_n)), z_deck)
-    noz2 = _horizontal_about_deck_y(nozzle_cd_contour().translate((0, 0, z_n + 0.07)), z_deck)
-    noz3 = _horizontal_about_deck_y(nozzle_exit_hardware().translate((0, 0, z_n + 0.07 + 0.05)), z_deck)
-    d1 = _horizontal_about_deck_y(bd_annulus_sleeve().translate((0, 0, zd)), z_deck)
-    d2 = _horizontal_about_deck_y(bd_shock_core_insert().translate((0, 0, zd + 0.2)), z_deck)
-    d3 = _horizontal_about_deck_y(bd_bracket_seal_flange().translate((0, 0, zd + 1.88)), z_deck)
-    sled = thrust_sled_frame().translate((0, 0, -0.12))
-    left_rail = rail_beam().translate((0, 0.55, -0.06))
-    right_rail = rail_beam().translate((0, -0.55, -0.06))
-
-    assy = cq.Assembly(name="Arcjet_Outdoor_Test_Sled")
-    assy.add(bell, name="Bellmouth", color=c_ti)
-    assy.add(comp, name="Compressor_Can", color=c_ti)
-    assy.add(noz1, name="Nozzle_Inlet_Plenum", color=c_ablative)
-    assy.add(noz2, name="Nozzle_CD_Contour", color=c_ablative)
-    assy.add(noz3, name="Nozzle_Exit_Hardware", color=c_ablative)
-    assy.add(sled, name="Thrust_Sled_Frame", color=c_steel)
-    assy.add(left_rail, name="Rail_Left", color=c_steel)
-    assy.add(right_rail, name="Rail_Right", color=c_steel)
-    assy.add(d1, name="BD_Annulus_Sleeve", color=c_steel)
-    assy.add(d2, name="BD_Shock_Detuner_Core", color=c_steel)
-    assy.add(d3, name="BD_Bracket_Seals", color=c_steel)
-
-    lc_positions = [(0.7, 0.35), (-0.7, 0.35), (0.7, -0.35), (-0.7, -0.35)]
-    for i, (px, py) in enumerate(lc_positions):
-        puck = load_cell_puck().translate((px, py, 0.09))
-        assy.add(puck, name=f"LoadCell_{i}", color=c_sensor)
-
-    return assy
-
-
-if __name__ == "__main__":
-    import os
-    import sys
-    from pathlib import Path
-
-    _repo = Path(__file__).resolve().parent.parent.parent
-    _tools = _repo / "tools"
-    if str(_tools) not in sys.path:
-        sys.path.insert(0, str(_tools))
-    from orbitron_aircraft_pkg import aircraft_package_dir  # noqa: E402
-
-    _default = _repo / "Aircraft" / aircraft_package_dir(_repo) / "build" / "arcjet_outdoor_stand.gltf"
-    out = Path(os.environ.get("ORBITRON_ARCJET_GLTF", _default))
-    out.parent.mkdir(parents=True, exist_ok=True)
-    build_assembly().save(str(out))
-    print(f"Wrote {out}")

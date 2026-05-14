@@ -11,12 +11,8 @@ AIRCRAFT := $(REPO_ROOT)/Aircraft
 STAND := $(AIRCRAFT)/$(ORBITRON_PKG)
 BUILD := $(REPO_ROOT)/build/orbitron
 
-# Lab glTF: assembly YAML → flat → stem-normalized → nest → Blender → .ac.
-# Arcjet-only glTF still from CadQuery (arcjet_test_stand_cad.py).
-GLTF_LAB_FLAT := $(STAND)/build/orbitron_lab_flat.gltf
+# Lab glTF: unified assembly YAML (schema v2) → nested CadQuery export → Blender → .ac.
 GLTF_LAB := $(STAND)/build/orbitron_lab.gltf
-GLTF_ARC := $(STAND)/build/arcjet_outdoor_stand.gltf
-COPY_GLTF_STEM := $(REPO_ROOT)/tools/copy_gltf_with_stem.py
 
 POETRY ?= poetry
 BLENDER ?= blender
@@ -32,21 +28,13 @@ MERMAID_OUT := $(STAND)/build/dependency_graph.mmd
 PARTS_MERMAID := $(STAND)/build/orbitron_ac_parts_hierarchy.mmd
 PARTS_LOGICAL_MERMAID := $(STAND)/build/orbitron_logical_assemblies.mmd
 ASSEMBLY_SPECS_DIR := $(ORBITRON)/assembly_specs
-ORBITRON_LOGICAL_ASSEMBLIES := $(ASSEMBLY_SPECS_DIR)/orbitron_logical_assemblies.yaml
 LOGICAL_ASSEMBLIES_SPEC_PY := $(REPO_ROOT)/tools/orbitron_logical_assemblies_spec.py
+# Single SSOT for lab geometry + logical tree (schema v2).
+ORBITRON_ASSEMBLY_SPEC := $(ASSEMBLY_SPECS_DIR)/orbitron_lab.yaml
 
-# YAML assembly specs → glTF (A/B/C/D). First artifacts in fg-ready: rebuilt only when
-# these YAMLs or the compiler / CadQuery templates they call change.
-ORBITRON_LAB_YAMLS := \
-	$(ASSEMBLY_SPECS_DIR)/air_breathing_intake.yaml \
-	$(ASSEMBLY_SPECS_DIR)/fusion_reactor_stack.yaml \
-	$(ASSEMBLY_SPECS_DIR)/test_stand_and_services.yaml \
-	$(ASSEMBLY_SPECS_DIR)/orbitron_lab.yaml \
-	$(ORBITRON_LOGICAL_ASSEMBLIES)
-GLTF_YAML_A := $(STAND)/build/air_breathing_intake_from_yaml.gltf
-GLTF_YAML_B := $(STAND)/build/fusion_reactor_stack_from_yaml.gltf
-GLTF_YAML_C := $(STAND)/build/test_stand_and_services_from_yaml.gltf
-YAML_LAB_GLTF_ARTIFACTS := $(GLTF_YAML_A) $(GLTF_YAML_B) $(GLTF_YAML_C) $(GLTF_LAB)
+# YAML assembly spec → nested lab glTF. Rebuilt when the spec or compiler /
+# CadQuery templates change.
+ORBITRON_LAB_YAMLS := $(ORBITRON_ASSEMBLY_SPEC)
 ORBITRON_SOUND_ASSETS := $(ASSEMBLY_SPECS_DIR)/orbitron_sound_assets.yaml
 SOUND_COMPILER := $(REPO_ROOT)/tools/sound_compiler.py
 COMPILE_SOUND_XML := $(REPO_ROOT)/tools/compile_sound_xml_from_yaml.py
@@ -75,7 +63,6 @@ YAML_LAB_COMPILER_DEPS := \
 	$(REPO_ROOT)/tools/yaml_assembly/compiler.py \
 	$(REPO_ROOT)/tools/yaml_assembly/transform_ops.py \
 	$(REPO_ROOT)/tools/yaml_assembly/templates_registry.py \
-	$(COPY_GLTF_STEM) \
 	$(ORBITRON)/arcjet_test_stand_cad.py \
 	$(ORBITRON)/full_reactor_cad.py
 
@@ -87,14 +74,12 @@ GRAPH_INPUTS := Makefile $(ORBITRON_LAB_YAMLS) $(YAML_LAB_COMPILER_DEPS) \
 	$(ORBITRON_PHYSICS_SPEC) $(ORBITRON_PHYSICS_SPEC_PY) $(REPO_ROOT)/tools/warpx_expression_presets.py \
 	$(ORBITRON)/build_ac3d.py $(ORBITRON)/fix_screen_uv.py $(SUR_DEP_ALL) \
 	$(REPO_ROOT)/tools/orbitron_ac_hierarchy_mmd.py \
-	$(REPO_ROOT)/tools/gltf_nest_from_assemblies.py \
 	$(LOGICAL_ASSEMBLIES_SPEC_PY) \
-	$(ORBITRON_LOGICAL_ASSEMBLIES)
+	$(ORBITRON_ASSEMBLY_SPEC)
 
 # Computed FlightGear model + audio (all under Aircraft/)
 MODEL_ARTIFACTS := \
-	$(YAML_LAB_GLTF_ARTIFACTS) \
-	$(GLTF_ARC) \
+	$(GLTF_LAB) \
 	$(STAND)/Models/orbitron.ac \
 	$(STAND)/engine_surrogate.json \
 	$(STAND)/Sounds/.sounds_built \
@@ -103,22 +88,21 @@ MODEL_ARTIFACTS := \
 	$(PARTS_MERMAID) \
 	$(PARTS_LOGICAL_MERMAID)
 
-.PHONY: all help clean graph parts-graph open-lab run-fgfs fg-ready yaml-lab-gltfs orbitron-lab-gltf
+.PHONY: all help clean graph parts-graph open-lab run-fgfs fg-ready orbitron-lab-gltf
 
 all: fg-ready
 
 help:
 	@echo "Orbitron test stand Makefile (aircraft id: $(ORBITRON_PKG))"
-	@echo "  make / make all     Build $(STAND); YAML lab → $(GLTF_LAB), arcjet glTF, .ac, surrogate, sounds from $(ORBITRON_SOUND_ASSETS), $(MERMAID_OUT), … (SURROGATE=$(SURROGATE))"
+	@echo "  make / make all     Build $(STAND); YAML lab → $(GLTF_LAB), .ac, surrogate, sounds from $(ORBITRON_SOUND_ASSETS), $(MERMAID_OUT), … (SURROGATE=$(SURROGATE))"
 	@echo "  SURROGATE=warpx|dry|mesh   Surrogate source (default warpx = full sweep; dry|mesh = fast placeholders)"
 	@echo "  Cold-tree regression: mv Aircraft Aircraft.bak && ./stand.sh   # rebuilds everything incl. WarpX surrogate"
 	@echo "  make graph          Regenerate $(MERMAID_OUT) only (also runs as part of make all)"
 	@echo "  make parts-graph    Regenerate mesh Mermaid: $(PARTS_MERMAID) + $(PARTS_LOGICAL_MERMAID)"
 	@echo "  make open-lab       Launch Blender on nested $(GLTF_LAB) (same as ./bl.sh)"
-	@echo "  make orbitron-lab-gltf  Build only $(GLTF_LAB) (YAML flat → stem → nest); for scripts / CI"
+	@echo "  make orbitron-lab-gltf  Build only $(GLTF_LAB) (YAML → compile_assembly_yaml); for scripts / CI"
 	@echo "  ./bl.sh             Blender + nested lab glTF; ./bl.sh --collections for VIEW__* isolate collections"
-	@echo "  make yaml-lab-gltfs  Only the four YAML-driven glTFs (same rules as make all; optional shortcut)"
-	@echo "  ORBITRON_LAB_GLTF=... ./bl.sh   Override glTF path (default: $(GLTF_LAB); e.g. flat debug: …/orbitron_lab_flat.gltf)"
+	@echo "  ORBITRON_LAB_GLTF=... ./bl.sh   Override glTF path (default: $(GLTF_LAB))"
 	@echo "  make run-fgfs       fgfs with --fg-aircraft=$(AIRCRAFT)"
 	@echo "  make clean          Remove $(AIRCRAFT) and $(BUILD) (not all of ./build if other projects use it)"
 	@echo "  Tip: after rm -rf build, either make clean or rm $(STAND)/.dirs so .dirs is recreated."
@@ -150,40 +134,14 @@ $(STAND_FG_SET) $(STAND_JSBSIM_XML) $(ORBITRON_MODEL_XML) &: \
 		--physics-spec '$(ORBITRON_PHYSICS_SPEC)' \
 		--out-dir '$(STAND)'
 
-$(GLTF_YAML_A): $(ASSEMBLY_SPECS_DIR)/air_breathing_intake.yaml $(YAML_LAB_COMPILER_DEPS) | $(STAND)/.dirs
-	cd '$(REPO_ROOT)' && $(POETRY) run python tools/compile_assembly_yaml.py \
-		--spec '$(ASSEMBLY_SPECS_DIR)/air_breathing_intake.yaml' --out '$@'
-
-$(GLTF_YAML_B): $(ASSEMBLY_SPECS_DIR)/fusion_reactor_stack.yaml $(YAML_LAB_COMPILER_DEPS) | $(STAND)/.dirs
-	cd '$(REPO_ROOT)' && $(POETRY) run python tools/compile_assembly_yaml.py \
-		--spec '$(ASSEMBLY_SPECS_DIR)/fusion_reactor_stack.yaml' --out '$@'
-
-$(GLTF_YAML_C): $(ASSEMBLY_SPECS_DIR)/test_stand_and_services.yaml $(YAML_LAB_COMPILER_DEPS) | $(STAND)/.dirs
-	cd '$(REPO_ROOT)' && $(POETRY) run python tools/compile_assembly_yaml.py \
-		--spec '$(ASSEMBLY_SPECS_DIR)/test_stand_and_services.yaml' --out '$@'
-
-$(GLTF_LAB_FLAT): $(ORBITRON_LAB_YAMLS) $(YAML_LAB_COMPILER_DEPS) | $(STAND)/.dirs
+# Nested lab glTF: CadQuery Assembly tree matches logical.groups (schema v2).
+$(GLTF_LAB): $(ORBITRON_LAB_YAMLS) $(YAML_LAB_COMPILER_DEPS) | $(STAND)/.dirs
 	mkdir -p $(STAND)/build
 	cd '$(REPO_ROOT)' && $(POETRY) run python tools/compile_assembly_yaml.py \
-		--spec '$(ASSEMBLY_SPECS_DIR)/orbitron_lab.yaml' --out '$@'
-
-# --- Nested lab glTF (stem-normalized buffer name, then logical assemblies nest) ---
-$(GLTF_LAB): $(GLTF_LAB_FLAT) $(COPY_GLTF_STEM) $(ORBITRON_LOGICAL_ASSEMBLIES) $(LOGICAL_ASSEMBLIES_SPEC_PY) $(REPO_ROOT)/tools/gltf_nest_from_assemblies.py | $(STAND)/.dirs
-	mkdir -p $(STAND)/build
-	cd '$(REPO_ROOT)' && $(POETRY) run python tools/copy_gltf_with_stem.py \
-		--src '$(GLTF_LAB_FLAT)' --dst '$(GLTF_LAB)'
-	cd '$(REPO_ROOT)' && $(POETRY) run python tools/gltf_nest_from_assemblies.py \
-		--gltf '$(GLTF_LAB)' --assemblies-spec '$(ORBITRON_LOGICAL_ASSEMBLIES)' \
-		--root-name fusion_arcjet_engine
+		--spec '$(ORBITRON_ASSEMBLY_SPEC)' --out '$@'
 
 # Stable entry for scripts: builds $(GLTF_LAB) regardless of absolute vs relative cwd quirks.
 orbitron-lab-gltf: $(GLTF_LAB)
-
-yaml-lab-gltfs: $(YAML_LAB_GLTF_ARTIFACTS)
-
-$(GLTF_ARC): $(ORBITRON)/arcjet_test_stand_cad.py | $(STAND)/.dirs
-	mkdir -p $(STAND)/build
-	cd '$(REPO_ROOT)' && ORBITRON_ARCJET_GLTF='$(GLTF_ARC)' $(POETRY) run python '$(ORBITRON)/arcjet_test_stand_cad.py'
 
 # --- Blender + UV → orbitron.ac ---
 # Real deps on surrogate + sounds (not only order-only): GNU make may otherwise schedule
@@ -253,22 +211,12 @@ $(MERMAID_OUT): $(GRAPH_INPUTS) | $(STAND)/.dirs
 	echo '  smap_py -->|subprocess| pic_py["ssto/orbitron/laminar_flow_2d_arcjet.py"]'; \
 	echo '  smap_py -->|subprocess| wfit_py'; \
 	echo '  subgraph LAB["Orbitron lab glTF (YAML → .ac)"]'; \
-	echo '    y_specs["ssto/orbitron/assembly_specs/*.yaml"]'; \
+	echo '    y_specs["orbitron_lab.yaml (geometry + logical)"]'; \
 	echo '    y_compile["tools/compile_assembly_yaml.py"]'; \
 	echo '    y_specs --> y_compile'; \
-	echo '    y_compile --> gltf_flat0["…/orbitron_lab_flat.gltf"]'; \
-	echo '    copy_stem["tools/copy_gltf_with_stem.py"]'; \
-	echo '    gltf_flat0 --> copy_stem'; \
-	echo '    copy_stem --> gltf_lab["…/orbitron_lab.gltf"]'; \
-	echo '    nest_py["tools/gltf_nest_from_assemblies.py"]'; \
-	echo '    asm_yaml2["orbitron_logical_assemblies.yaml"]'; \
-	echo '    asm_yaml2 --> nest_py'; \
-	echo '    gltf_lab --> nest_py'; \
-	echo '  end'; \
-	echo '  subgraph CQ["CadQuery (arcjet-only)"]'; \
-	echo '    arc_py["arcjet_test_stand_cad.py"]'; \
-	echo '    arc_py --> gltf_arc["Aircraft/.../build/arcjet_outdoor_stand.gltf"]'; \
-	echo '    arc_py --> bin_arc["Aircraft/.../build/arcjet_outdoor_stand.bin"]'; \
+	echo '    y_compile --> gltf_lab["…/orbitron_lab.gltf"]'; \
+	echo '    cq_cad["ssto/orbitron/arcjet_test_stand_cad.py\n+ full_reactor_cad.py"]'; \
+	echo '    cq_cad -.->|CadQuery templates| y_compile'; \
 	echo '  end'; \
 	echo '  subgraph BL["Blender"]'; \
 	echo '    gltf_lab --> blend_py["build_ac3d.py"]'; \
@@ -279,7 +227,7 @@ $(MERMAID_OUT): $(GRAPH_INPUTS) | $(STAND)/.dirs
 	echo '    parts_py["tools/orbitron_ac_hierarchy_mmd.py"]'; \
 	echo '    ac --> parts_py'; \
 	echo '    foxml -.->|offset header| parts_py'; \
-	echo '    asm_yaml["repo …/orbitron_logical_assemblies.yaml"]'; \
+	echo '    asm_yaml["repo …/orbitron_lab.yaml (logical)"]'; \
 	echo '    asm_yaml --> parts_py'; \
 	echo '    parts_py --> parts_flat["Aircraft/…/build/orbitron_ac_parts_hierarchy.mmd"]'; \
 	echo '    parts_py --> parts_logical["Aircraft/…/build/orbitron_logical_assemblies.mmd"]'; \
@@ -360,12 +308,12 @@ graph: $(MERMAID_OUT)
 
 # Mesh part inclusion tree (Mermaid); complements dependency_graph.mmd (build pipeline).
 # Physical AC tree + logical assembly Mermaid (grouped rule: one recipe, two outputs).
-$(PARTS_MERMAID) $(PARTS_LOGICAL_MERMAID) &: $(REPO_ROOT)/tools/orbitron_ac_hierarchy_mmd.py $(STAND)/Models/orbitron.ac $(ORBITRON_MODEL_XML) $(ORBITRON_LOGICAL_ASSEMBLIES) $(ORBITRON_AIRCRAFT_SPEC) $(COMPILE_AIRCRAFT_RUNTIME) $(JSBSIM_TEMPLATE) | $(STAND)/.dirs
+$(PARTS_MERMAID) $(PARTS_LOGICAL_MERMAID) &: $(REPO_ROOT)/tools/orbitron_ac_hierarchy_mmd.py $(STAND)/Models/orbitron.ac $(ORBITRON_MODEL_XML) $(ORBITRON_ASSEMBLY_SPEC) $(ORBITRON_AIRCRAFT_SPEC) $(COMPILE_AIRCRAFT_RUNTIME) $(JSBSIM_TEMPLATE) | $(STAND)/.dirs
 	mkdir -p $(STAND)/build
 	cd $(REPO_ROOT) && python3 tools/orbitron_ac_hierarchy_mmd.py \
 		--ac '$(STAND)/Models/orbitron.ac' \
 		--orbitron-xml '$(ORBITRON_MODEL_XML)' \
-		--assemblies-spec '$(ORBITRON_LOGICAL_ASSEMBLIES)' \
+		--assemblies-spec '$(ORBITRON_ASSEMBLY_SPEC)' \
 		-o '$(PARTS_MERMAID)' \
 		--logical-out '$(PARTS_LOGICAL_MERMAID)'
 

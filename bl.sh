@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env bash -x
 # Open Blender with the nested Orbitron lab glTF (logical root fusion_arcjet_engine).
 # Requires a prior build: ./stand.sh
 #
@@ -6,8 +6,8 @@
 #   ./bl.sh
 #   BLENDER=/path/to/blender ./bl.sh
 #
-# Optional: open a different lab glTF (e.g. make yaml-lab-gltfs master):
-#   ORBITRON_LAB_GLTF=Aircraft/<pkg>/build/orbitron_lab_flat.gltf ./bl.sh
+# Optional: open a different lab glTF (e.g. a debug export path):
+#   ORBITRON_LAB_GLTF=/path/to/orbitron_lab.gltf ./bl.sh
 #
 # Optional: after import, run viewport collections helper (VIEW__* collections):
 #   ./bl.sh --collections
