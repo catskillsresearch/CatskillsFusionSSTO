@@ -13,6 +13,8 @@ import sys
 from pathlib import Path
 from typing import Any, Callable
 
+import numpy as np
+import yaml
 from orbitron_aircraft_pkg import aircraft_package_dir
 from scipy.io import wavfile
 

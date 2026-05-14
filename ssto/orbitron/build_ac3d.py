@@ -442,6 +442,16 @@ def repair_screen_uvs(lines, screen_name="Screen"):
     return out
 
 
+def _view_layer_unexclude_all(layer_coll) -> None:
+    """Nested glTF / collection imports may exclude branches from the active View Layer."""
+    try:
+        layer_coll.exclude = False
+    except AttributeError:
+        return
+    for child in getattr(layer_coll, "children", ()) or ():
+        _view_layer_unexclude_all(child)
+
+
 def postprocess_ac_file(path, object_target_rgb):
     with open(path, "r", encoding="utf-8") as f:
         lines = f.readlines()
@@ -479,17 +489,17 @@ def execute_pipeline():
     bpy.ops.object.select_all(action="SELECT")
     bpy.ops.object.delete()
     bpy.ops.import_scene.gltf(filepath=GLTF_FILE)
+    _view_layer_unexclude_all(bpy.context.view_layer.layer_collection)
 
     # Keep transforms stable and remove non-mesh objects.
     bpy.ops.object.select_all(action="SELECT")
     bpy.ops.object.parent_clear(type="CLEAR_KEEP_TRANSFORM")
     bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
 
-    bpy.ops.object.select_all(action="DESELECT")
-    for obj in bpy.context.scene.objects:
+    # Drop empties / lights / etc. without selecting (objects may still be outside View Layer).
+    for obj in list(bpy.context.scene.objects):
         if obj.type != "MESH":
-            obj.select_set(True)
-    bpy.ops.object.delete()
+            bpy.data.objects.remove(obj, do_unlink=True)
 
     # Ensure the podium monitor has valid UVs for FlightGear canvas mapping.
     screen_obj = bpy.data.objects.get("Screen")

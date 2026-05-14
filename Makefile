@@ -172,7 +172,7 @@ $(GLTF_LAB): $(GLTF_LAB_FLAT) $(COPY_GLTF_STEM) $(ORBITRON_LOGICAL_ASSEMBLIES) $
 	mkdir -p $(STAND)/build
 	cd '$(REPO_ROOT)' && $(POETRY) run python tools/copy_gltf_with_stem.py \
 		--src '$(GLTF_LAB_FLAT)' --dst '$(GLTF_LAB)'
-	python3 '$(REPO_ROOT)/tools/gltf_nest_from_assemblies.py' \
+	cd '$(REPO_ROOT)' && $(POETRY) run python tools/gltf_nest_from_assemblies.py \
 		--gltf '$(GLTF_LAB)' --assemblies-spec '$(ORBITRON_LOGICAL_ASSEMBLIES)' \
 		--root-name fusion_arcjet_engine
 

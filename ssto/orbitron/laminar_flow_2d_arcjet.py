@@ -257,7 +257,7 @@ def run_arcjet_picmi(
 
     print("Running arc-seed + ExB reactor slice...")
     sim.step(n_steps)
-    print("Complete. Post-process diags with animate_plasma.py or surrogate pipeline.")
+    print("Complete. Post-process diags with the surrogate pipeline (tools/build_surrogate_map.py).")
 
 
 def main(argv: list[str] | None = None) -> int:

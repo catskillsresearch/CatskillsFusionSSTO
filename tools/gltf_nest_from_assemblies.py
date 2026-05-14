@@ -5,11 +5,13 @@ The flat input glTF comes from assembly YAML via ``tools/compile_assembly_yaml.p
 (``orbitron_lab_flat.gltf``), then ``tools/copy_gltf_with_stem.py`` to normalize the
 buffer URI to ``orbitron_lab.bin``. This script inserts assembly empties so Blender
 (and other glTF viewers) show the same nesting as the spec: one root (default name
-fusion_arcjet_engine) and recursive assembly nodes, with mesh leaves unchanged
-(same node indices, names, transforms). Mesh indices are stripped from any pre-existing
-``children`` lists first so no mesh is parented twice (Blender 5.x glTF import requires this).
+fusion_arcjet_engine) and recursive assembly nodes. Mesh leaves keep the same node
+indices, names, and mesh indices; mesh ``children`` entries are stripped from any
+pre-existing parents first so no mesh is parented twice (Blender 5.x glTF import
+requires this). Local transforms on mesh nodes are then rewritten so world-space
+placement matches the pre-detach CadQuery tree (otherwise parts drift apart).
 
-Run after stem copy; before build_ac3d.py. Requires PyYAML (Poetry env).
+Run after stem copy; before build_ac3d.py. Requires PyYAML and NumPy (Poetry env).
 """
 from __future__ import annotations
 
@@ -19,7 +21,9 @@ import json
 import shutil
 import sys
 from pathlib import Path
-from typing import Any
+from typing import Any, Iterable
+
+import numpy as np
 
 from orbitron_logical_assemblies_spec import load_logical_assemblies_spec
 
@@ -70,6 +74,93 @@ def validate_assemblies_for_gltf(mesh_in_gltf: set[str], data: dict[str, Any]) -
         )
 
 
+def _scene_root_node_indices(gltf: dict[str, Any]) -> list[int]:
+    scenes = gltf.get("scenes") or []
+    if not scenes:
+        return [0]
+    roots = scenes[0].get("nodes")
+    if not roots:
+        return [0]
+    return [int(x) for x in roots]
+
+
+def _build_parent_map(
+    nodes: list[dict[str, Any]], roots: list[int]
+) -> dict[int, int | None]:
+    parent: dict[int, int | None] = {}
+    stack = list(roots)
+    for r in roots:
+        parent[int(r)] = None
+    while stack:
+        p = int(stack.pop())
+        for c in nodes[p].get("children") or []:
+            ci = int(c)
+            if ci in parent and parent[ci] is not None:
+                raise ValueError(f"glTF node {ci} referenced as child from multiple parents")
+            parent[ci] = p
+            stack.append(ci)
+    return parent
+
+
+def _node_local_matrix(node: dict[str, Any]) -> np.ndarray:
+    if "matrix" in node:
+        return np.array(node["matrix"], dtype=np.float64).reshape(4, 4, order="F")
+    t = np.array(node.get("translation", [0.0, 0.0, 0.0]), dtype=np.float64)
+    q = node.get("rotation", [0.0, 0.0, 0.0, 1.0])
+    x, y, z, w = float(q[0]), float(q[1]), float(q[2]), float(q[3])
+    s = np.array(node.get("scale", [1.0, 1.0, 1.0]), dtype=np.float64)
+    r = np.array(
+        [
+            [1.0 - 2.0 * (y * y + z * z), 2.0 * (x * y - z * w), 2.0 * (x * z + y * w), 0.0],
+            [2.0 * (x * y + z * w), 1.0 - 2.0 * (x * x + z * z), 2.0 * (y * z - x * w), 0.0],
+            [2.0 * (x * z - y * w), 2.0 * (y * z + x * w), 1.0 - 2.0 * (x * x + y * y), 0.0],
+            [0.0, 0.0, 0.0, 1.0],
+        ],
+        dtype=np.float64,
+    )
+    trans = np.eye(4, dtype=np.float64)
+    trans[:3, 3] = t
+    scl = np.eye(4, dtype=np.float64)
+    scl[0, 0], scl[1, 1], scl[2, 2] = s[0], s[1], s[2]
+    return trans @ r @ scl
+
+
+def _world_from_root(
+    nodes: list[dict[str, Any]], parent_map: dict[int, int | None], node_idx: int
+) -> np.ndarray:
+    chain: list[int] = []
+    cur: int | None = int(node_idx)
+    while cur is not None:
+        chain.append(cur)
+        cur = parent_map.get(cur)
+    chain.reverse()
+    w = np.eye(4, dtype=np.float64)
+    for idx in chain:
+        w = w @ _node_local_matrix(nodes[idx])
+    return w
+
+
+def _bake_mesh_locals_after_reparent(
+    nodes: list[dict[str, Any]],
+    parent_map: dict[int, int | None],
+    mesh_indices: Iterable[int],
+    world_before_detach: dict[int, np.ndarray],
+) -> None:
+    """Preserve each mesh's world matrix after it moves under new assembly empties."""
+    for mi in mesh_indices:
+        pw = parent_map.get(int(mi))
+        if pw is None:
+            w_parent = np.eye(4, dtype=np.float64)
+        else:
+            w_parent = _world_from_root(nodes, parent_map, int(pw))
+        w_des = world_before_detach[int(mi)]
+        l_new = np.linalg.inv(w_parent) @ w_des
+        node = nodes[int(mi)]
+        for key in ("translation", "rotation", "scale"):
+            node.pop(key, None)
+        node["matrix"] = l_new.reshape(-1, order="F").tolist()
+
+
 def detach_mesh_nodes_from_existing_parents(
     nodes: list[dict[str, Any]],
     mesh_indices: set[int],
@@ -114,8 +205,15 @@ def nest_gltf_nodes(
         if n.get("mesh") is not None and n.get("name"):
             name_to_mesh_node[str(n["name"])] = i
 
+    mesh_idx_set = set(name_to_mesh_node.values())
+    roots_before = _scene_root_node_indices(gltf)
+    parent_before = _build_parent_map(nodes, roots_before)
+    world_before = {
+        int(mi): _world_from_root(nodes, parent_before, int(mi)) for mi in mesh_idx_set
+    }
+
     detach_mesh_nodes_from_existing_parents(
-        nodes, set(name_to_mesh_node.values()), gltf.get("scenes")
+        nodes, mesh_idx_set, gltf.get("scenes")
     )
 
     def append_node(node: dict[str, Any]) -> int:
@@ -151,6 +249,10 @@ def nest_gltf_nodes(
     top_indices = [build_group(mk) for mk in top_members]
     nodes[0]["name"] = root_node_name
     nodes[0]["children"] = top_indices
+
+    roots_after = _scene_root_node_indices(gltf)
+    parent_after = _build_parent_map(nodes, roots_after)
+    _bake_mesh_locals_after_reparent(nodes, parent_after, mesh_idx_set, world_before)
 
     # Sanity: each mesh node appears exactly once as a child.
     seen_mesh_parents: set[int] = set()
