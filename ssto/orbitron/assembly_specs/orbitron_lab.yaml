@@ -2,11 +2,28 @@ schema_version: 2
 assembly:
   id: orbitron_lab
   title: 'Orbitron fusion arcjet laboratory (single SSOT: geometry + logical tree)'
-  narrative: 'Single YAML: CadQuery templates under ``instances``; Blender/FG hierarchy
-    under ``logical.groups``. No separate logical file and no glTF nest pass—``cq.Assembly``
-    mirrors ``logical.groups``.
+  narrative: |
+    Single YAML SSOT: CadQuery ``instances`` plus ``logical.groups``; ``cq.Assembly``
+    export mirrors the logical tree (no second nest pass).
 
-    '
+    **Test stand intent:** Ground integration article for a compact **p-¹¹B** crossed-field
+    fusion machine (Orbitron-class narrative), staged so plumbing, thermal paths, and
+    operator-visible services stay **pad-credible**. FlightGear export is a **discipline
+    step**—forcing named parts and interfaces—**not** the end product.
+
+    **Energy offload (design basis):** Multi-MV direct grid tie was rejected for plant
+    footprint at scale; the article **vents fusion-derived energy by doing thermodynamic
+    work on a gas path** (air-breathing train + CD nozzle), which makes **wall heat removal
+    and cryogen loops first-class** (liquid **CH₄** anode / plant thermal management).
+
+    **Steady operation:** After start-up, the stand is intended to run **continuous steady
+    state** while **consumables** (injectants, cryogen, parasitic power budgets) last,
+    with orderly shutdown before starvation—not intrinsic drift to failure.
+
+    **Headline fusion channel (post-dissociation in plasma):** ``¹H + ¹¹B → 3 ⁴He``;
+    **B₂H₆** is the engineered **gaseous boron carrier** to the injector/NBI path; **H₂**
+    is the **NBI co-injectant** (stability / proton inventory); **CH₄** (liquid) is
+    primarily **thermal management**, not the boron carrier.
 logical:
   root: test_stand
   scene_root_name: fusion_arcjet_engine
@@ -26,6 +43,21 @@ logical:
       and a diverging section. The lab exports three coarse solids (inlet plenum adapter,
       throat-forward CD segment, divergent exit) that tile axially behind the reactor
       outlet ring.
+  - term: p-¹¹B headline channel
+    definition: 'After gas dissociation / ionization in the discharge, the primary
+      aneutronic-marketing channel is proton + boron-11 → three alpha particles (⁴He),
+      written ``¹H + ¹¹B → 3 ⁴He``; diborane is the chemical carrier that brings boron
+      to the injector train, not a literal two-atom fusion reagent molecule.'
+  - term: NBI injectant mix
+    definition: Tangential neutral-beam / gas-injection path that co-feeds hydrogen
+      and diborane (design narrative uses a high H₂ to B₂H₆ ratio) to stabilize the
+      discharge (e.g. Diocotron / laminarity language) and supply hydrogenic species
+      including the proton component of p-¹¹B.
+  - term: Liquid methane thermal loop
+    definition: Cryogenic liquid CH₄ used as a working fluid for **anode / boundary
+      Bremsstrahlung heat removal** and related plant cryogenics in this concept; it
+      is **not** the boron carrier. Coarse CAD may still route a CH₄ leg alongside
+      injectant trunks for visual continuity—see instance narratives for roles.
   connections:
   - from: Tank_Hydrogen
     to: Pipe_H2_Feed
@@ -37,19 +69,19 @@ logical:
     kind: dotted
   - from: Tank_Diborane
     to: Pipe_B2H6_Feed
-    label: B2H6 blend / tracer line
+    label: B2H6 line — gaseous boron carrier to NBI / injector manifold
     kind: dotted
   - from: Pipe_H2_Feed
     to: Fuel_Gas_Lines
-    label: trunk carries blended routing to magnet inlets
+    label: H2 injectant trunk toward magnet / NBI manifold (co-fed with B2H6)
     kind: dotted
   - from: Pipe_CH4_Feed
     to: Fuel_Gas_Lines
-    label: trunk carries blended routing to magnet inlets
+    label: Liquid CH4 service — thermal / plant manifold (mesh shares trunk with injectants)
     kind: dotted
   - from: Pipe_B2H6_Feed
     to: Fuel_Gas_Lines
-    label: trunk carries blended routing to magnet inlets
+    label: B2H6 injectant trunk toward magnet / NBI manifold
     kind: dotted
   - from: Pipe_H2_Feed
     to: DEC_Grid
@@ -57,11 +89,11 @@ logical:
     kind: dotted
   - from: Pipe_CH4_Feed
     to: DEC_Grid
-    label: CH4 toward grid (schematic)
+    label: Optional schematic CH4 / plenum tie (not primary anode jacket detail)
     kind: dotted
   - from: Pipe_B2H6_Feed
     to: DEC_Grid
-    label: B2H6 toward blend point (schematic)
+    label: B2H6 / boron inventory toward grid region (schematic)
     kind: dotted
   - from: Cryo_Methane_Piping
     to: Tank_Cryo_Methane
@@ -126,6 +158,10 @@ logical:
   groups:
     test_stand:
       title: Orbitron test stand
+      detail: 'Pad-credible ground article: fusion core in an air-breathing flowpath
+        with segmented nozzle, fuel farm (H₂, B₂H₆, liquid CH₄), HV and cryostat services,
+        and operator station. Intended for continuous steady operation while consumables
+        last; FlightGear is a visualization / integration discipline, not the end product.'
       members:
       - control_panel_stand
       - supply_tanks
@@ -166,25 +202,31 @@ logical:
       - fuel_gas_trunk
     fuel_gas_trunk:
       title: Rigid trunk to reactor magnet inlets
+      detail: Coarse CAD trunk carrying H₂ and B₂H₆ injectant services plus a CH₄
+        plant leg; CH₄ primary role is thermal / cryogenic service, not boron feed.
       parts:
       - Fuel_Gas_Lines
     pipe_h2_feed:
       title: H2 feed line assembly
-      detail: H2-compatible tubing, filters, flex section, and fittings sized for
-        hydrogen service; terminates in connectors toward the reactor manifold / grid
-        region.
+      detail: H2-compatible tubing to the NBI / injector manifold; co-injectant with
+        B₂H₆ for discharge stability (design narrative) and hydrogenic / proton inventory
+        for p-¹¹B after ionization—not the liquid CH₄ thermal loop.
       parts:
       - Pipe_H2_Feed
     pipe_ch4_feed:
       title: CH4 feed line assembly
-      detail: Cryogenic methane-rated line from the methane tank to the blend manifold;
-        includes thermal breaks and service valves (concept).
+      detail: Cryogenic liquid CH₄ from the dewar toward plant thermal routing (anode
+        / boundary heat rejection in the design basis). Coarse mesh may share trunk
+        geometry with H₂/B₂H₆ injectant lines; roles differ—see glossary and assembly
+        narrative.
       parts:
       - Pipe_CH4_Feed
     pipe_b2h6_feed:
-      title: B2H6 / blend feed line assembly
-      detail: Low-flow diborane or blend line with compatible seals and trace heating
-        where needed; joins the CH4/H2 plumbing tree (concept).
+      title: B2H6 feed line assembly
+      detail: Low-flow diborane line (toxic / pyrophoric handling class) to the NBI
+        / injector train—gaseous boron carrier; joins the H₂ injectant tree toward the
+        manifold. Isotopic spec on boron (¹¹B enrichment vs natural ~80% ¹¹B) is a
+        procurement / neutronics matter, not implied by the mesh alone.
       parts:
       - Pipe_B2H6_Feed
     hv_umbilical:
@@ -205,6 +247,11 @@ logical:
       - Fusion_Hot_Gas_Outlet
     fusion_reactor:
       title: Fusion reactor assembly
+      detail: 'p-¹¹B-class crossed-field electrostatic narrative: boron enters as B₂H₆
+        gas to the NBI/injector path (not solid boron); protons from hydrogenic inventory
+        after dissociation. Primary headline channel ``¹H + ¹¹B → 3 ⁴He``. Wall power
+        (Bremsstrahlung-scale in the design article) requires active anode thermal
+        management—liquid CH₄ loop in the plant basis.'
       members:
       - fusion_hot_gas_outlet
       parts:
@@ -354,10 +401,10 @@ instances:
       - -0.55
       - -0.1
   Tank_Hydrogen:
-    narrative: 'Red H2 cylinder at the fuel farm; dotted-line connections in the logical
-      JSON
-
-      describe flex jumpers toward the shared fuel-gas mesh.
+    narrative: 'Red H₂ cylinder at the fuel farm. **Role:** NBI co-injectant with diborane—stability
+      / laminarity in the design narrative and hydrogenic inventory including the
+      proton side of p-¹¹B after dissociation. Dotted logical links show flex jumpers
+      toward the injectant trunk mesh.
 
       '
     template: lab_tank_hydrogen
@@ -368,8 +415,10 @@ instances:
     - 0.1
     transform_chain: []
   Tank_Diborane:
-    narrative: 'Green B2H6 / tracer tank between hydrogen and cryo methane in the
-      farm layout.
+    narrative: 'Green B₂H₆ cylinder between hydrogen and cryo methane. **Role:** gaseous
+      **boron carrier** to the NBI / injector train (not solid boron feed). In plasma,
+      boron participates in the headline channel ``¹H + ¹¹B → 3 ⁴He`` after dissociation;
+      natural boron is ~80% ¹¹B atom fraction unless procurement specifies enrichment.
 
       '
     template: lab_tank_diborane
@@ -380,10 +429,11 @@ instances:
     - 0.2
     transform_chain: []
   Tank_Cryo_Methane:
-    narrative: 'Larger dewar for cryo methane; pairs with cryostat piping mesh and
-      the CH4 text
-
-      decal on the side.
+    narrative: 'Larger dewar for **liquid CH₄**. **Role:** primary plant fluid for
+      **anode / boundary thermal management** (Bremsstrahlung-scale wall heat in the
+      design article)—not the boron carrier. Pairs with **Cryo_Methane_Piping** and the
+      CH₄ decal; coarse CAD may also show a CH₄ leg on **Fuel_Gas_Lines** for visual
+      continuity with the injectant trunks.
 
       '
     template: lab_tank_cryo_methane
@@ -417,7 +467,8 @@ instances:
     - 0.9
     transform_chain: []
   Decal_CH4:
-    narrative: 'Dark “LIQUID METHANE” stencil on the cryo dewar for contrast.
+    narrative: 'Dark “LIQUID METHANE” stencil on the cryo dewar—marks the **thermal /
+      cryogenic** CH₄ inventory (anode / plant cooling loop), not the boron carrier.
 
       '
     template: lab_decal_ch4
@@ -500,34 +551,21 @@ instances:
     - 0.0
     transform_chain: []
   Fuel_Gas_Lines:
-    narrative: 'Three process-gas polylines from the farm tank tops to **separate**
-      inlets on the
-
-      magnet’s +Y (farm-facing) shell—matching the mental model “tanks behind the
-      rig,
-
-      lines sweep forward, meet the black solenoid from the back,” not three tubes
-      into
-
-      one DEC point. Anchor keys resolve in ``LabInfrastructure.fuel_line_connector_anchors()``;
-
-      ``connectivity_spec`` documents service roles for humans and for compiler validation.
+    narrative: 'Polylines from farm tank tops to **separate** magnet-shell inlets—H₂
+      and B₂H₆ are **NBI injectant** services; the CH₄ leg in this coarse mesh is the
+      **liquid methane plant / thermal** service routed with the same trunk for layout
+      continuity (see assembly narrative and glossary). Anchors in ``LabInfrastructure.fuel_line_connector_anchors()``.
 
       '
     template: lab_fuel_gas_lines
     params:
       include_port_markers: false
       connectivity_spec:
-        physical_story: 'H₂ is the primary working gas, B₂H₆ is the tracer / minority
-          blend leg, and CH₄
-
-          is the cryo methane leg that also pairs with the light cryostat pipe. Each
-          leg
-
-          should stay visually separated on the reactor shell so the mesh reads as
-          three
-
-          commissioning circuits, not a bundle jammed into the grid.
+        physical_story: 'H₂ and B₂H₆ are the **NBI / injector** pair: hydrogen for stability
+          and hydrogenic inventory, diborane as the **gaseous boron carrier** (p-¹¹B
+          after dissociation). The CH₄ leg routed on the same trunk in this mesh is the
+          **liquid methane thermal / plant** circuit—**not** a boron feed—see ``Liquid
+          methane thermal loop`` in the glossary.
 
           '
         links:
@@ -537,12 +575,12 @@ instances:
           to_region: reactor_magnet_shell_farm_face
           routing_intent: arc_over_deck_then_h2_side_inlet
         - link_id: b2h6_service
-          service: diborane_tracer
+          service: diborane_nbi_boron_carrier
           from_region: fuel_farm_b2h6_tank
           to_region: reactor_magnet_shell_farm_face
           routing_intent: arc_over_deck_then_centre_inlet
         - link_id: ch4_service
-          service: cryo_methane_process
+          service: liquid_methane_thermal_loop
           from_region: fuel_farm_ch4_dewar
           to_region: reactor_magnet_shell_farm_face
           routing_intent: arc_over_deck_then_ch4_side_inlet
@@ -575,7 +613,8 @@ instances:
         - 0.0
         - 0.0
         - 0.0
-        description: Magnet +Y shell inlet near tube centreline for the tracer leg.
+        description: Magnet +Y shell inlet near tube centreline for the **B₂H₆ / boron**
+          injectant leg.
       - id: tank_ch4_out
         anchor: fuel_farm_ch4_dewar_top
         offset:
@@ -589,7 +628,8 @@ instances:
         - 0.0
         - 0.0
         - 0.0
-        description: Magnet +Y shell inlet on the −X side toward the CH₄ dewar.
+        description: Magnet +Y shell inlet on the −X side for the **liquid CH₄ thermal /
+          plant** leg (coarse mesh; anode jacket detail not modeled explicitly).
       connector_links:
       - id: h2_service
         service: process_h2
@@ -606,11 +646,11 @@ instances:
           - 0.36
           - 0.38
       - id: b2h6_service
-        service: diborane_tracer
+        service: diborane_nbi_boron_carrier
         from_port: tank_b2h6_out
         to_port: reactor_b2h6_in
         radius: 0.02
-        description: Diborane / blend line with a mid run biased toward tube centreline.
+        description: Diborane — gaseous boron carrier to NBI / injector manifold.
         waypoints:
         - - 0.04
           - 0.82
@@ -619,11 +659,12 @@ instances:
           - 0.36
           - 0.32
       - id: ch4_service
-        service: cryo_methane_process
+        service: liquid_methane_thermal_loop
         from_port: tank_ch4_out
         to_port: reactor_ch4_in
         radius: 0.028
-        description: Cryogenic methane line from the dewar toward the −X magnet inlet.
+        description: Liquid CH₄ — thermal / plant service toward magnet routing (mesh
+          shares trunk with injectants).
         waypoints:
         - - -0.52
           - 0.88
@@ -637,27 +678,20 @@ instances:
     - 0.2
     transform_chain: []
   Cryo_Methane_Piping:
-    narrative: 'Separate light-grey **cryostat** leg for liquid methane (distinct
-      from the black
-
-      process-gas CH₄ run): dewar roof to a high-side tap on the magnet shell, matching
-
-      reference lab art where the grey line climbs and meets the solenoid near the
-      top
-
-      / inboard face. Compressor plumbing for the air path remains under logical group ``air_breathing_engine``.
+    narrative: 'Light-grey **cryostat** leg: liquid **CH₄** from the dewar to a high
+      tap on the magnet shell for **anode / boundary thermal management** (paired with
+      **Tank_Cryo_Methane**). Visually distinct from the black **Fuel_Gas_Lines** injectant
+      trunk. Air-path compressor hardware stays under ``air_breathing_engine``.
 
       '
     template: lab_cryo_methane_piping
     params:
       include_port_markers: false
       connectivity_spec:
-        physical_story: 'The dewar stores CH₄ for both process and cryostat narratives;
-          this mesh is the
-
-          “cryo fill / vent” analogue that visually ties the dewar to the core without
-
-          pretending to be the turbofan methane duct.
+        physical_story: 'Light-grey **cryostat** leg: liquid CH₄ from the dewar to a
+          high tap on the magnet shell for **anode / boundary thermal management**
+          narrative (paired with **Tank_Cryo_Methane**). Distinct in intent from the
+          turbofan process-air path under ``air_breathing_engine``.
 
           '
         links:
@@ -970,10 +1004,10 @@ instances:
       - 0.0
       - 0.0
   Anode:
-    narrative: 'Main niobium anode cylinder with end openings; defines the outer pressure
-      vessel
-
-      for the core region before gas turns the corner toward the CD nozzle downstream.
+    narrative: 'Main niobium anode cylinder with end openings; outer pressure boundary
+      for the core before flow turns toward the CD nozzle. **Design basis:** Bremsstrahlung-scale
+      wall heat is removed by a **liquid CH₄ cooling jacket** (plant narrative)—not
+      modeled as separate surface mesh here.
 
       '
     template: orbitron_anode
@@ -995,12 +1029,9 @@ instances:
       - 0.15
       angle_deg: 90.0
   DEC_Grid:
-    narrative: 'DEC grid insert—your “orange” accent in the viewport—sits radially
-      inside the
-
-      anode and carries the high-gradient region that couples to the arc / plenum
-
-      narrative in the logical assemblies JSON.
+    narrative: 'DEC grid insert (direct energy conversion narrative) radially inside
+      the anode—high-gradient region coupling fusion alphas to extracted power in the
+      design story. Interlocks and bias sequencing live outside this CAD YAML.
 
       '
     template: orbitron_dec_grid
@@ -1097,12 +1128,10 @@ instances:
       - 0.15
       angle_deg: 90.0
   NBI_Injector:
-    narrative: 'Neutral beamline stub sticking out the side of the core; in a full
-      design this
-
-      would clear the duct and cryostat routing—here it is a short green-grey cylinder
-
-      plus flange for pick naming in FlightGear.
+    narrative: 'Neutral beamline / gas-injection stub on the core. **Design intent:**
+      tangential feed of the **H₂ + B₂H₆** injectant mix toward the discharge (stability
+      / laminarity narrative); boron enters as **B₂H₆ gas**, not solid boron. Coarse
+      green-grey cylinder + flange for mesh naming and FlightGear pick targets.
 
       '
     template: orbitron_nbi

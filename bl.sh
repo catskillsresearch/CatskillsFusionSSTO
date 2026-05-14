@@ -1,4 +1,4 @@
-#!/usr/bin/env bash -x
+#!/usr/bin/bash -x
 # Open Blender with the nested Orbitron lab glTF (logical root fusion_arcjet_engine).
 # Requires a prior build: ./stand.sh
 #
