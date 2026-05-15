@@ -4,25 +4,51 @@
 #
 # Usage (repo root):
 #   ./bl.sh
+#   ./bl.sh Aircraft/<pkg>/build/methane_tank_assy.gltf   # optional glTF path (repo-relative or absolute)
 #   BLENDER=/path/to/blender ./bl.sh
 #
-# Optional: open a different lab glTF (e.g. a debug export path):
+# Optional: open a different lab glTF (e.g. a debug export path); overridden by a CLI path:
 #   ORBITRON_LAB_GLTF=/path/to/orbitron_lab.gltf ./bl.sh
 #
 # Optional: after import, run viewport collections helper (VIEW__* collections):
 #   ./bl.sh --collections
+#   ./bl.sh --collections Aircraft/<pkg>/build/tank_assy.gltf
 
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")" && pwd)"
 PKG="$(python3 "${ROOT}/tools/orbitron_aircraft_paths.py" package_dir --repo-root "${ROOT}")"
-GLTF="${ROOT}/Aircraft/${PKG}/build/orbitron_lab.gltf"
-if [[ -n "${ORBITRON_LAB_GLTF:-}" ]]; then
-  if [[ "${ORBITRON_LAB_GLTF}" == /* ]]; then
-    GLTF="${ORBITRON_LAB_GLTF}"
+DEFAULT_GLTF="${ROOT}/Aircraft/${PKG}/build/orbitron_lab.gltf"
+
+_resolve_gltf() {
+  # $1 = path (absolute or relative to repo root, same rules as ORBITRON_LAB_GLTF)
+  local p="$1"
+  if [[ "${p}" == /* ]]; then
+    printf '%s' "${p}"
   else
-    GLTF="${ROOT}/${ORBITRON_LAB_GLTF}"
+    printf '%s' "${ROOT}/${p}"
   fi
+}
+
+_collections=0
+gltf_cli=""
+_extra=()
+for a in "$@"; do
+  if [[ "${a}" == "--collections" ]]; then
+    _collections=1
+  elif [[ -z "${gltf_cli}" ]]; then
+    gltf_cli="${a}"
+  else
+    _extra+=("${a}")
+  fi
+done
+
+GLTF="${DEFAULT_GLTF}"
+if [[ -n "${gltf_cli}" ]]; then
+  GLTF="$(_resolve_gltf "${gltf_cli}")"
+elif [[ -n "${ORBITRON_LAB_GLTF:-}" ]]; then
+  GLTF="$(_resolve_gltf "${ORBITRON_LAB_GLTF}")"
 fi
+
 BLENDER_BIN="${BLENDER:-blender}"
 OPEN_PY="${ROOT}/tools/blender_open_orbitron_lab_gltf.py"
 COL_PY="${ROOT}/tools/blender_orbitron_viewport_collections.py"
@@ -36,16 +62,6 @@ if [[ ! -f "${OPEN_PY}" ]]; then
   echo "error: missing ${OPEN_PY}" >&2
   exit 1
 fi
-
-_collections=0
-_extra=()
-for a in "$@"; do
-  if [[ "${a}" == "--collections" ]]; then
-    _collections=1
-  else
-    _extra+=("${a}")
-  fi
-done
 
 if [[ "${_collections}" -eq 1 ]]; then
   if [[ ! -f "${COL_PY}" ]]; then

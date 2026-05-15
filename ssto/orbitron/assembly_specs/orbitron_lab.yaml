@@ -208,7 +208,10 @@ logical:
       detail: One logical cluster per species; each child assembly carries **tank +
         decal + tank-end valve boss + routed trunk** so sub-glTF exports read as coherent
         packages. ``helium_tank_assy`` is a **bundle name** for the protium / H₂ injectant
-        hardware in this lab mesh.
+        hardware in this lab mesh. A shared **skid deck** (``Tank_Farm_Platform``) spans
+        the three cylinder footprints so the farm reads as pad-mounted hardware.
+      parts:
+      - Tank_Farm_Platform
       members:
       - methane_tank_assy
       - boron_tank_assy
@@ -457,6 +460,19 @@ instances:
     - 0.1
     - 0.6
     - 0.2
+    transform_chain: []
+  Tank_Farm_Platform:
+    narrative: 'Steel skid under the +Y **fuel farm** row—thin deck (tank bases at z=0)
+      and four corner posts sized to the same XY layout as ``Tank_Hydrogen``,
+      ``Tank_Diborane``, and ``Tank_Cryo_Methane`` in ``LabInfrastructure.build_fuel_farm()``.
+
+      '
+    template: lab_tank_farm_platform
+    params: {}
+    color:
+    - 0.33
+    - 0.33
+    - 0.36
     transform_chain: []
   Tank_Cryo_Methane:
     narrative: 'Larger dewar for **liquid CH₄**. **Role:** primary plant fluid for

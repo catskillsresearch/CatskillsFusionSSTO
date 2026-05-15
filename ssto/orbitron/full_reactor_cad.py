@@ -207,6 +207,37 @@ class LabInfrastructure:
         
         return h2, b2h6, dewar, txt_h2, txt_b2, txt_ch4
 
+    def build_tank_farm_platform(self) -> cq.Workplane:
+        """Skid deck + corner posts under the three ``build_fuel_farm()`` cylinders.
+
+        Footprint is derived from the same centres and radii: H₂ at (0.6, 1.2) r=0.15,
+        B₂H₆ at (0, 1.2) r=0.15, CH₄ dewar at (-0.7, 1.2) r=0.25. Deck top is z=0 so
+        tank bases sit flush with the slab; legs extend downward for a pad-mounted read.
+        """
+        deck_t = 0.055
+        deck_lx = 1.95
+        deck_ly = 0.78
+        cx, cy = -0.1, 1.2
+        deck = cq.Workplane("XY").box(deck_lx, deck_ly, deck_t).translate((cx, cy, -deck_t / 2))
+
+        leg_w = 0.065
+        leg_h = 0.16
+        z_leg_center = -deck_t - leg_h / 2
+        inset = 0.055
+        hx = deck_lx / 2 - inset
+        hy = deck_ly / 2 - inset
+        legs = cq.Workplane("XY")
+        for x, y in (
+            (cx - hx, cy - hy),
+            (cx + hx, cy - hy),
+            (cx - hx, cy + hy),
+            (cx + hx, cy + hy),
+        ):
+            legs = legs.union(
+                cq.Workplane("XY").box(leg_w, leg_w, leg_h).translate((x, y, z_leg_center))
+            )
+        return deck.union(legs)
+
     def fuel_line_connector_anchors(self) -> dict[str, tuple[float, float, float]]:
         """World-space points for fuel routing (tank tops + magnet-shell inlets).
 

@@ -31,6 +31,7 @@ GROUND_TRUTH_LINEAR = {
     "Tank_Hydrogen": (0.604, 0.01, 0.01),
     "Tank_Diborane": (0.01, 0.319, 0.033),
     "Tank_Cryo_Methane": (0.448, 0.448, 0.604),
+    "Tank_Farm_Platform": (0.12, 0.12, 0.13),
 }
 
 

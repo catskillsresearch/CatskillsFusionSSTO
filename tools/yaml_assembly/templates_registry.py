@@ -203,6 +203,10 @@ def tpl_lab_tank_cryo_methane(**_: Any) -> cq.Workplane:
     return d
 
 
+def tpl_lab_tank_farm_platform(**_: Any) -> cq.Workplane:
+    return _infra().build_tank_farm_platform()
+
+
 def tpl_lab_decal_h2(**_: Any) -> cq.Workplane:
     return _infra().build_fuel_farm()[3]
 
@@ -292,6 +296,7 @@ TEMPLATE_REGISTRY: dict[str, Callable[..., cq.Workplane]] = {
     "lab_tank_hydrogen": tpl_lab_tank_hydrogen,
     "lab_tank_diborane": tpl_lab_tank_diborane,
     "lab_tank_cryo_methane": tpl_lab_tank_cryo_methane,
+    "lab_tank_farm_platform": tpl_lab_tank_farm_platform,
     "lab_decal_h2": tpl_lab_decal_h2,
     "lab_decal_b2h6": tpl_lab_decal_b2h6,
     "lab_decal_ch4": tpl_lab_decal_ch4,
