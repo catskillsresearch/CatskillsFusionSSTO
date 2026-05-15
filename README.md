@@ -30,6 +30,35 @@ shutdown before starvation.
 
 Build: `make orbitron-lab-gltf` / `./stand.sh` (see repository `Makefile`).
 
+### Thrust and thrust-sled load telemetry (FlightGear)
+
+The operator **Screen** shows live **thrust**, **airflow (surrogate mass flow)**, **total sled load**, and **four corner load-cell readings** that respond to test-stand controls. This is a **0D bookkeeping model** (not a structural FEA solve): JSBSim evaluates it every frame; Nasal only displays properties.
+
+| Control (keyboard) | Property | Effect on telemetry |
+|--------------------|----------|---------------------|
+| **SPACE** | `/sim/model/reactor/startup-trigger` | Arms reactor → enables thrust / load outputs |
+| **W / S** | `/controls/reactor/throttle` | NBI throttle → bilinear **thrust** and **mdot**; slight **±Y** load split |
+| **U / J** | `/controls/orbitron/compressor` | Compressor → **thrust** and **mdot**; biases load toward **−X** corners (intake side) |
+
+**JSBSim outputs** (prefix `/fdm/jsbsim/systems/arcjet/`):
+
+- `thrust-lbf` — axial thrust from surrogate surface (throttle × compressor)
+- `mass-flow-kgps` — air-path mass flow (shown as “Airflow (mdot)” on screen)
+- `sled-load-total-lbf` — thrust + engine tare on the sled
+- `load-cell-0-lbf` … `load-cell-3-lbf` — corner shares (+X+Y, −X+Y, +X−Y, −X−Y)
+
+**Where documented / configured:**
+
+| File | Role |
+|------|------|
+| `ssto/orbitron/assembly_specs/orbitron_physics_surrogate.yaml` | Model coeffs (`thrust_sled_load_cells`), formal narrative |
+| `ssto/orbitron/assembly_specs/orbitron_nasal.yaml` | Operator screen rows (`reactor_ui.telemetry`) |
+| `ssto/orbitron/assembly_specs/orbitron_aircraft_flightgear.yaml` | FG property wiring notes |
+| `tools/templates/orbitron-jsbsim.xml` | JSBSim FCS implementation |
+| `ssto/orbitron/assembly_specs/README.md` | Assembly-spec index (includes this feature) |
+
+Regenerate after YAML edits: `./stand.sh` (or `make` for Nasal, `*-set.xml`, and `orbitron-jsbsim.xml`).
+
 ## Origin & Provenance
 
 This project is a fork of the **FlightGear Space Shuttle**, originally developed by Thorsten Renk and the FlightGear development team. It is built upon the stable 2020.3 release source code.

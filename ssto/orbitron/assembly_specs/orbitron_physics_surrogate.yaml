@@ -42,6 +42,21 @@ formal:
   surrogate_map: |
     CSV targets use normalized rho_e vs sweep median and ROI beam charge vs median;
     beam_screen_kw = beam_current_ma * beam_screen_kw_per_ma (defaults match legacy 8 MV story).
+  thrust_sled_load_cells: |
+    **Where computed:** JSBSim ``arcjet_airbreather`` channel in ``tools/templates/orbitron-jsbsim.xml``
+    (every FDM frame). Coefficients are emitted to ``/sim/model/orbitron/thrust-sled/*`` from this file
+    when ``orbitron_aircraft_flightgear.yaml`` has ``fg_set.surrogate_from_physics: true``.
+
+    **Inputs:** ``systems/arcjet/thrust-lbf`` and ``systems/arcjet/mass-flow-kgps`` from the bilinear
+    surrogate in throttle ``/controls/reactor/throttle`` and compressor ``/controls/orbitron/compressor``
+    (air-path / “airflow” command); gated by ``systems/reactor/active``.
+
+    **Model:** each corner puck gets ``tare_lbf/4`` plus a share of axial thrust. Shares start at 0.25
+    and redistribute with compressor (intake on −X → more load on −X corners) and throttle (+Y vs −Y).
+    ``systems/arcjet/sled-load-total-lbf`` = thrust + tare (total sled compression). The operator screen
+    (``orbitron_nasal.yaml`` → generated ``reactor_ui.nas``) only **displays** these properties.
+
+    **Mesh alignment:** corner signs match ``LoadCell_0…3`` in ``orbitron_lab.yaml`` (+X+Y, −X+Y, +X−Y, −X−Y).
 
   # --- Narratives migrated from WARPX_CASE_REVIEW.txt (laminar_flow_2d.py); not machine-read ---
   laminar_flow_2d_py_case_review: |
@@ -159,3 +174,34 @@ surrogate_engineering:
   mass_flow_kgps_scale: 2.5
   gross_power_mw_scale: 3.5
   heat_kw_scale: 400.0
+
+# Thrust-sled corner load model (JSBSim). See formal.thrust_sled_load_cells and assembly_specs/README.md.
+thrust_sled_load_cells:
+  narrative: |
+    Pad **thrust bookkeeping** and **four corner load cells** for the operator screen.
+    **Not** a structural solve—coarse 0D split for FlightGear telemetry.
+
+    **Compute:** JSBSim ``systems/arcjet/*`` every frame (`tools/templates/orbitron-jsbsim.xml`).
+    **Display:** ``orbitron_nasal.yaml`` → ``reactor_ui.nas`` on the ``Screen`` mesh (10 Hz readout).
+
+    **Inputs:** ``systems/arcjet/thrust-lbf`` and ``systems/arcjet/mass-flow-kgps`` from the
+    bilinear surrogate (`/controls/reactor/throttle`, `/controls/orbitron/compressor`, gated by
+    ``systems/reactor/active``). Intake on −X → raise ``compressor_moment_gain`` load on −X corners.
+
+    **Outputs (FG property suffix under /fdm/jsbsim/systems/arcjet/):**
+    thrust-lbf, mass-flow-kgps, sled-load-total-lbf, load-cell-0-lbf … load-cell-3-lbf.
+
+    **Corner weight example (+X+Y, cell 0):**
+    w0 = 0.25 - compressor_moment_gain*compressor - throttle_moment_gain*throttle
+    load0 = active * (tare_lbf/4 + thrust_lbf * w0)
+    sled-load-total-lbf = active * (thrust_lbf + tare_lbf)
+
+    Coefficients below are copied to ``/sim/model/orbitron/thrust-sled/*`` in *-set.xml.
+  tare_lbf: 180.0
+  compressor_moment_gain: 0.14
+  throttle_moment_gain: 0.07
+  corners:
+    "0": { label: "+X+Y", x_sign: 1, y_sign: 1 }
+    "1": { label: "-X+Y", x_sign: -1, y_sign: 1 }
+    "2": { label: "+X-Y", x_sign: 1, y_sign: -1 }
+    "3": { label: "-X-Y", x_sign: -1, y_sign: -1 }

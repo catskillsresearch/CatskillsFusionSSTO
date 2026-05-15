@@ -206,7 +206,7 @@
         </channel>
     </system>
 
-    <!-- 0D arcjet / load-path (GOAL 4–5: replace with surrogate tables when ready) -->
+    <!-- 0D arcjet thrust + thrust-sled load cells (see assembly_specs/README.md, orbitron_physics_surrogate.yaml thrust_sled_load_cells) -->
     <system name="arcjet_airbreather">
         <channel name="arcjet_outputs">
             <!-- Multivariate control surface: y = c0 + ct*T + cc*C + ctc*T*C -->
@@ -265,42 +265,140 @@
                 </test>
             </switch>
 
-            <fcs_function name="systems/arcjet/load-cell-avg-lbf">
+            <!-- Total sled compression (thrust reaction + engine tare); coeffs from physics YAML → set.xml -->
+            <fcs_function name="systems/arcjet/sled-load-total-lbf">
                 <function>
-                    <property>systems/arcjet/thrust-lbf</property>
+                    <product>
+                        <property>systems/reactor/active</property>
+                        <sum>
+                            <property>systems/arcjet/thrust-lbf</property>
+                            <property>/sim/model/orbitron/thrust-sled/tare-lbf</property>
+                        </sum>
+                    </product>
                 </function>
             </fcs_function>
 
+            <fcs_function name="systems/arcjet/load-cell-avg-lbf">
+                <function>
+                    <property>systems/arcjet/sled-load-total-lbf</property>
+                </function>
+            </fcs_function>
+
+            <!-- Corner shares: 0.25 ± kcx*compressor ± kcy*throttle (signs per orbitron_physics_surrogate.yaml corners) -->
             <fcs_function name="systems/arcjet/load-cell-0-lbf">
                 <function>
-                    <quotient>
-                        <property>systems/arcjet/thrust-lbf</property>
-                        <value> 4.0 </value>
-                    </quotient>
+                    <product>
+                        <property>systems/reactor/active</property>
+                        <sum>
+                            <quotient>
+                                <property>/sim/model/orbitron/thrust-sled/tare-lbf</property>
+                                <value> 4.0 </value>
+                            </quotient>
+                            <product>
+                                <property>systems/arcjet/thrust-lbf</property>
+                                <difference>
+                                    <value> 0.25 </value>
+                                    <sum>
+                                        <product>
+                                            <property>/sim/model/orbitron/thrust-sled/compressor-moment-gain</property>
+                                            <property>/controls/orbitron/compressor</property>
+                                        </product>
+                                        <product>
+                                            <property>/sim/model/orbitron/thrust-sled/throttle-moment-gain</property>
+                                            <property>/controls/reactor/throttle</property>
+                                        </product>
+                                    </sum>
+                                </difference>
+                            </product>
+                        </sum>
+                    </product>
                 </function>
             </fcs_function>
+
             <fcs_function name="systems/arcjet/load-cell-1-lbf">
                 <function>
-                    <quotient>
-                        <property>systems/arcjet/thrust-lbf</property>
-                        <value> 4.0 </value>
-                    </quotient>
+                    <product>
+                        <property>systems/reactor/active</property>
+                        <sum>
+                            <quotient>
+                                <property>/sim/model/orbitron/thrust-sled/tare-lbf</property>
+                                <value> 4.0 </value>
+                            </quotient>
+                            <product>
+                                <property>systems/arcjet/thrust-lbf</property>
+                                <sum>
+                                    <value> 0.25 </value>
+                                    <product>
+                                        <property>/sim/model/orbitron/thrust-sled/compressor-moment-gain</property>
+                                        <property>/controls/orbitron/compressor</property>
+                                    </product>
+                                    <product>
+                                        <property>/sim/model/orbitron/thrust-sled/throttle-moment-gain</property>
+                                        <property>/controls/reactor/throttle</property>
+                                        <value> -1.0 </value>
+                                    </product>
+                                </sum>
+                            </product>
+                        </sum>
+                    </product>
                 </function>
             </fcs_function>
+
             <fcs_function name="systems/arcjet/load-cell-2-lbf">
                 <function>
-                    <quotient>
-                        <property>systems/arcjet/thrust-lbf</property>
-                        <value> 4.0 </value>
-                    </quotient>
+                    <product>
+                        <property>systems/reactor/active</property>
+                        <sum>
+                            <quotient>
+                                <property>/sim/model/orbitron/thrust-sled/tare-lbf</property>
+                                <value> 4.0 </value>
+                            </quotient>
+                            <product>
+                                <property>systems/arcjet/thrust-lbf</property>
+                                <sum>
+                                    <value> 0.25 </value>
+                                    <product>
+                                        <property>/sim/model/orbitron/thrust-sled/compressor-moment-gain</property>
+                                        <property>/controls/orbitron/compressor</property>
+                                        <value> -1.0 </value>
+                                    </product>
+                                    <product>
+                                        <property>/sim/model/orbitron/thrust-sled/throttle-moment-gain</property>
+                                        <property>/controls/reactor/throttle</property>
+                                    </product>
+                                </sum>
+                            </product>
+                        </sum>
+                    </product>
                 </function>
             </fcs_function>
+
             <fcs_function name="systems/arcjet/load-cell-3-lbf">
                 <function>
-                    <quotient>
-                        <property>systems/arcjet/thrust-lbf</property>
-                        <value> 4.0 </value>
-                    </quotient>
+                    <product>
+                        <property>systems/reactor/active</property>
+                        <sum>
+                            <quotient>
+                                <property>/sim/model/orbitron/thrust-sled/tare-lbf</property>
+                                <value> 4.0 </value>
+                            </quotient>
+                            <product>
+                                <property>systems/arcjet/thrust-lbf</property>
+                                <sum>
+                                    <value> 0.25 </value>
+                                    <product>
+                                        <property>/sim/model/orbitron/thrust-sled/compressor-moment-gain</property>
+                                        <property>/controls/orbitron/compressor</property>
+                                    </product>
+                                    <product>
+                                        <property>/sim/model/orbitron/thrust-sled/throttle-moment-gain</property>
+                                        <property>/controls/reactor/throttle</property>
+                                        <value> -1.0 </value>
+                                    </product>
+                                </sum>
+                            </product>
+                        </sum>
+                    </product>
                 </function>
             </fcs_function>
         </channel>

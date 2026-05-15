@@ -67,6 +67,13 @@ logical:
       Bremsstrahlung heat removal** and related plant cryogenics in this concept; it
       is **not** the boron carrier. In the lab glTF, routing is through ``Cryo_Methane_Piping``
       under ``methane_tank_assy`` (the redundant CH₄ leg on the old combined injectant trunk was removed).
+  - term: Thrust-sled load telemetry
+    definition: 'Four corner **load-cell pucks** on ``thrust_sled`` (`LoadCell_0`…`3`) represent
+      pad bookkeeping, not strain-gauge FEA. **Thrust** and **airflow (mdot)** come from the JSBSim
+      bilinear surrogate (``/controls/reactor/throttle``, ``/controls/orbitron/compressor``).
+      Corner **lbf** values and **sled-load-total** are computed in ``orbitron-jsbsim.xml`` from
+      coeffs in ``orbitron_physics_surrogate.yaml`` (`thrust_sled_load_cells`) and shown on the
+      operator **Screen** via ``orbitron_nasal.yaml``. See ``assembly_specs/README.md``.'
   connections:
   - from: Tank_Hydrogen
     to: Pipe_H2_Feed
@@ -184,7 +191,9 @@ logical:
     control_panel_stand:
       title: Control panel and operator station
       detail: Desk, screen, emergency stop, and HV umbilical breakout toward the reactor
-        (rails and thrust deck are a separate ``thrust_sled`` assembly).
+        (rails and thrust deck are a separate ``thrust_sled`` assembly). The **Screen** mesh
+        shows live thrust, airflow (surrogate mdot), and **four thrust-sled load cells** from
+        JSBSim (``orbitron_nasal.yaml`` → ``reactor_ui``; physics in ``orbitron_physics_surrogate.yaml``).
       members:
       - hv_umbilical
       parts:
@@ -193,12 +202,18 @@ logical:
       - Screen
     thrust_sled:
       title: Thrust sled
-      detail: Longitudinal rails and deck slab that carry the engine article on the pad;
-        thrust bookkeeping load cells remain on the fusion reactor group in this lab spec.
+      detail: Longitudinal rails, deck slab, and **four corner load-cell pucks** that
+        carry the engine article on the pad and support thrust bookkeeping. Simulated
+        **thrust / corner lbf** for FlightGear are documented in ``assembly_specs/README.md``
+        (physics model in ``orbitron_physics_surrogate.yaml``, display on ``control_panel_stand`` Screen).
       parts:
       - Rail_Left
       - Rail_Right
       - Thrust_Sled_Frame
+      - LoadCell_0
+      - LoadCell_1
+      - LoadCell_2
+      - LoadCell_3
     tank_assy:
       title: Tank farm assemblies
       detail: One logical cluster per species; each child assembly carries **tank +
@@ -273,10 +288,6 @@ logical:
       - NBI_Injector
       - Insulators
       - DEC_Grid
-      - LoadCell_0
-      - LoadCell_1
-      - LoadCell_2
-      - LoadCell_3
     bd_annulus_path:
       title: Annulus flow path
       detail: Ring-shaped bypass / conditioning passage carrying compressor or bypass
@@ -788,7 +799,8 @@ instances:
       - 1.2
       - 0.865
   LoadCell_0:
-    narrative: 'Corner load-cell puck (+X, +Y deck corner) for thrust bookkeeping.
+    narrative: 'Corner load-cell puck on the **thrust sled** deck (+X, +Y) for thrust
+      bookkeeping between pad and engine article.
 
       '
     template: load_cell_puck
@@ -804,7 +816,7 @@ instances:
       - 0.35
       - 0.17
   LoadCell_1:
-    narrative: 'Corner load-cell puck (−X, +Y).
+    narrative: 'Thrust-sled corner puck (−X, +Y).
 
       '
     template: load_cell_puck
@@ -820,7 +832,7 @@ instances:
       - 0.35
       - 0.17
   LoadCell_2:
-    narrative: 'Corner load-cell puck (+X, −Y).
+    narrative: 'Thrust-sled corner puck (+X, −Y).
 
       '
     template: load_cell_puck
@@ -836,7 +848,7 @@ instances:
       - -0.35
       - 0.17
   LoadCell_3:
-    narrative: 'Corner load-cell puck (−X, −Y).
+    narrative: 'Thrust-sled corner puck (−X, −Y).
 
       '
     template: load_cell_puck

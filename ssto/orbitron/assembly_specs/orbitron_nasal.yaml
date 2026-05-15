@@ -6,6 +6,34 @@ schema_version: 1
 spec_kind: orbitron_nasal
 title: Orbitron test stand — generated Nasal
 
+# Thrust / load telemetry: documented in assembly_specs/README.md and repo README.md.
+# Compute in JSBSim; this file only maps properties → Screen text (reactor_ui.telemetry).
+
+telemetry:
+  title: Thrust and thrust-sled load measurement (operator Screen)
+  compute:
+    engine: JSBSim
+    template: tools/templates/orbitron-jsbsim.xml
+    system: arcjet_airbreather
+    physics_coeffs: orbitron_physics_surrogate.yaml → thrust_sled_load_cells
+    fg_coeffs_path: /sim/model/orbitron/thrust-sled/
+  controls:
+    - { keys: "SPACE", prop: /sim/model/reactor/startup-trigger, role: reactor arm/disarm }
+    - { keys: "W / S", prop: /controls/reactor/throttle, role: NBI throttle → thrust, mdot, ±Y load split }
+    - { keys: "U / J", prop: /controls/orbitron/compressor, role: compressor → thrust, mdot, −X load bias }
+  jsbsim_properties:
+    - { name: thrust-lbf, label: "Thrust", unit: lbf }
+    - { name: mass-flow-kgps, label: "Airflow (mdot)", unit: kg/s }
+    - { name: sled-load-total-lbf, label: "Sled Load Total", unit: lbf }
+    - { name: load-cell-0-lbf, label: "LC +X+Y", unit: lbf, corner: "+X+Y" }
+    - { name: load-cell-1-lbf, label: "LC -X+Y", unit: lbf, corner: "-X+Y" }
+    - { name: load-cell-2-lbf, label: "LC +X-Y", unit: lbf, corner: "+X-Y" }
+    - { name: load-cell-3-lbf, label: "LC -X-Y", unit: lbf, corner: "-X-Y" }
+  display:
+    surface: Screen mesh (control_panel_stand)
+    nasal_module: reactor_ui.nas
+    refresh_hz: 10
+
 surrogate_load:
   header: |
     Load engine_surrogate.json (from WarpX reduction) into /sim/model/orbitron/surrogate/*
@@ -36,8 +64,8 @@ reactor_ui:
   class_name: ReactorUI
   canvas:
     name: Reactor_Telemetry
-    size: [1024, 1200]
-    view: [1024, 1200]
+    size: [1024, 1520]
+    view: [1024, 1520]
     mipmapping: 1
   colors:
     outer_fill: [0.06, 0.08, 0.12, 1.0]
@@ -113,17 +141,37 @@ reactor_ui:
       prop: /fdm/jsbsim/systems/arcjet/thrust-lbf
       sprintf: "Thrust: %.0f lbf"
     - id: mdot
-      y: 1020
+      y: 1005
       kind: float
       prop: /fdm/jsbsim/systems/arcjet/mass-flow-kgps
-      sprintf: "Mass Flow: %.3f kg/s"
-    - id: load
-      y: 1110
+      sprintf: "Airflow (mdot): %.3f kg/s"
+    - id: sled_load
+      y: 1080
       kind: float
-      prop: /fdm/jsbsim/systems/arcjet/load-cell-avg-lbf
-      sprintf: "Load Cell Avg: %.0f lbf"
+      prop: /fdm/jsbsim/systems/arcjet/sled-load-total-lbf
+      sprintf: "Sled Load Total: %.0f lbf"
+    - id: lc0
+      y: 1155
+      kind: float
+      prop: /fdm/jsbsim/systems/arcjet/load-cell-0-lbf
+      sprintf: "LC +X+Y: %.0f lbf"
+    - id: lc1
+      y: 1230
+      kind: float
+      prop: /fdm/jsbsim/systems/arcjet/load-cell-1-lbf
+      sprintf: "LC -X+Y: %.0f lbf"
+    - id: lc2
+      y: 1305
+      kind: float
+      prop: /fdm/jsbsim/systems/arcjet/load-cell-2-lbf
+      sprintf: "LC +X-Y: %.0f lbf"
+    - id: lc3
+      y: 1380
+      kind: float
+      prop: /fdm/jsbsim/systems/arcjet/load-cell-3-lbf
+      sprintf: "LC -X-Y: %.0f lbf"
     - id: beam
-      y: 1165
+      y: 1455
       kind: sprintf2
       fmt: "Viewport beam: %.1f kW  |  %.2f mA"
       props:
@@ -131,7 +179,7 @@ reactor_ui:
         - /fdm/jsbsim/systems/reactor/beam-current-ma
   debug_window:
     title: Arcjet / Reactor Telemetry
-    size: [460, 500]
+    size: [520, 720]
     background: [0.03, 0.03, 0.03, 0.90]
     line_start_y: 28
     line_step: 38
@@ -180,14 +228,30 @@ reactor_ui:
         kind: float
         prop: /fdm/jsbsim/systems/arcjet/thrust-lbf
         sprintf: "Thrust: %.0f lbf"
-      - label_static: "Mass Flow: 0.000 kg/s"
+      - label_static: "Airflow (mdot): 0.000 kg/s"
         kind: float
         prop: /fdm/jsbsim/systems/arcjet/mass-flow-kgps
-        sprintf: "Mass Flow: %.3f kg/s"
-      - label_static: "Load Cell Avg: 0 lbf"
+        sprintf: "Airflow (mdot): %.3f kg/s"
+      - label_static: "Sled Load Total: 0 lbf"
         kind: float
-        prop: /fdm/jsbsim/systems/arcjet/load-cell-avg-lbf
-        sprintf: "Load Cell Avg: %.0f lbf"
+        prop: /fdm/jsbsim/systems/arcjet/sled-load-total-lbf
+        sprintf: "Sled Load Total: %.0f lbf"
+      - label_static: "LC +X+Y: 0 lbf"
+        kind: float
+        prop: /fdm/jsbsim/systems/arcjet/load-cell-0-lbf
+        sprintf: "LC +X+Y: %.0f lbf"
+      - label_static: "LC -X+Y: 0 lbf"
+        kind: float
+        prop: /fdm/jsbsim/systems/arcjet/load-cell-1-lbf
+        sprintf: "LC -X+Y: %.0f lbf"
+      - label_static: "LC +X-Y: 0 lbf"
+        kind: float
+        prop: /fdm/jsbsim/systems/arcjet/load-cell-2-lbf
+        sprintf: "LC +X-Y: %.0f lbf"
+      - label_static: "LC -X-Y: 0 lbf"
+        kind: float
+        prop: /fdm/jsbsim/systems/arcjet/load-cell-3-lbf
+        sprintf: "LC -X-Y: %.0f lbf"
       - label_static: "Q-Factor: 0.00"
         kind: float
         prop: /fdm/jsbsim/systems/reactor/q-factor

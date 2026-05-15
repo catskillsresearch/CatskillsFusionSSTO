@@ -68,6 +68,7 @@ def _surrogate_corner(
 def _build_set_xml(
     sim: Mapping[str, Any],
     physics_eng: Mapping[str, Any] | None,
+    thrust_sled_load: Mapping[str, Any] | None = None,
 ) -> str:
     use_phys = bool(sim.get("surrogate_from_physics")) and physics_eng is not None
     beam = sim.get("surrogate_beam_screen_kw") or {}
@@ -125,6 +126,17 @@ def _build_set_xml(
     _typed_prop(sur, "beam-screen-kw-ct", float(beam.get("ct", 0)))
     _typed_prop(sur, "beam-screen-kw-cc", float(beam.get("cc", 0)))
     _typed_prop(sur, "beam-screen-kw-ctc", float(beam.get("ctc", 0)))
+
+    tsl = thrust_sled_load if thrust_sled_load is not None else {}
+    model.append(
+        ET.Comment(
+            " Thrust-sled load-cell split coeffs (orbitron_physics_surrogate.yaml → JSBSim) "
+        )
+    )
+    sled = ET.SubElement(orb, "thrust-sled")
+    _typed_prop(sled, "tare-lbf", float(tsl.get("tare_lbf", 180.0)))
+    _typed_prop(sled, "compressor-moment-gain", float(tsl.get("compressor_moment_gain", 0.14)))
+    _typed_prop(sled, "throttle-moment-gain", float(tsl.get("throttle_moment_gain", 0.07)))
 
     snd = sim["sound"]
     sound_el = ET.SubElement(sim_el, "sound")
@@ -271,6 +283,7 @@ def main() -> int:
         return 1
 
     physics_eng: dict[str, Any] | None = None
+    thrust_sled_load: dict[str, Any] | None = None
     if args.physics_spec is not None:
         pp = args.physics_spec.resolve()
         if pp.is_file():
@@ -279,6 +292,9 @@ def main() -> int:
                 se = phys.get("surrogate_engineering")
                 if isinstance(se, dict):
                     physics_eng = se
+                tsl = phys.get("thrust_sled_load_cells")
+                if isinstance(tsl, dict):
+                    thrust_sled_load = tsl
 
     out_dir = args.out_dir.resolve()
     ac = data.get("aircraft")
@@ -301,7 +317,7 @@ def main() -> int:
     models = out_dir / "Models"
     models.mkdir(parents=True, exist_ok=True)
 
-    set_text = _build_set_xml(fg, physics_eng)
+    set_text = _build_set_xml(fg, physics_eng, thrust_sled_load)
     set_name = f"{pkg}-set.xml"
     (out_dir / set_name).write_text(set_text, encoding="utf-8")
     print("Wrote", out_dir / set_name)

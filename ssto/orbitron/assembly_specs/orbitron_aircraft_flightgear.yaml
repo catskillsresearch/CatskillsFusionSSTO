@@ -5,6 +5,9 @@
 # Consumed by: tools/compile_orbitron_aircraft_runtime.py
 # Bilinear surrogate corner scales (thrust / mdot / power / heat ctc) default from
 # orbitron_physics_surrogate.yaml surrogate_engineering when fg_set.surrogate_from_physics: true.
+# Thrust-sled load-cell split coeffs: orbitron_physics_surrogate.yaml thrust_sled_load_cells →
+# /sim/model/orbitron/thrust-sled/* (read by orbitron-jsbsim.xml; displayed on operator Screen).
+# Full telemetry doc: assembly_specs/README.md (thrust + four corner load cells).
 
 schema_version: 1
 spec_kind: orbitron_aircraft_flightgear
@@ -13,6 +16,18 @@ title: Orbitron-TestStand FlightGear + model placement
 # FlightGear aircraft directory name under $FG_AIRCRAFT (and basename of *-set.xml).
 aircraft:
   package_dir: Orbitron-TestStand
+
+fg_telemetry:
+  doc: |
+    Thrust and thrust-sled load cells are **not** computed in Nasal or in this file.
+    JSBSim writes /fdm/jsbsim/systems/arcjet/* each frame; reactor_ui.nas displays them.
+  jsbsim_prefix: /fdm/jsbsim/systems/arcjet/
+  thrust_sled_coeffs_prefix: /sim/model/orbitron/thrust-sled/
+  physics_yaml_block: thrust_sled_load_cells
+  operator_controls:
+    startup: /sim/model/reactor/startup-trigger
+    throttle: /controls/reactor/throttle
+    compressor: /controls/orbitron/compressor
 
 fg_set:
   surrogate_from_physics: true
