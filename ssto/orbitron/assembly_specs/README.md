@@ -10,7 +10,7 @@ shell, Nasal UI, physics/surrogate, and sound. Compilers under `tools/` emit art
 |------|-------------|---------|
 | `orbitron_lab.yaml` | `compile_assembly_yaml.py` | CadQuery meshes + logical assembly tree (schema v2) |
 | `orbitron_avalanche_core.yaml` | (reference) | Avalanche Orbitron fusion-core design basis (stability, fields, fuel) |
-| `orbitron_physics_surrogate.yaml` | `build_surrogate_map.py`, `compile_orbitron_aircraft_runtime.py` | WarpX sweep, surrogate scales, **thrust-sled load model** |
+| `orbitron_physics_surrogate.yaml` | `build_surrogate_map.py`, `compile_orbitron_aircraft_runtime.py`, **`surrogate_closure_check.py`** | WarpX sweep, surrogate scales, **0D traceability** (`formal.traceability_chain`), thrust-sled load model |
 | `orbitron_aircraft_flightgear.yaml` | `compile_orbitron_aircraft_runtime.py` | `*-set.xml`, `Orbitron.xml`, JSBSim template copy |
 | `orbitron_nasal.yaml` | `compile_orbitron_nasal.py` | `surrogate_load.nas`, `reactor_ui.nas` (operator screen) |
 | `orbitron_sound_assets.yaml` | `sound_compiler.py`, `compile_sound_xml_from_yaml.py` | WAV beds + `sound.xml` |

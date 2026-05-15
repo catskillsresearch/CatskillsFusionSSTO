@@ -96,7 +96,7 @@ MODEL_ARTIFACTS := \
 	$(PARTS_MERMAID) \
 	$(PARTS_LOGICAL_MERMAID)
 
-.PHONY: all help clean graph parts-graph open-lab run-fgfs fg-ready orbitron-lab-gltf orbitron-lab-tank-sub-gltfs orbitron-lab-sub-gltfs
+.PHONY: all help clean graph parts-graph open-lab run-fgfs fg-ready orbitron-lab-gltf orbitron-lab-tank-sub-gltfs orbitron-lab-sub-gltfs surrogate-closure
 
 all: fg-ready
 
@@ -111,6 +111,7 @@ help:
 	@echo "  make orbitron-lab-gltf  Build $(GLTF_LAB) + all sub-assembly glTFs under build/ (tanks, air path, panel, sled)"
 	@echo "  make orbitron-lab-sub-gltfs  Sub-assembly glTFs only (same set as orbitron-lab-gltf minus the full lab file)"
 	@echo "  make orbitron-lab-tank-sub-gltfs  The four tank-farm glTFs only (methane/boron/helium/tank_assy)"
+	@echo "  make surrogate-closure  0D η·P_gross vs F²/(2ṁ) check (YAML scales); add JSON via ORBITRON_CLOSURE_JSON="
 	@echo "  ./bl.sh             Blender + nested lab glTF; ./bl.sh --collections for VIEW__* isolate collections"
 	@echo "  ORBITRON_LAB_GLTF=... ./bl.sh   Override glTF path (default: $(GLTF_LAB))"
 	@echo "  make run-fgfs       fgfs with --fg-aircraft=$(AIRCRAFT)"
@@ -162,6 +163,11 @@ orbitron-lab-gltf: $(GLTF_LAB) $(GLTF_LAB_SUBASSEMBLIES)
 orbitron-lab-sub-gltfs: $(GLTF_LAB_SUBASSEMBLIES)
 
 orbitron-lab-tank-sub-gltfs: $(GLTF_LAB_TANK_SUBS)
+
+# 0D jet closure: η·P_gross vs F²/(2ṁ). Optional: ORBITRON_CLOSURE_JSON=$(STAND)/engine_surrogate.json
+surrogate-closure:
+	cd '$(REPO_ROOT)' && $(POETRY) run python tools/surrogate_closure_check.py \
+		$(if $(ORBITRON_CLOSURE_JSON),--surrogate-json '$(ORBITRON_CLOSURE_JSON)',)
 
 # --- Blender + UV → orbitron.ac ---
 # Real deps on surrogate + sounds (not only order-only): GNU make may otherwise schedule

@@ -129,6 +129,33 @@ formal:
     laminar_flow_2d_arcjet.py also requests rho_arc_channel_seed; extend the yt field list or
     merge channels before GIF export when running the arcjet deck.
 
+  # Human + machine contract: inputs → proxies → engineering scalars → 0D jet closure.
+  # Validated in-repo by: ``python tools/surrogate_closure_check.py`` (optional ``--surrogate-json``).
+  traceability_chain: |
+    **Symbols**
+      - ``T`` = ``/controls/reactor/throttle`` (0…1). ``C`` = ``/controls/orbitron/compressor`` (0…1).
+      - ``r_n`` = PIC / density normalization from ``build_surrogate_map.py`` (1 at reference median).
+      - ``P_gross`` [MW] = gross fusion-side thermal headline from surrogate ``gross_power_mw`` / CSV
+        ``gross_power_mw`` column — scales with ``T·C·r_n`` and ``gross_power_mw_scale``.
+      - ``η`` = ``jet_propulsive_efficiency`` — fraction of ``P_gross`` booked to air-path jet kinetic gain (0D).
+      - ``P_jet`` [W] = ``η · P_gross · 1e6``.
+      - ``ṁ`` [kg/s] = ``mass_flow_kgps`` surrogate; ``F`` [N] = ``thrust_lbf · LBF_TO_N`` (``4.4482216152605``).
+
+    **JSBSim properties (stand):**
+      ``/fdm/jsbsim/systems/reactor/gross-power-mw``,
+      ``/fdm/jsbsim/systems/arcjet/thrust-lbf``,
+      ``/fdm/jsbsim/systems/arcjet/mass-flow-kgps``,
+      ``/fdm/jsbsim/systems/arcjet/thrust-newtons``,
+      ``/fdm/jsbsim/systems/arcjet/equiv-exhaust-velocity-mps`` (``F/ṁ``),
+      ``/fdm/jsbsim/systems/arcjet/jet-kinetic-power-mw`` (``½ ṁ v_e²``).
+
+    **0D closure (same frame as narrative):**
+      ``v_e ≈ F/ṁ``, ``P_jet ≈ ½ ṁ v_e² = F²/(2ṁ)``, equivalently ``F² ≈ 2 · P_jet · ṁ``.
+      Surrogate scales are chosen so at full ``T×C×r_n`` the triad ``(F, ṁ, P_gross)`` satisfies this with ``P_jet = η·P_gross``.
+
+    **What is *not* claimed:** PIC does not compute fusion yield; ``r_n`` modulates coupling proxies only.
+    ``beam_screen_kw`` / mA is a separate viewport story — not equated to ``P_gross`` unless explicitly tied in docs.
+
 warpx_sweep:
   arcjet_script: ssto/orbitron/laminar_flow_2d_arcjet.py
   work_dir: build/orbitron/warpx-runs
@@ -195,7 +222,7 @@ picmi:
       u_tangential_m_s: -2.8e6
       u_radial_m_s: -4.0e5
       weight: 8.0e9
-      particle_type: boron
+      particle_type: B
       charge_state: 5
 
 reductions:

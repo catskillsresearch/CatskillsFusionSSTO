@@ -37,6 +37,24 @@ BASE_ARC_SEED = 1e14
 DEFAULT_V_CATHODE_V = -300000.0
 INCLUDE_NITROGEN_TRACER = False
 
+# PICMI/WarpX passes non-special ``particle_type`` strings to
+# ``periodictable.elements.symbol()`` (expects symbols: H, B, N, …), not full names.
+_PICMI_ELEMENT_ALIASES: dict[str, str] = {
+    "boron": "B",
+    "nitrogen": "N",
+    "hydrogen": "H",
+    "helium": "He",
+    "oxygen": "O",
+    "argon": "Ar",
+}
+
+
+def _normalize_picmi_particle_type(ptype: str) -> str:
+    """Map human-readable names to periodic symbols for PICMI Species."""
+    key = ptype.strip()
+    return _PICMI_ELEMENT_ALIASES.get(key.lower(), key)
+
+
 # Deposited charge density field names (reduction sums these for viewport ROI).
 BEAM_RHO_FIELD_NAMES = (
     "rho_h_inject_beam",
@@ -151,7 +169,7 @@ def _inject_beam_configs(o: dict[str, Any]) -> dict[str, dict[str, Any]]:
             "u_tangential_m_s": -2.8e6,
             "u_radial_m_s": -4.0e5,
             "weight": 8.0e9,
-            "particle_type": "boron",
+            "particle_type": "B",
             "charge_state": 5,
         },
     }
@@ -193,7 +211,7 @@ def _make_inject_species(
     throttle: float,
     cathode_pulse: float,
 ) -> picmi.Species:
-    ptype = str(beam_cfg.get("particle_type", "proton"))
+    ptype = _normalize_picmi_particle_type(str(beam_cfg.get("particle_type", "proton")))
     charge_state = int(beam_cfg.get("charge_state", 1))
     dist = _tangential_beam_distribution(beam_cfg, throttle=throttle, cathode_pulse=cathode_pulse)
     return picmi.Species(
@@ -344,7 +362,7 @@ def run_arcjet_picmi(
             momentum_expressions=["0.0", "0.0", "0.0"],
         )
         nitrogen_tracer = picmi.Species(
-            particle_type="nitrogen",
+            particle_type="N",
             name="n2_tracer",
             charge_state=1,
             initial_distribution=n2_tracer,

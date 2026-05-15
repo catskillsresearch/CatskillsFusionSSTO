@@ -6,13 +6,23 @@ import cadquery as cq
 # Shared pose for reactor stack instances in ``orbitron_lab.yaml`` (CadQuery → world).
 # Pivot Z matches ``arcjet_test_stand_cad.ENGINE_MOUNT_TOP_Z`` (mount plate on load cells).
 try:
-    from arcjet_test_stand_cad import ENGINE_MOUNT_PIVOT_Z
+    from arcjet_test_stand_cad import ENGINE_MOUNT_PIVOT_Z, ENGINE_MOUNT_TOP_Z
 
     _ENGINE_PIVOT_Z = ENGINE_MOUNT_PIVOT_Z
     _FUSION_STACK_Z = 0.75 + (ENGINE_MOUNT_PIVOT_Z - 0.15)
+    _ENGINE_MOUNT_TOP_Z = float(ENGINE_MOUNT_TOP_Z)
 except ImportError:
     _ENGINE_PIVOT_Z = 0.32
     _FUSION_STACK_Z = 0.92
+    _ENGINE_MOUNT_TOP_Z = 0.35
+
+# H₂ / B₂H₆ trunk waypoints must stay at or above this Z over the thrust-sled deck /
+# ``Engine_Mount_Frame`` (B₂H₆ path previously used z≈0.32 and clipped through the frame).
+_SERVICE_ROUTING_DECK_CLEAR_Z = _ENGINE_MOUNT_TOP_Z + 0.23
+
+# Outlet Z above tank roof for connector routing: must match ``lab_fuel_feed_valve``
+# in arcjet_test_stand_cad.py (base extrude 0.04 + stem 0.055).
+_LAB_TANK_VALVE_OUTLET_DZ = 0.095
 
 _FUSION_STACK_TRANSFORMS: list[dict[str, object]] = [
     {"op": "translate", "xyz": [0.0, 0.0, _FUSION_STACK_Z]},
@@ -256,9 +266,12 @@ class LabInfrastructure:
         on the +Y farm-facing shell with X spread so the three services stay distinct.
         """
         z_trim = 0.035
-        h2_top = (0.6, 1.2, 1.2 - z_trim)
-        b2_top = (0.0, 1.2, 1.2 - z_trim)
-        ch4_top = (-0.7, 1.2, 0.9 - z_trim)
+        h2_roof = 1.2 - z_trim
+        b2_roof = 1.2 - z_trim
+        ch4_roof = 0.9 - z_trim
+        h2_top = (0.6, 1.2, h2_roof + _LAB_TANK_VALVE_OUTLET_DZ)
+        b2_top = (0.0, 1.2, b2_roof + _LAB_TANK_VALVE_OUTLET_DZ)
+        ch4_top = (-0.7, 1.2, ch4_roof + _LAB_TANK_VALVE_OUTLET_DZ)
 
         mag_ports = self.magnet_shell_connector_anchors()
         return {
@@ -290,7 +303,8 @@ class LabInfrastructure:
     def cryo_methane_connector_anchors(self) -> dict[str, tuple[float, float, float]]:
         """Cryostat / CH₄ fill path: dewar roof → magnet high-side tap (reference lab layout)."""
         z_trim = 0.035
-        dewar_top = (-0.7, 1.2, 0.9 - z_trim)
+        ch4_roof = 0.9 - z_trim
+        dewar_top = (-0.7, 1.2, ch4_roof + _LAB_TANK_VALVE_OUTLET_DZ)
         mag_ports = self.magnet_shell_connector_anchors()
         return {
             "cryo_ch4_dewar_out": dewar_top,
@@ -385,7 +399,11 @@ def lab_h2_injectant_trunk_params() -> dict[str, Any]:
                 "to_port": "reactor_h2_in",
                 "radius": 0.02,
                 "description": "Hydrogen — polyline clears the deck edge then meets the magnet / injector face.",
-                "waypoints": [[0.62, 0.82, 0.98], [0.76, 0.36, 0.38]],
+                # Second leg must stay above thrust sled + engine mount (see _SERVICE_ROUTING_DECK_CLEAR_Z).
+                "waypoints": [
+                    [0.62, 0.82, 0.98],
+                    [0.72, 0.52, _SERVICE_ROUTING_DECK_CLEAR_Z],
+                ],
             }
         ],
     }
@@ -481,7 +499,10 @@ def lab_b2h6_injectant_trunk_params() -> dict[str, Any]:
                 "to_port": "reactor_b2h6_in",
                 "radius": 0.02,
                 "description": "Diborane — gaseous boron carrier to NBI / injector manifold.",
-                "waypoints": [[0.04, 0.82, 0.96], [0.38, 0.36, 0.32]],
+                "waypoints": [
+                    [0.04, 0.82, 0.96],
+                    [0.34, 0.52, _SERVICE_ROUTING_DECK_CLEAR_Z],
+                ],
             }
         ],
     }
