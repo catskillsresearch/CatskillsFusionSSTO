@@ -12,11 +12,11 @@ Usage (repo root, with Poetry env that has cadquery + pyyaml)::
     --spec ssto/orbitron/assembly_specs/orbitron_lab.yaml \\
     --out /tmp/orbitron_lab.gltf
 
-  # Export one logical group (pruned instances + connector routing), e.g. tank slices:
+  # Export one logical group (``logical.groups`` key; pruned instances + connector routing):
   poetry run python tools/compile_assembly_yaml.py \\
     --spec ssto/orbitron/assembly_specs/orbitron_lab.yaml \\
-    --subassembly methane_tank_assy \\
-    --out /tmp/methane_tank_assy.gltf
+    --subassembly air_breathing_engine \\
+    --out /tmp/air_breathing_engine.gltf
 
 Schema v1 (``includes`` + list ``instances``) remains for small ad hoc specs.
 
@@ -53,7 +53,7 @@ def main() -> int:
         type=str,
         default=None,
         metavar="GROUP",
-        help="Schema v2 only: export only logical.groups[GROUP] subtree (e.g. methane_tank_assy)",
+        help="Schema v2 only: export only logical.groups[GROUP] subtree (e.g. tank_assy, air_breathing_engine)",
     )
     args = ap.parse_args()
     spec = args.spec.resolve()

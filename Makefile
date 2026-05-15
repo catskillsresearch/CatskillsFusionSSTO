@@ -13,6 +13,13 @@ BUILD := $(REPO_ROOT)/build/orbitron
 
 # Lab glTF: unified assembly YAML (schema v2) → nested CadQuery export → Blender → .ac.
 GLTF_LAB := $(STAND)/build/orbitron_lab.gltf
+# Per-logical-group slices (``--subassembly``); built with ``make`` / fg-ready / ``orbitron-lab-gltf``.
+GLTF_LAB_TANK_SUB_NAMES := methane_tank_assy boron_tank_assy helium_tank_assy tank_assy
+GLTF_LAB_TANK_SUBS := $(foreach n,$(GLTF_LAB_TANK_SUB_NAMES),$(STAND)/build/$(n).gltf)
+GLTF_LAB_EXTRA_SUB_NAMES := \
+	propulsive_nozzle reactor_bay turbofan_intake air_breathing_engine control_panel_stand thrust_sled
+GLTF_LAB_EXTRA_SUBS := $(foreach n,$(GLTF_LAB_EXTRA_SUB_NAMES),$(STAND)/build/$(n).gltf)
+GLTF_LAB_SUBASSEMBLIES := $(GLTF_LAB_TANK_SUBS) $(GLTF_LAB_EXTRA_SUBS)
 
 POETRY ?= poetry
 BLENDER ?= blender
@@ -80,6 +87,7 @@ GRAPH_INPUTS := Makefile $(ORBITRON_LAB_YAMLS) $(YAML_LAB_COMPILER_DEPS) \
 # Computed FlightGear model + audio (all under Aircraft/)
 MODEL_ARTIFACTS := \
 	$(GLTF_LAB) \
+	$(GLTF_LAB_SUBASSEMBLIES) \
 	$(STAND)/Models/orbitron.ac \
 	$(STAND)/engine_surrogate.json \
 	$(STAND)/Sounds/.sounds_built \
@@ -88,20 +96,21 @@ MODEL_ARTIFACTS := \
 	$(PARTS_MERMAID) \
 	$(PARTS_LOGICAL_MERMAID)
 
-.PHONY: all help clean graph parts-graph open-lab run-fgfs fg-ready orbitron-lab-gltf orbitron-lab-tank-sub-gltfs
+.PHONY: all help clean graph parts-graph open-lab run-fgfs fg-ready orbitron-lab-gltf orbitron-lab-tank-sub-gltfs orbitron-lab-sub-gltfs
 
 all: fg-ready
 
 help:
 	@echo "Orbitron test stand Makefile (aircraft id: $(ORBITRON_PKG))"
-	@echo "  make / make all     Build $(STAND); YAML lab → $(GLTF_LAB), .ac, surrogate, sounds from $(ORBITRON_SOUND_ASSETS), $(MERMAID_OUT), … (SURROGATE=$(SURROGATE))"
+	@echo "  make / make all     Build $(STAND); YAML lab → $(GLTF_LAB) + sub-assembly glTFs (see GLTF_LAB_SUBASSEMBLIES), .ac, surrogate, … (SURROGATE=$(SURROGATE))"
 	@echo "  SURROGATE=warpx|dry|mesh   Surrogate source (default warpx = full sweep; dry|mesh = fast placeholders)"
 	@echo "  Cold-tree regression: mv Aircraft Aircraft.bak && ./stand.sh   # rebuilds everything incl. WarpX surrogate"
 	@echo "  make graph          Regenerate $(MERMAID_OUT) only (also runs as part of make all)"
 	@echo "  make parts-graph    Regenerate mesh Mermaid: $(PARTS_MERMAID) + $(PARTS_LOGICAL_MERMAID)"
 	@echo "  make open-lab       Launch Blender on nested $(GLTF_LAB) (same as ./bl.sh)"
-	@echo "  make orbitron-lab-gltf  Build only $(GLTF_LAB) (YAML → compile_assembly_yaml); for scripts / CI"
-	@echo "  make orbitron-lab-tank-sub-gltfs  Per-tank sub-glTFs under $(STAND)/build/ (methane/boron/helium/tank_assy)"
+	@echo "  make orbitron-lab-gltf  Build $(GLTF_LAB) + all sub-assembly glTFs under build/ (tanks, air path, panel, sled)"
+	@echo "  make orbitron-lab-sub-gltfs  Sub-assembly glTFs only (same set as orbitron-lab-gltf minus the full lab file)"
+	@echo "  make orbitron-lab-tank-sub-gltfs  The four tank-farm glTFs only (methane/boron/helium/tank_assy)"
 	@echo "  ./bl.sh             Blender + nested lab glTF; ./bl.sh --collections for VIEW__* isolate collections"
 	@echo "  ORBITRON_LAB_GLTF=... ./bl.sh   Override glTF path (default: $(GLTF_LAB))"
 	@echo "  make run-fgfs       fgfs with --fg-aircraft=$(AIRCRAFT)"
@@ -141,32 +150,18 @@ $(GLTF_LAB): $(ORBITRON_LAB_YAMLS) $(YAML_LAB_COMPILER_DEPS) | $(STAND)/.dirs
 	cd '$(REPO_ROOT)' && $(POETRY) run python tools/compile_assembly_yaml.py \
 		--spec '$(ORBITRON_ASSEMBLY_SPEC)' --out '$@'
 
-# Stable entry for scripts: builds $(GLTF_LAB) regardless of absolute vs relative cwd quirks.
-orbitron-lab-gltf: $(GLTF_LAB)
-
-# Per-species tank farm slices (same orbitron_lab.yaml; --subassembly prunes logical tree).
-$(STAND)/build/methane_tank_assy.gltf: $(ORBITRON_ASSEMBLY_SPEC) $(YAML_LAB_COMPILER_DEPS) | $(STAND)/.dirs
+# Sub-assembly glTFs: stem = logical.groups key (not ``orbitron_lab`` — that uses the rule above).
+$(GLTF_LAB_SUBASSEMBLIES): $(STAND)/build/%.gltf: $(ORBITRON_ASSEMBLY_SPEC) $(YAML_LAB_COMPILER_DEPS) | $(STAND)/.dirs
 	mkdir -p $(STAND)/build
 	cd '$(REPO_ROOT)' && $(POETRY) run python tools/compile_assembly_yaml.py \
-		--spec '$(ORBITRON_ASSEMBLY_SPEC)' --subassembly methane_tank_assy --out '$@'
+		--spec '$(ORBITRON_ASSEMBLY_SPEC)' --subassembly '$*' --out '$@'
 
-$(STAND)/build/boron_tank_assy.gltf: $(ORBITRON_ASSEMBLY_SPEC) $(YAML_LAB_COMPILER_DEPS) | $(STAND)/.dirs
-	mkdir -p $(STAND)/build
-	cd '$(REPO_ROOT)' && $(POETRY) run python tools/compile_assembly_yaml.py \
-		--spec '$(ORBITRON_ASSEMBLY_SPEC)' --subassembly boron_tank_assy --out '$@'
+# Stable entry for scripts: main lab glTF + every listed sub-assembly slice (same lab mesh step as fg-ready).
+orbitron-lab-gltf: $(GLTF_LAB) $(GLTF_LAB_SUBASSEMBLIES)
 
-$(STAND)/build/helium_tank_assy.gltf: $(ORBITRON_ASSEMBLY_SPEC) $(YAML_LAB_COMPILER_DEPS) | $(STAND)/.dirs
-	mkdir -p $(STAND)/build
-	cd '$(REPO_ROOT)' && $(POETRY) run python tools/compile_assembly_yaml.py \
-		--spec '$(ORBITRON_ASSEMBLY_SPEC)' --subassembly helium_tank_assy --out '$@'
+orbitron-lab-sub-gltfs: $(GLTF_LAB_SUBASSEMBLIES)
 
-$(STAND)/build/tank_assy.gltf: $(ORBITRON_ASSEMBLY_SPEC) $(YAML_LAB_COMPILER_DEPS) | $(STAND)/.dirs
-	mkdir -p $(STAND)/build
-	cd '$(REPO_ROOT)' && $(POETRY) run python tools/compile_assembly_yaml.py \
-		--spec '$(ORBITRON_ASSEMBLY_SPEC)' --subassembly tank_assy --out '$@'
-
-orbitron-lab-tank-sub-gltfs: $(STAND)/build/methane_tank_assy.gltf $(STAND)/build/boron_tank_assy.gltf \
-	$(STAND)/build/helium_tank_assy.gltf $(STAND)/build/tank_assy.gltf
+orbitron-lab-tank-sub-gltfs: $(GLTF_LAB_TANK_SUBS)
 
 # --- Blender + UV → orbitron.ac ---
 # Real deps on surrogate + sounds (not only order-only): GNU make may otherwise schedule

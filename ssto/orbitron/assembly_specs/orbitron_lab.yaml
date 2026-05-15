@@ -178,7 +178,7 @@ logical:
       members:
       - control_panel_stand
       - thrust_sled
-      - supply_tanks
+      - tank_assy
       - fluid_and_electrical_services
       - air_breathing_engine
     control_panel_stand:
@@ -199,10 +199,6 @@ logical:
       - Rail_Left
       - Rail_Right
       - Thrust_Sled_Frame
-    supply_tanks:
-      title: Supply tanks
-      members:
-      - tank_assy
     tank_assy:
       title: Tank farm assemblies
       detail: One logical cluster per species; each child assembly carries **tank +
@@ -246,8 +242,8 @@ logical:
       - Helium_Trunk_Line
     fluid_and_electrical_services:
       title: Auxiliary services (placeholder)
-      detail: Fuel and cryo tank assemblies live under ``supply_tanks.tank_assy``. This
-        node is reserved for future non-tank service bundles in the glTF tree.
+      detail: Fuel and cryo tank assemblies live under ``tank_assy`` (direct child of
+        ``test_stand``). This node is reserved for future non-tank service bundles in the glTF tree.
       members: []
     hv_umbilical:
       title: High voltage umbilical
