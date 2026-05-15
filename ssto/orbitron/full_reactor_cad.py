@@ -4,9 +4,19 @@ from typing import Any
 import cadquery as cq
 
 # Shared pose for reactor stack instances in ``orbitron_lab.yaml`` (CadQuery → world).
+# Pivot Z matches ``arcjet_test_stand_cad.ENGINE_MOUNT_TOP_Z`` (mount plate on load cells).
+try:
+    from arcjet_test_stand_cad import ENGINE_MOUNT_PIVOT_Z
+
+    _ENGINE_PIVOT_Z = ENGINE_MOUNT_PIVOT_Z
+    _FUSION_STACK_Z = 0.75 + (ENGINE_MOUNT_PIVOT_Z - 0.15)
+except ImportError:
+    _ENGINE_PIVOT_Z = 0.32
+    _FUSION_STACK_Z = 0.92
+
 _FUSION_STACK_TRANSFORMS: list[dict[str, object]] = [
-    {"op": "translate", "xyz": [0.0, 0.0, 0.75]},
-    {"op": "rotate_y_about_point", "pivot": [0.0, 0.0, 0.15], "angle_deg": 90.0},
+    {"op": "translate", "xyz": [0.0, 0.0, _FUSION_STACK_Z]},
+    {"op": "rotate_y_about_point", "pivot": [0.0, 0.0, _ENGINE_PIVOT_Z], "angle_deg": 90.0},
 ]
 
 
@@ -287,6 +297,18 @@ class LabInfrastructure:
             "reactor_magnet_cryo_ch4_tap": mag_ports["reactor_magnet_cryo_ch4_tap"],
         }
 
+    def fusion_exhaust_connector_anchors(self) -> dict[str, tuple[float, float, float]]:
+        """⁴He ash vent: core exhaust plane (+X after stack rotation) → CD nozzle inlet plenum."""
+        bb = self._magnet_world_bbox()
+        cy = (bb.ymin + bb.ymax) * 0.5
+        cz = (bb.zmin + bb.zmax) * 0.5
+        skin = 0.022
+        x_exhaust = bb.xmax + skin
+        return {
+            "reactor_core_he_ash_out": (x_exhaust, cy, cz),
+            "nozzle_plenum_he_ash_in": (x_exhaust + 0.74, cy, cz + 0.05),
+        }
+
     def build_rigid_plumbing(self):
         """HV umbilical: hardwired path from ``console_hv_header`` to ``reactor_magnet_hv_feed``."""
         anchors = self.hv_connector_anchors()
@@ -364,6 +386,53 @@ def lab_h2_injectant_trunk_params() -> dict[str, Any]:
                 "radius": 0.02,
                 "description": "Hydrogen — polyline clears the deck edge then meets the magnet back face.",
                 "waypoints": [[0.62, 0.82, 0.98], [0.76, 0.36, 0.38]],
+            }
+        ],
+    }
+
+
+def lab_helium_ash_vent_params() -> dict[str, Any]:
+    """⁴He fusion ash bleed from core exhaust plane into the propulsive nozzle plenum (+X train)."""
+    return {
+        "include_port_markers": False,
+        "connectivity_spec": {
+            "physical_story": (
+                "Helium ash from p-¹¹B channel (¹H + ¹¹B → 3 ⁴He) leaves the core exhaust "
+                "plane and is routed into the CD nozzle plenum to join the jet / hot-gas mix."
+            ),
+            "links": [
+                {
+                    "link_id": "he_ash_vent",
+                    "service": "fusion_helium_ash",
+                    "from_region": "reactor_core_exhaust",
+                    "to_region": "propulsive_nozzle_plenum",
+                    "routing_intent": "along_core_axis_to_nozzle_adapter",
+                }
+            ],
+        },
+        "connector_ports": [
+            {
+                "id": "core_he_ash_out",
+                "anchor": "reactor_core_he_ash_out",
+                "offset": [0.0, 0.0, 0.0],
+                "description": "Anode / fusion hot-gas exhaust plane (+X shell face after stack pose).",
+            },
+            {
+                "id": "nozzle_he_ash_in",
+                "anchor": "nozzle_plenum_he_ash_in",
+                "offset": [0.0, 0.0, 0.0],
+                "description": "Nozzle inlet plenum — helium ash enters the jet mix here.",
+            },
+        ],
+        "connector_links": [
+            {
+                "id": "he_ash_vent",
+                "service": "fusion_helium_ash",
+                "from_port": "core_he_ash_out",
+                "to_port": "nozzle_he_ash_in",
+                "radius": 0.016,
+                "description": "⁴He ash vent — parallel to main +X exhaust path into nozzle.",
+                "waypoints": [[0.12, 0.0, 0.0], [0.38, 0.0, 0.02]],
             }
         ],
     }

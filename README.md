@@ -30,6 +30,8 @@ shutdown before starvation.
 
 Build: `make orbitron-lab-gltf` / `./stand.sh` (see repository `Makefile`).
 
+**Gas routing (full paths, ash vent, mermaid):** [`gas_flow.md`](gas_flow.md).
+
 ### Thrust and thrust-sled load telemetry (FlightGear)
 
 The operator **Screen** shows live **thrust**, **airflow (surrogate mass flow)**, **total sled load**, and **four corner load-cell readings** that respond to test-stand controls. This is a **0D bookkeeping model** (not a structural FEA solve): JSBSim evaluates it every frame; Nasal only displays properties.

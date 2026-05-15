@@ -15,6 +15,7 @@ from arcjet_test_stand_cad import (
     blast_detuner,
     compressor_housing,
     lab_fuel_feed_valve,
+    engine_mount_frame,
     load_cell_puck,
     nozzle_cd_contour,
     nozzle_exit_hardware,
@@ -29,6 +30,7 @@ from full_reactor_cad import (
     fusion_exhaust_outlet_ring,
     lab_b2h6_injectant_trunk_params,
     lab_h2_injectant_trunk_params,
+    lab_helium_ash_vent_params,
 )
 
 from yaml_assembly.connector_routing import build_connector_routing
@@ -159,6 +161,10 @@ def tpl_load_cell_puck(**params: Any) -> cq.Workplane:
     return load_cell_puck()
 
 
+def tpl_engine_mount_frame(**params: Any) -> cq.Workplane:
+    return engine_mount_frame(**params)
+
+
 def tpl_orbitron_anode(**_: Any) -> cq.Workplane:
     a, *_ = _tube()
     return a
@@ -247,6 +253,12 @@ def tpl_lab_b2h6_injectant_trunk(**params: Any) -> cq.Workplane:
     return build_connector_routing(merged, anchors)
 
 
+def tpl_lab_helium_ash_vent(**params: Any) -> cq.Workplane:
+    anchors = LabInfrastructure().fusion_exhaust_connector_anchors()
+    merged = {**lab_helium_ash_vent_params(), **params}
+    return build_connector_routing(merged, anchors)
+
+
 def tpl_lab_cryo_methane_piping(**params: Any) -> cq.Workplane:
     if params.get("connector_ports") and params.get("connector_links"):
         anchors = LabInfrastructure().cryo_methane_connector_anchors()
@@ -287,6 +299,7 @@ TEMPLATE_REGISTRY: dict[str, Callable[..., cq.Workplane]] = {
     "thrust_sled_frame": tpl_thrust_sled_frame,
     "rail_beam": tpl_rail_beam,
     "load_cell_puck": tpl_load_cell_puck,
+    "engine_mount_frame": tpl_engine_mount_frame,
     "orbitron_anode": tpl_orbitron_anode,
     "orbitron_dec_grid": tpl_orbitron_dec_grid,
     "orbitron_cathode": tpl_orbitron_cathode,
@@ -304,6 +317,7 @@ TEMPLATE_REGISTRY: dict[str, Callable[..., cq.Workplane]] = {
     "lab_fuel_gas_lines": tpl_lab_fuel_gas_lines,
     "lab_h2_injectant_trunk": tpl_lab_h2_injectant_trunk,
     "lab_b2h6_injectant_trunk": tpl_lab_b2h6_injectant_trunk,
+    "lab_helium_ash_vent": tpl_lab_helium_ash_vent,
     "lab_cryo_methane_piping": tpl_lab_cryo_methane_piping,
     "lab_operator_console_desk": tpl_lab_operator_console_desk,
     "lab_operator_screen": tpl_lab_operator_screen,

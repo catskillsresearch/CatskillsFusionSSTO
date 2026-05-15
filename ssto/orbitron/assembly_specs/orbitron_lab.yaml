@@ -62,11 +62,21 @@ logical:
       and diborane (design narrative uses a high H₂ to B₂H₆ ratio) to stabilize the
       discharge (e.g. Diocotron / laminarity language) and supply hydrogenic species
       including the proton component of p-¹¹B.
+  - term: Helium ash (fusion product)
+    definition: 'Alpha particles (⁴He) from the headline channel ``¹H + ¹¹B → 3 ⁴He``.
+      In this lab mesh they **vent from the core exhaust plane** through ``Helium_Ash_Vent_Line``
+      into the **CD nozzle plenum** (not from the H₂ supply tank). Distinct from **gaseous
+      hydrogen** stored in ``Tank_Hydrogen`` / ``hydrogen_tank_assy``.'
   - term: Liquid methane thermal loop
     definition: Cryogenic liquid CH₄ used as a working fluid for **anode / boundary
       Bremsstrahlung heat removal** and related plant cryogenics in this concept; it
       is **not** the boron carrier. In the lab glTF, routing is through ``Cryo_Methane_Piping``
       under ``methane_tank_assy`` (the redundant CH₄ leg on the old combined injectant trunk was removed).
+  - term: Engine mount frame
+    definition: '``Engine_Mount_Frame`` on ``thrust_sled`` — four posts on the load-cell tops
+      and a shared plate (`engine_mount_frame` in ``arcjet_test_stand_cad.py``). The
+      air-breathing engine pivot (`ENGINE_MOUNT_TOP_Z`) sits on that plate so the mesh
+      shows a continuous load path: cells → posts → plate → engine.'
   - term: Thrust-sled load telemetry
     definition: 'Four corner **load-cell pucks** on ``thrust_sled`` (`LoadCell_0`…`3`) represent
       pad bookkeeping, not strain-gauge FEA. **Thrust** and **airflow (mdot)** come from the JSBSim
@@ -88,9 +98,17 @@ logical:
     label: B2H6 line — gaseous boron carrier to NBI / injector manifold
     kind: dotted
   - from: Pipe_H2_Feed
-    to: Helium_Trunk_Line
+    to: Hydrogen_Trunk_Line
     label: H2 injectant trunk toward magnet / NBI manifold
     kind: dotted
+  - from: Fusion_Hot_Gas_Outlet
+    to: Helium_Ash_Vent_Line
+    label: fusion ⁴He ash bleed from core exhaust plane
+    kind: dotted
+  - from: Helium_Ash_Vent_Line
+    to: Nozzle_Inlet_Plenum
+    label: helium ash vents into nozzle plenum / jet mix
+    kind: solid
   - from: Pipe_B2H6_Feed
     to: Boron_Trunk_Line
     label: B2H6 injectant trunk toward magnet / NBI manifold
@@ -202,10 +220,10 @@ logical:
       - Screen
     thrust_sled:
       title: Thrust sled
-      detail: Longitudinal rails, deck slab, and **four corner load-cell pucks** that
-        carry the engine article on the pad and support thrust bookkeeping. Simulated
-        **thrust / corner lbf** for FlightGear are documented in ``assembly_specs/README.md``
-        (physics model in ``orbitron_physics_surrogate.yaml``, display on ``control_panel_stand`` Screen).
+      detail: Longitudinal rails, deck slab, **four corner load cells**, and an **engine
+        mount frame** (posts on the cells + top plate). The air-breathing engine stack
+        is posed with its inlet pivot on that plate (``ENGINE_MOUNT_TOP_Z`` in
+        ``arcjet_test_stand_cad.py``). Simulated thrust / corner lbf — ``assembly_specs/README.md``.
       parts:
       - Rail_Left
       - Rail_Right
@@ -214,19 +232,19 @@ logical:
       - LoadCell_1
       - LoadCell_2
       - LoadCell_3
+      - Engine_Mount_Frame
     tank_assy:
       title: Tank farm assemblies
       detail: One logical cluster per species; each child assembly carries **tank +
         decal + tank-end valve boss + routed trunk** so sub-glTF exports read as coherent
-        packages. ``helium_tank_assy`` is a **bundle name** for the protium / H₂ injectant
-        hardware in this lab mesh. A shared **skid deck** (``Tank_Farm_Platform``) spans
-        the three cylinder footprints so the farm reads as pad-mounted hardware.
+        packages. A shared **skid deck** (``Tank_Farm_Platform``) spans the three cylinder
+        footprints so the farm reads as pad-mounted hardware.
       parts:
       - Tank_Farm_Platform
       members:
       - methane_tank_assy
       - boron_tank_assy
-      - helium_tank_assy
+      - hydrogen_tank_assy
     methane_tank_assy:
       title: Methane tank assembly (cryo service)
       detail: Liquid **CH₄** dewar, stencil, dewar-roof valve boss, and **cryostat leg**
@@ -246,15 +264,16 @@ logical:
       - Decal_B2H6
       - Pipe_B2H6_Feed
       - Boron_Trunk_Line
-    helium_tank_assy:
-      title: Helium tank assembly (protium / H₂ injectant)
-      detail: Bundle name **Helium** for export grouping; meshes are **gaseous hydrogen**
-        (NBI co-injectant), not a helium ash loop.
+    hydrogen_tank_assy:
+      title: Hydrogen tank assembly (H₂ injectant)
+      detail: Gaseous **hydrogen** cylinder, stencil, tank-roof valve boss, and **H₂
+        injectant trunk** to the magnet / NBI manifold. **Not** fusion-product helium
+        ash (⁴He vents via ``Helium_Ash_Vent_Line`` into the nozzle).
       parts:
       - Tank_Hydrogen
       - Decal_H2
       - Pipe_H2_Feed
-      - Helium_Trunk_Line
+      - Hydrogen_Trunk_Line
     fluid_and_electrical_services:
       title: Auxiliary services (placeholder)
       detail: Fuel and cryo tank assemblies live under ``tank_assy`` (direct child of
@@ -268,8 +287,11 @@ logical:
       title: Core exhaust / outlet plane
       detail: Working fluid and enthalpy exit from the fusion package toward the CD
         nozzle; represented as a thin outlet ring mesh at the anode exit plane.
+        **⁴He ash** bleeds from this plane through ``Helium_Ash_Vent_Line`` into the
+        nozzle plenum (see ``gas_flow.md``).
       parts:
       - Fusion_Hot_Gas_Outlet
+      - Helium_Ash_Vent_Line
     fusion_reactor:
       title: Fusion reactor assembly
       detail: '**Scale note:** flight article is **many anode channels (~1000) in a
@@ -604,10 +626,10 @@ instances:
     - 0.4
     - 0.0
     transform_chain: []
-  Helium_Trunk_Line:
-    narrative: 'Dedicated **H₂ injectant** polyline from the H₂ tank roof port to the
-      magnet farm-face inlet (subset of the former combined ``Fuel_Gas_Lines`` mesh).
-      Bundled under ``helium_tank_assy`` for sub-assembly export.
+  Hydrogen_Trunk_Line:
+    narrative: 'Dedicated **H₂ injectant** polyline from the hydrogen tank roof port to
+      the magnet farm-face inlet (subset of the former combined ``Fuel_Gas_Lines`` mesh).
+      Bundled under ``hydrogen_tank_assy``.
 
       '
     template: lab_h2_injectant_trunk
@@ -616,6 +638,19 @@ instances:
     - 0.2
     - 0.2
     - 0.2
+    transform_chain: []
+  Helium_Ash_Vent_Line:
+    narrative: '**Fusion-product helium** (⁴He ash) vent from the core exhaust plane
+      into the **nozzle inlet plenum** — parallel to the main hot-gas path, not from
+      ``Tank_Hydrogen``. Routed along +X with the propulsive train.
+
+      '
+    template: lab_helium_ash_vent
+    params: {}
+    color:
+    - 0.45
+    - 0.72
+    - 0.92
     transform_chain: []
   Boron_Trunk_Line:
     narrative: 'Dedicated **B₂H₆ injectant** polyline from the diborane tank roof to the
@@ -751,7 +786,7 @@ instances:
       - 0.0
   Pipe_H2_Feed:
     narrative: 'H₂ service valve / flex-jumper boss at the hydrogen tank roof (tank-end
-      fitting for ``Helium_Trunk_Line``).
+      fitting for ``Hydrogen_Trunk_Line``).
 
       '
     template: lab_fuel_feed_valve
@@ -798,9 +833,24 @@ instances:
       - -0.7
       - 1.2
       - 0.865
+  Engine_Mount_Frame:
+    narrative: 'Truss from the four load-cell corners to a shared top plate; the bell /
+      fusion stack pivot sits on this plate (see ``ENGINE_MOUNT_TOP_Z`` in
+      ``arcjet_test_stand_cad.py``). Posts start at load-cell top (+Z).
+
+      '
+    template: engine_mount_frame
+    params:
+      corner_x: 0.7
+      corner_y: 0.35
+    color:
+    - 0.32
+    - 0.32
+    - 0.35
+    transform_chain: []
   LoadCell_0:
-    narrative: 'Corner load-cell puck on the **thrust sled** deck (+X, +Y) for thrust
-      bookkeeping between pad and engine article.
+    narrative: 'Corner load-cell puck on the **thrust sled** deck (+X, +Y); **engine mount
+      posts** bear on the cell top.
 
       '
     template: load_cell_puck
@@ -889,12 +939,12 @@ instances:
       xyz:
       - 0.0
       - 0.0
-      - 0.15
+      - 0.32
     - op: rotate_y_about_point
       pivot:
       - 0.0
       - 0.0
-      - 0.15
+      - 0.32
       angle_deg: 90.0
     - op: translate
       xyz:
@@ -923,12 +973,12 @@ instances:
       xyz:
       - 0.0
       - 0.0
-      - 0.6
+      - 0.77
     - op: rotate_y_about_point
       pivot:
       - 0.0
       - 0.0
-      - 0.15
+      - 0.32
       angle_deg: 90.0
     - op: translate
       xyz:
@@ -953,7 +1003,7 @@ instances:
       xyz:
       - 0.0
       - 0.0
-      - 0.15
+      - 0.32
   Fusion_Hot_Gas_Outlet:
     narrative: 'Thin outlet ring at the anode / bay exhaust plane—structural stand-in
       for the
@@ -972,12 +1022,12 @@ instances:
       xyz:
       - 0.0
       - 0.0
-      - 0.75
+      - 0.92
     - op: rotate_y_about_point
       pivot:
       - 0.0
       - 0.0
-      - 0.15
+      - 0.32
       angle_deg: 90.0
     - op: translate
       xyz:
@@ -1003,12 +1053,12 @@ instances:
       xyz:
       - 0.0
       - 0.0
-      - 0.75
+      - 0.92
     - op: rotate_y_about_point
       pivot:
       - 0.0
       - 0.0
-      - 0.15
+      - 0.32
       angle_deg: 90.0
   DEC_Grid:
     narrative: 'DEC grid insert (direct energy conversion narrative) radially inside
@@ -1027,12 +1077,12 @@ instances:
       xyz:
       - 0.0
       - 0.0
-      - 0.75
+      - 0.92
     - op: rotate_y_about_point
       pivot:
       - 0.0
       - 0.0
-      - 0.15
+      - 0.32
       angle_deg: 90.0
   Cathode:
     narrative: 'Cathode stack on axis; electrically and thermally the hot end of the
@@ -1052,12 +1102,12 @@ instances:
       xyz:
       - 0.0
       - 0.0
-      - 0.75
+      - 0.92
     - op: rotate_y_about_point
       pivot:
       - 0.0
       - 0.0
-      - 0.15
+      - 0.32
       angle_deg: 90.0
   Insulators:
     narrative: 'Ceramic standoff / insulator geometry isolating HV sections from the
@@ -1077,12 +1127,12 @@ instances:
       xyz:
       - 0.0
       - 0.0
-      - 0.75
+      - 0.92
     - op: rotate_y_about_point
       pivot:
       - 0.0
       - 0.0
-      - 0.15
+      - 0.32
       angle_deg: 90.0
   Magnet:
     narrative: 'Solenoid yoke volume around the stack; sets the 2 T class axial narrative
@@ -1102,12 +1152,12 @@ instances:
       xyz:
       - 0.0
       - 0.0
-      - 0.75
+      - 0.92
     - op: rotate_y_about_point
       pivot:
       - 0.0
       - 0.0
-      - 0.15
+      - 0.32
       angle_deg: 90.0
   NBI_Injector:
     narrative: 'Neutral beamline / gas-injection stub on the core. **Design intent:**
@@ -1127,12 +1177,12 @@ instances:
       xyz:
       - 0.0
       - 0.0
-      - 0.75
+      - 0.92
     - op: rotate_y_about_point
       pivot:
       - 0.0
       - 0.0
-      - 0.15
+      - 0.32
       angle_deg: 90.0
   Nozzle_Inlet_Plenum:
     narrative: 'Converging adapter / plenum stub **mated to Fusion_Hot_Gas_Outlet**
@@ -1153,12 +1203,12 @@ instances:
       xyz:
       - 0.0
       - 0.0
-      - 1.75
+      - 1.92
     - op: rotate_y_about_point
       pivot:
       - 0.0
       - 0.0
-      - 0.15
+      - 0.32
       angle_deg: 90.0
   Nozzle_CD_Contour:
     narrative: 'Throat-forward CD segment between plenum adapter and divergent exit
@@ -1176,12 +1226,12 @@ instances:
       xyz:
       - 0.0
       - 0.0
-      - 1.82
+      - 1.99
     - op: rotate_y_about_point
       pivot:
       - 0.0
       - 0.0
-      - 0.15
+      - 0.32
       angle_deg: 90.0
   Nozzle_Exit_Hardware:
     narrative: 'Divergent nozzle tail / exit hardware chunk mated to the blast-detuner
@@ -1199,12 +1249,12 @@ instances:
       xyz:
       - 0.0
       - 0.0
-      - 1.87
+      - 2.04
     - op: rotate_y_about_point
       pivot:
       - 0.0
       - 0.0
-      - 0.15
+      - 0.32
       angle_deg: 90.0
   BD_Annulus_Sleeve:
     narrative: '**Outer bypass duct** segment: annular shell sized to the lab solenoid
@@ -1228,12 +1278,12 @@ instances:
       xyz:
       - 0.0
       - 0.0
-      - 1.5
+      - 1.67
     - op: rotate_y_about_point
       pivot:
       - 0.0
       - 0.0
-      - 0.15
+      - 0.32
       angle_deg: 90.0
   BD_Shock_Detuner_Core:
     narrative: '**Fluidic shock / blast conditioning insert** (not an acoustic silencer):
@@ -1255,12 +1305,12 @@ instances:
       xyz:
       - 0.0
       - 0.0
-      - 1.48
+      - 1.65
     - op: rotate_y_about_point
       pivot:
       - 0.0
       - 0.0
-      - 0.15
+      - 0.32
       angle_deg: 90.0
   BD_Bracket_Seals:
     narrative: 'Seal land / bolted flange **between detuner module and nozzle plenum**:
@@ -1284,10 +1334,10 @@ instances:
       xyz:
       - 0.0
       - 0.0
-      - 1.585
+      - 1.755
     - op: rotate_y_about_point
       pivot:
       - 0.0
       - 0.0
-      - 0.15
+      - 0.32
       angle_deg: 90.0

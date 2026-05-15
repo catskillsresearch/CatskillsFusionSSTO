@@ -30,6 +30,13 @@ Controls (W/S throttle, U/J compressor, SPACE startup)
     → Nasal ReactorUI @ 10 Hz (read-only display on Screen mesh)
 ```
 
+### CAD load path (meshes)
+
+On `thrust_sled`: four `LoadCell_*` pucks on the deck → `Engine_Mount_Frame` posts on the
+cell tops → top plate → air-breathing engine stack (pivot at `ENGINE_MOUNT_TOP_Z` in
+`arcjet_test_stand_cad.py`, typically **z ≈ 0.32 m**). Regenerate glTF after pose changes:
+`make orbitron-lab-gltf` or `./stand.sh`.
+
 ### Corner layout (lab coordinates)
 
 Matches `thrust_sled_load_cells.corners` in `orbitron_physics_surrogate.yaml`:
@@ -74,3 +81,17 @@ Rows are declared in `orbitron_nasal.yaml` under `reactor_ui.telemetry` and comp
 3. Fly the stand; use **W/S** and **U/J** to see thrust and corner loads move.
 
 Thrust/mdot **scale** (magnitude) comes from `surrogate_engineering` and `engine_surrogate.json`, not from the load-cell block.
+
+## Gas flow (supply vs fusion ash)
+
+Human-readable record: [`../../../gas_flow.md`](../../../gas_flow.md).  
+Machine-readable: `orbitron_lab.yaml` (`connections`, `logical_assemblies`, instance narratives).
+
+| Fluid | Assembly / meshes | Notes |
+|-------|-------------------|--------|
+| **B₂H₆** | `boron_tank_assy` → `Boron_Trunk_Line` | Boron carrier to magnet / NBI |
+| **H₂** | `hydrogen_tank_assy` → `Hydrogen_Trunk_Line` | NBI co-injectant (not bottled He) |
+| **CH₄** | `methane_tank_assy` → `Cryo_Methane_Piping` | Liquid methane thermal loop |
+| **⁴He ash** | `Fusion_Hot_Gas_Outlet` → `Helium_Ash_Vent_Line` → `Nozzle_Inlet_Plenum` | Fusion product into nozzle plenum |
+
+Sub-glTF exports: `make orbitron-lab-gltf` builds `hydrogen_tank_assy.gltf` (and siblings) via `GLTF_LAB_TANK_SUB_NAMES` in the root `Makefile`.

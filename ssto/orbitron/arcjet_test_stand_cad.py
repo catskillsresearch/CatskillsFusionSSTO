@@ -64,6 +64,49 @@ def load_cell_puck() -> cq.Workplane:
     return cq.Workplane("XY").cylinder(0.04, 0.06)
 
 
+# World-Z thrust-sled load path (matches ``Thrust_Sled_Frame`` at z=-0.12, rail_h=0.08).
+THRUST_SLED_FRAME_Z = -0.12
+RAIL_H_DEFAULT = 0.08
+DECK_TOP_Z = THRUST_SLED_FRAME_Z + RAIL_H_DEFAULT * 3 + 0.06  # upper face of deck slab
+LOAD_CELL_HEIGHT = 0.04
+LOAD_CELL_TOP_Z = DECK_TOP_Z + LOAD_CELL_HEIGHT
+MOUNT_LEG_H_DEFAULT = 0.09
+MOUNT_DECK_T_DEFAULT = 0.04
+ENGINE_MOUNT_TOP_Z = LOAD_CELL_TOP_Z + MOUNT_LEG_H_DEFAULT + MOUNT_DECK_T_DEFAULT
+# Legacy bell / fusion pivot was 0.15 (deck-top story); lift engine stack onto mount plate.
+ENGINE_MOUNT_PIVOT_Z = ENGINE_MOUNT_TOP_Z
+ENGINE_MOUNT_Z_LIFT = ENGINE_MOUNT_PIVOT_Z - 0.15
+
+
+def engine_mount_frame(
+    corner_x: float = 0.7,
+    corner_y: float = 0.35,
+    cell_top_z: float = LOAD_CELL_TOP_Z,
+    leg_h: float = MOUNT_LEG_H_DEFAULT,
+    deck_t: float = MOUNT_DECK_T_DEFAULT,
+    post_r: float = 0.048,
+) -> cq.Workplane:
+    """Four posts on load-cell corners + top plate; engine bell flange sits on the plate."""
+    z_leg_bot = cell_top_z
+    z_leg_ctr = z_leg_bot + leg_h / 2
+    z_deck_ctr = z_leg_bot + leg_h + deck_t / 2
+    frame = cq.Workplane("XY")
+    for sx, sy in ((1, 1), (-1, 1), (1, -1), (-1, -1)):
+        x, y = sx * corner_x, sy * corner_y
+        pad = (
+            cq.Workplane("XY")
+            .circle(post_r * 1.15)
+            .extrude(0.012)
+            .translate((x, y, z_leg_bot + 0.006))
+        )
+        leg = cq.Workplane("XY").circle(post_r).extrude(leg_h).translate((x, y, z_leg_ctr))
+        frame = frame.union(pad).union(leg)
+    lx = corner_x * 2 + 0.12
+    ly = corner_y * 2 + 0.12
+    deck = cq.Workplane("XY").box(lx, ly, deck_t).translate((0, 0, z_deck_ctr))
+    return frame.union(deck)
+
+
 def blast_detuner(inner_r: float = 0.35, wall: float = 0.04, length: float = 4.0) -> cq.Workplane:
     outer = cq.Workplane("XY").circle(inner_r + wall).extrude(length)
     inner = cq.Workplane("XY").circle(inner_r).extrude(length + 0.01)

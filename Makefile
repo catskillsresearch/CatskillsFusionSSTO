@@ -14,7 +14,7 @@ BUILD := $(REPO_ROOT)/build/orbitron
 # Lab glTF: unified assembly YAML (schema v2) → nested CadQuery export → Blender → .ac.
 GLTF_LAB := $(STAND)/build/orbitron_lab.gltf
 # Per-logical-group slices (``--subassembly``); built with ``make`` / fg-ready / ``orbitron-lab-gltf``.
-GLTF_LAB_TANK_SUB_NAMES := methane_tank_assy boron_tank_assy helium_tank_assy tank_assy
+GLTF_LAB_TANK_SUB_NAMES := methane_tank_assy boron_tank_assy hydrogen_tank_assy tank_assy
 GLTF_LAB_TANK_SUBS := $(foreach n,$(GLTF_LAB_TANK_SUB_NAMES),$(STAND)/build/$(n).gltf)
 GLTF_LAB_EXTRA_SUB_NAMES := \
 	propulsive_nozzle reactor_bay turbofan_intake air_breathing_engine control_panel_stand thrust_sled
