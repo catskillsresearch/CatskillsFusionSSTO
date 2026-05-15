@@ -182,6 +182,8 @@ def _build_set_xml(
     _typed_prop(rth, "throttle", float(cd["reactor_throttle"]))
     ob = ET.SubElement(ctrls, "orbitron")
     _typed_prop(ob, "compressor", float(cd["orbitron_compressor"]))
+    if "orbitron_cathode_pulse" in cd:
+        _typed_prop(ob, "cathode-pulse", float(cd["orbitron_cathode_pulse"]))
 
     root.append(ET.Comment(" CUSTOM KEYBOARD CONTROLS (Must be outside <sim>) "))
     kb_root = ET.SubElement(root, "input")

@@ -37,7 +37,7 @@ fg_set:
     ct: 55
     cc: 48
     ctc: 320
-  description: Orbitron p-B11 Test Stand
+  description: Orbitron SSTO test stand (Avalanche-class core + arcjet offload)
   author: Catskills Aerospace
   status: alpha
   minimum_fg_version: 2020.3.0
@@ -64,10 +64,13 @@ fg_set:
   controls_defaults:
     reactor_throttle: 0.0
     orbitron_compressor: 0.0
+    orbitron_cathode_pulse: 0.5
   keyboard:
     - { key_n: 32, name: SPACE, desc: Toggle Reactor Ignition, toggle_property: /sim/model/reactor/startup-trigger }
-    - { key_n: 119, name: w, desc: Increase NBI Injection, adjust_property: /controls/reactor/throttle, step: 0.1, min: 0.0, max: 1.0 }
-    - { key_n: 115, name: s, desc: Decrease NBI Injection, adjust_property: /controls/reactor/throttle, step: -0.1, min: 0.0, max: 1.0 }
+    - { key_n: 119, name: w, desc: Increase ion beam command, adjust_property: /controls/reactor/throttle, step: 0.1, min: 0.0, max: 1.0 }
+    - { key_n: 115, name: s, desc: Decrease ion beam command, adjust_property: /controls/reactor/throttle, step: -0.1, min: 0.0, max: 1.0 }
+    - { key_n: 105, name: i, desc: Increase cathode pulse (shear / PSP2-Jin), adjust_property: /controls/orbitron/cathode-pulse, step: 0.1, min: 0.0, max: 1.0 }
+    - { key_n: 107, name: k, desc: Decrease cathode pulse, adjust_property: /controls/orbitron/cathode-pulse, step: -0.1, min: 0.0, max: 1.0 }
     - { key_n: 109, name: m, desc: Toggle Reactor Telemetry Debug Window, toggle_property: /sim/model/reactor/debug-ui-window }
     - { key_n: 117, name: u, desc: Increase compressor command, adjust_property: /controls/orbitron/compressor, step: 0.1, min: 0.0, max: 1.0 }
     - { key_n: 106, name: j, desc: Decrease compressor command, adjust_property: /controls/orbitron/compressor, step: -0.1, min: 0.0, max: 1.0 }

@@ -40,6 +40,9 @@ def picmi_overrides_json(spec: dict[str, Any]) -> dict[str, Any]:
     sg = pic.get("species_geometry") or {}
     ts = pic.get("timestep") or {}
     bl = pic.get("beam_list") or {}
+    ib = pic.get("inject_beams") or {}
+    cpd = pic.get("cathode_pulse_density") or {}
+    cpr = pic.get("cathode_pulse_ramp") or {}
     rs = pic.get("ring_density_scale") or {}
     acs = pic.get("arc_seed_scale") or {}
     result = {
@@ -60,6 +63,25 @@ def picmi_overrides_json(spec: dict[str, Any]) -> dict[str, Any]:
         "cfl": float(ts["cfl"]),
         "beam_list": {k: (int(v) if k == "n_particles" else float(v)) for k, v in bl.items()},
     }
+    if ib:
+        beams_out: dict[str, dict[str, Any]] = {}
+        for bk, bv in ib.items():
+            row: dict[str, Any] = {}
+            for k, v in bv.items():
+                if k in ("n_particles", "charge_state"):
+                    row[k] = int(v)
+                elif k == "particle_type":
+                    row[k] = str(v)
+                elif isinstance(v, (int, float)):
+                    row[k] = float(v)
+                else:
+                    row[k] = v
+            beams_out[str(bk)] = row
+        result["inject_beams"] = beams_out
+    if cpd:
+        result["cathode_pulse_density"] = {k: float(v) for k, v in cpd.items()}
+    if cpr:
+        result["cathode_pulse_ramp"] = {k: float(v) for k, v in cpr.items()}
     merge_expression_bundle_into_picmi_json(result, spec)
     return result
 

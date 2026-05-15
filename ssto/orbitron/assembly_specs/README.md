@@ -9,6 +9,7 @@ shell, Nasal UI, physics/surrogate, and sound. Compilers under `tools/` emit art
 | File | Consumed by | Purpose |
 |------|-------------|---------|
 | `orbitron_lab.yaml` | `compile_assembly_yaml.py` | CadQuery meshes + logical assembly tree (schema v2) |
+| `orbitron_avalanche_core.yaml` | (reference) | Avalanche Orbitron fusion-core design basis (stability, fields, fuel) |
 | `orbitron_physics_surrogate.yaml` | `build_surrogate_map.py`, `compile_orbitron_aircraft_runtime.py` | WarpX sweep, surrogate scales, **thrust-sled load model** |
 | `orbitron_aircraft_flightgear.yaml` | `compile_orbitron_aircraft_runtime.py` | `*-set.xml`, `Orbitron.xml`, JSBSim template copy |
 | `orbitron_nasal.yaml` | `compile_orbitron_nasal.py` | `surrogate_load.nas`, `reactor_ui.nas` (operator screen) |
@@ -89,9 +90,11 @@ Machine-readable: `orbitron_lab.yaml` (`connections`, `logical_assemblies`, inst
 
 | Fluid | Assembly / meshes | Notes |
 |-------|-------------------|--------|
-| **B₂H₆** | `boron_tank_assy` → `Boron_Trunk_Line` | Boron carrier to magnet / NBI |
-| **H₂** | `hydrogen_tank_assy` → `Hydrogen_Trunk_Line` | NBI co-injectant (not bottled He) |
-| **CH₄** | `methane_tank_assy` → `Cryo_Methane_Piping` | Liquid methane thermal loop |
-| **⁴He ash** | `Fusion_Hot_Gas_Outlet` → `Helium_Ash_Vent_Line` → `Nozzle_Inlet_Plenum` | Fusion product into nozzle plenum |
+| **H₂** | `hydrogen_tank_assy` → `Hydrogen_Trunk_Line` → `NBI_Injector` | p-¹¹B core (D₂ Orbitron-class hardware) |
+| **B₂H₆** | `boron_tank_assy` → `Boron_Trunk_Line` → `NBI_Injector` | p-¹¹B core boron carrier |
+| **⁴He ash** | `Helium_Ash_Vent_Line` → nozzle | p-¹¹B fusion product |
+| **CH₄** | `methane_tank_assy` (optional) | SSTO wall thermal only |
 
-Sub-glTF exports: `make orbitron-lab-gltf` builds `hydrogen_tank_assy.gltf` (and siblings) via `GLTF_LAB_TANK_SUB_NAMES` in the root `Makefile`.
+**Core physics:** `orbitron_avalanche_core.yaml`. **Controls:** W/S ion beam, I/K cathode pulse (PSP2–Jin shear), U/J compressor (arcjet).
+
+Sub-glTF exports: `make orbitron-lab-gltf` builds `hydrogen_tank_assy.gltf` and `boron_tank_assy.gltf`.

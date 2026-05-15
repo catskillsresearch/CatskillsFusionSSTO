@@ -81,16 +81,13 @@
         </force>
     </external_reactions>
 
-    <!-- REACTOR 0D MODEL -->
-    <system name="p-B11_Reactor">
+    <!-- REACTOR 0D MODEL (Avalanche Orbitron-class core; see orbitron_avalanche_core.yaml) -->
+    <system name="Orbitron_Reactor">
         <channel name="Reactor Input">
-            <fcs_function name="systems/reactor/nbi-sccm">
+            <!-- Ion beam command 0..1 → mA (Avalanche >1 mA milestone at moderate command) -->
+            <fcs_function name="systems/reactor/ion-beam-command">
                 <function>
-                    <product>
-                        <!-- CHANGED: Reading Custom Keyboard W/S Throttle Input -->
-                        <property>/controls/reactor/throttle</property>
-                        <value> 100.0 </value> 
-                    </product>
+                    <property>/controls/reactor/throttle</property>
                 </function>
             </fcs_function>
 
@@ -176,13 +173,59 @@
                 </function>
             </fcs_function>
 
-            <!-- I_mA = P_kW / 8 with 8 MV equivalent (see build_surrogate_map.beam_screen_kw_from_rho). -->
+            <!-- Beam current: surrogate kW path / 8 MV equivalent, floored at throttle×5 mA scale. -->
             <fcs_function name="systems/reactor/beam-current-ma">
                 <function>
-                    <quotient>
-                        <property>systems/reactor/beam-screen-deposition-kw</property>
-                        <value> 8.0 </value>
-                    </quotient>
+                    <max>
+                        <product>
+                            <property>systems/reactor/ion-beam-command</property>
+                            <value> 5.0 </value>
+                        </product>
+                        <quotient>
+                            <property>systems/reactor/beam-screen-deposition-kw</property>
+                            <value> 8.0 </value>
+                        </quotient>
+                    </max>
+                </function>
+            </fcs_function>
+
+            <!-- Avalanche Series A cathode milestone: ~100–300 kV vs throttle when active -->
+            <fcs_function name="systems/reactor/cathode-voltage-kv">
+                <function>
+                    <product>
+                        <property>systems/reactor/active</property>
+                        <sum>
+                            <value> 100.0 </value>
+                            <product>
+                                <property>systems/reactor/ion-beam-command</property>
+                                <value> 200.0 </value>
+                            </product>
+                        </sum>
+                    </product>
+                </function>
+            </fcs_function>
+
+            <!-- Bookkeeping density log10(cm^-3): hot+dense+shear-stabilized proxy -->
+            <fcs_function name="systems/reactor/plasma-density-log10">
+                <function>
+                    <product>
+                        <property>systems/reactor/active</property>
+                        <sum>
+                            <value> 9.0 </value>
+                            <product>
+                                <property>systems/reactor/ion-beam-command</property>
+                                <value> 1.8 </value>
+                            </product>
+                            <product>
+                                <property>/controls/orbitron/cathode-pulse</property>
+                                <value> 1.2 </value>
+                            </product>
+                            <product>
+                                <property>/controls/orbitron/compressor</property>
+                                <value> 0.3 </value>
+                            </product>
+                        </sum>
+                    </product>
                 </function>
             </fcs_function>
 
@@ -254,6 +297,46 @@
                                 <property>/sim/model/orbitron/surrogate/mdot-ctc</property>
                             </product>
                         </sum>
+                    </product>
+                </function>
+            </fcs_function>
+
+            <!-- Jet 0D: F [N], v_e ≈ F/ṁ [m/s], ½ṁv_e² [MW]; coherent with η·P_gross when scales match physics YAML -->
+            <fcs_function name="systems/arcjet/thrust-newtons">
+                <function>
+                    <product>
+                        <property>systems/arcjet/thrust-lbf</property>
+                        <value> 4.4482216152605 </value>
+                    </product>
+                </function>
+            </fcs_function>
+            <fcs_function name="systems/arcjet/thrust-kn">
+                <function>
+                    <product>
+                        <property>systems/arcjet/thrust-newtons</property>
+                        <value> 0.001 </value>
+                    </product>
+                </function>
+            </fcs_function>
+            <fcs_function name="systems/arcjet/equiv-exhaust-velocity-mps">
+                <function>
+                    <quotient>
+                        <property>systems/arcjet/thrust-newtons</property>
+                        <max>
+                            <property>systems/arcjet/mass-flow-kgps</property>
+                            <value> 1.0e-9 </value>
+                        </max>
+                    </quotient>
+                </function>
+            </fcs_function>
+            <fcs_function name="systems/arcjet/jet-kinetic-power-mw">
+                <function>
+                    <product>
+                        <value> 0.5 </value>
+                        <property>systems/arcjet/mass-flow-kgps</property>
+                        <property>systems/arcjet/equiv-exhaust-velocity-mps</property>
+                        <property>systems/arcjet/equiv-exhaust-velocity-mps</property>
+                        <value> 1.0e-6 </value>
                     </product>
                 </function>
             </fcs_function>

@@ -167,14 +167,14 @@ def main() -> int:
                 "note": "Replace with WarpX-reduced CSV fit; y=c0+c_t*T+c_c*C+c_tc*T*C",
                 "beam_model": (
                     "beam_screen_kw bilinear(T,C); beam_current_ma = beam_screen_kw/8 (8 MV equiv.). "
-                    "WarpX path: rho_stabilizing_beam in screen ROI (build_surrogate_map.reduce_*)."
+                    "WarpX path: rho_h_inject_beam + rho_b_inject_beam in screen ROI (build_surrogate_map)."
                 ),
             },
             "thrust_lbf_surface": _surface_block(
-                {"c0": 0.0, "c_t": 0.0, "c_c": 0.0, "c_tc": 4000.0}
+                {"c0": 0.0, "c_t": 0.0, "c_c": 0.0, "c_tc": 4040.0}
             ),
             "mass_flow_kgps_surface": _surface_block(
-                {"c0": 0.0, "c_t": 0.0, "c_c": 0.0, "c_tc": 2.5}
+                {"c0": 0.0, "c_t": 0.0, "c_c": 0.0, "c_tc": 84.0}
             ),
             "gross_power_mw_surface": _surface_block(
                 {"c0": 0.0, "c_t": 0.0, "c_c": 0.0, "c_tc": 3.5}
@@ -229,7 +229,7 @@ def main() -> int:
                 "model": "bilinear",
                 "equation": "y=c0+c_t*T+c_c*C+c_tc*T*C",
                 "beam_model": (
-                    "beam_screen_kw from WarpX rho_stabilizing_beam screen ROI + mapping in "
+                    "beam_screen_kw from WarpX H⁺/B⁺ inject beam screen ROI + mapping in "
                     "build_surrogate_map.beam_screen_kw_from_rho; beam_current_ma = beam_screen_kw/8."
                 ),
             },

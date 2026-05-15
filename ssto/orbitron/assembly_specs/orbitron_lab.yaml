@@ -6,37 +6,55 @@ assembly:
     Single YAML SSOT: CadQuery ``instances`` plus ``logical.groups``; ``cq.Assembly``
     export mirrors the logical tree (no second nest pass).
 
-    **Test stand intent:** Ground integration article for a compact **p-¹¹B** crossed-field
-    fusion machine (Orbitron-class narrative), staged so plumbing, thermal paths, and
-    operator-visible services stay **pad-credible**. FlightGear export is a **discipline
-    step**—forcing named parts and interfaces—**not** the end product.
+    **Fusion core (defer to Avalanche):** Stable long-run operation follows the public
+    **Orbitron** recipe in ``orbitron_avalanche_core.yaml``—magneto-electrostatic hybrid
+    (electrostatic **orbitrap** ions + **magnetron** electrons), **gridless** plasma volume,
+    **tangential keV ion injection**, **E×B** co-rotating electron space-charge neutralization,
+    **cathode pulsing / rotational shear** against the **rotating mode**—same levers Avalanche
+    describes for D₂. This repo does **not** re-invent that machine class.
 
-    **Energy offload (design basis):** Multi-MV direct grid tie was rejected for plant
-    footprint at scale; the article **vents fusion-derived energy by doing thermodynamic
-    work on a gas path** (air-breathing train + CD nozzle), which makes **wall heat removal
-    and cryogen loops first-class** (liquid **CH₄** anode / plant thermal management).
+    **Fuel (unobtainium leap):** Same Orbitron, **p-¹¹B** instead of D₂—``¹H + ¹¹B → 3 ⁴He`` after
+    dissociation; **tangential keV beams** fed by **H₂** (protons / stability) and **B₂H₆** (boron
+    carrier) per ``orbitron_avalanche_core.yaml``.
 
-    **Steady operation:** After start-up, the stand is intended to run **continuous steady
-    state** while **consumables** (injectants, cryogen, parasitic power budgets) last,
-    with orderly shutdown before starvation—not intrinsic drift to failure.
+    **SSTO application layer:** Air-breathing + CD nozzle energy offload, thrust sled, pad plumbing.
+    **CH₄** dewar and **DEC** mesh are **SSTO-only** add-ons (wall thermal, optional power tap)—not
+    required for the p-¹¹B Orbitron core recipe.
 
-    **Headline fusion channel (post-dissociation in plasma):** ``¹H + ¹¹B → 3 ⁴He``;
-    **B₂H₆** is the engineered **gaseous boron carrier** to the injector/NBI path; **H₂**
-    is the **NBI co-injectant** (stability / proton inventory); **CH₄** (liquid) is
-    primarily **thermal management**, not the boron carrier.
+    **Energy offload:** Fusion-derived energy vented by **work on the gas path** (compressor annulus
+    + hot core exhaust + **⁴He ash** into nozzle plenum).
 
-    **``fusion_arcjet_engine`` (glTF / scene root):** FlightGear and Blender see this
-    name as the **nested export root** wrapping ``test_stand``. **Scale-up architecture
-    (flight article):** on the order of **~1000** niobium **anode discharge channels**
-    (boron inventory per cell after dissociation narrative) packed in a **hex-close** or
-    similar **cluster**, all **inside one common solenoid / magnet bore**—one magnetic
-    volume, many parallel pressure boundaries. **This lab mesh** is the **1×1 surrogate**:
-    **one ``Magnet``**, **one ``Anode``**, same logical air path and services discipline
-    as the multi-cell article, without modeling the full bundle.
+    **Steady operation:** Continuous steady state while **H₂ / B₂H₆** injectants and interlocks allow.
+
+    **``fusion_arcjet_engine`` (glTF / scene root):** FlightGear export root wrapping ``test_stand``.
+    **Scale-up:** flight article may use **~1000** anode channels in one ``Magnet`` bore; lab mesh is
+    **1×1 surrogate** (one ``Anode``, one ``Magnet``).
 logical:
   root: test_stand
   scene_root_name: fusion_arcjet_engine
   glossary:
+  - term: Avalanche Orbitron core
+    definition: |
+      Public magneto-electrostatic fusion core documented in ``orbitron_avalanche_core.yaml``.
+      Catskills SSTO work **inherits** ion/electron rotation, space-charge neutralization, cathode
+      pulsing, and tangential keV injection from that basis; **p-¹¹B** fueling is our extension of their D₂ recipe.
+  - term: Orbitrap (ion confinement)
+    definition: |
+      Ions trapped in **elliptical orbits** between outer anode (+) and central cathode (−) by
+      electrostatic potential—not by striking internal accelerator grids (contrast fusor).
+  - term: Magnetron electron confinement
+    definition: |
+      Weak axial **B** traps electrons; combined with radial **E** they **E×B drift** azimuthally,
+      co-rotating with ions to mask space-charge repulsion and raise achievable density.
+  - term: Tangential ion injection
+    definition: |
+      External injectors fire ionized fuel **tangentially** into the anode–cathode gap at **~10–100+ keV**
+      so ions miss the cathode rod and stay in closed orbits (Avalanche public narrative).
+  - term: Rotating mode (instability)
+    definition: |
+      Azimuthal plasma instability that concentrates the discharge and dumps particles to walls—
+      limiting density. Mitigation in Avalanche’s public arc includes **cathode pulsing** and
+      **rotational shear** (PSP2 / Jin program); simulated in FG via ``/controls/orbitron/cathode-pulse``.
   - term: Annulus
     definition: 'A ring-shaped passage: fluid moves in the gap between two concentric
       surfaces (for example between an outer duct wall and an inner core or plug).
@@ -52,21 +70,27 @@ logical:
       and a diverging section. The lab exports three coarse solids (inlet plenum adapter,
       throat-forward CD segment, divergent exit) that tile axially behind the reactor
       outlet ring.
+  - term: Ion beam injectors (NBI)
+    definition: |
+      **Tangential keV ion beam** hardware on the core—not a low-energy gas bleed. FG throttle
+      commands **beam current (mA)** toward Avalanche’s **>1 mA** integration milestone.
   - term: p-¹¹B headline channel
-    definition: 'After gas dissociation / ionization in the discharge, the primary
-      aneutronic-marketing channel is proton + boron-11 → three alpha particles (⁴He),
-      written ``¹H + ¹¹B → 3 ⁴He``; diborane is the chemical carrier that brings boron
-      to the injector train, not a literal two-atom fusion reagent molecule.'
-  - term: NBI injectant mix
-    definition: Tangential neutral-beam / gas-injection path that co-feeds hydrogen
-      and diborane (design narrative uses a high H₂ to B₂H₆ ratio) to stabilize the
-      discharge (e.g. Diocotron / laminarity language) and supply hydrogenic species
-      including the proton component of p-¹¹B.
-  - term: Helium ash (fusion product)
-    definition: 'Alpha particles (⁴He) from the headline channel ``¹H + ¹¹B → 3 ⁴He``.
-      In this lab mesh they **vent from the core exhaust plane** through ``Helium_Ash_Vent_Line``
-      into the **CD nozzle plenum** (not from the H₂ supply tank). Distinct from **gaseous
-      hydrogen** stored in ``Tank_Hydrogen`` / ``hydrogen_tank_assy``.'
+    definition: |
+      After dissociation in the discharge: ``¹H + ¹¹B → 3 ⁴He``. **B₂H₆** is the boron carrier;
+      **H₂** supplies hydrogenic / proton inventory—same tangential beam hardware as a D₂ Orbitron.
+  - term: Hydrogen injectant (H₂)
+    definition: |
+      **H₂** tank + ``Hydrogen_Trunk_Line`` feed tangential keV injectors (stability, laminarity,
+      proton side of p-¹¹B). Not bottled fusion-product helium.
+  - term: Boron injectant (B₂H₆)
+    definition: |
+      **B₂H₆** tank + ``Boron_Trunk_Line`` feed the **same** injectors—gaseous boron carrier, not solid B.
+  - term: Helium ash (⁴He product)
+    definition: |
+      Fusion alphas from p-¹¹B vent via ``Helium_Ash_Vent_Line`` into the nozzle plenum—not from supply tanks.
+  - term: SSTO-only services (optional)
+    definition: |
+      **Liquid CH₄** (wall thermal) and **DEC_Grid** (power pickup)—spaceplane article add-ons, not core p-¹¹B Orbitron fueling.
   - term: Liquid methane thermal loop
     definition: Cryogenic liquid CH₄ used as a working fluid for **anode / boundary
       Bremsstrahlung heat removal** and related plant cryogenics in this concept; it
@@ -99,8 +123,16 @@ logical:
     kind: dotted
   - from: Pipe_H2_Feed
     to: Hydrogen_Trunk_Line
-    label: H2 injectant trunk toward magnet / NBI manifold
+    label: H2 feed toward tangential ion beam injectors
     kind: dotted
+  - from: Hydrogen_Trunk_Line
+    to: NBI_Injector
+    label: H2 tangential keV beam service
+    kind: solid
+  - from: Boron_Trunk_Line
+    to: NBI_Injector
+    label: B2H6 tangential keV beam service (boron carrier)
+    kind: solid
   - from: Fusion_Hot_Gas_Outlet
     to: Helium_Ash_Vent_Line
     label: fusion ⁴He ash bleed from core exhaust plane
@@ -112,18 +144,6 @@ logical:
   - from: Pipe_B2H6_Feed
     to: Boron_Trunk_Line
     label: B2H6 injectant trunk toward magnet / NBI manifold
-    kind: dotted
-  - from: Pipe_H2_Feed
-    to: DEC_Grid
-    label: H2 toward grid / plenum region (schematic)
-    kind: dotted
-  - from: Pipe_CH4_Feed
-    to: DEC_Grid
-    label: Optional schematic CH4 / plenum tie (not primary anode jacket detail)
-    kind: dotted
-  - from: Pipe_B2H6_Feed
-    to: DEC_Grid
-    label: B2H6 / boron inventory toward grid region (schematic)
     kind: dotted
   - from: Cryo_Methane_Piping
     to: Tank_Cryo_Methane
@@ -161,10 +181,6 @@ logical:
     to: BD_Bracket_Seals
     label: pressure loads & seals
     kind: solid
-  - from: BD_Annulus_Sleeve
-    to: DEC_Grid
-    label: conditioned flow couples core periphery
-    kind: dotted
   - from: BD_Shock_Detuner_Core
     to: Magnet
     label: shock management near magnetic volume (concept)
@@ -173,10 +189,6 @@ logical:
     to: Nozzle_Inlet_Plenum
     label: core exhaust plane → nozzle inlet
     kind: solid
-  - from: DEC_Grid
-    to: Fusion_Hot_Gas_Outlet
-    label: grid plenum toward outlet (schematic)
-    kind: dotted
   - from: Nozzle_Inlet_Plenum
     to: Nozzle_CD_Contour
     label: inlet conditioning → CD contour
@@ -196,8 +208,9 @@ logical:
   groups:
     test_stand:
       title: Orbitron test stand
-      detail: 'Pad-credible ground article: fusion core in an air-breathing flowpath
-        with segmented nozzle, fuel farm (H₂, B₂H₆, liquid CH₄), HV and cryostat services,
+      detail: 'Pad-credible ground article: **Avalanche-class Orbitron core** in an SSTO
+        air-breathing flowpath with segmented nozzle, fuel farm (H₂ + B₂H₆ p-¹¹B core, optional CH₄),
+        HV and cryostat services,
         and operator station. Intended for continuous steady operation while consumables
         last; FlightGear is a visualization / integration discipline, not the end product.'
       members:
@@ -205,6 +218,7 @@ logical:
       - thrust_sled
       - tank_assy
       - fluid_and_electrical_services
+      - ssto_flight_article_addons
       - air_breathing_engine
     control_panel_stand:
       title: Control panel and operator station
@@ -246,29 +260,30 @@ logical:
       - boron_tank_assy
       - hydrogen_tank_assy
     methane_tank_assy:
-      title: Methane tank assembly (cryo service)
-      detail: Liquid **CH₄** dewar, stencil, dewar-roof valve boss, and **cryostat leg**
-        to the magnet rim tap. The old black **CH₄ leg** on the combined ``Fuel_Gas_Lines``
-        trunk duplicated this thermal story; it was **removed**—only this assembly + ``Cryo_Methane_Piping``
-        carry CH₄ routing in coarse CAD.
+      title: Methane tank assembly — SSTO wall-thermal only
+      detail: |
+        **Not** p-¹¹B core fuel. Liquid **CH₄** + ``Cryo_Methane_Piping`` for SSTO anode / boundary cooling.
       parts:
       - Tank_Cryo_Methane
       - Decal_CH4
       - Pipe_CH4_Feed
       - Cryo_Methane_Piping
     boron_tank_assy:
-      title: Boron (B₂H₆) tank assembly
-      detail: Diborane cylinder, stencil, tank-roof valve boss, and **dedicated** B₂H₆ injectant trunk.
+      title: Boron (B₂H₆) tank assembly — p-¹¹B core fuel
+      detail: |
+        Gaseous **boron carrier** to the tangential keV injectors (same Orbitron class as D₂ fueling).
+        Dissociates in the discharge; natural boron ~80% ¹¹B unless enriched.
       parts:
       - Tank_Diborane
       - Decal_B2H6
       - Pipe_B2H6_Feed
       - Boron_Trunk_Line
     hydrogen_tank_assy:
-      title: Hydrogen tank assembly (H₂ injectant)
-      detail: Gaseous **hydrogen** cylinder, stencil, tank-roof valve boss, and **H₂
-        injectant trunk** to the magnet / NBI manifold. **Not** fusion-product helium
-        ash (⁴He vents via ``Helium_Ash_Vent_Line`` into the nozzle).
+      title: Hydrogen tank assembly — p-¹¹B core fuel (H₂)
+      detail: |
+        **H₂** cylinder, stencil, tank-roof valve boss, and **hydrogen trunk** to tangential
+        **ion beam injectors**—proton inventory and stability co-injectant (D₂ Orbitron → p-¹¹B leap).
+        Not fusion-product helium (⁴He ash via ``Helium_Ash_Vent_Line``).
       parts:
       - Tank_Hydrogen
       - Decal_H2
@@ -293,14 +308,13 @@ logical:
       - Fusion_Hot_Gas_Outlet
       - Helium_Ash_Vent_Line
     fusion_reactor:
-      title: Fusion reactor assembly
-      detail: '**Scale note:** flight article is **many anode channels (~1000) in a
-        hex-close cluster** under **one** common ``Magnet`` bore; this lab exports **one
-        anode + one magnet** as a surrogate. p-¹¹B-class crossed-field electrostatic narrative:
-        boron enters as B₂H₆ gas to the NBI/injector path (not solid boron); protons
-        from hydrogenic inventory after dissociation. Primary headline channel ``¹H + ¹¹B → 3 ⁴He``.
-        Wall power (Bremsstrahlung-scale in the design article) requires active anode
-        thermal management—liquid CH₄ loop in the plant basis.'
+      title: Orbitron fusion core (Avalanche-aligned)
+      detail: |
+        **Gridless** magneto-electrostatic core per ``orbitron_avalanche_core.yaml``: ``Anode`` shell,
+        on-axis ``Cathode`` (−100…−300 kV class), ``Magnet`` axial B for electrons, tangential
+        ``NBI_Injector`` tangential keV **H⁺ / B⁺** beams (p-¹¹B fueling), ``Insulators``. **No fusor grids**.
+        1×1 lab surrogate of a multi-channel flight article. ``DEC_Grid`` is **not** in this group—
+        see ``ssto_flight_article_addons``.
       members:
       - fusion_hot_gas_outlet
       parts:
@@ -309,6 +323,10 @@ logical:
       - Magnet
       - NBI_Injector
       - Insulators
+    ssto_flight_article_addons:
+      title: SSTO flight-article add-ons (not Avalanche seed core)
+      detail: Optional **CH₄** wall thermal and **DEC** power tap—SSTO spaceplane add-ons only (not p-¹¹B core fuel).
+      parts:
       - DEC_Grid
     bd_annulus_path:
       title: Annulus flow path
@@ -463,12 +481,9 @@ instances:
       - -0.55
       - -0.1
   Tank_Hydrogen:
-    narrative: 'Red H₂ cylinder at the fuel farm. **Role:** NBI co-injectant with diborane—stability
-      / laminarity in the design narrative and hydrogenic inventory including the
-      proton side of p-¹¹B after dissociation. Dotted logical links show flex jumpers
-      toward the injectant trunk mesh.
-
-      '
+    narrative: |
+      Red **H₂** cylinder—**p-¹¹B core fuel** (proton / stability co-injectant). Same tangential keV
+      injector hardware as a D₂ Orbitron; feeds via ``Hydrogen_Trunk_Line``. Not fusion-product ⁴He.
     template: lab_tank_hydrogen
     params: {}
     color:
@@ -477,12 +492,9 @@ instances:
     - 0.1
     transform_chain: []
   Tank_Diborane:
-    narrative: 'Green B₂H₆ cylinder between hydrogen and cryo methane. **Role:** gaseous
-      **boron carrier** to the NBI / injector train (not solid boron feed). In plasma,
-      boron participates in the headline channel ``¹H + ¹¹B → 3 ⁴He`` after dissociation;
-      natural boron is ~80% ¹¹B atom fraction unless procurement specifies enrichment.
-
-      '
+    narrative: |
+      Green **B₂H₆** cylinder—**p-¹¹B core fuel** (gaseous boron carrier to tangential keV injectors).
+      Dissociates in the discharge; headline channel ``¹H + ¹¹B → 3 ⁴He``.
     template: lab_tank_diborane
     params: {}
     color:
@@ -504,12 +516,9 @@ instances:
     - 0.36
     transform_chain: []
   Tank_Cryo_Methane:
-    narrative: 'Larger dewar for **liquid CH₄**. **Role:** primary plant fluid for
-      **anode / boundary thermal management** (Bremsstrahlung-scale wall heat in the
-      design article)—not the boron carrier. Pairs with **Cryo_Methane_Piping** and the
-      CH₄ decal under ``methane_tank_assy``; dewar-roof boss is ``Pipe_CH4_Feed``.
-
-      '
+    narrative: |
+      **SSTO-only** liquid **CH₄** dewar for **anode / boundary thermal** management on the spaceplane
+      article—not p-¹¹B core fuel. Pairs with ``Cryo_Methane_Piping`` under ``methane_tank_assy``.
     template: lab_tank_cryo_methane
     params: {}
     color:
@@ -518,10 +527,7 @@ instances:
     - 0.8
     transform_chain: []
   Decal_H2:
-    narrative: 'Flat stencil text “HYDROGEN” on the tank—marking only, not a separate
-      fluid.
-
-      '
+    narrative: 'Flat stencil text “HYDROGEN” on the tank—marking only, not a separate fluid.'
     template: lab_decal_h2
     params: {}
     color:
@@ -627,11 +633,9 @@ instances:
     - 0.0
     transform_chain: []
   Hydrogen_Trunk_Line:
-    narrative: 'Dedicated **H₂ injectant** polyline from the hydrogen tank roof port to
-      the magnet farm-face inlet (subset of the former combined ``Fuel_Gas_Lines`` mesh).
-      Bundled under ``hydrogen_tank_assy``.
-
-      '
+    narrative: |
+      **H₂** service trunk from ``Tank_Hydrogen`` roof to tangential **ion beam injectors**
+      (``NBI_Injector``). Bundled under ``hydrogen_tank_assy``.
     template: lab_h2_injectant_trunk
     params: {}
     color:
@@ -653,10 +657,9 @@ instances:
     - 0.92
     transform_chain: []
   Boron_Trunk_Line:
-    narrative: 'Dedicated **B₂H₆ injectant** polyline from the diborane tank roof to the
-      magnet inlet (subset of the former combined ``Fuel_Gas_Lines`` mesh).
-
-      '
+    narrative: |
+      **B₂H₆** trunk from ``Tank_Diborane`` roof to tangential **ion beam injectors** (``NBI_Injector``).
+      Bundled under ``boron_tank_assy``. Same Orbitron injection class as H₂—p-¹¹B boron carrier leg.
     template: lab_b2h6_injectant_trunk
     params: {}
     color:
@@ -785,10 +788,7 @@ instances:
       - -2.3
       - 0.0
   Pipe_H2_Feed:
-    narrative: 'H₂ service valve / flex-jumper boss at the hydrogen tank roof (tank-end
-      fitting for ``Hydrogen_Trunk_Line``).
-
-      '
+    narrative: 'H₂ service valve / flex-jumper boss at the hydrogen tank roof (tank-end fitting for ``Hydrogen_Trunk_Line``).'
     template: lab_fuel_feed_valve
     params: {}
     color:
@@ -1061,11 +1061,10 @@ instances:
       - 0.32
       angle_deg: 90.0
   DEC_Grid:
-    narrative: 'DEC grid insert (direct energy conversion narrative) radially inside
-      the anode—high-gradient region coupling fusion alphas to extracted power in the
-      design story. Interlocks and bias sequencing live outside this CAD YAML.
-
-      '
+    narrative: |
+      **SSTO flight-article optional** — direct-energy conversion pickup mesh inside the anode bore.
+      **Not** a fusor-style ion accelerator grid; the Avalanche Orbitron plasma volume is **gridless**.
+      Omitted from ``fusion_reactor`` logical group; see ``ssto_flight_article_addons``.
     template: orbitron_dec_grid
     params: {}
     color:
@@ -1085,12 +1084,10 @@ instances:
       - 0.32
       angle_deg: 90.0
   Cathode:
-    narrative: 'Cathode stack on axis; electrically and thermally the hot end of the
-      gap that
-
-      pairs with the anode / grid story in the design brief.
-
-      '
+    narrative: |
+      On-axis **cathode** (−100…−300 kV class in Avalanche milestones). Radial **E** with the
+      anode traps ions in orbitrap trajectories; **cathode pulsing** (PSP2/Jin shear program) is
+      the public stability lever against the **rotating mode**—FG: ``/controls/orbitron/cathode-pulse``.
     template: orbitron_cathode
     params: {}
     color:
@@ -1135,12 +1132,10 @@ instances:
       - 0.32
       angle_deg: 90.0
   Magnet:
-    narrative: 'Solenoid yoke volume around the stack; sets the 2 T class axial narrative
-      even
-
-      though the PIC case is separate from this decorative solid.
-
-      '
+    narrative: |
+      Axial **B** solenoid (magnetron electron confinement). Field is **weak for ion gyration**
+      (ion rotation from tangential injection) but sets **E×B** electron drift co-rotation with
+      the ion cloud for space-charge neutralization (see ``orbitron_avalanche_core.yaml``).
     template: orbitron_magnet
     params: {}
     color:
@@ -1160,12 +1155,10 @@ instances:
       - 0.32
       angle_deg: 90.0
   NBI_Injector:
-    narrative: 'Neutral beamline / gas-injection stub on the core. **Design intent:**
-      tangential feed of the **H₂ + B₂H₆** injectant mix toward the discharge (stability
-      / laminarity narrative); boron enters as **B₂H₆ gas**, not solid boron. Coarse
-      green-grey cylinder + flange for mesh naming and FlightGear pick targets.
-
-      '
+    narrative: |
+      **Tangential keV ion beam injectors** (Avalanche Orbitron class). **H₂** and **B₂H₆** from
+      ``Hydrogen_Trunk_Line`` / ``Boron_Trunk_Line`` ionize to **H⁺ / B⁺**, accelerated **off-axis**
+      (~10–100+ keV); closed orbits in the p-¹¹B discharge. FG throttle → **beam current (mA)**.
     template: orbitron_nbi
     params: {}
     color:

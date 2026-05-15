@@ -10,16 +10,35 @@ schema_version: 1
 title: Orbitron 2D arcjet surrogate — physics spec
 
 narrative: |
+  **PIC** = **Particle-In-Cell**: time-stepped simulation (here **WarpX**) that tracks
+  ensembles of charged **particles** (electrons, ions) on a grid and solves **E** and **B**
+  (or applied fields) to advance velocities. It is **not** a fusion yield calculator unless
+  you add reactions; here it supplies **density / beam** *proxies* for the FlightGear surrogate.
+
   A coarse 2D electrostatic slice drives deposited densities; the surrogate pipeline
   reduces last-plotfile |rho_electrons| and beam charge in a notional viewport ROI,
   then maps proxies to JSBSim-facing scalars. PICMI remains Python (WarpX); this file
   is the single place to change grids, ROI geometry, sweep layout, and placeholder
   engineering gains without editing reduction code.
 
+  **Fusion core alignment:** Field scales and stability narrative defer to
+  ``orbitron_avalanche_core.yaml`` (Orbitron magneto-electrostatic hybrid, 300 kV class
+  cathode, E×B electrons, tangential keV p-¹¹B beams, cathode-pulse shear vs rotating mode).
+
+  **3.5 MW and thrust (design coherence):** ``surrogate_engineering.design_gross_fusion_power_mw``
+  is the **SSTO thermal headline** at full (throttle×compressor×PIC-proxy). A fraction
+  ``jet_propulsive_efficiency`` is treated as power that eventually appears as **air-path
+  jet kinetic power** (compressor + annulus + hot gas + CD nozzle story). For a 0D check,
+  use **F² ≈ 2 · P_jet · ṁ** with **P_jet = η · P_gross**, **F** = thrust (N), **ṁ** = mass flow;
+  scales below are chosen so at **full** surrogate, **~3.5 MW**, **~18 kN**, and **~80 kg/s**
+  sit on that line (~214 m/s equivalent exhaust in the working-fluid frame on the stand).
+
   Human-readable rationale for the simpler legacy deck ``laminar_flow_2d.py`` (crossed-field
   slice only), post-processing notes, and design-brief gap analysis are folded under
   ``formal:`` as ``laminar_flow_2d_py_case_review``, ``design_brief_gaps_fusion_arcjet``,
   and ``postprocessing_animate_plasma_note`` (migrated from the old WARPX_CASE_REVIEW.txt).
+
+avalanche_core_spec: orbitron_avalanche_core.yaml
 
 formal:
   compiled_expressions_contract: |
@@ -33,10 +52,10 @@ formal:
   picmi_case: |
     Cartesian2D; cylindrical analytic E from cathode–anode radii; uniform B_y;
     electron ring + arc_channel_seed densities scaled by throttle/compressor;
-    stabilizing_beam particle list; field diagnostic rho_electrons, rho_arc_channel_seed,
-    rho_stabilizing_beam.
+    tangential H⁺ / B⁺ inject beams; field diagnostic rho_electrons, rho_arc_channel_seed,
+    rho_h_inject_beam, rho_b_inject_beam (legacy rho_stabilizing_beam accepted in reduction).
   beam_viewport_reduction: |
-    On the last density_diag plotfile, mean |rho_beam| where
+    On the last density_diag plotfile, mean |rho_beam| (sum of H⁺ and B⁺ deposit fields) where
       x < x_cutoff_m  ∧  |z| < z_half_width_m  ∧  r_inner_m < sqrt(x^2+z^2) < r_outer_m
     with r = sqrt(x^2+z^2) in simulation coordinates (horizontal stand: beam from +x).
   surrogate_map: |
@@ -76,8 +95,9 @@ formal:
       not a real high-voltage feedthrough stack.
 
     Fields:
-    - E: radial analytic profile from V_cathode = -600 kV between concentric notional cylinders
-      (log(r) potential). Implemented as Ex, Ez with a radial cutoff mask at r >= r_cathode.
+    - E: radial analytic profile from V_cathode = -300 kV (Avalanche Series A milestone) between
+      concentric notional cylinders (log(r) potential). Implemented as Ex, Ez with a radial cutoff
+      mask at r >= r_cathode.
     - B: uniform By = 2.0 T (applied field, not self-consistent superconductor).
     - “Frozen” analytic applied fields — no magnetostatic solve, no coil geometry, no ferromagnetics.
 
@@ -85,18 +105,19 @@ formal:
     - electrons: annular density 1 cm < r < 3 cm, n_e ~ 5e15 m^-3 (expression), initialized with
       E×B drift momenta consistent with the analytic E field — diocotron / hollow-ring style setup,
       not a fusion burn model.
-    - stabilizing_beam: 100 discrete protons on a line at x = 0.04 m, inward ux,
-      ParticleListDistribution — numerical shear / stabilization artifice.
-    - No boron, no alpha ash, no nuclear reaction modules, no neutrals, no gas-phase chemistry,
-      no bremsstrahlung deposition back to a solid mesh.
+    - h_inject_beam / b_inject_beam: tangential keV lists (uz dominant, slight −ux) at +x injection
+      plane — p-¹¹B H⁺ and B⁺+ proxies (not radial fusor slam).
+    - Cathode V multiplied by time ramp (first ~35% of steps) scaled by cathode-pulse command.
+    - No nuclear burn, no ⁴He macroparticles, no neutrals / MCC yet.
 
     What this case is good for:
     - Visualizing low-order crossed-field electron dynamics and charge density evolution in a slice.
     - Pipeline check: pywarpx → diags → yt animation / FG texture path.
 
   design_brief_gaps_fusion_arcjet: |
-    Fusion: no p-B11 reactions, no DEC grid as a boundary object, no 4 MV terminal physics —
-    only the cathode-side -600 kV scale in E.
+    Fusion: no nuclear burn modules, no fusor grids in the plasma volume, no DEC as a PIC boundary.
+    Cathode scale follows Avalanche **−300 kV** milestone in picmi.electrostatic (not multi-MV grid tie).
+    Cathode-pulse maps to V ramp depth and electron-ring density boost in laminar_flow_2d_arcjet.py.
     Arcjet: no compressor inlet BC, no cold air mass flow, no neutral gas background,
     no electron–neutral collisions, no Ohmic heating term tied to DEC current channel through the gas.
     Next extension direction: laminar_flow_2d_arcjet.py (seed channel, optional heavy-ion tracer,
@@ -136,6 +157,11 @@ picmi:
   base_arc_seed: 1.0e14
   ring_density_scale: { throttle_offset: 0.15, throttle_gain: 0.85 }
   arc_seed_scale: { compressor_offset: 0.15, compressor_gain: 0.85 }
+  cathode_pulse_density: { offset: 0.65, gain: 0.35 }
+  cathode_pulse_ramp:
+    ramp_step_fraction: 0.35
+    v_start_scale: 0.30
+    v_end_scale: 0.88
   grid:
     number_of_cells: [256, 256]
   domain:
@@ -143,7 +169,7 @@ picmi:
   electrostatic:
     r_anode_m: 0.05
     r_cathode_m: 0.005
-    V_cathode_v: -600000.0
+    V_cathode_v: -300000.0
     B_axial_tesla: 2.0
   species_geometry:
     electron_ring_inner_m: 0.01
@@ -152,12 +178,25 @@ picmi:
   timestep:
     dt_s: 1.0e-12
     cfl: 0.9
-  beam_list:
-    x_m: 0.04
-    z_half_span_m: 0.01
-    n_particles: 100
-    ux_m_s: -3000000.0
-    weight: 1.0e10
+  inject_beams:
+    h_beam:
+      x_m: 0.04
+      z_half_span_m: 0.01
+      n_particles: 60
+      u_tangential_m_s: 3.0e6
+      u_radial_m_s: -4.5e5
+      weight: 5.0e9
+      particle_type: proton
+      charge_state: 1
+    b_beam:
+      x_m: 0.041
+      z_half_span_m: 0.009
+      n_particles: 40
+      u_tangential_m_s: -2.8e6
+      u_radial_m_s: -4.0e5
+      weight: 8.0e9
+      particle_type: boron
+      charge_state: 5
 
 reductions:
   beam_viewport_roi:
@@ -167,11 +206,17 @@ reductions:
     r_outer_m: 0.048
 
 surrogate_engineering:
+  # --- p-¹¹B + arcjet design headline (0D; bilinear maps use these at full T×C×proxy) ---
+  design_gross_fusion_power_mw: 3.5
+  # Fraction of gross fusion-side power booked to *jet* kinetic gain in the airstream (rest = losses, compressor, walls).
+  jet_propulsive_efficiency: 0.55
   # beam_screen_kw = beam_current_ma * beam_screen_kw_per_ma (legacy 8.0 ≈ 8 MV story)
   beam_screen_kw_per_ma: 8.0
-  beam_current_scale_ma: 95.0
-  thrust_lbf_scale: 4000.0
-  mass_flow_kgps_scale: 2.5
+  beam_current_scale_ma: 5.0
+  # Full throttle ≈ 5 mA — Avalanche public integration milestone is >1 mA ion beam.
+  # Thrust / ṁ chosen with gross_power_mw_scale and jet_propulsive_efficiency so F² ≈ 2·η·P·ṁ at full power (see narrative).
+  thrust_lbf_scale: 4040.0
+  mass_flow_kgps_scale: 84.0
   gross_power_mw_scale: 3.5
   heat_kw_scale: 400.0
 

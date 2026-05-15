@@ -348,11 +348,11 @@ class LabInfrastructure:
 
 
 def lab_h2_injectant_trunk_params() -> dict[str, Any]:
-    """Single-service connector spec for H₂ injectant (subset of former ``Fuel_Gas_Lines``)."""
+    """H₂ trunk to tangential keV injectors (p-¹¹B proton / stability leg; D₂ Orbitron-class hardware)."""
     return {
         "include_port_markers": False,
         "connectivity_spec": {
-            "physical_story": "Hydrogen NBI co-injectant trunk from H₂ cylinder to magnet farm inlet.",
+            "physical_story": "Hydrogen trunk from H₂ cylinder to tangential keV ion beam injectors (p-¹¹B).",
             "links": [
                 {
                     "link_id": "h2_service",
@@ -374,7 +374,7 @@ def lab_h2_injectant_trunk_params() -> dict[str, Any]:
                 "id": "reactor_h2_in",
                 "anchor": "reactor_fuel_h2_in",
                 "offset": [0.0, 0.0, 0.0],
-                "description": "Magnet +Y shell inlet on the H₂-ward side of the solenoid (spread in +X).",
+                "description": "Magnet +Y shell inlet on the H₂ / injector side of the solenoid (spread in +X).",
             },
         ],
         "connector_links": [
@@ -384,11 +384,16 @@ def lab_h2_injectant_trunk_params() -> dict[str, Any]:
                 "from_port": "tank_h2_out",
                 "to_port": "reactor_h2_in",
                 "radius": 0.02,
-                "description": "Hydrogen — polyline clears the deck edge then meets the magnet back face.",
+                "description": "Hydrogen — polyline clears the deck edge then meets the magnet / injector face.",
                 "waypoints": [[0.62, 0.82, 0.98], [0.76, 0.36, 0.38]],
             }
         ],
     }
+
+
+def lab_d2_injectant_trunk_params() -> dict[str, Any]:
+    """Backward-compatible alias (historical D₂ naming)."""
+    return lab_h2_injectant_trunk_params()
 
 
 def lab_helium_ash_vent_params() -> dict[str, Any]:
@@ -397,8 +402,8 @@ def lab_helium_ash_vent_params() -> dict[str, Any]:
         "include_port_markers": False,
         "connectivity_spec": {
             "physical_story": (
-                "Helium ash from p-¹¹B channel (¹H + ¹¹B → 3 ⁴He) leaves the core exhaust "
-                "plane and is routed into the CD nozzle plenum to join the jet / hot-gas mix."
+                "⁴He fusion ash (¹H + ¹¹B → 3 ⁴He) leaves the core exhaust plane into the "
+                "CD nozzle plenum to join the jet / hot-gas mix."
             ),
             "links": [
                 {

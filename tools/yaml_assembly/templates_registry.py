@@ -199,6 +199,10 @@ def tpl_lab_tank_hydrogen(**_: Any) -> cq.Workplane:
     return h2
 
 
+def tpl_lab_tank_deuterium(**_: Any) -> cq.Workplane:
+    return tpl_lab_tank_hydrogen()
+
+
 def tpl_lab_tank_diborane(**_: Any) -> cq.Workplane:
     _, b2, *_ = _infra().build_fuel_farm()
     return b2
@@ -215,6 +219,10 @@ def tpl_lab_tank_farm_platform(**_: Any) -> cq.Workplane:
 
 def tpl_lab_decal_h2(**_: Any) -> cq.Workplane:
     return _infra().build_fuel_farm()[3]
+
+
+def tpl_lab_decal_d2(**_: Any) -> cq.Workplane:
+    return tpl_lab_decal_h2()
 
 
 def tpl_lab_decal_b2h6(**_: Any) -> cq.Workplane:
@@ -244,6 +252,12 @@ def tpl_lab_fuel_gas_lines(**params: Any) -> cq.Workplane:
 def tpl_lab_h2_injectant_trunk(**params: Any) -> cq.Workplane:
     anchors = LabInfrastructure().fuel_line_connector_anchors()
     merged = {**lab_h2_injectant_trunk_params(), **params}
+    return build_connector_routing(merged, anchors)
+
+
+def tpl_lab_d2_injectant_trunk(**params: Any) -> cq.Workplane:
+    anchors = LabInfrastructure().fuel_line_connector_anchors()
+    merged = {**lab_d2_injectant_trunk_params(), **params}
     return build_connector_routing(merged, anchors)
 
 
@@ -307,15 +321,18 @@ TEMPLATE_REGISTRY: dict[str, Callable[..., cq.Workplane]] = {
     "orbitron_magnet": tpl_orbitron_magnet,
     "orbitron_nbi": tpl_orbitron_nbi,
     "lab_tank_hydrogen": tpl_lab_tank_hydrogen,
+    "lab_tank_deuterium": tpl_lab_tank_deuterium,
     "lab_tank_diborane": tpl_lab_tank_diborane,
     "lab_tank_cryo_methane": tpl_lab_tank_cryo_methane,
     "lab_tank_farm_platform": tpl_lab_tank_farm_platform,
     "lab_decal_h2": tpl_lab_decal_h2,
+    "lab_decal_d2": tpl_lab_decal_d2,
     "lab_decal_b2h6": tpl_lab_decal_b2h6,
     "lab_decal_ch4": tpl_lab_decal_ch4,
     "lab_hv_umbilical": tpl_lab_hv_umbilical,
     "lab_fuel_gas_lines": tpl_lab_fuel_gas_lines,
     "lab_h2_injectant_trunk": tpl_lab_h2_injectant_trunk,
+    "lab_d2_injectant_trunk": tpl_lab_d2_injectant_trunk,
     "lab_b2h6_injectant_trunk": tpl_lab_b2h6_injectant_trunk,
     "lab_helium_ash_vent": tpl_lab_helium_ash_vent,
     "lab_cryo_methane_piping": tpl_lab_cryo_methane_piping,

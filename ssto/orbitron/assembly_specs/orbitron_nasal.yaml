@@ -19,10 +19,14 @@ telemetry:
     fg_coeffs_path: /sim/model/orbitron/thrust-sled/
   controls:
     - { keys: "SPACE", prop: /sim/model/reactor/startup-trigger, role: reactor arm/disarm }
-    - { keys: "W / S", prop: /controls/reactor/throttle, role: NBI throttle → thrust, mdot, ±Y load split }
+    - { keys: "W / S", prop: /controls/reactor/throttle, role: ion beam command → mA, thrust, mdot, ±Y load split }
+    - { keys: "I / K", prop: /controls/orbitron/cathode-pulse, role: cathode pulse / shear (PSP2–Jin) → stability proxy }
     - { keys: "U / J", prop: /controls/orbitron/compressor, role: compressor → thrust, mdot, −X load bias }
   jsbsim_properties:
     - { name: thrust-lbf, label: "Thrust", unit: lbf }
+    - { name: thrust-kn, label: "Thrust", unit: kN }
+    - { name: equiv-exhaust-velocity-mps, label: "Equiv. exhaust speed (F/ṁ)", unit: m/s }
+    - { name: jet-kinetic-power-mw, label: "Jet kinetic (½ṁv_e²)", unit: MW }
     - { name: mass-flow-kgps, label: "Airflow (mdot)", unit: kg/s }
     - { name: sled-load-total-lbf, label: "Sled Load Total", unit: lbf }
     - { name: load-cell-0-lbf, label: "LC +X+Y", unit: lbf, corner: "+X+Y" }
@@ -64,8 +68,8 @@ reactor_ui:
   class_name: ReactorUI
   canvas:
     name: Reactor_Telemetry
-    size: [1024, 1520]
-    view: [1024, 1520]
+    size: [1024, 2000]
+    view: [1024, 2000]
     mipmapping: 1
   colors:
     outer_fill: [0.06, 0.08, 0.12, 1.0]
@@ -97,81 +101,110 @@ reactor_ui:
       prop: /sim/model/reactor/startup-trigger
       true_word: "ON"
       false_word: "OFF"
-    - id: nbi
+    - id: beam_ma
       y: 300
-      kind: scaled_float
-      prop: /controls/reactor/throttle
-      scale: 100.0
-      sprintf: "NBI Flow: %.2f sccm"
+      kind: float
+      prop: /fdm/jsbsim/systems/reactor/beam-current-ma
+      sprintf: "Ion beam: %.2f mA"
+    - id: cathode_kv
+      y: 375
+      kind: float
+      prop: /fdm/jsbsim/systems/reactor/cathode-voltage-kv
+      sprintf: "Cathode: %.0f kV"
+    - id: cathode_pulse
+      y: 450
+      kind: float
+      prop: /controls/orbitron/cathode-pulse
+      sprintf: "Cathode pulse: %.2f"
+    - id: plasma_n
+      y: 525
+      kind: float
+      prop: /fdm/jsbsim/systems/reactor/plasma-density-log10
+      sprintf: "log10 n: %.2f cm^-3"
     - id: comp
-      y: 390
+      y: 600
       kind: float
       prop: /controls/orbitron/compressor
       sprintf: "Compressor: %.2f"
     - id: power
-      y: 480
+      y: 690
       kind: float
       prop: /fdm/jsbsim/systems/reactor/gross-power-mw
       sprintf: "Gross Power: %.3f MW"
       hud_placeholder: "Gross Power: 0.00 MW"
     - id: amps
-      y: 570
+      y: 780
       kind: float
       prop: /fdm/jsbsim/systems/reactor/current-amps
       sprintf: "DEC Current: %.3f A"
     - id: decv
-      y: 660
+      y: 870
       kind: float
       prop: /fdm/jsbsim/systems/arcjet/dec-voltage-mv
       sprintf: "DEC Bias: %.1f MV"
     - id: heat
-      y: 750
+      y: 960
       kind: float
       prop: /fdm/jsbsim/systems/reactor/heat-kw
       sprintf: "Brem. Heat: %.1f kW"
       hud_placeholder: "Brem. Heat: 0.00 kW"
     - id: q
-      y: 840
+      y: 1050
       kind: float
       prop: /fdm/jsbsim/systems/reactor/q-factor
       sprintf: "Q-Factor: %.2f"
     - id: thrust
-      y: 930
+      y: 1140
       kind: float
       prop: /fdm/jsbsim/systems/arcjet/thrust-lbf
       sprintf: "Thrust: %.0f lbf"
+    - id: thrust_kn
+      y: 1215
+      kind: float
+      prop: /fdm/jsbsim/systems/arcjet/thrust-kn
+      sprintf: "Thrust: %.2f kN"
+    - id: jet_ve
+      y: 1290
+      kind: float
+      prop: /fdm/jsbsim/systems/arcjet/equiv-exhaust-velocity-mps
+      sprintf: "Jet v_e (F/ṁ): %.1f m/s"
+    - id: jet_p_mw
+      y: 1365
+      kind: float
+      prop: /fdm/jsbsim/systems/arcjet/jet-kinetic-power-mw
+      sprintf: "Jet kinetic: %.3f MW"
     - id: mdot
-      y: 1005
+      y: 1440
       kind: float
       prop: /fdm/jsbsim/systems/arcjet/mass-flow-kgps
       sprintf: "Airflow (mdot): %.3f kg/s"
     - id: sled_load
-      y: 1080
+      y: 1515
       kind: float
       prop: /fdm/jsbsim/systems/arcjet/sled-load-total-lbf
       sprintf: "Sled Load Total: %.0f lbf"
     - id: lc0
-      y: 1155
+      y: 1590
       kind: float
       prop: /fdm/jsbsim/systems/arcjet/load-cell-0-lbf
       sprintf: "LC +X+Y: %.0f lbf"
     - id: lc1
-      y: 1230
+      y: 1665
       kind: float
       prop: /fdm/jsbsim/systems/arcjet/load-cell-1-lbf
       sprintf: "LC -X+Y: %.0f lbf"
     - id: lc2
-      y: 1305
+      y: 1740
       kind: float
       prop: /fdm/jsbsim/systems/arcjet/load-cell-2-lbf
       sprintf: "LC +X-Y: %.0f lbf"
     - id: lc3
-      y: 1380
+      y: 1815
       kind: float
       prop: /fdm/jsbsim/systems/arcjet/load-cell-3-lbf
       sprintf: "LC -X-Y: %.0f lbf"
     - id: beam
-      y: 1455
+      y: 1890
       kind: sprintf2
       fmt: "Viewport beam: %.1f kW  |  %.2f mA"
       props:
@@ -179,7 +212,7 @@ reactor_ui:
         - /fdm/jsbsim/systems/reactor/beam-current-ma
   debug_window:
     title: Arcjet / Reactor Telemetry
-    size: [520, 720]
+    size: [520, 780]
     background: [0.03, 0.03, 0.03, 0.90]
     line_start_y: 28
     line_step: 38
@@ -191,11 +224,14 @@ reactor_ui:
         prop: /sim/model/reactor/startup-trigger
         true_word: "ON"
         false_word: "OFF"
-      - label_static: "NBI Flow: 0.00 sccm"
-        kind: scaled_float
-        prop: /controls/reactor/throttle
-        scale: 100.0
-        sprintf: "NBI Flow: %.2f sccm"
+      - label_static: "Ion beam: 0.00 mA"
+        kind: float
+        prop: /fdm/jsbsim/systems/reactor/beam-current-ma
+        sprintf: "Ion beam: %.2f mA"
+      - label_static: "Cathode pulse: 0.00"
+        kind: float
+        prop: /controls/orbitron/cathode-pulse
+        sprintf: "Cathode pulse: %.2f"
       - label_static: "Compressor: 0.00"
         kind: float
         prop: /controls/orbitron/compressor
@@ -228,6 +264,18 @@ reactor_ui:
         kind: float
         prop: /fdm/jsbsim/systems/arcjet/thrust-lbf
         sprintf: "Thrust: %.0f lbf"
+      - label_static: "Thrust: 0.00 kN"
+        kind: float
+        prop: /fdm/jsbsim/systems/arcjet/thrust-kn
+        sprintf: "Thrust: %.2f kN"
+      - label_static: "Jet v_e: 0.0 m/s"
+        kind: float
+        prop: /fdm/jsbsim/systems/arcjet/equiv-exhaust-velocity-mps
+        sprintf: "Jet v_e (F/ṁ): %.1f m/s"
+      - label_static: "Jet kinetic: 0.000 MW"
+        kind: float
+        prop: /fdm/jsbsim/systems/arcjet/jet-kinetic-power-mw
+        sprintf: "Jet kinetic: %.3f MW"
       - label_static: "Airflow (mdot): 0.000 kg/s"
         kind: float
         prop: /fdm/jsbsim/systems/arcjet/mass-flow-kgps

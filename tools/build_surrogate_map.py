@@ -6,7 +6,7 @@ Steps:
   1) Grid over (throttle, compressor) in [0, 1]
   2) For each point: run laminar_flow_2d_arcjet.py with PICMI overrides from
      ssto/orbitron/assembly_specs/orbitron_physics_surrogate.yaml (see --physics-spec)
-  3) Reduce last WarpX plotfile: mean |rho_electrons|; mean |rho_stabilizing_beam| in a
+  3) Reduce last WarpX plotfile: mean |rho_electrons|; combined |rho_h_inject_beam|+|rho_b_inject_beam| in a
      notional viewport ROI (toward -X, horizontal stand convention) and domain mean
   4) Build CSV scalars from rho proxies using surrogate_engineering scales in YAML
   5) Run tools/warpx_to_jsbsim_surrogate.py -> engine_surrogate.json (bilinear surfaces)
@@ -73,14 +73,23 @@ def reduce_last_plotfile_mean_rho(diags_parent: Path) -> float:
     return float(np.mean(rho))
 
 
-def _beam_rho_field(ds) -> tuple[str, str] | None:
-    """Return (ftype, fname) for deposited stabilizing_beam charge density if present."""
+BEAM_RHO_FIELD_NAMES = (
+    "rho_h_inject_beam",
+    "rho_b_inject_beam",
+    "rho_stabilizing_beam",
+    "rho_beam",
+)
+
+
+def _beam_rho_fields(ds) -> list[tuple[str, str]]:
+    """All deposited inject-beam charge density fields present on the plotfile."""
+    found: list[tuple[str, str]] = []
     for f in ds.field_list:
         if len(f) < 2:
             continue
-        if f[1] in ("rho_stabilizing_beam", "rho_beam", "stabilizing_beam"):
-            return f[0], f[1]
-    return None
+        if f[1] in BEAM_RHO_FIELD_NAMES:
+            found.append((f[0], f[1]))
+    return found
 
 
 def reduce_last_plotfile_beam_screen_kw_proxy(
@@ -93,8 +102,8 @@ def reduce_last_plotfile_beam_screen_kw_proxy(
 ) -> tuple[float, float]:
     """
     From last WarpX density plotfile:
-      * rho_beam_dom: mean |rho_stabilizing_beam| over domain (beam activity proxy)
-      * rho_beam_screen: mean |rho_beam| in a notional viewport ROI (x<0 toward -X exit,
+      * rho_beam_dom: mean combined inject-beam |rho| over domain
+      * rho_beam_screen: mean combined |rho| in a notional viewport ROI (x<0 toward -X exit,
         |z| slit, excluding cathode core) — same geometry order as horizontal test stand.
 
     Returns (rho_beam_screen_mean, rho_beam_domain_mean). nan if no beam field / no plotfile.
@@ -113,15 +122,19 @@ def reduce_last_plotfile_beam_screen_kw_proxy(
 
     yt.funcs.mylog.setLevel(50)
     ds = yt.load(str(plotfiles[-1]))
-    bf = _beam_rho_field(ds)
-    if bf is None:
+    bfs = _beam_rho_fields(ds)
+    if not bfs:
         return float("nan"), float("nan")
 
-    ftype, fname = bf
     grid = ds.covering_grid(level=0, left_edge=ds.domain_left_edge, dims=ds.domain_dimensions)
-    rho_b = np.abs(np.asarray(grid[(ftype, fname)].v))
-    rho_b = np.squeeze(rho_b)
-    if rho_b.ndim != 2:
+    rho_b = None
+    for ftype, fname in bfs:
+        chunk = np.abs(np.asarray(grid[(ftype, fname)].v))
+        chunk = np.squeeze(chunk)
+        if chunk.ndim != 2:
+            continue
+        rho_b = chunk if rho_b is None else rho_b + chunk
+    if rho_b is None:
         return float("nan"), float("nan")
 
     nx, nz = rho_b.shape
@@ -216,6 +229,7 @@ def run_one_warpx(
 ) -> None:
     run_dir.mkdir(parents=True, exist_ok=True)
     write_dir = str(run_dir / "diags")
+    cathode_pulse = 0.35 + 0.65 * max(0.0, min(1.0, throttle))
     cmd = [
         warpx_python,
         str(arcjet_script),
@@ -223,6 +237,8 @@ def run_one_warpx(
         str(throttle),
         "--compressor",
         str(compressor),
+        "--cathode-pulse",
+        str(cathode_pulse),
         "--write-dir",
         write_dir,
         "--steps",

@@ -7,23 +7,26 @@ A high-performance Single-Stage-to-Orbit (SSTO) aircraft for FlightGear, powered
 The **Orbitron fusion arcjet laboratory** is specified in
 `ssto/orbitron/assembly_specs/orbitron_lab.yaml` (schema v2: geometry + logical tree SSOT).
 
-**Purpose:** Ground-integration article for a compact **p-¹¹B** crossed-field fusion
-machine in an **air-breathing + CD-nozzle** flowpath—pad-credible plumbing, thermal
-services, and operator-visible hardware. **FlightGear** export is a **discipline step**
-(named meshes, interfaces, telemetry hooks), not the end product.
+**Purpose:** **SSTO** imagining built on Avalanche’s **Orbitron** machine class (orbitrap + **E×B**
+electrons, tangential keV injection, cathode-pulse stability)—with an **unobtainium p-¹¹B fuel**
+leap (**H₂ + B₂H₆** injectants, ``¹H + ¹¹B → 3 ⁴He``) instead of their published **D₂** path.
+Air-breathing + CD-nozzle energy offload; FlightGear telemetry. Core spec:
+[`ssto/orbitron/assembly_specs/orbitron_avalanche_core.yaml`](ssto/orbitron/assembly_specs/orbitron_avalanche_core.yaml).
 
 **Energy offload:** The design basis **vents fusion-derived energy by thermodynamic work
 on a gas path** (not multi-MV direct grid tie at utility scale). That makes **wall heat
 removal** and **cryogen loops** first-class—including **liquid CH₄** for **anode /
 boundary thermal management**.
 
-**Three gases (roles):**
+**Fuels and services:**
 
-| Gas | Primary role in this spec |
-|-----|---------------------------|
-| **B₂H₆** | Gaseous **boron carrier** to the **NBI / injector** path; headline channel after dissociation: **¹H + ¹¹B → 3 ⁴He** |
-| **H₂** | **NBI co-injectant** (stability / hydrogenic inventory including protons for p-¹¹B) |
-| **CH₄** (liquid) | **Thermal management** working fluid—not the boron carrier |
+| Supply | Role |
+|--------|------|
+| **H₂** | p-¹¹B core — proton / stability tangential keV injectant |
+| **B₂H₆** | p-¹¹B core — boron carrier to same injectors |
+| **⁴He** | Fusion ash → nozzle plenum (`Helium_Ash_Vent_Line`) |
+| **Air** | Arcjet / nozzle energy offload (SSTO layer) |
+| **CH₄** | Optional SSTO wall thermal only |
 
 **Operation:** Intended **continuous steady state** while consumables last, with orderly
 shutdown before starvation.
@@ -39,8 +42,9 @@ The operator **Screen** shows live **thrust**, **airflow (surrogate mass flow)**
 | Control (keyboard) | Property | Effect on telemetry |
 |--------------------|----------|---------------------|
 | **SPACE** | `/sim/model/reactor/startup-trigger` | Arms reactor → enables thrust / load outputs |
-| **W / S** | `/controls/reactor/throttle` | NBI throttle → bilinear **thrust** and **mdot**; slight **±Y** load split |
-| **U / J** | `/controls/orbitron/compressor` | Compressor → **thrust** and **mdot**; biases load toward **−X** corners (intake side) |
+| **W / S** | `/controls/reactor/throttle` | Ion beam command → **mA**, **thrust**, **mdot** |
+| **I / K** | `/controls/orbitron/cathode-pulse` | Cathode pulse / shear (PSP2–Jin stability proxy) |
+| **U / J** | `/controls/orbitron/compressor` | Compressor → **thrust** and **mdot**; **−X** load bias |
 
 **JSBSim outputs** (prefix `/fdm/jsbsim/systems/arcjet/`):
 
