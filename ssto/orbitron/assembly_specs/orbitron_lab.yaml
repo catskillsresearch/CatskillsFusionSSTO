@@ -258,13 +258,17 @@ logical:
       - air_breathing_engine
     control_panel_stand:
       title: Control panel and operator station
-      detail: Desk, screen, emergency stop, and HV umbilical breakout toward the reactor
-        (rails and thrust deck are a separate ``thrust_sled`` assembly). The **Screen** mesh
-        shows live thrust, airflow (surrogate mdot), and **four thrust-sled load cells** from
-        JSBSim (``orbitron_nasal.yaml`` → ``reactor_ui``; physics in ``orbitron_physics_surrogate.yaml``).
+      detail: |
+        Desk, **Screen**, pad-startup toggles (APU / starter / bleed), **Big Red Button** ignite,
+        and HV umbilical toward the reactor. Operational sequence and FG property bindings:
+        ``orbitron_operator_console_spec.yaml``. Telemetry on **Screen** from
+        ``orbitron_nasal.yaml`` → ``reactor_ui`` + ``orbitron_ops``.
       members:
       - hv_umbilical
       parts:
+      - Panel_Switch_APU
+      - Panel_Switch_Starter
+      - Panel_Switch_Bleed
       - Big_Red_Button
       - Operator_Console
       - Screen
@@ -824,13 +828,60 @@ instances:
       - -1.4
       - -2.3
       - 0.0
+  Panel_Switch_APU:
+    narrative: |
+      **Pad APU cart online** — energizes the starter bus from ``Pad_Startup_Cart``.
+      FG: toggle ``/sim/model/orbitron/pad-apu-online`` (panel pick or key **1**).
+    template: lab_panel_switch_apu
+    params: {}
+    color:
+    - 0.55
+    - 0.58
+    - 0.62
+    transform_chain:
+    - op: translate
+      xyz:
+      - -1.4
+      - -2.3
+      - 0.0
+  Panel_Switch_Starter:
+    narrative: |
+      **Starter engage** — ``Pad_Startup_Motor`` cranks the compressor spool (requires APU online).
+      FG: toggle ``/sim/model/orbitron/starter-engage`` (pick or key **2**); crank WAV via Nasal.
+    template: lab_panel_switch_starter
+    params: {}
+    color:
+    - 0.62
+    - 0.52
+    - 0.18
+    transform_chain:
+    - op: translate
+      xyz:
+      - -1.4
+      - -2.3
+      - 0.0
+  Panel_Switch_Bleed:
+    narrative: |
+      **Bleed air / intake path open** — bellmouth → compressor annulus (spin-up airflow).
+      FG: toggle ``/sim/model/orbitron/bleed-air-open`` (pick or key **3**). Use **U/J** for
+      compressor command once bleed is open.
+    template: lab_panel_switch_bleed
+    params: {}
+    color:
+    - 0.22
+    - 0.48
+    - 0.72
+    transform_chain:
+    - op: translate
+      xyz:
+      - -1.4
+      - -2.3
+      - 0.0
   Big_Red_Button:
-    narrative: 'Small red cylinder on the panel—commissioning / abort vibe, not a
-      separate sim
-
-      channel in this mesh-only export.
-
-      '
+    narrative: |
+      **Reactor ignite / arm** — fusion on, thrust surrogate active (not pad APU).
+      FG: toggle ``/sim/model/reactor/startup-trigger`` (pick or **SPACE**). Requires bleed
+      open; starter should be off after turbine takeover (operator procedure).
     template: lab_big_red_button
     params: {}
     color:

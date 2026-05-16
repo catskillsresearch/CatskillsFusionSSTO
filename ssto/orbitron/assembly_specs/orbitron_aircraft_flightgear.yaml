@@ -8,6 +8,7 @@
 # Thrust-sled load-cell split coeffs: orbitron_physics_surrogate.yaml thrust_sled_load_cells →
 # /sim/model/orbitron/thrust-sled/* (read by orbitron-jsbsim.xml; displayed on operator Screen).
 # Full telemetry doc: assembly_specs/README.md (thrust + four corner load cells).
+# Pad startup sequence + panel picks: orbitron_operator_console_spec.yaml
 
 schema_version: 1
 spec_kind: orbitron_aircraft_flightgear
@@ -25,6 +26,9 @@ fg_telemetry:
   thrust_sled_coeffs_prefix: /sim/model/orbitron/thrust-sled/
   physics_yaml_block: thrust_sled_load_cells
   operator_controls:
+    pad_apu: /sim/model/orbitron/pad-apu-online
+    starter: /sim/model/orbitron/starter-engage
+    bleed_air: /sim/model/orbitron/bleed-air-open
     startup: /sim/model/reactor/startup-trigger
     throttle: /controls/reactor/throttle
     compressor: /controls/orbitron/compressor
@@ -49,6 +53,10 @@ fg_set:
     debug_ui_window: false
     startup_commissioning_audio: false
     startup_starter_crank: false
+  orbitron_ops_flags:
+    pad_apu_online: false
+    starter_engage: false
+    bleed_air_open: false
   sound:
     path: Sounds/sound.xml
     chatter_volume: 0.0
@@ -67,7 +75,10 @@ fg_set:
     orbitron_compressor: 0.0
     orbitron_cathode_pulse: 0.5
   keyboard:
-    - { key_n: 32, name: SPACE, desc: Toggle Reactor Ignition, toggle_property: /sim/model/reactor/startup-trigger }
+    - { key_n: 49, name: "1", desc: Pad APU cart online, toggle_property: /sim/model/orbitron/pad-apu-online }
+    - { key_n: 50, name: "2", desc: Starter engage (requires APU), toggle_property: /sim/model/orbitron/starter-engage }
+    - { key_n: 51, name: "3", desc: Bleed air / intake path open, toggle_property: /sim/model/orbitron/bleed-air-open }
+    - { key_n: 32, name: SPACE, desc: Reactor ignite / arm (requires bleed), toggle_property: /sim/model/reactor/startup-trigger }
     - { key_n: 119, name: w, desc: Increase ion beam command, adjust_property: /controls/reactor/throttle, step: 0.1, min: 0.0, max: 1.0 }
     - { key_n: 115, name: s, desc: Decrease ion beam command, adjust_property: /controls/reactor/throttle, step: -0.1, min: 0.0, max: 1.0 }
     - { key_n: 105, name: i, desc: Increase cathode pulse (shear / PSP2-Jin), adjust_property: /controls/orbitron/cathode-pulse, step: 0.1, min: 0.0, max: 1.0 }
@@ -77,6 +88,7 @@ fg_set:
     - { key_n: 106, name: j, desc: Decrease compressor command, adjust_property: /controls/orbitron/compressor, step: -0.1, min: 0.0, max: 1.0 }
   nasal:
     - { id: surrogate_load, file: Nasal/surrogate_load.nas }
+    - { id: orbitron_ops, file: Nasal/orbitron_ops.nas }
     - { id: reactor_ui, file: Nasal/reactor_ui.nas }
 
 fg_model_orbitron_xml:
@@ -89,6 +101,18 @@ fg_model_orbitron_xml:
     y_m: 10.0
     z_m: -0.5
   pick_animations:
+    - object_name: Panel_Switch_APU
+      button: 0
+      repeatable: false
+      toggle_property: /sim/model/orbitron/pad-apu-online
+    - object_name: Panel_Switch_Starter
+      button: 0
+      repeatable: false
+      toggle_property: /sim/model/orbitron/starter-engage
+    - object_name: Panel_Switch_Bleed
+      button: 0
+      repeatable: false
+      toggle_property: /sim/model/orbitron/bleed-air-open
     - object_name: Big_Red_Button
       button: 0
       repeatable: false

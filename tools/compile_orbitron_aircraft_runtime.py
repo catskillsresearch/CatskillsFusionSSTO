@@ -146,6 +146,16 @@ def _build_set_xml(
     _typed_prop(sled, "compressor-moment-gain", float(tsl.get("compressor_moment_gain", 0.14)))
     _typed_prop(sled, "throttle-moment-gain", float(tsl.get("throttle_moment_gain", 0.07)))
 
+    ops = sim.get("orbitron_ops_flags") or {}
+    model.append(
+        ET.Comment(
+            " Pad startup sequence (panel picks / keys 1–3); see orbitron_operator_console_spec.yaml "
+        )
+    )
+    _typed_prop(orb, "pad-apu-online", bool(ops.get("pad_apu_online", False)), "bool")
+    _typed_prop(orb, "starter-engage", bool(ops.get("starter_engage", False)), "bool")
+    _typed_prop(orb, "bleed-air-open", bool(ops.get("bleed_air_open", False)), "bool")
+
     snd = sim["sound"]
     sound_el = ET.SubElement(sim_el, "sound")
     _text(sound_el, "path", snd["path"])

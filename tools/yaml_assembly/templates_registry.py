@@ -317,18 +317,33 @@ def tpl_lab_cryo_methane_piping(**params: Any) -> cq.Workplane:
 
 
 def tpl_lab_operator_console_desk(**_: Any) -> cq.Workplane:
-    d, _, _ = _infra().build_console()
+    d, _, _, _, _, _ = _infra().build_console()
     return d
 
 
 def tpl_lab_operator_screen(**_: Any) -> cq.Workplane:
-    _, s, _ = _infra().build_console()
+    _, s, _, _, _, _ = _infra().build_console()
     return s
 
 
 def tpl_lab_big_red_button(**_: Any) -> cq.Workplane:
-    *_, b = _infra().build_console()
+    _, _, b, _, _, _ = _infra().build_console()
     return b
+
+
+def tpl_lab_panel_switch_apu(**_: Any) -> cq.Workplane:
+    _, _, _, sw, _, _ = _infra().build_console()
+    return sw
+
+
+def tpl_lab_panel_switch_starter(**_: Any) -> cq.Workplane:
+    _, _, _, _, sw, _ = _infra().build_console()
+    return sw
+
+
+def tpl_lab_panel_switch_bleed(**_: Any) -> cq.Workplane:
+    _, _, _, _, _, sw = _infra().build_console()
+    return sw
 
 
 def tpl_lab_magnet_feedthrough_bosses(**_: Any) -> cq.Workplane:
@@ -384,6 +399,9 @@ TEMPLATE_REGISTRY: dict[str, Callable[..., cq.Workplane]] = {
     "lab_operator_console_desk": tpl_lab_operator_console_desk,
     "lab_operator_screen": tpl_lab_operator_screen,
     "lab_big_red_button": tpl_lab_big_red_button,
+    "lab_panel_switch_apu": tpl_lab_panel_switch_apu,
+    "lab_panel_switch_starter": tpl_lab_panel_switch_starter,
+    "lab_panel_switch_bleed": tpl_lab_panel_switch_bleed,
 }
 
 

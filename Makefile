@@ -66,7 +66,7 @@ COMPILE_ORBITRON_NASAL := $(REPO_ROOT)/tools/compile_orbitron_nasal.py
 COMPILE_AIRCRAFT_RUNTIME := $(REPO_ROOT)/tools/compile_orbitron_aircraft_runtime.py
 JSBSIM_TEMPLATE := $(REPO_ROOT)/tools/templates/orbitron-jsbsim.xml
 STAND_FG_SET := $(STAND)/$(ORBITRON_PKG)-set.xml
-STAND_NASAL := $(STAND)/Nasal/surrogate_load.nas $(STAND)/Nasal/reactor_ui.nas
+STAND_NASAL := $(STAND)/Nasal/surrogate_load.nas $(STAND)/Nasal/orbitron_ops.nas $(STAND)/Nasal/reactor_ui.nas
 STAND_JSBSIM_XML := $(STAND)/orbitron-jsbsim.xml
 SUR_DEP_ALL := \
 	$(REPO_ROOT)/tools/build_surrogate_map.py \

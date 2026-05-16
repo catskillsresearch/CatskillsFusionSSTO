@@ -111,12 +111,12 @@
                                 <property>/sim/model/orbitron/surrogate/power-ct</property>
                             </product>
                             <product>
-                                <property>/controls/orbitron/compressor</property>
+                                <property>systems/orbitron/compressor-effective</property>
                                 <property>/sim/model/orbitron/surrogate/power-cc</property>
                             </product>
                             <product>
                                 <property>/controls/reactor/throttle</property>
-                                <property>/controls/orbitron/compressor</property>
+                                <property>systems/orbitron/compressor-effective</property>
                                 <property>/sim/model/orbitron/surrogate/power-ctc</property>
                             </product>
                         </sum>
@@ -135,12 +135,12 @@
                                 <property>/sim/model/orbitron/surrogate/heat-ct</property>
                             </product>
                             <product>
-                                <property>/controls/orbitron/compressor</property>
+                                <property>systems/orbitron/compressor-effective</property>
                                 <property>/sim/model/orbitron/surrogate/heat-cc</property>
                             </product>
                             <product>
                                 <property>/controls/reactor/throttle</property>
-                                <property>/controls/orbitron/compressor</property>
+                                <property>systems/orbitron/compressor-effective</property>
                                 <property>/sim/model/orbitron/surrogate/heat-ctc</property>
                             </product>
                         </sum>
@@ -160,12 +160,12 @@
                                 <property>/sim/model/orbitron/surrogate/beam-screen-kw-ct</property>
                             </product>
                             <product>
-                                <property>/controls/orbitron/compressor</property>
+                                <property>systems/orbitron/compressor-effective</property>
                                 <property>/sim/model/orbitron/surrogate/beam-screen-kw-cc</property>
                             </product>
                             <product>
                                 <property>/controls/reactor/throttle</property>
-                                <property>/controls/orbitron/compressor</property>
+                                <property>systems/orbitron/compressor-effective</property>
                                 <property>/sim/model/orbitron/surrogate/beam-screen-kw-ctc</property>
                             </product>
                         </sum>
@@ -221,7 +221,7 @@
                                 <value> 1.2 </value>
                             </product>
                             <product>
-                                <property>/controls/orbitron/compressor</property>
+                                <property>systems/orbitron/compressor-effective</property>
                                 <value> 0.3 </value>
                             </product>
                         </sum>
@@ -249,6 +249,56 @@
         </channel>
     </system>
 
+    <!-- Pad APU / bleed / effective compressor (orbitron_operator_console_spec.yaml) -->
+    <system name="Orbitron_Pad_Ops">
+        <channel name="Pad startup and bleed">
+            <switch name="systems/orbitron/pad-apu-online">
+                <default value="0.0"/>
+                <test value="1.0">
+                    /sim/model/orbitron/pad-apu-online == 1
+                </test>
+            </switch>
+            <switch name="systems/orbitron/starter-engage">
+                <default value="0.0"/>
+                <test value="1.0">
+                    systems/orbitron/pad-apu-online == 1
+                    /sim/model/orbitron/starter-engage == 1
+                </test>
+            </switch>
+            <switch name="systems/orbitron/bleed-air-open">
+                <default value="0.0"/>
+                <test value="1.0">
+                    /sim/model/orbitron/bleed-air-open == 1
+                </test>
+            </switch>
+            <!-- Spool drive: full when reactor armed; partial when starter cranking with bleed -->
+            <fcs_function name="systems/orbitron/spool-drive-factor">
+                <function>
+                    <min>
+                        <value> 1.0 </value>
+                        <sum>
+                            <property>systems/reactor/active</property>
+                            <product>
+                                <property>systems/orbitron/starter-engage</property>
+                                <property>systems/orbitron/bleed-air-open</property>
+                                <value> 0.42 </value>
+                            </product>
+                        </sum>
+                    </min>
+                </function>
+            </fcs_function>
+            <fcs_function name="systems/orbitron/compressor-effective">
+                <function>
+                    <product>
+                        <property>/controls/orbitron/compressor</property>
+                        <property>systems/orbitron/bleed-air-open</property>
+                        <property>systems/orbitron/spool-drive-factor</property>
+                    </product>
+                </function>
+            </fcs_function>
+        </channel>
+    </system>
+
     <!-- 0D arcjet thrust + thrust-sled load cells (see assembly_specs/README.md, orbitron_physics_surrogate.yaml thrust_sled_load_cells) -->
     <system name="arcjet_airbreather">
         <channel name="arcjet_outputs">
@@ -264,12 +314,12 @@
                                 <property>/sim/model/orbitron/surrogate/thrust-ct</property>
                             </product>
                             <product>
-                                <property>/controls/orbitron/compressor</property>
+                                <property>systems/orbitron/compressor-effective</property>
                                 <property>/sim/model/orbitron/surrogate/thrust-cc</property>
                             </product>
                             <product>
                                 <property>/controls/reactor/throttle</property>
-                                <property>/controls/orbitron/compressor</property>
+                                <property>systems/orbitron/compressor-effective</property>
                                 <property>/sim/model/orbitron/surrogate/thrust-ctc</property>
                             </product>
                         </sum>
@@ -279,25 +329,44 @@
 
             <fcs_function name="systems/arcjet/mass-flow-kgps">
                 <function>
-                    <product>
-                        <property>systems/reactor/active</property>
-                        <sum>
-                            <property>/sim/model/orbitron/surrogate/mdot-c0</property>
+                    <sum>
+                        <product>
+                            <property>systems/reactor/active</property>
+                            <sum>
+                                <property>/sim/model/orbitron/surrogate/mdot-c0</property>
+                                <product>
+                                    <property>/controls/reactor/throttle</property>
+                                    <property>/sim/model/orbitron/surrogate/mdot-ct</property>
+                                </product>
+                                <product>
+                                    <property>systems/orbitron/compressor-effective</property>
+                                    <property>/sim/model/orbitron/surrogate/mdot-cc</property>
+                                </product>
+                                <product>
+                                    <property>/controls/reactor/throttle</property>
+                                    <property>systems/orbitron/compressor-effective</property>
+                                    <property>/sim/model/orbitron/surrogate/mdot-ctc</property>
+                                </product>
+                            </sum>
+                        </product>
+                        <!-- Pre-ignite spin-up airflow (bleed + starter, no fusion thrust yet) -->
+                        <product>
+                            <property>systems/orbitron/starter-engage</property>
+                            <property>systems/orbitron/bleed-air-open</property>
+                            <max>
+                                <value> 0.0 </value>
+                                <difference>
+                                    <value> 1.0 </value>
+                                    <property>systems/reactor/active</property>
+                                </difference>
+                            </max>
                             <product>
-                                <property>/controls/reactor/throttle</property>
-                                <property>/sim/model/orbitron/surrogate/mdot-ct</property>
-                            </product>
-                            <product>
-                                <property>/controls/orbitron/compressor</property>
+                                <property>systems/orbitron/compressor-effective</property>
                                 <property>/sim/model/orbitron/surrogate/mdot-cc</property>
+                                <value> 0.28 </value>
                             </product>
-                            <product>
-                                <property>/controls/reactor/throttle</property>
-                                <property>/controls/orbitron/compressor</property>
-                                <property>/sim/model/orbitron/surrogate/mdot-ctc</property>
-                            </product>
-                        </sum>
-                    </product>
+                        </product>
+                    </sum>
                 </function>
             </fcs_function>
 
@@ -809,34 +878,46 @@
                 </function>
             </fcs_function>
 
-            <!-- Battery-driven motor + bleed / turbofan generator sketch: rises with compressor and thrust bleed -->
+            <!-- Pad starter whine + post-light-off motor/gen (compressor-effective) -->
             <fcs_function name="systems/orbitron_sfx/motor_generator_volume">
                 <function>
                     <min>
                         <value> 1.0 </value>
                         <max>
                             <value> 0.0 </value>
-                            <product>
-                                <property>systems/reactor/active</property>
-                                <sum>
-                                    <value> 0.10 </value>
-                                    <product>
-                                        <property>/controls/orbitron/compressor</property>
-                                        <value> 0.52 </value>
-                                    </product>
-                                    <product>
-                                        <property>/controls/orbitron/compressor</property>
-                                        <value> 0.28 </value>
-                                        <min>
-                                            <value> 1.0 </value>
-                                            <product>
-                                                <property>systems/arcjet/thrust-lbf</property>
-                                                <value> 0.00014 </value>
-                                            </product>
-                                        </min>
-                                    </product>
-                                </sum>
-                            </product>
+                            <sum>
+                                <product>
+                                    <property>systems/orbitron/starter-engage</property>
+                                    <sum>
+                                        <value> 0.12 </value>
+                                        <product>
+                                            <property>systems/orbitron/compressor-effective</property>
+                                            <value> 0.55 </value>
+                                        </product>
+                                    </sum>
+                                </product>
+                                <product>
+                                    <property>systems/reactor/active</property>
+                                    <sum>
+                                        <value> 0.10 </value>
+                                        <product>
+                                            <property>systems/orbitron/compressor-effective</property>
+                                            <value> 0.52 </value>
+                                        </product>
+                                        <product>
+                                            <property>systems/orbitron/compressor-effective</property>
+                                            <value> 0.28 </value>
+                                            <min>
+                                                <value> 1.0 </value>
+                                                <product>
+                                                    <property>systems/arcjet/thrust-lbf</property>
+                                                    <value> 0.00014 </value>
+                                                </product>
+                                            </min>
+                                        </product>
+                                    </sum>
+                                </product>
+                            </sum>
                         </max>
                     </min>
                 </function>

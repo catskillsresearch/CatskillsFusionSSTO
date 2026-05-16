@@ -12,8 +12,10 @@ shell, Nasal UI, physics/surrogate, and sound. Compilers under `tools/` emit art
 | `orbitron_avalanche_core.yaml` | (reference) | Avalanche Orbitron fusion-core design basis (stability, fields, fuel) |
 | `orbitron_reference_plant.yaml` | (reference) | **Propulsion mechanism** — fusion-heated Brayton spool, heat paths, pad APU start |
 | `orbitron_physics_surrogate.yaml` | `build_surrogate_map.py`, `compile_orbitron_aircraft_runtime.py`, **`surrogate_closure_check.py`** | WarpX sweep, surrogate scales, **0D traceability** (`formal.traceability_chain`), thrust-sled load model |
-| `orbitron_aircraft_flightgear.yaml` | `compile_orbitron_aircraft_runtime.py` | `*-set.xml`, `Orbitron.xml`, JSBSim template copy |
-| `orbitron_nasal.yaml` | `compile_orbitron_nasal.py` | `surrogate_load.nas`, `reactor_ui.nas` (operator screen) |
+| `orbitron_aircraft_flightgear.yaml` | `compile_orbitron_aircraft_runtime.py` | `*-set.xml`, `Orbitron.xml`, panel picks, JSBSim template copy |
+| `orbitron_operator_console_spec.yaml` | (human + cross-ref) | Pad startup sequence, switch properties, interlocks |
+| [`../OPERATOR.md`](../OPERATOR.md) | (operator) | **FlightGear startup checklist** and controls (Markdown) |
+| `orbitron_nasal.yaml` | `compile_orbitron_nasal.py` | `surrogate_load.nas`, `orbitron_ops.nas`, `reactor_ui.nas` |
 | `orbitron_sound_assets.yaml` | `sound_compiler.py`, `compile_sound_xml_from_yaml.py` | WAV beds + `sound.xml` |
 
 ## Thrust and thrust-sled load measurement
@@ -25,9 +27,12 @@ operator **Screen** in FlightGear.
 ### Data flow
 
 ```
-Controls (W/S throttle, U/J compressor, SPACE startup)
+Panel / keys (1 APU, 2 starter, 3 bleed, SPACE ignite) → /sim/model/orbitron/* + startup-trigger
+    → orbitron_ops.nas (interlocks, starter crank pulse)
+    → JSBSim Orbitron_Pad_Ops → compressor-effective
+Controls (W/S throttle, U/J compressor, I/K cathode)
     → JSBSim arcjet_airbreather (every FDM frame)
-        → thrust-lbf, mass-flow-kgps  (bilinear surrogate)
+        → thrust-lbf, mass-flow-kgps  (bilinear surrogate; thrust when armed)
         → sled-load-total-lbf, load-cell-0..3-lbf  (corner split + tare)
     → Nasal ReactorUI @ 10 Hz (read-only display on Screen mesh)
 ```

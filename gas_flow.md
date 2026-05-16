@@ -24,15 +24,21 @@ Fusion **does not** shove outside air into the plasma. **H₂ / B₂H₆** feed 
 
 ## Startup (test stand — self-contained after light-off)
 
-| Phase | What happens |
-|--------|----------------|
-| **Pad APU** | ``Pad_Startup_Cart`` → ``Pad_Startup_Power_Cable`` → ``Pad_Startup_Motor`` (orange pod on −X). Rig only; **not flight weight**. |
-| **Spin-up** | Compressor moves air; reactor can ignite. |
-| **Heat** | Hot walls + mixer raise gas temperature. |
-| **Turbine takeover** | Turbine power ≥ compressor power → **APU off** (clutch out / freewheel). |
-| **Run** | Spool + fusion heat + nozzle thrust — **no ongoing off-board power** for the compressor. |
+| Phase | What happens | FlightGear (panel or keys) |
+|--------|----------------|----------------------------|
+| **Pad APU** | ``Pad_Startup_Cart`` → cable → ``Pad_Startup_Motor`` bus energized | **1** / ``Panel_Switch_APU`` → ``/sim/model/orbitron/pad-apu-online`` |
+| **Starter** | Electric motor cranks compressor spool | **2** / ``Panel_Switch_Starter`` → ``/sim/model/orbitron/starter-engage`` (needs APU) |
+| **Bleed air** | Bellmouth → compressor annulus open | **3** / ``Panel_Switch_Bleed`` → ``/sim/model/orbitron/bleed-air-open`` |
+| **Spin-up** | **U/J** compressor command; mdot rises (surrogate) before ignite | ``/controls/orbitron/compressor`` × bleed × spool factor |
+| **Ignite** | Fusion on; thrust / power armed | **SPACE** / ``Big_Red_Button`` → ``/sim/model/reactor/startup-trigger`` (needs bleed) |
+| **Heat** | Hot walls + mixer raise gas temperature | W/S throttle after ignite |
+| **Turbine takeover** | Turbine drives compressor → release starter (procedure) | Turn **starter** off when spool stable |
+| **Run** | Spool + fusion heat + nozzle thrust | W/S beam, U/J air path, I/K cathode |
 
-Compressed air alone does **not** self-start the spool on a static rig; you need that first **electric** spin (or a dedicated pneumatic starter — still “APU”).
+**Operator checklist:** [`ssto/orbitron/OPERATOR.md`](ssto/orbitron/OPERATOR.md).  
+Machine-readable spec: [`orbitron_operator_console_spec.yaml`](ssto/orbitron/assembly_specs/orbitron_operator_console_spec.yaml). Interlocks: ``orbitron_ops.nas`` (from ``orbitron_nasal.yaml``).
+
+Compressed air alone does **not** self-start the spool on a static rig; you need that first **electric** spin (pad APU).
 
 ---
 
@@ -91,12 +97,16 @@ flowchart LR
 
 ## Controls (FlightGear)
 
-| Key | Property | Meaning |
-|-----|----------|---------|
-| W/S | `/controls/reactor/throttle` | Ion beam / reactor intensity |
+| Key / pick | Property | Meaning |
+|------------|----------|---------|
+| **1** / APU switch | `/sim/model/orbitron/pad-apu-online` | Pad cart powers starter bus |
+| **2** / starter switch | `/sim/model/orbitron/starter-engage` | Crank motor (APU required) |
+| **3** / bleed switch | `/sim/model/orbitron/bleed-air-open` | Intake / compressor path open |
+| **SPACE** / red button | `/sim/model/reactor/startup-trigger` | Reactor ignite (bleed required) |
+| W/S | `/controls/reactor/throttle` | Ion beam — ignition level → max |
 | I/K | `/controls/orbitron/cathode-pulse` | Cathode shear program |
-| U/J | `/controls/orbitron/compressor` | **Air-path / shaft-work** command (surrogate) |
-| Space | `/sim/model/reactor/startup-trigger` | Reactor active |
+| U/J | `/controls/orbitron/compressor` | Compressor command (effective only with bleed + spool) |
+| M | `/sim/model/reactor/debug-ui-window` | Extra telemetry window |
 
 ---
 

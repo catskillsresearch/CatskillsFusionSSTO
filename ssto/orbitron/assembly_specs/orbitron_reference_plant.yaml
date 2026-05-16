@@ -126,10 +126,15 @@ pad_services:
       (no ram). Cart + cable disconnect after **turbine takeover**.
 
 controls_mapping:
+  pad_apu_online: /sim/model/orbitron/pad-apu-online
+  starter_engage: /sim/model/orbitron/starter-engage
+  bleed_air_open: /sim/model/orbitron/bleed-air-open
   ion_beam: /controls/reactor/throttle
   cathode_pulse: /controls/orbitron/cathode-pulse
-  air_path_shaft: /controls/orbitron/compressor
+  air_path_command: /controls/orbitron/compressor
+  air_path_effective: /fdm/jsbsim/systems/orbitron/compressor-effective
   reactor_active: /sim/model/reactor/startup-trigger
+  operator_spec: orbitron_operator_console_spec.yaml
 
 ssto_optional_not_required_for_thrust:
   - DEC_Grid

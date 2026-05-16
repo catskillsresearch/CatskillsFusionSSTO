@@ -42,12 +42,17 @@ Build: `make orbitron-lab-gltf` / `./stand.sh` (see repository `Makefile`).
 
 The operator **Screen** shows live **thrust**, **airflow (surrogate mass flow)**, **total sled load**, and **four corner load-cell readings** that respond to test-stand controls. This is a **0D bookkeeping model** (not a structural FEA solve): JSBSim evaluates it every frame; Nasal only displays properties.
 
-| Control (keyboard) | Property | Effect on telemetry |
-|--------------------|----------|---------------------|
-| **SPACE** | `/sim/model/reactor/startup-trigger` | Arms reactor → enables thrust / load outputs |
-| **W / S** | `/controls/reactor/throttle` | Ion beam command → **mA**, **thrust**, **mdot** |
+| Control (keyboard / panel) | Property | Effect on telemetry |
+|--------------------------|----------|---------------------|
+| **1** / APU switch | `/sim/model/orbitron/pad-apu-online` | Pad cart energizes starter bus |
+| **2** / starter switch | `/sim/model/orbitron/starter-engage` | Crank spool (requires APU); crank SFX |
+| **3** / bleed switch | `/sim/model/orbitron/bleed-air-open` | Intake path open → compressor effective |
+| **SPACE** / red button | `/sim/model/reactor/startup-trigger` | Ignite → **thrust** / load outputs (requires bleed) |
+| **W / S** | `/controls/reactor/throttle` | Ion beam → **mA**, **thrust**, **mdot** (after ignite) |
 | **I / K** | `/controls/orbitron/cathode-pulse` | Cathode pulse / shear (PSP2–Jin stability proxy) |
-| **U / J** | `/controls/orbitron/compressor` | Air-path / shaft-work command → **thrust** and **mdot**; **−X** load bias |
+| **U / J** | `/controls/orbitron/compressor` | Air-path command (× bleed × spool factor) |
+
+Sequence spec: [`orbitron_operator_console_spec.yaml`](ssto/orbitron/assembly_specs/orbitron_operator_console_spec.yaml).
 
 **JSBSim outputs** (prefix `/fdm/jsbsim/systems/arcjet/`):
 

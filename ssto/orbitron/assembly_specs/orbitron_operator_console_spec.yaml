@@ -1,0 +1,69 @@
+# Operator console — pad startup sequence and FlightGear bindings.
+# Meshes: orbitron_lab.yaml → control_panel_stand (Panel_Switch_*, Big_Red_Button, Screen).
+# Runtime: orbitron_aircraft_flightgear.yaml → *-set.xml picks + orbitron_ops.nas interlocks.
+
+schema_version: 1
+spec_kind: orbitron_operator_console
+title: Orbitron test stand — operator console
+
+narrative: |
+  Space-Shuttle-style discrete switches on the panel, then continuous W/S (beam) and U/J
+  (compressor) for burn level after ignite. The 0D JSBSim surrogate does not solve spool RPM;
+  ``compressor-effective`` approximates bleed + starter + armed reactor.
+
+startup_sequence:
+  - step: 1
+    name: apu_cart_online
+    label: "1. Pad APU ON"
+    property: /sim/model/orbitron/pad-apu-online
+    mesh_pick: Panel_Switch_APU
+    keyboard: "1"
+    action: Pad_Startup_Cart energizes starter bus (rig power only).
+  - step: 2
+    name: starter_engage
+    label: "2. STARTER"
+    property: /sim/model/orbitron/starter-engage
+    mesh_pick: Panel_Switch_Starter
+    keyboard: "2"
+    requires: [/sim/model/orbitron/pad-apu-online]
+    action: Pad_Startup_Motor cranks spool; crank WAV + motor whine SFX.
+  - step: 3
+    name: bleed_air
+    label: "3. BLEED AIR"
+    property: /sim/model/orbitron/bleed-air-open
+    mesh_pick: Panel_Switch_Bleed
+    keyboard: "3"
+    action: Intake path open; U/J raises compressor command (spin-up mdot before ignite).
+  - step: 4
+    name: reactor_ignite
+    label: "4. IGNITE (BRB)"
+    property: /sim/model/reactor/startup-trigger
+    mesh_pick: Big_Red_Button
+    keyboard: SPACE
+    requires: [/sim/model/orbitron/bleed-air-open]
+    action: Fusion armed; thrust / power / DEC per surrogate.
+  - step: 5
+    name: run_controls
+    label: "5. RUN"
+    properties:
+      throttle: /controls/reactor/throttle
+      compressor: /controls/orbitron/compressor
+      cathode_pulse: /controls/orbitron/cathode-pulse
+    keyboard:
+      throttle: [W, S]
+      compressor: [U, J]
+      cathode_pulse: [I, K]
+    action: |
+      W/S ion beam (ignition level → max). U/J air-path / shaft-work. I/K cathode pulse.
+      Release starter when turbine has taken over (procedure — not auto).
+
+interlocks:
+  starter_requires_apu: true
+  ignite_requires_bleed: true
+  auto_clear_starter_on_ignite: false
+
+jsbsim_effective_paths:
+  compressor_command: /controls/orbitron/compressor
+  compressor_effective: /fdm/jsbsim/systems/orbitron/compressor-effective
+  spool_drive_factor: /fdm/jsbsim/systems/orbitron/spool-drive-factor
+  reactor_active: /fdm/jsbsim/systems/reactor/active

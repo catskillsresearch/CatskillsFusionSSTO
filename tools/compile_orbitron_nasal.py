@@ -155,6 +155,8 @@ def _main_row_initial(row: Mapping[str, Any]) -> str:
     k = row["kind"]
     if k == "bool_word":
         return str(row["prefix"]) + str(row["false_word"])
+    if k == "static":
+        return str(row["text"])
     if k == "scaled_float":
         return str(row["sprintf"]) % (0.0,)
     if k == "float":
@@ -164,16 +166,33 @@ def _main_row_initial(row: Mapping[str, Any]) -> str:
     raise ValueError(f"unknown main_rows kind {k!r}")
 
 
+def _bool_prop_var(prop: str) -> str:
+    """Nasal variable name for a bool_word row property (must exist in update())."""
+    m = {
+        "/sim/model/reactor/startup-trigger": "startup_on",
+        "/sim/model/orbitron/pad-apu-online": "apu_on",
+        "/sim/model/orbitron/starter-engage": "starter_on",
+        "/sim/model/orbitron/bleed-air-open": "bleed_on",
+    }
+    v = m.get(prop)
+    if v is None:
+        raise ValueError(f"no bool_word var mapping for prop {prop!r}")
+    return v
+
+
 def _emit_update_main_line(row: Mapping[str, Any]) -> str:
     rid = str(row["id"])
     k = row["kind"]
+    if k == "static":
+        return f'        me.txt_{rid}.setText({_nas_literal_string(str(row["text"]))});'
     if k == "bool_word":
         p = str(row["prefix"])
         tw = str(row["true_word"])
         fw = str(row["false_word"])
+        v = _bool_prop_var(str(row["prop"]))
         return (
             f'        me.txt_{rid}.setText({_nas_literal_string(p)} ~ '
-            f'(startup_on ? {_nas_literal_string(tw)} : {_nas_literal_string(fw)}));'
+            f'({v} ? {_nas_literal_string(tw)} : {_nas_literal_string(fw)}));'
         )
     if k == "scaled_float":
         fmt = str(row["sprintf"])
@@ -232,6 +251,63 @@ def _emit_update_debug_line(idx: int, row: Mapping[str, Any]) -> str:
     raise ValueError(f"unknown debug_window.rows kind {k!r}")
 
 
+def _emit_orbitron_ops(ops: Mapping[str, Any]) -> str:
+    header = str(ops.get("header") or "").strip()
+    hz = float(ops.get("timer_hz", 10))
+    crank_prop = str(ops.get("crank_prop", "/sim/model/reactor/startup-starter-crank"))
+    crank_reset = float(ops.get("crank_reset_sec", 0.18))
+    props = ops.get("props") or {}
+    pad_apu = str(props.get("pad_apu", "/sim/model/orbitron/pad-apu-online"))
+    starter = str(props.get("starter", "/sim/model/orbitron/starter-engage"))
+    bleed = str(props.get("bleed", "/sim/model/orbitron/bleed-air-open"))
+    ignite = str(props.get("ignite", "/sim/model/reactor/startup-trigger"))
+
+    lines: list[str] = []
+    if header:
+        for ln in header.splitlines():
+            lines.append("# " + ln if ln.strip() else "#")
+    lines += [
+        "",
+        "var OrbitronOps = {",
+        "    new: func() {",
+        "        var m = { parents: [OrbitronOps] };",
+        f"        m._last_starter = 0;",
+        f"        m._last_ignite = 0;",
+        f"        m.timer = maketimer({1.0 / hz}, m, OrbitronOps.update);",
+        "        m.timer.start();",
+        "        return m;",
+        "    },",
+        "",
+        "    update: func() {",
+        f'        var apu = (getprop({_nas_literal_string(pad_apu)}) or 0) != 0;',
+        f'        var starter = (getprop({_nas_literal_string(starter)}) or 0) != 0;',
+        f'        var bleed = (getprop({_nas_literal_string(bleed)}) or 0) != 0;',
+        f'        var ignite = (getprop({_nas_literal_string(ignite)}) or 0) != 0;',
+        "",
+        "        if (starter and apu and !m._last_starter) {",
+        f"            setprop({_nas_literal_string(crank_prop)}, 1);",
+        f"            settimer(func() {{ setprop({_nas_literal_string(crank_prop)}, 0); }}, {crank_reset});",
+        "        }",
+        "        m._last_starter = starter;",
+        "",
+        "        if (ignite and !bleed) {",
+        '            setprop("/sim/model/reactor/startup-trigger", 0);',
+        "            print(\"OrbitronOps: ignite blocked — open bleed air first (key 3 or panel).\");",
+        "        }",
+        "        if (starter and !apu) {",
+        f"            setprop({_nas_literal_string(starter)}, 0);",
+        "            print(\"OrbitronOps: starter blocked — pad APU must be online first (key 1).\");",
+        "        }",
+        "        m._last_ignite = ignite;",
+        "    }",
+        "};",
+        "",
+        "var orbitron_ops = OrbitronOps.new();",
+        "",
+    ]
+    return "\n".join(lines)
+
+
 def _emit_reactor_ui(ui: Mapping[str, Any]) -> str:
     cname = str(ui.get("class_name", "ReactorUI"))
     canvas = ui["canvas"]
@@ -243,10 +319,6 @@ def _emit_reactor_ui(ui: Mapping[str, Any]) -> str:
     main_rows = ui.get("main_rows") or []
     dbg = ui.get("debug_window") or {}
     dbg_rows = dbg.get("rows") or []
-    sa = ui.get("startup_audio") or {}
-    crank_prop = str(sa.get("crank_prop", "/sim/model/reactor/startup-starter-crank"))
-    crank_reset = float(sa.get("crank_reset_sec", 0.18))
-
     cname_ = cname
     cv = canvas["name"]
     sz = canvas["size"]
@@ -327,7 +399,6 @@ def _emit_reactor_ui(ui: Mapping[str, Any]) -> str:
         "        m.debug_root = nil;",
         "        m.debug_txt = [];",
         "",
-        "        m._last_startup = 0;",
         "",
         "        m.sync_debug_window();",
         "",
@@ -397,11 +468,9 @@ def _emit_reactor_ui(ui: Mapping[str, Any]) -> str:
     # Variable reads (same set as original reactor_ui.nas)
     lines += [
         '        var startup_on = (getprop("/sim/model/reactor/startup-trigger") or 0) != 0;',
-        f'        if (startup_on and !me._last_startup) {{',
-        f'            setprop({_nas_literal_string(crank_prop)}, 1);',
-        f'            settimer(func() {{ setprop({_nas_literal_string(crank_prop)}, 0); }}, {crank_reset});',
-        "        }",
-        "        me._last_startup = startup_on;",
+        '        var apu_on = (getprop("/sim/model/orbitron/pad-apu-online") or 0) != 0;',
+        '        var starter_on = (getprop("/sim/model/orbitron/starter-engage") or 0) != 0;',
+        '        var bleed_on = (getprop("/sim/model/orbitron/bleed-air-open") or 0) != 0;',
         '        var nbi   = getprop("/controls/reactor/throttle") or 0.0;',
         '        var comp  = getprop("/controls/orbitron/compressor") or 0.0;',
         '        var cathode_pulse = getprop("/controls/orbitron/cathode-pulse") or 0.0;',
@@ -485,16 +554,19 @@ def main() -> int:
         print("error: spec root must be a mapping", file=sys.stderr)
         return 1
     sl = data.get("surrogate_load")
+    ops = data.get("orbitron_ops")
     ui = data.get("reactor_ui")
-    if not isinstance(sl, dict) or not isinstance(ui, dict):
-        print("error: missing surrogate_load or reactor_ui mapping", file=sys.stderr)
+    if not isinstance(sl, dict) or not isinstance(ops, dict) or not isinstance(ui, dict):
+        print("error: missing surrogate_load, orbitron_ops, or reactor_ui mapping", file=sys.stderr)
         return 1
 
     out = args.out_dir.resolve()
     out.mkdir(parents=True, exist_ok=True)
     (out / "surrogate_load.nas").write_text(_emit_surrogate_load(sl), encoding="utf-8")
+    (out / "orbitron_ops.nas").write_text(_emit_orbitron_ops(ops), encoding="utf-8")
     (out / "reactor_ui.nas").write_text(_emit_reactor_ui(ui), encoding="utf-8")
     print("Wrote", out / "surrogate_load.nas")
+    print("Wrote", out / "orbitron_ops.nas")
     print("Wrote", out / "reactor_ui.nas")
     return 0
 
