@@ -15,6 +15,11 @@ From the repo root, build the aircraft package (glTF, `orbitron.ac`, sounds, Nas
 ./stand.sh
 ```
 
+**After changing panel meshes** (`Panel_Switch_*` in `orbitron_lab.yaml`), you must rebuild geometry or
+FlightGear will error with *Could not find object for animation: Panel_Switch_APU*. The glTF and
+`orbitron.ac` must include those object names (run `./stand.sh` or at least
+`make orbitron-lab-gltf` then the Blender step in the Makefile).
+
 Launch the stand (example — adjust paths to your FG install):
 
 ```bash

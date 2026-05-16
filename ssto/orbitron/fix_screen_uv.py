@@ -165,7 +165,22 @@ def fix_screen_uvs(lines):
     return out, changed
 
 
+def ensure_screen_texture():
+    """AC references warpx_frame.png beside orbitron.ac; create a dark placeholder if missing."""
+    tex_path = os.path.join(os.path.dirname(AC3D_FILE), "warpx_frame.png")
+    if os.path.isfile(tex_path):
+        return
+    try:
+        from PIL import Image
+    except ImportError:
+        print(f"warning: {tex_path} missing and Pillow not available to create it")
+        return
+    Image.new("RGB", (512, 512), (8, 20, 12)).save(tex_path)
+    print(f"Created placeholder Screen texture: {tex_path}")
+
+
 def main():
+    ensure_screen_texture()
     with open(AC3D_FILE, "r", encoding="utf-8") as f:
         lines = f.readlines()
 
