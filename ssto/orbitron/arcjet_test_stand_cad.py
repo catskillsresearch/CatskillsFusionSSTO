@@ -17,10 +17,121 @@ def bellmouth_flare(inlet_r: float = 0.18, throat_r: float = 0.05, length: float
 
 
 def compressor_housing(od: float = 0.14, length: float = 0.25) -> cq.Workplane:
-    """Simple motor/compressor can around the duct."""
+    """Simple compressor can on the −X intake train (coarse single-stage spool)."""
     shell = cq.Workplane("XY").circle(od / 2).extrude(length)
     bore = cq.Workplane("XY").circle(od / 2 - 0.02).extrude(length + 0.01)
     return shell.cut(bore)
+
+
+def turbine_housing(od: float = 0.16, length: float = 0.18) -> cq.Workplane:
+    """Coarse turbine can on the +X hot-gas train (same spool as ``compressor_housing``)."""
+    shell = cq.Workplane("XY").circle(od / 2).extrude(length)
+    bore = cq.Workplane("XY").circle(od / 2 - 0.025).extrude(length + 0.01)
+    return shell.cut(bore)
+
+
+def pad_startup_cart(
+    deck_lx: float = 0.58,
+    deck_ly: float = 0.44,
+    deck_h: float = 0.055,
+    box_lx: float = 0.40,
+    box_ly: float = 0.34,
+    box_h: float = 0.38,
+    wheel_r: float = 0.055,
+) -> cq.Workplane:
+    """Ground **APU cart** (battery / inverter skid) beside the −X intake — pad-only, not flight mass."""
+    deck = cq.Workplane("XY").box(deck_lx, deck_ly, deck_h).translate((0, 0, deck_h / 2))
+    box = cq.Workplane("XY").box(box_lx, box_ly, box_h).translate((0, 0, deck_h + box_h / 2))
+    hx, hy = deck_lx / 2 - 0.07, deck_ly / 2 - 0.07
+    wheels = cq.Workplane("XY")
+    for x, y in ((-hx, -hy), (hx, -hy), (-hx, hy), (hx, hy)):
+        wheels = wheels.union(
+            cq.Workplane("XY").transformed(offset=(x, y, -wheel_r + 0.01)).circle(wheel_r).extrude(wheel_r * 2)
+        )
+    # Power post / receptacle toward the engine (+Y side of cart top).
+    post = (
+        cq.Workplane("XY")
+        .transformed(offset=(box_lx * 0.22, box_ly * 0.32, deck_h + box_h))
+        .circle(0.035)
+        .extrude(0.09)
+    )
+    return deck.union(box).union(wheels).union(post)
+
+
+def pad_startup_connector_anchors() -> dict[str, tuple[float, float, float]]:
+    """World anchors for ``Pad_Startup_Power_Cable`` (tuned to cart + motor poses in ``orbitron_lab.yaml``)."""
+    return {
+        "pad_cart_power_out": (-1.50, -0.18, 0.46),
+        "pad_motor_power_in": (-1.23, 0.12, 0.04),
+    }
+
+
+def pad_startup_cable_params() -> dict:
+    """YAML-mergeable connector spec for cart → starter motor."""
+    return {
+        "include_port_markers": False,
+        "connectivity_spec": {
+            "physical_story": "Pad ground cart feeds the electric starter on the compressor spool.",
+            "links": [
+                {
+                    "link_id": "starter_power",
+                    "service": "pad_apu_starter_bus",
+                    "from_region": "pad_startup_cart",
+                    "to_region": "pad_startup_motor",
+                    "routing_intent": "deck_cable_to_intake_starter",
+                }
+            ],
+        },
+        "connector_ports": [
+            {
+                "id": "pad_cart_power_out",
+                "anchor": "pad_cart_power_out",
+                "offset": [0.0, 0.0, 0.0],
+                "description": "APU cart roof receptacle toward the engine.",
+            },
+            {
+                "id": "pad_motor_power_in",
+                "anchor": "pad_motor_power_in",
+                "offset": [0.0, 0.0, 0.0],
+                "description": "Starter motor power inlet on the −X spool pod.",
+            },
+        ],
+        "connector_links": [
+            {
+                "id": "starter_power",
+                "service": "pad_apu_starter_bus",
+                "from_port": "pad_cart_power_out",
+                "to_port": "pad_motor_power_in",
+                "radius": 0.014,
+                "description": "Heavy-gauge starter cable along the deck to the intake motor.",
+                "waypoints": [
+                    [-1.42, -0.02, 0.32],
+                    [-1.34, 0.06, 0.18],
+                ],
+            }
+        ],
+    }
+
+
+def pad_starter_motor_pod(
+    motor_length: float = 0.14,
+    motor_od: float = 0.10,
+    shaft_radius: float = 0.02,
+    shaft_length: float = 0.07,
+) -> cq.Workplane:
+    """Pad **electric starter** on the −X spool end (APU — rig power, not flight mass).
+
+    Built along **+Z** in local coords; ``orbitron_lab.yaml`` poses it beside the bellmouth /
+    compressor train with the same Y-rotation as the intake hardware.
+    """
+    motor = cq.Workplane("XY").circle(motor_od / 2).extrude(motor_length)
+    stub = (
+        cq.Workplane("XY")
+        .workplane(offset=motor_length)
+        .circle(shaft_radius)
+        .extrude(shaft_length)
+    )
+    return motor.union(stub)
 
 
 def bay_inlet_annulus_shroud(

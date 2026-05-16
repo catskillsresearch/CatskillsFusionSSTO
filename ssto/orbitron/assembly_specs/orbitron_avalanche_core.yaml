@@ -78,6 +78,8 @@ mesh_instance_mapping:
   ssto_optional_dec: DEC_Grid
   ssto_optional_ch4: Tank_Cryo_Methane
 
+reference_plant_spec: orbitron_reference_plant.yaml
+
 flightgear_controls:
   ion_beam_command: /controls/reactor/throttle
   cathode_pulse_shear: /controls/orbitron/cathode-pulse

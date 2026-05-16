@@ -125,6 +125,37 @@ def _seamless_stressor(_params: dict[str, Any]) -> np.ndarray:
     return np.tanh(st * 1.9)
 
 
+def _pad_starter_crank(params: dict[str, Any]) -> np.ndarray:
+    """One-shot pad APU crank: solenoid click, rising starter whine, brief coast-down."""
+    duration = float(params.get("duration_s", 2.0))
+    n = int(SAMPLE_RATE * duration)
+    t = np.linspace(0.0, duration, n, endpoint=False)
+
+    click_env = np.exp(-90.0 * t) * (t < 0.06)
+    click = click_env * (
+        0.55 * np.sin(2 * np.pi * 95 * t)
+        + 0.35 * np.random.default_rng(11).uniform(-1, 1, n) * np.exp(-220.0 * np.maximum(0, t - 0.002))
+    )
+
+    ramp_freq = np.interp(t, [0.05, 1.35, 1.7], [55.0, 280.0, 120.0])
+    ramp_phase = np.cumsum(ramp_freq) / SAMPLE_RATE * 2 * np.pi
+    whine = np.sin(ramp_phase)
+    whine += 0.35 * np.sin(2 * ramp_phase)
+    spin_env = np.interp(t, [0.0, 0.08, 1.45, 1.85, duration], [0.0, 0.9, 1.0, 0.35, 0.0])
+    whine *= spin_env
+
+    grind = _one_second_deterministic_texture(9, (1,) * 20)
+    grind = np.resize(grind, n)
+    grind *= 0.12 * spin_env * (0.4 + 0.6 * np.sin(2 * np.pi * 14 * t))
+
+    relay = np.zeros(n)
+    for pulse_t in (0.22, 0.48, 0.74):
+        relay += np.exp(-140.0 * np.maximum(0, t - pulse_t)) * 0.18
+
+    master = click + 0.72 * whine + grind + relay
+    return np.tanh(master * 2.2)
+
+
 def _commissioning_timeline(params: dict[str, Any]) -> np.ndarray:
     duration = float(params.get("duration_s", 10.0))
     n = int(SAMPLE_RATE * duration)
@@ -177,6 +208,7 @@ RECIPES: dict[str, Callable[[dict[str, Any]], np.ndarray]] = {
     "seamless_motor_whine": _seamless_motor_whine,
     "seamless_duct_heat": _seamless_duct_heat,
     "seamless_stressor": _seamless_stressor,
+    "pad_starter_crank": _pad_starter_crank,
     "commissioning_timeline": _commissioning_timeline,
 }
 

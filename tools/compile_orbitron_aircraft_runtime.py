@@ -8,6 +8,7 @@ JSBSim: copy tools/templates/orbitron-jsbsim.xml (structure); full JSBSim-in-YAM
 from __future__ import annotations
 
 import argparse
+import shutil
 import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
@@ -103,6 +104,13 @@ def _build_set_xml(
     _typed_prop(r, "debug-ui-window", bool(rf["debug_ui_window"]), "bool")
     r.append(ET.Comment(" Set true briefly to fire reactor_audio_heavy.wav (optional one-shot). "))
     _typed_prop(r, "startup-commissioning-audio", bool(rf["startup_commissioning_audio"]), "bool")
+    r.append(ET.Comment(" Pulse true briefly on arm to fire orbitron_pad_starter_crank.wav (Nasal). "))
+    _typed_prop(
+        r,
+        "startup-starter-crank",
+        bool(rf.get("startup_starter_crank", False)),
+        "bool",
+    )
 
     model.append(
         ET.Comment(
@@ -216,6 +224,23 @@ def _build_set_xml(
     return '<?xml version="1.0"?>\n' + ET.tostring(root_el, encoding="unicode")
 
 
+def _install_vfx_assets(out_dir: Path, repo_root: Path, fg_model: Mapping[str, Any]) -> None:
+    """Copy nozzle exhaust effect XML + textures into the aircraft package."""
+    effects = fg_model.get("effect_models") or []
+    if not effects:
+        return
+    dst_effects = out_dir / "Models" / "Effects"
+    dst_effects.mkdir(parents=True, exist_ok=True)
+    src_shared = repo_root / "Models" / "Effects"
+    tmpl = repo_root / "tools" / "templates" / "orbitron_nozzle_exhaust.xml"
+    if tmpl.is_file():
+        shutil.copy2(tmpl, dst_effects / "orbitron_nozzle_exhaust.xml")
+    for tex in ("annulus.png", "smoke.png"):
+        src = src_shared / tex
+        if src.is_file():
+            shutil.copy2(src, dst_effects / tex)
+
+
 def _build_orbitron_model_xml(fg_model: Mapping[str, Any]) -> str:
     root = ET.Element("PropertyList")
     root.append(ET.Comment(f" {fg_model['comment']} "))
@@ -229,6 +254,22 @@ def _build_orbitron_model_xml(fg_model: Mapping[str, Any]) -> str:
     off.append(ET.Comment(" Pulls the long nose of the 3D model straight backward "))
     _text(off, "y-m", o["y_m"])
     _text(off, "z-m", o["z_m"])
+
+    for eff in fg_model.get("effect_models") or []:
+        if not isinstance(eff, dict):
+            continue
+        m = ET.SubElement(root, "model")
+        _text(m, "name", eff["name"])
+        _text(m, "path", eff["path"])
+        eo = eff.get("offsets") or {}
+        eoff = ET.SubElement(m, "offsets")
+        _text(eoff, "x-m", eo.get("x_m", 0.0))
+        _text(eoff, "y-m", eo.get("y_m", 0.0))
+        _text(eoff, "z-m", eo.get("z_m", 0.0))
+        if "pitch_deg" in eo:
+            _text(eoff, "pitch-deg", eo["pitch_deg"])
+        if "heading_deg" in eo:
+            _text(eoff, "heading-deg", eo["heading_deg"])
 
     for i, pick in enumerate(fg_model.get("pick_animations") or []):
         if i == 0:
@@ -318,6 +359,8 @@ def main() -> int:
 
     models = out_dir / "Models"
     models.mkdir(parents=True, exist_ok=True)
+    repo_root = spec_path.parents[3]
+    _install_vfx_assets(out_dir, repo_root, fg_model)
 
     set_text = _build_set_xml(fg, physics_eng, thrust_sled_load)
     set_name = f"{pkg}-set.xml"
@@ -330,7 +373,6 @@ def main() -> int:
 
     jsb = data.get("jsbsim") or {}
     tmpl_name = str(jsb.get("template_file", "orbitron-jsbsim.xml"))
-    repo_root = spec_path.parents[3]
     tmpl = (repo_root / "tools" / "templates" / tmpl_name).resolve()
     if not tmpl.is_file():
         print(f"error: JSBSim template not found: {tmpl}", file=sys.stderr)

@@ -13,10 +13,13 @@ leap (**H₂ + B₂H₆** injectants, ``¹H + ¹¹B → 3 ⁴He``) instead of th
 Air-breathing + CD-nozzle energy offload; FlightGear telemetry. Core spec:
 [`ssto/orbitron/assembly_specs/orbitron_avalanche_core.yaml`](ssto/orbitron/assembly_specs/orbitron_avalanche_core.yaml).
 
-**Energy offload:** The design basis **vents fusion-derived energy by thermodynamic work
-on a gas path** (not multi-MV direct grid tie at utility scale). That makes **wall heat
-removal** and **cryogen loops** first-class—including **liquid CH₄** for **anode /
-boundary thermal management**.
+**Propulsion plant:** Single-spool **fusion-heated Brayton** — air ingested at **−X**,
+compressed, heated on **hot reactor walls** and in a **plenum mixer** (core exhaust + ⁴He ash),
+expanded through a **turbine** that drives the **compressor** after pad **electric start**, then
+through a **CD nozzle** for thrust. Canonical spec:
+[`orbitron_reference_plant.yaml`](ssto/orbitron/assembly_specs/orbitron_reference_plant.yaml).
+**Energy offload** is this thermodynamic path (not multi-MV on inlet air). **CH₄** is optional
+wall thermal only.
 
 **Fuels and services:**
 
@@ -44,7 +47,7 @@ The operator **Screen** shows live **thrust**, **airflow (surrogate mass flow)**
 | **SPACE** | `/sim/model/reactor/startup-trigger` | Arms reactor → enables thrust / load outputs |
 | **W / S** | `/controls/reactor/throttle` | Ion beam command → **mA**, **thrust**, **mdot** |
 | **I / K** | `/controls/orbitron/cathode-pulse` | Cathode pulse / shear (PSP2–Jin stability proxy) |
-| **U / J** | `/controls/orbitron/compressor` | Compressor → **thrust** and **mdot**; **−X** load bias |
+| **U / J** | `/controls/orbitron/compressor` | Air-path / shaft-work command → **thrust** and **mdot**; **−X** load bias |
 
 **JSBSim outputs** (prefix `/fdm/jsbsim/systems/arcjet/`):
 

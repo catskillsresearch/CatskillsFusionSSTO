@@ -179,6 +179,30 @@ sounds:
       reference_dist: 2.2
       max_dist: 35.0
 
+  - part_mesh: Pad_Startup_Motor
+    narrative: |
+      One-shot pad APU crank when the rig arms (SPACE / Big Red Button): solenoid click,
+      rising starter whine, relay chatter — before the compressor spool takes over.
+    description_formal: |
+      Recipe pad_starter_crank: duration_s=2.0 @ 44100 Hz; click + ramped whine (55→280 Hz),
+      texture grind, relay pulses; tanh limiter.
+    file: orbitron_pad_starter_crank.wav
+    compile:
+      recipe: pad_starter_crank
+      params:
+        duration_s: 2.0
+    flightgear:
+      fx_tag: orbitron-pad-starter-crank
+      display_name: Pad APU starter crank (one-shot)
+      mode: once
+      condition:
+        property: /sim/model/reactor/startup-starter-crank
+      volume:
+        factor: 0.92
+      position: { x: -1.05, y: 0.2, z: 0.52 }
+      reference_dist: 2.5
+      max_dist: 45.0
+
   - part_mesh: Compressor_Can
     narrative: |
       Tonal motor plus weak upper harmonics; pitch/volume in FG track compressor state.

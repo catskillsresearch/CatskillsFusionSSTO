@@ -21,8 +21,11 @@ assembly:
     **CH₄** dewar and **DEC** mesh are **SSTO-only** add-ons (wall thermal, optional power tap)—not
     required for the p-¹¹B Orbitron core recipe.
 
-    **Energy offload:** Fusion-derived energy vented by **work on the gas path** (compressor annulus
-    + hot core exhaust + **⁴He ash** into nozzle plenum).
+    **Propulsion plant:** Single-spool **fusion-heated Brayton** — bellmouth → **compressor** → hot
+    annulus / mixer → **turbine** (drives compressor after light-off) → **CD nozzle**. Air is the
+    **reaction mass**; fusion adds enthalpy via **hot walls** and **core exhaust / ash** mixing.
+    Pad **electric starter (APU)** spins the shaft until the turbine takes over; see
+    ``orbitron_reference_plant.yaml`` and ``gas_flow.md``.
 
     **Steady operation:** Continuous steady state while **H₂ / B₂H₆** injectants and interlocks allow.
 
@@ -32,6 +35,8 @@ assembly:
 logical:
   root: test_stand
   scene_root_name: fusion_arcjet_engine
+  # logical_only: true — composite folders only (child groups already export meshes). Never for
+  # buildable hardware; use instances + parts (or a member assembly’s parts) instead.
   glossary:
   - term: Avalanche Orbitron core
     definition: |
@@ -91,6 +96,17 @@ logical:
   - term: SSTO-only services (optional)
     definition: |
       **Liquid CH₄** (wall thermal) and **DEC_Grid** (power pickup)—spaceplane article add-ons, not core p-¹¹B Orbitron fueling.
+  - term: Reference plant (fusion-heated Brayton)
+    definition: |
+      **Air** ingested at **−X**, compressed on a **shaft**, heated in the **annulus** (wall losses)
+      and **plenum mixer** (hot core exhaust + ⁴He ash), expanded in a **turbine** that powers the
+      **compressor** after pad start, then expanded in the **nozzle** for thrust. Canonical write-up:
+      ``orbitron_reference_plant.yaml``.
+  - term: Pad startup APU
+    definition: |
+      **Pad_Startup_Cart** (ground power skid) → **Pad_Startup_Power_Cable** → **Pad_Startup_Motor**
+      on the compressor spool. Rig-only; **excluded from flight mass**; disconnected after the
+      turbine drives the compressor.
   - term: Liquid methane thermal loop
     definition: Cryogenic liquid CH₄ used as a working fluid for **anode / boundary
       Bremsstrahlung heat removal** and related plant cryogenics in this concept; it
@@ -157,6 +173,18 @@ logical:
     to: Cathode
     label: HV feed toward cathode stack (schematic)
     kind: dotted
+  - from: Pad_Startup_Cart
+    to: Pad_Startup_Power_Cable
+    label: APU cart receptacle → starter power cable
+    kind: dotted
+  - from: Pad_Startup_Power_Cable
+    to: Pad_Startup_Motor
+    label: starter power cable → intake motor pod
+    kind: dotted
+  - from: Pad_Startup_Motor
+    to: Compressor_Can
+    label: pad electric starter → compressor spool (light-off only)
+    kind: dotted
   - from: Bellmouth_Inlet
     to: Compressor_Can
     label: inlet → compressor
@@ -164,6 +192,14 @@ logical:
   - from: Compressor_Can
     to: Reactor_Bay_Inlet_Shroud
     label: compressor discharge into reactor bay annulus jacket (outer shell)
+    kind: solid
+  - from: Reactor_Bay_Inlet_Shroud
+    to: Turbine_Can
+    label: hot mixed gas toward turbine (fusion-heated Brayton spool)
+    kind: solid
+  - from: Turbine_Can
+    to: Nozzle_Inlet_Plenum
+    label: turbine discharge into nozzle plenum
     kind: solid
   - from: Reactor_Bay_Inlet_Shroud
     to: Magnet
@@ -217,7 +253,7 @@ logical:
       - control_panel_stand
       - thrust_sled
       - tank_assy
-      - fluid_and_electrical_services
+      - pad_startup_services
       - ssto_flight_article_addons
       - air_breathing_engine
     control_panel_stand:
@@ -289,11 +325,6 @@ logical:
       - Decal_H2
       - Pipe_H2_Feed
       - Hydrogen_Trunk_Line
-    fluid_and_electrical_services:
-      title: Auxiliary services (placeholder)
-      detail: Fuel and cryo tank assemblies live under ``tank_assy`` (direct child of
-        ``test_stand``). This node is reserved for future non-tank service bundles in the glTF tree.
-      members: []
     hv_umbilical:
       title: High voltage umbilical
       parts:
@@ -373,13 +404,24 @@ logical:
       members:
       - blast_detuner_assembly
     turbofan_intake:
-      title: Electric turbofan / inlet path
-      detail: Bellmouth + compressor can sit **outside the anode on −X** (not buried
-        in the bore) so the mesh reads **air in −X → fusion bay → hot gas +X → CD
-        nozzle**.
+      title: Air intake and compressor (−X spool inlet)
+      detail: |
+        **Bellmouth** + **compressor** on the **−X** train. Shaft is co-axial with **Turbine_Can**
+        on +X (see ``orbitron_reference_plant.yaml``). Propulsive air enters the **outer jacket**,
+        not the plasma bore. Pad **starter** is a sibling group ``pad_startup_services``.
       parts:
       - Bellmouth_Inlet
       - Compressor_Can
+    pad_startup_services:
+      title: Pad startup services (rig APU — not flight mass)
+      detail: |
+        **Pad_Startup_Cart** (ground power on the sled deck) feeds **Pad_Startup_Power_Cable** →
+        **Pad_Startup_Motor** on the −X compressor spool for light-off. Excluded from flight mass;
+        cart and cable are pad-only; motor clutches out after **Turbine_Can** takes over.
+      parts:
+      - Pad_Startup_Cart
+      - Pad_Startup_Power_Cable
+      - Pad_Startup_Motor
     nozzle_inlet_plenum:
       title: Nozzle inlet plenum / adapter
       detail: Turns the reactor outlet / bay flow into a uniform annulus or round
@@ -399,11 +441,16 @@ logical:
       parts:
       - Nozzle_Exit_Hardware
     propulsive_nozzle:
-      title: Propulsive nozzle assembly
+      title: Propulsive nozzle assembly (+X expansion train)
+      detail: |
+        **Plenum** (mixer) → **turbine** (shaft work for compressor) → **CD contour** + exit.
+        See ``orbitron_reference_plant.yaml``.
       members:
       - nozzle_inlet_plenum
       - nozzle_cd_contour
       - nozzle_exit_hardware
+      parts:
+      - Turbine_Can
     reactor_bay:
       title: Reactor bay (fusion core inside the engine flowpath)
       members:
@@ -960,23 +1007,80 @@ instances:
       - -1.0
       - 0.0
       - 0.0
+  Pad_Startup_Cart:
+    narrative: |
+      **Ground APU cart** on the thrust-sled deck beside the **−X** intake: skid, wheels, and
+      inverter/battery box with a roof **power post** (toward ``Pad_Startup_Power_Cable``). Pad-only;
+      not flight mass. Sits clear of the tank-farm row at **+Y**.
+    template: pad_startup_cart
+    params: {}
+    color:
+    - 0.38
+    - 0.39
+    - 0.42
+    transform_chain:
+    - op: translate
+      xyz:
+      - -1.52
+      - -0.34
+      - 0.02
+  Pad_Startup_Power_Cable:
+    narrative: |
+      **Starter power cable** from ``Pad_Startup_Cart`` receptacle to ``Pad_Startup_Motor``. Routed
+      along the deck with waypoints clear of the bellmouth; anchors in ``arcjet_test_stand_cad.py``
+      (``pad_startup_connector_anchors``).
+    template: lab_pad_startup_power_cable
+    params: {}
+    color:
+    - 0.12
+    - 0.12
+    - 0.14
+    transform_chain: []
+  Pad_Startup_Motor:
+    narrative: |
+      **Pad APU** — coarse **electric starter motor** on the **−X** end of the compressor spool
+      (side pod, not in the annulus bore). Rig power only; not counted as flight weight. Shaft stub
+      points **+X** toward ``Compressor_Can``; disconnects after ``Turbine_Can`` takes over the spool.
+    template: pad_starter_motor
+    params:
+      motor_length: 0.14
+      motor_od: 0.1
+    color:
+    - 0.92
+    - 0.48
+    - 0.08
+    transform_chain:
+    - op: translate
+      xyz:
+      - 0.0
+      - 0.0
+      - 0.58
+    - op: rotate_y_about_point
+      pivot:
+      - 0.0
+      - 0.0
+      - 0.32
+      angle_deg: 90.0
+    - op: translate
+      xyz:
+      - -1.22
+      - 0.2
+      - -0.04
   Compressor_Can:
-    narrative: 'Motor/compressor housing on the **intake (−X) train** (stacked with
-      the bell, same pivot, then **−1 m X**). **Centre bore** meets the niobium inlet
-      flange for **structural / sealing** geometry in this coarse mesh; **propulsive
-      air** is intended to leave the housing **into the outer jacket** and is modeled
-      by **Reactor_Bay_Inlet_Shroud** feeding the annulus around the core—not through
-      the plasma volume.
-
-      '
+    narrative: |
+      **Compressor** on the **−X** intake train (co-axial with **Turbine_Can** on +X). Coarse
+      single-stage can; **pad starter** (``Pad_Startup_Motor`` in ``pad_startup_services``) couples
+      to this shaft end at light-off. **Centre bore** is structural / sealing only; **propulsive air**
+      discharges into **Reactor_Bay_Inlet_Shroud** (annulus), not the plasma bore. After fusion
+      heats the duct gas, the **turbine** drives this spool — not a cruise ship battery.
     template: compressor_housing
     params:
       od: 0.16
       length: 0.25
     color:
-    - 0.55
-    - 0.58
+    - 0.35
     - 0.62
+    - 0.78
     transform_chain:
     - op: translate
       xyz:
@@ -1200,12 +1304,35 @@ instances:
       - 0.0
       - 0.32
       angle_deg: 90.0
+  Turbine_Can:
+    narrative: |
+      **Turbine** on the **+X** hot-gas train — same **shaft** as **Compressor_Can**. Extracts work
+      to spin the compressor after pad **APU** disconnect. Upstream: fusion-heated annulus + **plenum
+      mixer**; downstream: **Nozzle_CD_Contour**. See ``orbitron_reference_plant.yaml``.
+    template: turbine_housing
+    params:
+      od: 0.16
+      length: 0.18
+    color:
+    - 0.72
+    - 0.45
+    - 0.22
+    transform_chain:
+    - op: translate
+      xyz:
+      - 0.0
+      - 0.0
+      - 1.955
+    - op: rotate_y_about_point
+      pivot:
+      - 0.0
+      - 0.0
+      - 0.32
+      angle_deg: 90.0
   Nozzle_Inlet_Plenum:
-    narrative: 'Converging adapter / plenum stub **mated to Fusion_Hot_Gas_Outlet**
-      (+X core exhaust);
-
-      first segment of the propulsive nozzle (pre-rotation +Z positions map to +X
-      along the same axis as the core).
+    narrative: |
+      **Mixer / plenum** — hot **core exhaust**, **⁴He ash**, and compressed **annulus air** meet
+      before the **turbine**. Mated to **Fusion_Hot_Gas_Outlet** (+X). Pre-rotation +Z maps to +X.
 
       '
     template: nozzle_inlet_plenum

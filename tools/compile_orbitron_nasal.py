@@ -243,6 +243,9 @@ def _emit_reactor_ui(ui: Mapping[str, Any]) -> str:
     main_rows = ui.get("main_rows") or []
     dbg = ui.get("debug_window") or {}
     dbg_rows = dbg.get("rows") or []
+    sa = ui.get("startup_audio") or {}
+    crank_prop = str(sa.get("crank_prop", "/sim/model/reactor/startup-starter-crank"))
+    crank_reset = float(sa.get("crank_reset_sec", 0.18))
 
     cname_ = cname
     cv = canvas["name"]
@@ -324,6 +327,8 @@ def _emit_reactor_ui(ui: Mapping[str, Any]) -> str:
         "        m.debug_root = nil;",
         "        m.debug_txt = [];",
         "",
+        "        m._last_startup = 0;",
+        "",
         "        m.sync_debug_window();",
         "",
         f"        m.timer = maketimer({1.0 / timer_hz}, m, {cname_}.update);",
@@ -392,6 +397,11 @@ def _emit_reactor_ui(ui: Mapping[str, Any]) -> str:
     # Variable reads (same set as original reactor_ui.nas)
     lines += [
         '        var startup_on = (getprop("/sim/model/reactor/startup-trigger") or 0) != 0;',
+        f'        if (startup_on and !me._last_startup) {{',
+        f'            setprop({_nas_literal_string(crank_prop)}, 1);',
+        f'            settimer(func() {{ setprop({_nas_literal_string(crank_prop)}, 0); }}, {crank_reset});',
+        "        }",
+        "        me._last_startup = startup_on;",
         '        var nbi   = getprop("/controls/reactor/throttle") or 0.0;',
         '        var comp  = getprop("/controls/orbitron/compressor") or 0.0;',
         '        var cathode_pulse = getprop("/controls/orbitron/cathode-pulse") or 0.0;',

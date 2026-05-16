@@ -14,6 +14,11 @@ from arcjet_test_stand_cad import (
     bellmouth_flare,
     blast_detuner,
     compressor_housing,
+    turbine_housing,
+    pad_starter_motor_pod,
+    pad_startup_cart,
+    pad_startup_cable_params,
+    pad_startup_connector_anchors,
     lab_fuel_feed_valve,
     engine_mount_frame,
     load_cell_puck,
@@ -54,6 +59,35 @@ def tpl_compressor_housing(**params: Any) -> cq.Workplane:
         od=float(params.get("od", 0.14)),
         length=float(params.get("length", 0.25)),
     )
+
+
+def tpl_turbine_housing(**params: Any) -> cq.Workplane:
+    return turbine_housing(
+        od=float(params.get("od", 0.16)),
+        length=float(params.get("length", 0.18)),
+    )
+
+
+def tpl_pad_starter_motor(**params: Any) -> cq.Workplane:
+    return pad_starter_motor_pod(
+        motor_length=float(params.get("motor_length", 0.14)),
+        motor_od=float(params.get("motor_od", 0.10)),
+        shaft_radius=float(params.get("shaft_radius", 0.02)),
+        shaft_length=float(params.get("shaft_length", 0.07)),
+    )
+
+
+def tpl_pad_startup_cart(**params: Any) -> cq.Workplane:
+    return pad_startup_cart(
+        deck_lx=float(params.get("deck_lx", 0.58)),
+        deck_ly=float(params.get("deck_ly", 0.44)),
+        box_h=float(params.get("box_h", 0.38)),
+    )
+
+
+def tpl_lab_pad_startup_power_cable(**params: Any) -> cq.Workplane:
+    merged = {**pad_startup_cable_params(), **params}
+    return build_connector_routing(merged, pad_startup_connector_anchors())
 
 
 def tpl_bay_inlet_annulus_shroud(**params: Any) -> cq.Workplane:
@@ -305,6 +339,10 @@ def tpl_lab_magnet_feedthrough_bosses(**_: Any) -> cq.Workplane:
 TEMPLATE_REGISTRY: dict[str, Callable[..., cq.Workplane]] = {
     "bellmouth_flare": tpl_bellmouth_flare,
     "compressor_housing": tpl_compressor_housing,
+    "turbine_housing": tpl_turbine_housing,
+    "pad_starter_motor": tpl_pad_starter_motor,
+    "pad_startup_cart": tpl_pad_startup_cart,
+    "lab_pad_startup_power_cable": tpl_lab_pad_startup_power_cable,
     "bay_inlet_annulus_shroud": tpl_bay_inlet_annulus_shroud,
     "nozzle_stub": tpl_nozzle_stub,
     "nozzle_inlet_plenum": tpl_nozzle_inlet_plenum,

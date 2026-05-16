@@ -65,6 +65,9 @@ surrogate_load:
     fg_prefix: beam-screen-kw
 
 reactor_ui:
+  startup_audio:
+    crank_prop: /sim/model/reactor/startup-starter-crank
+    crank_reset_sec: 0.18
   class_name: ReactorUI
   canvas:
     name: Reactor_Telemetry

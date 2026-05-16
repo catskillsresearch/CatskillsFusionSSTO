@@ -10,6 +10,7 @@ shell, Nasal UI, physics/surrogate, and sound. Compilers under `tools/` emit art
 |------|-------------|---------|
 | `orbitron_lab.yaml` | `compile_assembly_yaml.py` | CadQuery meshes + logical assembly tree (schema v2) |
 | `orbitron_avalanche_core.yaml` | (reference) | Avalanche Orbitron fusion-core design basis (stability, fields, fuel) |
+| `orbitron_reference_plant.yaml` | (reference) | **Propulsion mechanism** — fusion-heated Brayton spool, heat paths, pad APU start |
 | `orbitron_physics_surrogate.yaml` | `build_surrogate_map.py`, `compile_orbitron_aircraft_runtime.py`, **`surrogate_closure_check.py`** | WarpX sweep, surrogate scales, **0D traceability** (`formal.traceability_chain`), thrust-sled load model |
 | `orbitron_aircraft_flightgear.yaml` | `compile_orbitron_aircraft_runtime.py` | `*-set.xml`, `Orbitron.xml`, JSBSim template copy |
 | `orbitron_nasal.yaml` | `compile_orbitron_nasal.py` | `surrogate_load.nas`, `reactor_ui.nas` (operator screen) |
@@ -83,10 +84,27 @@ Rows are declared in `orbitron_nasal.yaml` under `reactor_ui.telemetry` and comp
 
 Thrust/mdot **scale** (magnitude) comes from `surrogate_engineering` and `engine_surrogate.json`, not from the load-cell block.
 
+## Reference propulsion plant
+
+Canonical mechanism (air = reaction mass, turbine drives compressor after pad start):
+
+- **Spec:** [`orbitron_reference_plant.yaml`](orbitron_reference_plant.yaml)
+- **Summary:** [`../../../gas_flow.md`](../../../gas_flow.md)
+
+Meshes: `Pad_Startup_Cart` → `Pad_Startup_Power_Cable` → `Pad_Startup_Motor` (pad APU chain) ·
+`Bellmouth_Inlet` → `Compressor_Can` → annulus / core → `Turbine_Can` → nozzle train.
+
+### `logical_only` policy (schema v2)
+
+Use **`logical_only: true` only on composite groups** that organize **child groups which already
+export meshes** — never on hardware that could have a CadQuery ``instances`` entry. If it can be
+built, add an **instance** and list it under ``parts`` (or under a member assembly’s ``parts``).
+Do **not** create empty placeholder groups; remove them from the tree instead.
+
 ## Gas flow (supply vs fusion ash)
 
 Human-readable record: [`../../../gas_flow.md`](../../../gas_flow.md).  
-Machine-readable: `orbitron_lab.yaml` (`connections`, `logical_assemblies`, instance narratives).
+Machine-readable: `orbitron_lab.yaml` (`connections`, `logical.groups`, instance narratives).
 
 | Fluid | Assembly / meshes | Notes |
 |-------|-------------------|--------|

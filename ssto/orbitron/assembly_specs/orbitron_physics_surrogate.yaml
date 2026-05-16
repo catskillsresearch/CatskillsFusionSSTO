@@ -39,8 +39,19 @@ narrative: |
   and ``postprocessing_animate_plasma_note`` (migrated from the old WARPX_CASE_REVIEW.txt).
 
 avalanche_core_spec: orbitron_avalanche_core.yaml
+reference_plant_spec: orbitron_reference_plant.yaml
 
 formal:
+  reference_plant_surrogate_mapping: |
+    **Design intent** (``orbitron_reference_plant.yaml``): single-spool fusion-heated Brayton —
+    compressor raises air pressure; fusion heats gas via annulus walls + plenum mixer; turbine
+    returns shaft work to the compressor after pad electric start; nozzle produces thrust.
+
+    **This file / JSBSim** does not solve spool RPM or turbine–compressor matching. The bilinear
+    surrogate maps ``/controls/reactor/throttle`` × ``/controls/orbitron/compressor`` → thrust,
+    mdot, gross_power_mw as a **0D closure** consistent with full command (~3.5 MW gross, ~η_jet
+    in ``surrogate_engineering``). Treat ``compressor`` as **air-path / shaft-work demand**, not
+    literal battery kW in the FDM.
   compiled_expressions_contract: |
     Analytic E-field and species density/momentum strings are never taken verbatim from
     YAML. Only picmi.expression_bundle is machine-read: each entry is { preset, slots }

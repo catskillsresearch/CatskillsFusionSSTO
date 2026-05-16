@@ -48,6 +48,7 @@ fg_set:
     startup_trigger: false
     debug_ui_window: false
     startup_commissioning_audio: false
+    startup_starter_crank: false
   sound:
     path: Sounds/sound.xml
     chatter_volume: 0.0
@@ -92,6 +93,15 @@ fg_model_orbitron_xml:
       button: 0
       repeatable: false
       toggle_property: /sim/model/reactor/startup-trigger
+  effect_models:
+    - name: orbitron-nozzle-exhaust
+      path: Models/Effects/orbitron_nozzle_exhaust.xml
+      offsets:
+        x_m: 3.25
+        y_m: 0.0
+        z_m: 0.48
+        pitch_deg: 0.0
+        heading_deg: 0.0
 
 jsbsim:
   template_file: orbitron-jsbsim.xml

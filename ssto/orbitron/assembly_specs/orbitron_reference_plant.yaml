@@ -1,0 +1,147 @@
+# Reference propulsion plant — fusion-heated air-breathing Brayton (SSOT for mechanism of action).
+# Geometry labels: orbitron_lab.yaml. Core plasma: orbitron_avalanche_core.yaml.
+# Flight model (0D): orbitron_physics_surrogate.yaml — surrogate does not resolve spool torque balance.
+#
+# Human summary: ../../../gas_flow.md
+
+schema_version: 1
+title: Orbitron reference plant — single-spool fusion-heated Brayton
+
+reference_for:
+  lab_mesh: orbitron_lab.yaml
+  gas_flow_doc: ../../../gas_flow.md
+
+narrative: |
+  **Reaction mass:** ingested **air** (large ṁ). **Fusion** adds enthalpy to that stream; **core
+  injectants (H₂, B₂H₆)** feed the plasma only. **⁴He ash** and **hot core exhaust** add small mass
+  and large specific enthalpy at the **mixer / plenum** — they do not carry all fusion power as a
+  separate “torch” through open air.
+
+  **Self-contained after pad start:** one **compressor–turbine spool**. An **APU-class electric
+  starter** (pad hardware, not flight mass) spins the shaft until fusion heats the duct gas enough
+  that **turbine shaft power ≥ compressor power + losses**. Then the starter **clutches out** or
+  freewheels; **no cruise battery** is required for the compressor.
+
+  **FlightGear / JSBSim:** ``/controls/orbitron/compressor`` is the **air-path / shaft-work command**
+  (compressor demand, bleed, or schedule proxy), not “kW from a ship battery” in the surrogate.
+
+plant:
+  cycle: fusion_heated_brayton_single_spool
+  axis: propulsion_minus_X_to_plus_X
+  stages:
+    - id: scoop
+      role: capture_and_diffuse
+      mesh: [Bellmouth_Inlet]
+    - id: pad_starter_cart
+      role: ground_power_skid
+      mesh: [Pad_Startup_Cart]
+      notes: Pad-only; on thrust-sled deck beside −X intake.
+    - id: pad_starter_cable
+      role: cart_to_motor_bus
+      mesh: [Pad_Startup_Power_Cable]
+    - id: pad_starter
+      role: spin_spool_at_light_off
+      mesh: [Pad_Startup_Motor]
+      notes: Pad-only; orange pod on −X; not flight mass.
+    - id: compressor
+      role: raise_pressure_and_mass_flow
+      mesh: [Compressor_Can]
+      notes: |
+        Single stage (coarse mesh). Shaft co-axial with turbine. Air leaves housing into
+        **Reactor_Bay_Inlet_Shroud** annulus — not through the plasma bore.
+    - id: hot_section
+      role: add_fusion_enthalpy_to_air
+      mesh: [Reactor_Bay_Inlet_Shroud, Anode, Magnet, Magnet_Service_Bosses, Fusion_Hot_Gas_Outlet]
+      heat_paths:
+        - id: wall_convection
+          mechanism: forced_convection_on_hot_metal
+          description: |
+            Compressed air in the **annulus / jacket** scrubs the niobium pressure boundary and
+            solenoid OD. Fusion losses (alphas, electrons, radiation to walls, hot gas contact)
+            raise **T_wall**; air picks up heat without entering the plasma volume.
+        - id: gas_mixing
+          mechanism: turbulent_mixing_in_plenum
+          description: |
+            **Hot core exhaust** and **⁴He ash bleed** (Helium_Ash_Vent_Line) join the main
+            airstream at **Nozzle_Inlet_Plenum**. Small mass fraction, large enthalpy contribution.
+    - id: turbine
+      role: extract_shaft_work_for_compressor
+      mesh: [Turbine_Can]
+      notes: |
+        Expands hot gas enough to drive the **same shaft** as the compressor. Remaining enthalpy
+        goes to the nozzle.
+    - id: nozzle
+      role: thrust_from_expansion
+      mesh: [Nozzle_Inlet_Plenum, Nozzle_CD_Contour, Nozzle_Exit_Hardware]
+
+shaft:
+  layout: co_axial_compressor_and_turbine
+  starter:
+    type: electric_motor_pad_apu
+    mount: inlet_minus_X_end_or_side_pod
+    in_main_flow: false
+    description: |
+      Motor on the **shaft extension** (inlet nose or coupled jackshaft), **not** blocking the
+      annulus. Optional **clutch** or **one-way sprag** so the turbine does not drive the starter
+      backward after light-off.
+  disconnect_after_light_off: true
+
+startup_sequence:
+  - step: apu_cart_online
+    actor: pad_startup_cart
+    action: ground_cart_energizes_starter_bus
+  - step: apu_spin
+    actor: pad_startup_motor
+    action: electric_starter_accelerates_spool
+  - step: air_pump
+    actor: compressor
+    action: ingests_air_through_bellmouth_annulus_path
+  - step: reactor_ignite
+    actor: fusion_reactor
+    action: plasma_on_injectants_H2_B2H6
+  - step: heat_rise
+    actor: hot_section
+    action: walls_and_mixer_raise_gas_enthalpy
+  - step: turbine_takeover
+    actor: turbine
+    action: shaft_torque_balances_compressor_apu_off
+  - step: steady_thrust
+    actor: nozzle
+    action: expansion_produces_axial_force_on_sled
+
+pad_services:
+  pad_startup_cart:
+    mesh: Pad_Startup_Cart
+    mass_accounting: excluded_from_flight_article
+    description: Ground power skid on the thrust-sled deck (−X / −Y of intake).
+  pad_startup_power_cable:
+    mesh: Pad_Startup_Power_Cable
+    mass_accounting: excluded_from_flight_article
+    description: Heavy-gauge cable from cart receptacle to starter motor.
+  pad_startup_motor:
+    mesh: Pad_Startup_Motor
+    mass_accounting: excluded_from_flight_article
+    description: |
+      Electric starter on the compressor spool (orange pod on −X). Required on a **static test stand**
+      (no ram). Cart + cable disconnect after **turbine takeover**.
+
+controls_mapping:
+  ion_beam: /controls/reactor/throttle
+  cathode_pulse: /controls/orbitron/cathode-pulse
+  air_path_shaft: /controls/orbitron/compressor
+  reactor_active: /sim/model/reactor/startup-trigger
+
+ssto_optional_not_required_for_thrust:
+  - DEC_Grid
+  - Tank_Cryo_Methane
+  - Cryo_Methane_Piping
+
+explicitly_not_the_propulsion_mechanism:
+  - alphas_impinging_on_DEC_as_primary_thrust_coupling
+  - multi_MV_potential_on_inlet_air
+  - cruise_limited_by_onboard_battery_driving_compressor
+
+surrogate_note: |
+  JSBSim uses a **bilinear map** (throttle × compressor → thrust, mdot, gross_power_mw). It does
+  **not** integrate spool RPM or turbine–compressor matching. The reference plant above is the
+  **design intent** the surrogate is meant to suggest at full command, not a resolved cycle analysis.

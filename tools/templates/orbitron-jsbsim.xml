@@ -562,6 +562,104 @@
                 </function>
             </fcs_function>
 
+            <!-- Particle VFX scalars (thrust, mdot, nozzle_volume → rate / size / speed) -->
+            <fcs_function name="systems/orbitron_vfx/nozzle_core_particle_rate">
+                <function>
+                    <min>
+                        <value> 220.0 </value>
+                        <product>
+                            <property>systems/orbitron_sfx/nozzle_volume</property>
+                            <sum>
+                                <value> 18.0 </value>
+                                <product>
+                                    <property>systems/arcjet/thrust-lbf</property>
+                                    <value> 0.11 </value>
+                                </product>
+                                <product>
+                                    <property>systems/arcjet/mass-flow-kgps</property>
+                                    <value> 42.0 </value>
+                                </product>
+                            </sum>
+                        </product>
+                    </min>
+                </function>
+            </fcs_function>
+            <fcs_function name="systems/orbitron_vfx/nozzle_plume_particle_rate">
+                <function>
+                    <min>
+                        <value> 160.0 </value>
+                        <product>
+                            <property>systems/orbitron_sfx/nozzle_volume</property>
+                            <sum>
+                                <value> 12.0 </value>
+                                <product>
+                                    <property>systems/arcjet/mass-flow-kgps</property>
+                                    <value> 55.0 </value>
+                                </product>
+                            </sum>
+                        </product>
+                    </min>
+                </function>
+            </fcs_function>
+            <fcs_function name="systems/orbitron_vfx/nozzle_core_size-m">
+                <function>
+                    <min>
+                        <value> 1.6 </value>
+                        <sum>
+                            <value> 0.12 </value>
+                            <product>
+                                <property>systems/orbitron_sfx/nozzle_volume</property>
+                                <value> 0.55 </value>
+                            </product>
+                            <product>
+                                <property>systems/arcjet/thrust-lbf</property>
+                                <value> 0.00028 </value>
+                            </product>
+                        </sum>
+                    </min>
+                </function>
+            </fcs_function>
+            <fcs_function name="systems/orbitron_vfx/nozzle_plume_size-m">
+                <function>
+                    <min>
+                        <value> 3.8 </value>
+                        <sum>
+                            <value> 0.18 </value>
+                            <product>
+                                <property>systems/orbitron_sfx/nozzle_volume</property>
+                                <value> 0.95 </value>
+                            </product>
+                            <product>
+                                <property>systems/arcjet/mass-flow-kgps</property>
+                                <value> 0.35 </value>
+                            </product>
+                            <product>
+                                <property>systems/arcjet/thrust-lbf</property>
+                                <value> 0.00018 </value>
+                            </product>
+                        </sum>
+                    </min>
+                </function>
+            </fcs_function>
+            <fcs_function name="systems/orbitron_vfx/nozzle_exhaust_speed-mps">
+                <function>
+                    <min>
+                        <value> 95.0 </value>
+                        <sum>
+                            <value> 8.0 </value>
+                            <product>
+                                <property>systems/arcjet/equiv-exhaust-velocity-mps</property>
+                                <value> 0.22 </value>
+                            </product>
+                            <product>
+                                <property>systems/arcjet/mass-flow-kgps</property>
+                                <value> 12.0 </value>
+                            </product>
+                        </sum>
+                    </min>
+                </function>
+            </fcs_function>
+
             <!-- Nozzle / cell exhaust (thrust line + air mass flow); thins with altitude -->
             <fcs_function name="systems/orbitron_sfx/nozzle_volume">
                 <function>
