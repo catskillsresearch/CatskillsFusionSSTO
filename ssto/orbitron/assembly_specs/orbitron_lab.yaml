@@ -313,6 +313,7 @@ logical:
         **Gridless** magneto-electrostatic core per ``orbitron_avalanche_core.yaml``: ``Anode`` shell,
         on-axis ``Cathode`` (−100…−300 kV class), ``Magnet`` axial B for electrons, tangential
         ``NBI_Injector`` tangential keV **H⁺ / B⁺** beams (p-¹¹B fueling), ``Insulators``. **No fusor grids**.
+        ``Magnet_Service_Bosses`` are OD weld stubs for **CH₄** wall-thermal, **cryo** jacket tap, and **HV** feedthrough—co-located with trunk routing.
         1×1 lab surrogate of a multi-channel flight article. ``DEC_Grid`` is **not** in this group—
         see ``ssto_flight_article_addons``.
       members:
@@ -321,6 +322,7 @@ logical:
       - Anode
       - Cathode
       - Magnet
+      - Magnet_Service_Bosses
       - NBI_Injector
       - Insulators
     ssto_flight_article_addons:
@@ -574,17 +576,10 @@ instances:
     params:
       include_port_markers: false
       connectivity_spec:
-        physical_story: 'The console cluster energizes / supervises the core. The
-          visible orange path is
-
-          a coarse HV bus analogue; it must jog clear of the screen, stay visually
-
-          distinct from fuel lines, and terminate on the magnet where a feedthrough
-          would
-
-          enter the yoke in a full design.
-
-          '
+        physical_story: |
+          The console cluster energizes / supervises the core. The visible **orange** bus is schematic:
+          it runs to a **ceramic feedthrough boss** on the solenoid OD (``Magnet_Service_Bosses``)—console
+          potential into the **yoke / magnet circuit** in this coarse mesh, not a cathode pigtail.
         links:
         - link_id: hv_service
           service: high_voltage_schematic
@@ -605,8 +600,9 @@ instances:
         - 0.0
         - 0.0
         - 0.0
-        description: Magnet shell crown after the fusion reactor instance pose in orbitron_lab.yaml
-          (see LabInfrastructure.magnet_shell_connector_anchors).
+        description: |
+          HV feedthrough boss on the solenoid OD (see ``Magnet_Service_Bosses``; co-located anchor
+          in ``LabInfrastructure.magnet_shell_connector_anchors``).
       connector_links:
       - id: hv_service
         service: high_voltage_schematic
@@ -624,9 +620,15 @@ instances:
         - - 0.46
           - -0.12
           - 0.78
-        - - 0.55
-          - 0.0
-          - 0.45
+        - - 0.52
+          - 0.08
+          - 0.58
+        - - 0.58
+          - 0.11
+          - 0.50
+        - - 0.63
+          - 0.09
+          - 0.46
     color:
     - 0.9
     - 0.4
@@ -678,9 +680,9 @@ instances:
       include_port_markers: false
       connectivity_spec:
         physical_story: 'Light-grey **cryostat** leg: liquid CH₄ from the dewar to a
-          high tap on the magnet shell for **anode / boundary thermal management**
-          narrative (paired with **Tank_Cryo_Methane**). Distinct in intent from the
-          turbofan process-air path under ``air_breathing_engine``.
+          **jacket / boundary thermal tap** on the solenoid OD (``Magnet_Service_Bosses``)—SSTO
+          anode / wall cooling narrative, not p-¹¹B fuel. Distinct from the turbofan process-air
+          path under ``air_breathing_engine``.
 
           '
         links:
@@ -704,7 +706,8 @@ instances:
         - 0.0
         - 0.0
         - 0.0
-        description: Magnet crown / inboard rim tap (see LabInfrastructure.magnet_shell_connector_anchors).
+        description: |
+          Cryo jacket tap on the solenoid OD (``Magnet_Service_Bosses``; paired with dewar routing).
       connector_links:
       - id: cryo_fill
         service: cryo_ch4_cryostat_fill
@@ -720,9 +723,15 @@ instances:
         - - -0.08
           - 0.38
           - 0.55
-        - - 0.04
-          - 0.06
-          - 0.4
+        - - 0.18
+          - 0.22
+          - 0.50
+        - - 0.36
+          - 0.14
+          - 0.44
+        - - 0.40
+          - 0.12
+          - 0.43
     color:
     - 0.8
     - 0.8
@@ -1154,6 +1163,20 @@ instances:
       - 0.0
       - 0.32
       angle_deg: 90.0
+  Magnet_Service_Bosses:
+    narrative: |
+      **Solenoid OD feedthrough cluster** (world-space): bosses for the **CH₄** wall-thermal process
+      line, **cryostat / liquid CH₄** jacket conditioning tap, and **HV** ceramic feedthrough from the
+      console bus into the yoke region. ``Hydrogen_Trunk_Line`` / ``NBI_Injector`` are separate—p-¹¹B
+      injectant uses the green injector flange. Routing anchors share ``_MAGNET_SHELL_SERVICE_TABLE`` in
+      ``full_reactor_cad.py``.
+    template: lab_magnet_feedthrough_bosses
+    params: {}
+    color:
+    - 0.42
+    - 0.43
+    - 0.46
+    transform_chain: []
   NBI_Injector:
     narrative: |
       **Tangential keV ion beam injectors** (Avalanche Orbitron class). **H₂** and **B₂H₆** from

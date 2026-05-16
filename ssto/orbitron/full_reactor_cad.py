@@ -29,6 +29,79 @@ _FUSION_STACK_TRANSFORMS: list[dict[str, object]] = [
     {"op": "rotate_y_about_point", "pivot": [0.0, 0.0, _ENGINE_PIVOT_Z], "angle_deg": 90.0},
 ]
 
+# Solenoid OD service layout after fusion-stack pose: (anchor_key, x_offset_m, phi_deg, inset_m, boss_r, boss_h).
+# φ = 0° → +Y tank-farm normal; φ increases toward +Z “crown”. Shifts along +X pick distinct axial stations on the coil.
+_MAGNET_SHELL_SERVICE_TABLE: tuple[tuple[str, float, float, float, float, float], ...] = (
+    ("reactor_magnet_fuel_ch4_in", -0.26, -9.0, 0.018, 0.026, 0.038),
+    ("reactor_magnet_cryo_ch4_tap", -0.18, 34.0, 0.018, 0.028, 0.044),
+    ("reactor_magnet_hv_feed", 0.05, 52.0, 0.018, 0.026, 0.050),
+)
+
+
+def _magnet_od_inset_point(
+    bb,
+    *,
+    x_offset: float,
+    phi_deg: float,
+    inset_m: float,
+) -> tuple[float, float, float, float, float]:
+    """Point on the solenoid OD inset slightly along −n̂, plus outward normal (0, ny, nz) in YZ.
+
+    The posed ``Magnet`` is a long cylinder approx. on axis ‖ **+X**; OD in the YZ plane is a
+    circle centred on the bbox YZ midline. Axis-aligned bbox “+Y face” points are **not** on
+    that circle — hoses miss the mesh. See ``Magnet_Service_Bosses`` stubs for the visible story.
+    """
+    cx = (bb.xmin + bb.xmax) * 0.5
+    cy_ax = (bb.ymin + bb.ymax) * 0.5
+    cz_ax = (bb.zmin + bb.zmax) * 0.5
+    r_od = (bb.ymax - bb.ymin) * 0.5
+    phi = math.radians(phi_deg)
+    ny = math.cos(phi)
+    nz = math.sin(phi)
+    y0 = cy_ax + r_od * ny
+    z0 = cz_ax + r_od * nz
+    x0 = cx + x_offset
+    return (
+        x0,
+        y0 - inset_m * ny,
+        z0 - inset_m * nz,
+        ny,
+        nz,
+    )
+
+
+def _feedthrough_boss_stem(
+    point: tuple[float, float, float],
+    ny: float,
+    nz: float,
+    radius: float,
+    height: float,
+) -> cq.Workplane:
+    """Short cylinder extruded **outward** from the shell (boss visible beyond tube cap)."""
+    p = cq.Vector(point)
+    n = cq.Vector(0.0, float(ny), float(nz)).normalized()
+    zdir = n
+    xdir = zdir.cross(cq.Vector(1.0, 0.0, 0.0))
+    if xdir.Length < 1e-4:
+        xdir = zdir.cross(cq.Vector(0.0, 1.0, 0.0))
+    xdir = xdir.normalized()
+    pl = cq.Plane(origin=p, xDir=xdir, normal=zdir)
+    return cq.Workplane(inPlane=pl).circle(float(radius)).extrude(float(height))
+
+
+def build_magnet_feedthrough_bosses() -> cq.Workplane:
+    """World-space weld flanges / feedthrough bosses co-located with ``magnet_shell_connector_anchors``."""
+    lab = LabInfrastructure()
+    bb = lab._magnet_world_bbox()
+    out: cq.Workplane | None = None
+    for _key, xo, phi, ins, br, bh in _MAGNET_SHELL_SERVICE_TABLE:
+        x, y, z, ny, nz = _magnet_od_inset_point(bb, x_offset=xo, phi_deg=phi, inset_m=ins)
+        stem = _feedthrough_boss_stem((x, y, z), ny, nz, br, bh)
+        out = stem if out is None else out.union(stem)
+    if out is None:
+        return cq.Workplane("XY")
+    return out
+
 
 def _hv_seg_along_x(y: float, z: float, x0: float, x1: float, radius: float = 0.02) -> cq.Workplane:
     lo, hi = (x0, x1) if x0 < x1 else (x1, x0)
@@ -170,26 +243,46 @@ class LabInfrastructure:
         mag_w = apply_transform_chain(mag, _FUSION_STACK_TRANSFORMS)
         return mag_w.val().BoundingBox()
 
-    def magnet_shell_connector_anchors(self) -> dict[str, tuple[float, float, float]]:
-        """Service points on the **magnet** shell (reference lab art: HV on top, fuel on farm side).
+    def _nbi_world_bbox(self):
+        """Axis-aligned bbox of ``NBI_Injector`` (tube + flange union) after the fusion stack pose."""
+        from yaml_assembly.transform_ops import apply_transform_chain
 
-        Tanks sit at +Y; the magnet’s +Y-facing surface is used for three separated process
-        gas inlets. HV terminates above the core; cryo CH₄ uses a high-Z / −X “rim” tap.
+        *_, nbi = IntegratedOrbitronTube().build()
+        nbi_w = apply_transform_chain(nbi, _FUSION_STACK_TRANSFORMS)
+        return nbi_w.val().BoundingBox()
+
+    def nbi_feed_connector_anchors(self) -> dict[str, tuple[float, float, float]]:
+        """H₂ / B₂H₆ bosses on the **NBI** feed flange (not the solenoid shell).
+
+        After the lab’s fusion-stack rotation, the injectors protrude in **+X** with the
+        farm-facing **+Y** flange normal toward the tank row. Trunks must terminate here so
+        tubes meet the green injector mesh instead of floating on the magnet OD.
+        """
+        bb = self._nbi_world_bbox()
+        _face_in = 0.012
+        cx = (bb.xmin + bb.xmax) * 0.5
+        cy = bb.ymax - _face_in
+        cz = (bb.zmin + bb.zmax) * 0.5
+        sep = 0.034
+        return {
+            "reactor_nbi_h2_in": (cx + sep * 0.5, cy, cz + 0.018),
+            "reactor_nbi_b2h6_in": (cx - sep * 0.5, cy, cz - 0.012),
+        }
+
+    def magnet_shell_connector_anchors(self) -> dict[str, tuple[float, float, float]]:
+        """Service points on the **magnet** OD plus matching bosses in ``Magnet_Service_Bosses``.
+
+        **H₂ / B₂H₆** use :meth:`nbi_feed_connector_anchors`.
+
+        The posed solenoid is a long cylinder ‖ **+X**. Ports lie on the **curved OD** via
+        :func:`_magnet_od_inset_point` (φ from +Y toward +Z). **CH₄** → SSTO wall-thermal process
+        boss on the yoke; **cryo CH₄** → jacket / boundary thermal conditioning stub; **HV** →
+        ceramic feedthrough / yoke bushing (schematic) tying console bus to magnet potential.
         """
         bb = self._magnet_world_bbox()
-        cx = (bb.xmin + bb.xmax) * 0.5
-        cy = (bb.ymin + bb.ymax) * 0.5
-        cz = (bb.zmin + bb.zmax) * 0.5
-        skin = 0.018
-        y_farm = bb.ymax + skin
-        z_top = bb.zmax + skin
-        # Spread along +X with the H₂ tank (decks +Y): right-ish, center, left-ish for CH₄ dewar.
         return {
-            "reactor_magnet_fuel_h2_in": (cx + 0.24, y_farm, cz + 0.06),
-            "reactor_magnet_fuel_b2h6_in": (cx + 0.02, y_farm, cz + 0.02),
-            "reactor_magnet_fuel_ch4_in": (cx - 0.26, y_farm, cz - 0.02),
-            "reactor_magnet_hv_feed": (cx, cy, z_top),
-            "reactor_magnet_cryo_ch4_tap": (bb.xmin + 0.22, cy - 0.06, z_top),
+            key: _magnet_od_inset_point(bb, x_offset=xo, phi_deg=phi, inset_m=ins)[:3]
+            for key, xo, phi, ins, _br, _bh in _MAGNET_SHELL_SERVICE_TABLE
         }
 
     def build_table(self):
@@ -261,9 +354,9 @@ class LabInfrastructure:
     def fuel_line_connector_anchors(self) -> dict[str, tuple[float, float, float]]:
         """World-space points for fuel routing (tank tops + magnet-shell inlets).
 
-        Tank tops match ``build_fuel_farm()``. Reactor-side points sit on the solenoid
-        ``Magnet`` bbox after the same ``transform_chain`` as the fusion reactor instances in ``orbitron_lab.yaml``,
-        on the +Y farm-facing shell with X spread so the three services stay distinct.
+        Tank tops match ``build_fuel_farm()``. **H₂** and **B₂H₆** reactor ends use
+        :meth:`nbi_feed_connector_anchors` (injector flange). **CH₄** still uses the magnet
+        +Y process inlet (wall-thermal leg).
         """
         z_trim = 0.035
         h2_roof = 1.2 - z_trim
@@ -274,12 +367,13 @@ class LabInfrastructure:
         ch4_top = (-0.7, 1.2, ch4_roof + _LAB_TANK_VALVE_OUTLET_DZ)
 
         mag_ports = self.magnet_shell_connector_anchors()
+        nbi_ports = self.nbi_feed_connector_anchors()
         return {
             "fuel_farm_h2_tank_top": h2_top,
             "fuel_farm_b2h6_tank_top": b2_top,
             "fuel_farm_ch4_dewar_top": ch4_top,
-            "reactor_fuel_h2_in": mag_ports["reactor_magnet_fuel_h2_in"],
-            "reactor_fuel_b2h6_in": mag_ports["reactor_magnet_fuel_b2h6_in"],
+            "reactor_fuel_h2_in": nbi_ports["reactor_nbi_h2_in"],
+            "reactor_fuel_b2h6_in": nbi_ports["reactor_nbi_b2h6_in"],
             "reactor_fuel_ch4_in": mag_ports["reactor_magnet_fuel_ch4_in"],
         }
 
@@ -316,8 +410,8 @@ class LabInfrastructure:
         bb = self._magnet_world_bbox()
         cy = (bb.ymin + bb.ymax) * 0.5
         cz = (bb.zmin + bb.zmax) * 0.5
-        skin = 0.022
-        x_exhaust = bb.xmax + skin
+        _exhaust_face_in = 0.012
+        x_exhaust = bb.xmax - _exhaust_face_in
         return {
             "reactor_core_he_ash_out": (x_exhaust, cy, cz),
             "nozzle_plenum_he_ash_in": (x_exhaust + 0.74, cy, cz + 0.05),
@@ -372,8 +466,8 @@ def lab_h2_injectant_trunk_params() -> dict[str, Any]:
                     "link_id": "h2_service",
                     "service": "process_h2",
                     "from_region": "fuel_farm_h2_tank",
-                    "to_region": "reactor_magnet_shell_farm_face",
-                    "routing_intent": "arc_over_deck_then_h2_side_inlet",
+                    "to_region": "reactor_nbi_manifold",
+                    "routing_intent": "arc_over_deck_then_nbi_flange",
                 }
             ],
         },
@@ -388,7 +482,7 @@ def lab_h2_injectant_trunk_params() -> dict[str, Any]:
                 "id": "reactor_h2_in",
                 "anchor": "reactor_fuel_h2_in",
                 "offset": [0.0, 0.0, 0.0],
-                "description": "Magnet +Y shell inlet on the H₂ / injector side of the solenoid (spread in +X).",
+                "description": "NBI feed flange (+Y farm-facing boss) after fusion-stack pose.",
             },
         ],
         "connector_links": [
@@ -398,11 +492,12 @@ def lab_h2_injectant_trunk_params() -> dict[str, Any]:
                 "from_port": "tank_h2_out",
                 "to_port": "reactor_h2_in",
                 "radius": 0.02,
-                "description": "Hydrogen — polyline clears the deck edge then meets the magnet / injector face.",
-                # Second leg must stay above thrust sled + engine mount (see _SERVICE_ROUTING_DECK_CLEAR_Z).
+                "description": "Hydrogen — over deck, then slopes to the green NBI manifold (not the magnet OD).",
+                # Stay above thrust sled + engine mount (see _SERVICE_ROUTING_DECK_CLEAR_Z); approach injectors from +Y.
                 "waypoints": [
                     [0.62, 0.82, 0.98],
-                    [0.72, 0.52, _SERVICE_ROUTING_DECK_CLEAR_Z],
+                    [0.64, 0.42, 0.58],
+                    [0.66, 0.30, 0.38],
                 ],
             }
         ],
@@ -466,14 +561,14 @@ def lab_b2h6_injectant_trunk_params() -> dict[str, Any]:
     return {
         "include_port_markers": False,
         "connectivity_spec": {
-            "physical_story": "Diborane gaseous boron carrier trunk from B₂H₆ cylinder to magnet inlet.",
+            "physical_story": "Diborane gaseous boron carrier trunk from B₂H₆ cylinder to the NBI flange.",
             "links": [
                 {
                     "link_id": "b2h6_service",
                     "service": "diborane_nbi_boron_carrier",
                     "from_region": "fuel_farm_b2h6_tank",
-                    "to_region": "reactor_magnet_shell_farm_face",
-                    "routing_intent": "arc_over_deck_then_centre_inlet",
+                    "to_region": "reactor_nbi_manifold",
+                    "routing_intent": "arc_over_deck_then_nbi_flange",
                 }
             ],
         },
@@ -488,7 +583,7 @@ def lab_b2h6_injectant_trunk_params() -> dict[str, Any]:
                 "id": "reactor_b2h6_in",
                 "anchor": "reactor_fuel_b2h6_in",
                 "offset": [0.0, 0.0, 0.0],
-                "description": "Magnet +Y shell inlet near tube centreline for the B₂H₆ / boron injectant leg.",
+                "description": "Second boss on the NBI feed flange (paired with H₂).",
             },
         ],
         "connector_links": [
@@ -501,7 +596,8 @@ def lab_b2h6_injectant_trunk_params() -> dict[str, Any]:
                 "description": "Diborane — gaseous boron carrier to NBI / injector manifold.",
                 "waypoints": [
                     [0.04, 0.82, 0.96],
-                    [0.34, 0.52, _SERVICE_ROUTING_DECK_CLEAR_Z],
+                    [0.22, 0.42, 0.55],
+                    [0.50, 0.30, 0.34],
                 ],
             }
         ],

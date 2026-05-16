@@ -27,6 +27,7 @@ from arcjet_test_stand_cad import (
 from full_reactor_cad import (
     IntegratedOrbitronTube,
     LabInfrastructure,
+    build_magnet_feedthrough_bosses,
     fusion_exhaust_outlet_ring,
     lab_b2h6_injectant_trunk_params,
     lab_h2_injectant_trunk_params,
@@ -296,6 +297,11 @@ def tpl_lab_big_red_button(**_: Any) -> cq.Workplane:
     return b
 
 
+def tpl_lab_magnet_feedthrough_bosses(**_: Any) -> cq.Workplane:
+    """Solenoid OD bosses for CH₄ process, cryo thermal, and HV feedthrough (world-space)."""
+    return build_magnet_feedthrough_bosses()
+
+
 TEMPLATE_REGISTRY: dict[str, Callable[..., cq.Workplane]] = {
     "bellmouth_flare": tpl_bellmouth_flare,
     "compressor_housing": tpl_compressor_housing,
@@ -319,6 +325,7 @@ TEMPLATE_REGISTRY: dict[str, Callable[..., cq.Workplane]] = {
     "orbitron_cathode": tpl_orbitron_cathode,
     "orbitron_insulators": tpl_orbitron_insulators,
     "orbitron_magnet": tpl_orbitron_magnet,
+    "lab_magnet_feedthrough_bosses": tpl_lab_magnet_feedthrough_bosses,
     "orbitron_nbi": tpl_orbitron_nbi,
     "lab_tank_hydrogen": tpl_lab_tank_hydrogen,
     "lab_tank_deuterium": tpl_lab_tank_deuterium,
