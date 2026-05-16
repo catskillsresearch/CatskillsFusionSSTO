@@ -659,6 +659,59 @@
                     </min>
                 </function>
             </fcs_function>
+            <fcs_function name="systems/orbitron_vfx/nozzle_core_trail_life-sec">
+                <function>
+                    <min>
+                        <value> 1.2 </value>
+                        <sum>
+                            <value> 0.18 </value>
+                            <product>
+                                <property>systems/orbitron_sfx/nozzle_volume</property>
+                                <value> 0.55 </value>
+                            </product>
+                            <product>
+                                <property>systems/arcjet/thrust-lbf</property>
+                                <value> 0.00035 </value>
+                            </product>
+                        </sum>
+                    </min>
+                </function>
+            </fcs_function>
+            <fcs_function name="systems/orbitron_vfx/nozzle_plume_trail_life-sec">
+                <function>
+                    <min>
+                        <value> 2.8 </value>
+                        <sum>
+                            <value> 0.35 </value>
+                            <product>
+                                <property>systems/orbitron_sfx/nozzle_volume</property>
+                                <value> 1.05 </value>
+                            </product>
+                            <product>
+                                <property>systems/arcjet/mass-flow-kgps</property>
+                                <value> 0.22 </value>
+                            </product>
+                        </sum>
+                    </min>
+                </function>
+            </fcs_function>
+            <fcs_function name="systems/orbitron_vfx/nozzle_throat_glow_rate">
+                <function>
+                    <min>
+                        <value> 48.0 </value>
+                        <product>
+                            <property>systems/orbitron_sfx/nozzle_volume</property>
+                            <sum>
+                                <value> 14.0 </value>
+                                <product>
+                                    <property>systems/arcjet/thrust-lbf</property>
+                                    <value> 0.018 </value>
+                                </product>
+                            </sum>
+                        </product>
+                    </min>
+                </function>
+            </fcs_function>
 
             <!-- Nozzle / cell exhaust (thrust line + air mass flow); thins with altitude -->
             <fcs_function name="systems/orbitron_sfx/nozzle_volume">

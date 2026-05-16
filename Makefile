@@ -49,6 +49,16 @@ ORBITRON_SOUND_XML := $(STAND)/Sounds/sound.xml
 ORBITRON_PHYSICS_SPEC := $(ASSEMBLY_SPECS_DIR)/orbitron_physics_surrogate.yaml
 ORBITRON_PHYSICS_SPEC_PY := $(REPO_ROOT)/tools/orbitron_physics_spec.py
 ORBITRON_MODEL_XML := $(STAND)/Models/Orbitron.xml
+# Nozzle particle VFX: template + shared textures → aircraft package (tracked outputs).
+ORBITRON_VFX_DIR := $(STAND)/Models/Effects
+ORBITRON_NOZZLE_EXHAUST_SRC := $(REPO_ROOT)/tools/templates/orbitron_nozzle_exhaust.xml
+GENERATE_ORBITRON_VFX_TEX := $(REPO_ROOT)/tools/generate_orbitron_vfx_textures.py
+ORBITRON_VFX_TEX_FLAME_SRC := $(REPO_ROOT)/Models/Effects/orbitron_nozzle_flame.png
+ORBITRON_VFX_TEX_PLUME_SRC := $(REPO_ROOT)/Models/Effects/orbitron_nozzle_plume.png
+ORBITRON_VFX_ASSETS := \
+	$(ORBITRON_VFX_DIR)/orbitron_nozzle_exhaust.xml \
+	$(ORBITRON_VFX_DIR)/orbitron_nozzle_flame.png \
+	$(ORBITRON_VFX_DIR)/orbitron_nozzle_plume.png
 ORBITRON_AIRCRAFT_SPEC := $(ASSEMBLY_SPECS_DIR)/orbitron_aircraft_flightgear.yaml
 ORBITRON_NASAL_SPEC := $(ASSEMBLY_SPECS_DIR)/orbitron_nasal.yaml
 ORBITRON_AIRCRAFT_PATHS := $(REPO_ROOT)/tools/orbitron_aircraft_paths.py
@@ -77,6 +87,8 @@ YAML_LAB_COMPILER_DEPS := \
 GRAPH_INPUTS := Makefile $(ORBITRON_LAB_YAMLS) $(YAML_LAB_COMPILER_DEPS) \
 	$(ORBITRON_SOUND_ASSETS) $(SOUND_COMPILER) $(COMPILE_SOUND_XML) \
 	$(ORBITRON_AIRCRAFT_SPEC) $(ORBITRON_AIRCRAFT_PATHS) $(REPO_ROOT)/tools/orbitron_aircraft_pkg.py $(COMPILE_AIRCRAFT_RUNTIME) $(JSBSIM_TEMPLATE) \
+	$(ORBITRON_NOZZLE_EXHAUST_SRC) $(GENERATE_ORBITRON_VFX_TEX) \
+	$(ORBITRON_VFX_TEX_FLAME_SRC) $(ORBITRON_VFX_TEX_PLUME_SRC) \
 	$(ORBITRON_NASAL_SPEC) $(COMPILE_ORBITRON_NASAL) \
 	$(ORBITRON_PHYSICS_SPEC) $(ORBITRON_PHYSICS_SPEC_PY) $(REPO_ROOT)/tools/warpx_expression_presets.py \
 	$(ORBITRON)/build_ac3d.py $(ORBITRON)/fix_screen_uv.py $(SUR_DEP_ALL) \
@@ -94,7 +106,8 @@ MODEL_ARTIFACTS := \
 	$(STAND)/build/surrogate_sweep_results.csv \
 	$(MERMAID_OUT) \
 	$(PARTS_MERMAID) \
-	$(PARTS_LOGICAL_MERMAID)
+	$(PARTS_LOGICAL_MERMAID) \
+	$(ORBITRON_VFX_ASSETS)
 
 .PHONY: all help clean graph parts-graph open-lab run-fgfs fg-ready orbitron-lab-gltf orbitron-lab-tank-sub-gltfs orbitron-lab-sub-gltfs surrogate-closure
 
@@ -120,7 +133,7 @@ help:
 	@echo "  Nasal is generated from $(ORBITRON_NASAL_SPEC); sound.xml + WAV under $(STAND)/Sounds/. Built model: $(MODEL_ARTIFACTS)"
 	@echo "Use ./stand.sh for Poetry + WarpX library paths, then make."
 
-fg-ready: $(STAND)/.dirs $(STAND_NASAL) $(STAND_FG_SET) $(STAND_JSBSIM_XML) $(ORBITRON_MODEL_XML) $(MODEL_ARTIFACTS)
+fg-ready: $(STAND)/.dirs $(STAND_NASAL) $(STAND_FG_SET) $(STAND_JSBSIM_XML) $(ORBITRON_MODEL_XML) $(ORBITRON_VFX_ASSETS) $(MODEL_ARTIFACTS)
 
 $(STAND)/.dirs:
 	mkdir -p $(STAND)/Models $(STAND)/Nasal $(STAND)/Sounds $(STAND)/build $(BUILD)/warpx-runs
@@ -144,6 +157,21 @@ $(STAND_FG_SET) $(STAND_JSBSIM_XML) $(ORBITRON_MODEL_XML) &: \
 		--aircraft-spec '$(ORBITRON_AIRCRAFT_SPEC)' \
 		--physics-spec '$(ORBITRON_PHYSICS_SPEC)' \
 		--out-dir '$(STAND)'
+
+$(ORBITRON_VFX_TEX_FLAME_SRC) $(ORBITRON_VFX_TEX_PLUME_SRC): $(GENERATE_ORBITRON_VFX_TEX) | $(REPO_ROOT)/Models/Effects
+	$(POETRY) run python '$(GENERATE_ORBITRON_VFX_TEX)' --out-dir '$(REPO_ROOT)/Models/Effects'
+
+$(ORBITRON_VFX_DIR)/orbitron_nozzle_exhaust.xml: $(ORBITRON_NOZZLE_EXHAUST_SRC) | $(STAND)/.dirs
+	mkdir -p '$(ORBITRON_VFX_DIR)'
+	cp -f '$<' '$@'
+
+$(ORBITRON_VFX_DIR)/orbitron_nozzle_flame.png: $(ORBITRON_VFX_TEX_FLAME_SRC) | $(STAND)/.dirs
+	mkdir -p '$(ORBITRON_VFX_DIR)'
+	cp -f '$<' '$@'
+
+$(ORBITRON_VFX_DIR)/orbitron_nozzle_plume.png: $(ORBITRON_VFX_TEX_PLUME_SRC) | $(STAND)/.dirs
+	mkdir -p '$(ORBITRON_VFX_DIR)'
+	cp -f '$<' '$@'
 
 # Nested lab glTF: CadQuery Assembly tree matches logical.groups (schema v2).
 $(GLTF_LAB): $(ORBITRON_LAB_YAMLS) $(YAML_LAB_COMPILER_DEPS) | $(STAND)/.dirs

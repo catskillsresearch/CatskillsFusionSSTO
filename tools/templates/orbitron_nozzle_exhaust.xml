@@ -1,17 +1,19 @@
 <?xml version="1.0"?>
-<!-- Orbitron CD nozzle exhaust — rates/sizes driven by JSBSim orbitron_sfx + arcjet outputs. -->
+<!-- Orbitron CD nozzle exhaust — axis-aligned trails (readable from side / top, not just aft). -->
 <PropertyList>
 
-  <!-- Hot core: emissive annulus, scales with nozzle_volume and thrust -->
+  <!-- Hot core: velocity-aligned streak along jet axis (+X local after model heading). -->
   <particlesystem>
-    <name>orbitron_nozzle_core</name>
-    <texture>annulus.png</texture>
+    <type>trail</type>
+    <name>orbitron_nozzle_core_trail</name>
+    <texture>orbitron_nozzle_flame.png</texture>
     <emissive>true</emissive>
     <lighting>false</lighting>
     <x-m>0.0</x-m>
     <y-m>0.0</y-m>
     <z-m>0.0</z-m>
-    <pitch-deg>0.0</pitch-deg>
+    <roll-deg>0.0</roll-deg>
+    <pitch-deg>90.0</pitch-deg>
     <heading-deg>0.0</heading-deg>
     <condition>
       <greater-than>
@@ -24,22 +26,23 @@
       <type>point</type>
     </placer>
     <shooter>
-      <theta-min-deg>-4</theta-min-deg>
-      <theta-max-deg>4</theta-max-deg>
-      <phi-min-deg>-2</phi-min-deg>
-      <phi-max-deg>2</phi-max-deg>
+      <theta-min-deg>88.5</theta-min-deg>
+      <theta-max-deg>91.5</theta-max-deg>
+      <phi-min-deg>-0.4</phi-min-deg>
+      <phi-max-deg>0.4</phi-max-deg>
       <speed-mps>
         <property>/fdm/jsbsim/systems/orbitron_vfx/nozzle_exhaust_speed-mps</property>
-        <spread>12</spread>
+        <spread>0</spread>
       </speed-mps>
     </shooter>
     <counter>
       <particles-per-sec>
         <property>/fdm/jsbsim/systems/orbitron_vfx/nozzle_core_particle_rate</property>
-        <spread>6</spread>
+        <factor>0.55</factor>
+        <spread>0</spread>
       </particles-per-sec>
     </counter>
-    <align>billboard</align>
+    <align>fixed</align>
     <particle>
       <start>
         <color>
@@ -56,35 +59,36 @@
         </color>
         <size>
           <property>/fdm/jsbsim/systems/orbitron_vfx/nozzle_core_size-m</property>
-          <min>0.08</min>
-          <max>1.4</max>
+          <factor>3.2</factor>
+          <min>0.3</min>
+          <max>4.5</max>
         </size>
       </start>
       <end>
         <color>
           <red><value>0.95</value></red>
-          <green><value>0.45</value></green>
-          <blue><value>0.08</value></blue>
+          <green><value>0.42</value></green>
+          <blue><value>0.06</value></blue>
           <alpha>
             <property>/fdm/jsbsim/systems/orbitron_sfx/nozzle_volume</property>
-            <factor>0.35</factor>
+            <factor>0.25</factor>
             <min>0.0</min>
-            <max>0.6</max>
+            <max>0.5</max>
           </alpha>
         </color>
         <size>
           <property>/fdm/jsbsim/systems/orbitron_vfx/nozzle_core_size-m</property>
-          <factor>2.8</factor>
-          <min>0.2</min>
-          <max>3.5</max>
+          <factor>9.0</factor>
+          <min>1.0</min>
+          <max>12.0</max>
         </size>
       </end>
       <life-sec>
-        <value>0.35</value>
-        <spread>0.08</spread>
+        <property>/fdm/jsbsim/systems/orbitron_vfx/nozzle_core_trail_life-sec</property>
+        <spread>0.05</spread>
       </life-sec>
       <mass-kg>0.02</mass-kg>
-      <radius-m>0.05</radius-m>
+      <radius-m>0.04</radius-m>
     </particle>
     <program>
       <fluid>air</fluid>
@@ -93,16 +97,18 @@
     </program>
   </particlesystem>
 
-  <!-- Outer shear / smoke plume: mdot + nozzle_volume -->
+  <!-- Shear plume: wider but still axis-aligned trail (side view = elongated exhaust, not discs). -->
   <particlesystem>
-    <name>orbitron_nozzle_plume</name>
-    <texture>smoke.png</texture>
+    <type>trail</type>
+    <name>orbitron_nozzle_plume_trail</name>
+    <texture>orbitron_nozzle_plume.png</texture>
     <emissive>false</emissive>
     <lighting>false</lighting>
-    <x-m>0.15</x-m>
+    <x-m>0.12</x-m>
     <y-m>0.0</y-m>
     <z-m>0.0</z-m>
-    <pitch-deg>0.0</pitch-deg>
+    <roll-deg>0.0</roll-deg>
+    <pitch-deg>90.0</pitch-deg>
     <heading-deg>0.0</heading-deg>
     <condition>
       <greater-than>
@@ -115,68 +121,154 @@
       <type>point</type>
     </placer>
     <shooter>
-      <theta-min-deg>-8</theta-min-deg>
-      <theta-max-deg>8</theta-max-deg>
-      <phi-min-deg>-5</phi-min-deg>
-      <phi-max-deg>5</phi-max-deg>
+      <theta-min-deg>86.0</theta-min-deg>
+      <theta-max-deg>94.0</theta-max-deg>
+      <phi-min-deg>-2.5</phi-min-deg>
+      <phi-max-deg>2.5</phi-max-deg>
       <speed-mps>
         <property>/fdm/jsbsim/systems/orbitron_vfx/nozzle_exhaust_speed-mps</property>
-        <factor>0.72</factor>
-        <spread>18</spread>
+        <factor>0.78</factor>
+        <spread>2</spread>
       </speed-mps>
     </shooter>
     <counter>
       <particles-per-sec>
         <property>/fdm/jsbsim/systems/orbitron_vfx/nozzle_plume_particle_rate</property>
-        <spread>12</spread>
+        <factor>0.45</factor>
+        <spread>0</spread>
+      </particles-per-sec>
+    </counter>
+    <align>fixed</align>
+    <particle>
+      <start>
+        <color>
+          <red><value>0.78</value></red>
+          <green><value>0.80</value></green>
+          <blue><value>0.84</value></blue>
+          <alpha>
+            <property>/fdm/jsbsim/systems/orbitron_sfx/nozzle_volume</property>
+            <factor>0.48</factor>
+            <offset>0.06</offset>
+            <min>0.0</min>
+            <max>0.75</max>
+          </alpha>
+        </color>
+        <size>
+          <property>/fdm/jsbsim/systems/orbitron_vfx/nozzle_plume_size-m</property>
+          <factor>3.5</factor>
+          <min>0.6</min>
+          <max>6.0</max>
+        </size>
+      </start>
+      <end>
+        <color>
+          <red><value>0.52</value></red>
+          <green><value>0.52</value></green>
+          <blue><value>0.55</value></blue>
+          <alpha><value>0.04</value></alpha>
+        </color>
+        <size>
+          <property>/fdm/jsbsim/systems/orbitron_vfx/nozzle_plume_size-m</property>
+          <factor>11.0</factor>
+          <min>2.0</min>
+          <max>18.0</max>
+        </size>
+      </end>
+      <life-sec>
+        <property>/fdm/jsbsim/systems/orbitron_vfx/nozzle_plume_trail_life-sec</property>
+        <spread>0.12</spread>
+      </life-sec>
+      <mass-kg>0.04</mass-kg>
+      <radius-m>0.06</radius-m>
+    </particle>
+    <program>
+      <fluid>air</fluid>
+      <gravity type="bool">true</gravity>
+      <wind type="bool">true</wind>
+    </program>
+  </particlesystem>
+
+  <!-- Nozzle throat glow: small billboard at the exit plane (reads as a lit rim, not a long cloud). -->
+  <particlesystem>
+    <name>orbitron_nozzle_throat_glow</name>
+    <texture>orbitron_nozzle_flame.png</texture>
+    <emissive>true</emissive>
+    <lighting>false</lighting>
+    <x-m>0.0</x-m>
+    <y-m>0.0</y-m>
+    <z-m>0.0</z-m>
+    <condition>
+      <greater-than>
+        <property>/fdm/jsbsim/systems/orbitron_sfx/nozzle_volume</property>
+        <value>0.02</value>
+      </greater-than>
+    </condition>
+    <attach>local</attach>
+    <placer>
+      <type>point</type>
+    </placer>
+    <shooter>
+      <theta-min-deg>0</theta-min-deg>
+      <theta-max-deg>0</theta-max-deg>
+      <phi-min-deg>0</phi-min-deg>
+      <phi-max-deg>0</phi-max-deg>
+      <speed-mps>
+        <value>0.5</value>
+        <spread>0</spread>
+      </speed-mps>
+    </shooter>
+    <counter>
+      <particles-per-sec>
+        <property>/fdm/jsbsim/systems/orbitron_vfx/nozzle_throat_glow_rate</property>
+        <spread>0</spread>
       </particles-per-sec>
     </counter>
     <align>billboard</align>
     <particle>
       <start>
         <color>
-          <red><value>0.75</value></red>
-          <green><value>0.78</value></green>
-          <blue><value>0.82</value></blue>
+          <red><value>1.0</value></red>
+          <green><value>0.88</value></green>
+          <blue><value>0.45</value></blue>
           <alpha>
             <property>/fdm/jsbsim/systems/orbitron_sfx/nozzle_volume</property>
-            <factor>0.55</factor>
-            <offset>0.08</offset>
+            <factor>0.85</factor>
             <min>0.0</min>
-            <max>0.85</max>
+            <max>1.0</max>
           </alpha>
         </color>
         <size>
-          <property>/fdm/jsbsim/systems/orbitron_vfx/nozzle_plume_size-m</property>
-          <min>0.15</min>
-          <max>2.2</max>
+          <property>/fdm/jsbsim/systems/orbitron_vfx/nozzle_core_size-m</property>
+          <factor>2.4</factor>
+          <min>0.25</min>
+          <max>2.5</max>
         </size>
       </start>
       <end>
         <color>
-          <red><value>0.55</value></red>
+          <red><value>1.0</value></red>
           <green><value>0.55</value></green>
-          <blue><value>0.58</value></blue>
-          <alpha><value>0.05</value></alpha>
+          <blue><value>0.12</value></blue>
+          <alpha><value>0.0</value></alpha>
         </color>
         <size>
-          <property>/fdm/jsbsim/systems/orbitron_vfx/nozzle_plume_size-m</property>
-          <factor>3.2</factor>
-          <min>0.4</min>
-          <max>5.5</max>
+          <property>/fdm/jsbsim/systems/orbitron_vfx/nozzle_core_size-m</property>
+          <factor>3.0</factor>
+          <min>0.3</min>
+          <max>3.0</max>
         </size>
       </end>
       <life-sec>
-        <value>1.1</value>
-        <spread>0.25</spread>
+        <value>0.08</value>
+        <spread>0.02</spread>
       </life-sec>
-      <mass-kg>0.05</mass-kg>
-      <radius-m>0.08</radius-m>
+      <mass-kg>0.01</mass-kg>
+      <radius-m>0.03</radius-m>
     </particle>
     <program>
       <fluid>air</fluid>
-      <gravity type="bool">true</gravity>
-      <wind type="bool">true</wind>
+      <gravity type="bool">false</gravity>
+      <wind type="bool">false</wind>
     </program>
   </particlesystem>
 

@@ -235,10 +235,20 @@ def _install_vfx_assets(out_dir: Path, repo_root: Path, fg_model: Mapping[str, A
     tmpl = repo_root / "tools" / "templates" / "orbitron_nozzle_exhaust.xml"
     if tmpl.is_file():
         shutil.copy2(tmpl, dst_effects / "orbitron_nozzle_exhaust.xml")
-    for tex in ("annulus.png", "smoke.png"):
+    missing: list[str] = []
+    for tex in ("orbitron_nozzle_flame.png", "orbitron_nozzle_plume.png"):
         src = src_shared / tex
         if src.is_file():
             shutil.copy2(src, dst_effects / tex)
+        else:
+            missing.append(tex)
+    if missing:
+        print(
+            "warning: missing VFX textures under Models/Effects/: "
+            + ", ".join(missing)
+            + " (run make to copy into the aircraft package)",
+            file=sys.stderr,
+        )
 
 
 def _build_orbitron_model_xml(fg_model: Mapping[str, Any]) -> str:
