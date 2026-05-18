@@ -43,15 +43,10 @@ telemetry:
 
 surrogate_load:
   header: |
-    Load engine_surrogate.json (from WarpX reduction) into /sim/model/orbitron/surrogate/*
-    so orbitron-jsbsim.xml can read bilinear control-surface coefficients.
-    Runs once at aircraft init. (Generated from orbitron_nasal.yaml.)
+    Bilinear surrogate coefficients baked at compile time from engine_surrogate.json
+    into /sim/model/orbitron/surrogate/* (no runtime parsejson). Generated from orbitron_nasal.yaml.
   fg_surrogate_root: /sim/model/orbitron/surrogate
-  json_filename: engine_surrogate.json
   init_delay_sec: 0
-  aircraft_dir_probe:
-    max_attempts: 24
-    interval_sec: 0.05
   surfaces:
     - fg_prefix: thrust
       json_bilinear: thrust_lbf_surface
@@ -71,6 +66,26 @@ orbitron_ops:
   header: |
     Pad startup interlocks + starter crank pulse (orbitron_operator_console_spec.yaml).
     Generated — edit orbitron_nasal.yaml orbitron_ops block.
+  # JSBSim reports 0 engines — FG often spawns at null island and the pad tumbles (view spins).
+  startup_reposition:
+    # BIKF East-Apron-119 (groundnet N63 58.912 W22 35.304). Lat/lon only — parkpos breaks 0-engine JSBSim.
+    latitude_deg: 63.98187
+    longitude_deg: -22.5884
+    altitude_ft: 158
+    pad_clearance_ft: 1.5
+    heading_deg: 0
+    pad_tolerance_deg: 0.02
+    place_retry_sec: 0.35
+    place_retry_max: 8
+  pad_stabilize:
+    roll_deg: 0
+    pitch_deg: 0
+    hz: 30
+  operator_view:
+    eye: [-1.4, -4.8, 1.65]
+    target: [-1.4, -2.3, 1.25]
+  startup_view_number: 2
+  block_hijack_views: true
   timer_hz: 10
   crank_prop: /sim/model/reactor/startup-starter-crank
   crank_reset_sec: 0.18
@@ -99,18 +114,13 @@ reactor_ui:
   title:
     text: ORBITRON + ARCJET TEST STAND
     position: [512, 100]
-  probe_nodes:
-    - Screen
-    - screen
-    - Operator_Console
-    - operator_console
-    - Optics_Table
-    - optics_table
-    - Big_Red_Button
-    - big_red_button
-    - Panel_Switch_APU
-    - Panel_Switch_Starter
-    - Panel_Switch_Bleed
+  use_screen_placement: false
+  startup_open_debug_dialog: false
+  canvas_placement:
+    node: Screen
+    retry_hz: 4
+    max_attempts: 60
+    open_debug_window_on_fail: false
   timer_hz: 10
   main_rows:
     - id: seq_hint

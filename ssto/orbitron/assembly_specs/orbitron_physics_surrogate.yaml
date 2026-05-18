@@ -258,6 +258,17 @@ surrogate_engineering:
   gross_power_mw_scale: 3.5
   heat_kw_scale: 400.0
 
+# Static pad FDM (JSBSim @TOKENS@ in tools/templates/orbitron-jsbsim.xml).
+test_stand_fdm:
+  empty_weight_lbf: 120000
+  inertia_slug_ft2: 250000
+  pad_spring_lbs_ft: 50
+  pad_damping_lbs_ft_sec: 50
+  angular_rate_damp_lbf_ft: 2500000
+  thrust_arm_x_m: 0.0
+  thrust_arm_y_m: 0.0
+  thrust_arm_z_m: 0.0
+
 # Thrust-sled corner load model (JSBSim). See formal.thrust_sled_load_cells and assembly_specs/README.md.
 thrust_sled_load_cells:
   narrative: |

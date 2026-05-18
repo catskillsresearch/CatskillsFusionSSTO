@@ -142,9 +142,10 @@ $(STAND)/.dirs:
 $(BUILD)/warpx-runs:
 	mkdir -p '$(BUILD)' '$(BUILD)/warpx-runs'
 
-$(STAND_NASAL) &: $(ORBITRON_NASAL_SPEC) $(COMPILE_ORBITRON_NASAL) | $(STAND)/.dirs
+$(STAND_NASAL) &: $(ORBITRON_NASAL_SPEC) $(COMPILE_ORBITRON_NASAL) $(STAND)/engine_surrogate.json | $(STAND)/.dirs
 	cd '$(REPO_ROOT)' && $(POETRY) run python $(COMPILE_ORBITRON_NASAL) \
-		--spec '$(ORBITRON_NASAL_SPEC)' --out-dir '$(STAND)/Nasal'
+		--spec '$(ORBITRON_NASAL_SPEC)' --out-dir '$(STAND)/Nasal' \
+		--surrogate-json '$(STAND)/engine_surrogate.json'
 
 $(ORBITRON_SOUND_XML): $(ORBITRON_SOUND_ASSETS) $(COMPILE_SOUND_XML) | $(STAND)/.dirs
 	cd '$(REPO_ROOT)' && $(POETRY) run python $(COMPILE_SOUND_XML) \
@@ -382,11 +383,7 @@ open-lab:
 	@$(REPO_ROOT)/bl.sh
 
 run-fgfs: fg-ready
-	cd $(REPO_ROOT) && fgfs --fg-aircraft=$(AIRCRAFT) --aircraft=$(ORBITRON_PKG) \
-		--airport=BIKF --parkpos=East-Apron-119 --timeofday=noon --ai-traffic=0 \
-		--real-weather-fetch=0 --clouds3d=0 \
-		--prop:/sim/sound/chatter/volume=0.0 --prop:/sim/sound/atc/volume=0.0 \
-		--prop:/instrumentation/comm/volume=0.0
+	cd $(REPO_ROOT) && ./fs.sh
 
 clean:
 	rm -rf '$(AIRCRAFT)' '$(BUILD)'

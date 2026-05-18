@@ -19,42 +19,29 @@
     </metrics>
 
     <mass_balance>
-        <ixx unit="SLUG*FT2"> 5000 </ixx>
-        <iyy unit="SLUG*FT2"> 5000 </iyy>
-        <izz unit="SLUG*FT2"> 5000 </izz>
-        <emptywt unit="LBS" > 5000 </emptywt>
+        <ixx unit="SLUG*FT2"> @INERTIA_SLUGFT2@ </ixx>
+        <iyy unit="SLUG*FT2"> @INERTIA_SLUGFT2@ </iyy>
+        <izz unit="SLUG*FT2"> @INERTIA_SLUGFT2@ </izz>
+        <emptywt unit="LBS" > @EMPTYWT_LBF@ </emptywt>
         <location name="CG" unit="IN"> <x>0</x> <y>0</y> <z>0</z> </location>
     </mass_balance>
 
+    <!-- Single central BOGEY: FG requires >=1 gear unit for ground trim; one pad avoids corner sink. -->
     <ground_reactions>
-        <!-- Numerically Stable values for 120Hz physics -->
-        <contact type="STRUCTURE" name="Left_Front">
-            <location unit="IN"> <x>-50</x> <y>-50</y> <z>-20</z> </location>
-            <static_friction>  1.0 </static_friction>
-            <dynamic_friction> 1.0 </dynamic_friction>
-            <spring_coeff unit="LBS/FT"> 5000.0 </spring_coeff>
-            <damping_coeff unit="LBS/FT/SEC"> 500.0 </damping_coeff>
-        </contact>
-        <contact type="STRUCTURE" name="Right_Front">
-            <location unit="IN"> <x>-50</x> <y>50</y> <z>-20</z> </location>
-            <static_friction>  1.0 </static_friction>
-            <dynamic_friction> 1.0 </dynamic_friction>
-            <spring_coeff unit="LBS/FT"> 5000.0 </spring_coeff>
-            <damping_coeff unit="LBS/FT/SEC"> 500.0 </damping_coeff>
-        </contact>
-        <contact type="STRUCTURE" name="Left_Rear">
-            <location unit="IN"> <x>50</x> <y>-50</y> <z>-20</z> </location>
-            <static_friction>  1.0 </static_friction>
-            <dynamic_friction> 1.0 </dynamic_friction>
-            <spring_coeff unit="LBS/FT"> 5000.0 </spring_coeff>
-            <damping_coeff unit="LBS/FT/SEC"> 500.0 </damping_coeff>
-        </contact>
-        <contact type="STRUCTURE" name="Right_Rear">
-            <location unit="IN"> <x>50</x> <y>50</y> <z>-20</z> </location>
-            <static_friction>  1.0 </static_friction>
-            <dynamic_friction> 1.0 </dynamic_friction>
-            <spring_coeff unit="LBS/FT"> 5000.0 </spring_coeff>
-            <damping_coeff unit="LBS/FT/SEC"> 500.0 </damping_coeff>
+        <contact type="BOGEY" name="PAD">
+            <location unit="IN">
+                <x>0</x>
+                <y>0</y>
+                <z>-36</z>
+            </location>
+            <static_friction>1.0</static_friction>
+            <dynamic_friction>1.0</dynamic_friction>
+            <rolling_friction>0.0</rolling_friction>
+            <spring_coeff unit="LBS/FT">@PAD_SPRING_LBSFT@</spring_coeff>
+            <damping_coeff unit="LBS/FT/SEC">@PAD_DAMP_LBSFTSEC@</damping_coeff>
+            <max_steer unit="DEG">0</max_steer>
+            <brake_group>NONE</brake_group>
+            <retractable>0</retractable>
         </contact>
     </ground_reactions>
 
@@ -69,9 +56,9 @@
                 <property>systems/arcjet/thrust-lbf</property>
             </function>
             <location unit="M">
-                <x> -1.5 </x>
-                <y> 0 </y>
-                <z> 0 </z>
+                <x> @THRUST_ARM_X_M@ </x>
+                <y> @THRUST_ARM_Y_M@ </y>
+                <z> @THRUST_ARM_Z_M@ </z>
             </location>
             <direction>
                 <x> 1 </x>
@@ -79,6 +66,36 @@
                 <z> 0 </z>
             </direction>
         </force>
+        <moment name="pad_rate_damp_p" frame="BODY">
+            <function>
+                <product>
+                    <property>velocities/p-aero-rad_sec</property>
+                    <value>@RATE_DAMP_LBFFT@</value>
+                </product>
+            </function>
+            <location unit="IN"><x>0</x><y>0</y><z>0</z></location>
+            <direction><x>1</x><y>0</y><z>0</z></direction>
+        </moment>
+        <moment name="pad_rate_damp_q" frame="BODY">
+            <function>
+                <product>
+                    <property>velocities/q-aero-rad_sec</property>
+                    <value>@RATE_DAMP_LBFFT@</value>
+                </product>
+            </function>
+            <location unit="IN"><x>0</x><y>0</y><z>0</z></location>
+            <direction><x>0</x><y>1</y><z>0</z></direction>
+        </moment>
+        <moment name="pad_rate_damp_r" frame="BODY">
+            <function>
+                <product>
+                    <property>velocities/r-aero-rad_sec</property>
+                    <value>@RATE_DAMP_LBFFT@</value>
+                </product>
+            </function>
+            <location unit="IN"><x>0</x><y>0</y><z>0</z></location>
+            <direction><x>0</x><y>0</y><z>1</z></direction>
+        </moment>
     </external_reactions>
 
     <!-- REACTOR 0D MODEL (Avalanche Orbitron-class core; see orbitron_avalanche_core.yaml) -->

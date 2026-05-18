@@ -297,24 +297,43 @@ class LabInfrastructure:
         label = cq.Workplane("XZ").text("ORBITRON p-B11", 0.08, 0.001).translate((0, -0.401, 1.025))
         return legs.union(top).union(mounts), label
 
-    def _panel_toggle(self, x: float, y: float, z: float) -> cq.Workplane:
-        """Guarded toggle on the tilted operator panel (−30° about X)."""
-        body = cq.Workplane("XY").box(0.09, 0.05, 0.04)
-        lever = cq.Workplane("XY").box(0.02, 0.03, 0.05).translate((0.04, 0, 0.01))
-        return body.union(lever).rotate((1, 0, 0), (0, 0, 0), -30).translate((x, y, z))
+    def _shuttle_style_toggle(self, x: float, y: float, z: float) -> cq.Workplane:
+        """NASA-style guarded paddle toggle (matches cockpit.xml knob rotation)."""
+        bezel = cq.Workplane("XY").box(0.11, 0.075, 0.016)
+        guard = cq.Workplane("XY").box(0.095, 0.062, 0.028).translate((0, 0, 0.012))
+        paddle = cq.Workplane("XY").box(0.022, 0.052, 0.034).translate((0.034, 0, 0.022))
+        sw = bezel.union(guard).union(paddle)
+        return (
+            sw.rotate((1, 0, 0), (0, 0, 0), -30)
+            .translate((x, y, z))
+        )
+
+    def _shuttle_style_pushbutton(self, x: float, y: float, z: float) -> cq.Workplane:
+        """Mushroom-head guarded pushbutton (Big Red Button)."""
+        base = cq.Workplane("XY").cylinder(0.028, 0.012)
+        guard = cq.Workplane("XY").cylinder(0.042, 0.006).translate((0, 0, 0.012))
+        stem = cq.Workplane("XY").cylinder(0.014, 0.018).translate((0, 0, 0.02))
+        cap = cq.Workplane("XY").sphere(0.024).translate((0, 0, 0.038))
+        btn = base.union(guard).union(stem).union(cap)
+        return (
+            btn.rotate((1, 0, 0), (0, 0, 0), -30)
+            .translate((x, y, z))
+        )
 
     def build_console(self):
         # Desk, screen, BRB, and three panel toggles as SEPARATE export meshes.
         base = cq.Workplane("XY").box(0.8, 0.8, 1.2).translate((0, -2.5, 0.6))
-        panel = cq.Workplane("XY").box(0.8, 0.6, 0.05).rotate((1,0,0), (0,0,0), -30).translate((0, -2.6, 1.3))
+        panel = cq.Workplane("XY").box(0.8, 0.6, 0.05).rotate((1, 0, 0), (0, 0, 0), -30).translate(
+            (0, -2.6, 1.3)
+        )
         batt = cq.Workplane("XY").box(0.7, 0.6, 0.4).translate((0, -2.5, 0.2))
         desk = base.union(panel).union(batt)
 
         screen = cq.Workplane("XY").box(0.7, 0.05, 0.5).translate((0, -2.2, 1.6))
-        brb = cq.Workplane("XY").cylinder(0.04, 0.05).rotate((1,0,0),(0,0,0),-30).translate((0.2, -2.65, 1.35))
-        sw_apu = self._panel_toggle(-0.22, -2.58, 1.40)
-        sw_starter = self._panel_toggle(-0.08, -2.58, 1.36)
-        sw_bleed = self._panel_toggle(0.06, -2.58, 1.32)
+        brb = self._shuttle_style_pushbutton(0.2, -2.65, 1.35)
+        sw_apu = self._shuttle_style_toggle(-0.22, -2.58, 1.40)
+        sw_starter = self._shuttle_style_toggle(-0.08, -2.58, 1.36)
+        sw_bleed = self._shuttle_style_toggle(0.06, -2.58, 1.32)
 
         return desk, screen, brb, sw_apu, sw_starter, sw_bleed
 

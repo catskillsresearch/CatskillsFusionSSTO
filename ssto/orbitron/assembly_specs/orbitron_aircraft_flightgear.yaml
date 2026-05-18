@@ -57,19 +57,62 @@ fg_set:
     pad_apu_online: false
     starter_engage: false
     bleed_air_open: false
+  mp_carriers:
+    enabled: false
+    auto_attach: false
+    latch_always: false
   sound:
     path: Sounds/sound.xml
     chatter_volume: 0.0
     atc_volume: 0.0
     avionics_volume: 0.0
+  presets:
+    trim: false
+    latitude_deg: 63.98187
+    longitude_deg: -22.5884
+    altitude_ft: 158
+    heading_deg: 0
+    onground: true
+  startup:
+    view_number: 2
   view_operator:
     name: Operator View
-    type: lookfrom
-    internal: true
-    x_offset_m: 0.0
-    y_offset_m: 2.0
-    z_offset_m: 2.0
-    pitch_offset_deg: -8.0
+    # World eye at console; lookat rig + screen offset (lab +X fwd, +Y right). Nasal updates eye lat/lon/alt.
+    type: lookat
+    world_eye: true
+    property_paths: true
+    at_model: true
+    internal: false
+    eye_offset_m: [-1.4, -4.8, 1.65]
+    target_x_offset_m: -1.4
+    target_y_offset_m: -2.3
+    target_z_offset_m: 1.25
+    field_of_view_deg: 48.0
+  view_pad_overview:
+    name: Pad Overview
+    type: lookat
+    internal: false
+    # Fixed lookat (no platform/chase — chase breaks on ground test rigs).
+    x_offset_m: -90.0
+    y_offset_m: -70.0
+    z_offset_m: 40.0
+    target_x_offset_m: 0.0
+    target_y_offset_m: 0.0
+    target_z_offset_m: 12.0
+    field_of_view_deg: 55.0
+  # World-fixed: BIKF tower eye looking at the aircraft (not lookfrom — that went black underground).
+  view_bikf_apron:
+    name: BIKF Apron
+    type: lookat
+    internal: false
+    world_eye: true
+    at_model: true
+    latitude_deg: 63.98066
+    longitude_deg: -22.59533
+    altitude_ft: 115.0
+    heading_deg: 55.0
+    pitch_deg: -8.0
+    field_of_view_deg: 65.0
   controls_defaults:
     reactor_throttle: 0.0
     orbitron_compressor: 0.0
@@ -97,26 +140,39 @@ fg_model_orbitron_xml:
   offsets:
     pitch_deg: 0
     roll_deg: 0
-    heading_deg: 90
-    y_m: 10.0
-    z_m: -0.5
-  pick_animations:
+    heading_deg: 0
+    y_m: 0.0
+    z_m: 0.0
+  # Space-Shuttle-style panel hardware (see Models/cockpit.xml knob + pick patterns).
+  knob_animations:
     - object_name: Panel_Switch_APU
-      button: 0
-      repeatable: false
-      toggle_property: /sim/model/orbitron/pad-apu-online
+      property: /sim/model/orbitron/pad-apu-online
+      factor: -45
+      offset_deg: 10
+      axis: [1, 0, 0]
+      tooltip: "Pad APU cart online"
     - object_name: Panel_Switch_Starter
-      button: 0
-      repeatable: false
-      toggle_property: /sim/model/orbitron/starter-engage
+      property: /sim/model/orbitron/starter-engage
+      factor: -45
+      offset_deg: 10
+      axis: [1, 0, 0]
+      tooltip: "Starter engage (requires APU)"
     - object_name: Panel_Switch_Bleed
-      button: 0
-      repeatable: false
-      toggle_property: /sim/model/orbitron/bleed-air-open
+      property: /sim/model/orbitron/bleed-air-open
+      factor: -45
+      offset_deg: 10
+      axis: [1, 0, 0]
+      tooltip: "Bleed air / intake path open"
+  pick_animations:
     - object_name: Big_Red_Button
       button: 0
       repeatable: false
       toggle_property: /sim/model/reactor/startup-trigger
+  translate_animations:
+    - object_name: Big_Red_Button
+      property: /sim/model/reactor/startup-trigger
+      axis: [0, 0, 1]
+      factor: -0.012
   effect_models:
     - name: orbitron-nozzle-exhaust
       path: Models/Effects/orbitron_nozzle_exhaust.xml
