@@ -317,9 +317,6 @@ def _emit_orbitron_ops(ops: Mapping[str, Any]) -> str:
         "        OrbitronOps.disable_carriers();",
         f"        m.timer = maketimer({1.0 / hz}, m, OrbitronOps.update);",
         "        m.timer.start();",
-        '        setlistener("/sim/current-view/view-number", func(n) {',
-        "            if (n.getIntValue() == 0) OrbitronOps.apply_operator_view();",
-        "        }, 1, 0);",
     ]
     if block_hijack:
         lines += [
@@ -331,7 +328,8 @@ def _emit_orbitron_ops(ops: Mapping[str, Any]) -> str:
             "            }",
             "        }, 1, 0);",
         ]
-    view_n = ops.get("startup_view_number")
+    operator_view_idx = int(ops.get("operator_view_index", ops.get("startup_view_number", 2)))
+    view_n = ops.get("startup_view_number", operator_view_idx)
     if view_n is not None:
         lines.append(f'        setprop("/sim/current-view/view-number", {int(view_n)});')
     lines += [
@@ -448,8 +446,8 @@ def _emit_orbitron_ops(ops: Mapping[str, Any]) -> str:
         "        OrbitronOps._pad_heading_deg = p.hdg;",
         "        OrbitronOps.freeze_pad();",
         "        OrbitronOps._parked = 1;",
-        '        print("OrbitronOps: on pad OK — stay on BIKF Apron; press V for Operator View");',
-        "        OrbitronOps.sync_operator_view_props();",
+        f'        print("OrbitronOps: on pad OK — view {operator_view_idx} console (v); b=apron overview, p=pad orbit");',
+        f'        setprop("/sim/current-view/view-number", {operator_view_idx});',
         "        OrbitronOps.log_position();",
         "    },",
         "",
@@ -469,8 +467,7 @@ def _emit_orbitron_ops(ops: Mapping[str, Any]) -> str:
         "    },",
         "",
         "    select_startup_view: func() {",
-        '        if (OrbitronOps.select_view_by_name("BIKF Apron")) return;',
-        '        if (OrbitronOps.select_view_by_name("Pad Overview")) return;',
+        f'        setprop("/sim/current-view/view-number", {operator_view_idx});',
         "    },",
         "",
         "    log_position: func() {",
@@ -484,35 +481,6 @@ def _emit_orbitron_ops(ops: Mapping[str, Any]) -> str:
         "            lat or 0, lon or 0, alt or 0, gnd or 0, agl or 0, vn or \"?\"));",
         "    },",
         "",
-        "    lab_offset_to_geo: func(hdg_deg, x_m, y_m, z_m) {",
-        "        var p = OrbitronOps._park;",
-        "        var gnd = getprop(\"/position/ground-elev-ft\") or p.alt;",
-        "        if (gnd < 50) gnd = p.alt;",
-        "        var msl_m = (gnd + OrbitronOps._pad_clearance_ft) * 0.3048 + z_m;",
-        "        var c = geo.Coord.new();",
-        "        c.set_latlon(p.lat, p.lon, msl_m);",
-        "        if (x_m >= 0) c.apply_course_distance(hdg_deg, x_m);",
-        "        else c.apply_course_distance(hdg_deg + 180, -x_m);",
-        "        if (y_m >= 0) c.apply_course_distance(hdg_deg + 90, y_m);",
-        "        else c.apply_course_distance(hdg_deg - 90, -y_m);",
-        "        return c;",
-        "    },",
-        "",
-        "    sync_operator_view_props: func() {",
-        f"        var hdg = OrbitronOps._pad_heading_deg;",
-        f"        var eye = OrbitronOps.lab_offset_to_geo(hdg, {float(ov_eye[0])}, {float(ov_eye[1])}, {float(ov_eye[2])});",
-        '        var base = "/sim/model/orbitron/operator-view";',
-        '        setprop(base ~ "/latitude-deg", eye.lat());',
-        '        setprop(base ~ "/longitude-deg", eye.lon());',
-        '        setprop(base ~ "/altitude-ft", eye.alt() / 0.3048);',
-        '        print(sprintf("OrbitronOps: operator eye lat=%.5f lon=%.5f alt=%.0f ft",',
-        "            eye.lat(), eye.lon(), eye.alt() / 0.3048));",
-        "    },",
-        "",
-        "    apply_operator_view: func() {",
-        "        if ((getprop(\"/sim/current-view/view-number\") or 0) != 0) return;",
-        "        OrbitronOps.sync_operator_view_props();",
-        "    },",
         "",
         "    apply_position: func() {",
         "        OrbitronOps.apply_pad_props();",

@@ -85,6 +85,7 @@ orbitron_ops:
     eye: [-1.4, -4.8, 1.65]
     target: [-1.4, -2.3, 1.25]
   startup_view_number: 2
+  operator_view_index: 2
   block_hijack_views: true
   timer_hz: 10
   crank_prop: /sim/model/reactor/startup-starter-crank

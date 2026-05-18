@@ -77,6 +77,11 @@ def _dest_point(lat_deg: float, lon_deg: float, course_deg: float, dist_m: float
     return math.degrees(lat2), math.degrees(lon2)
 
 
+def _lab_to_fg_view_offset(x_m: float, y_m: float, z_m: float) -> tuple[float, float, float]:
+    """Lab (+X fwd, +Y right, +Z up) → FG lookat offsets (x right, y up, z back)."""
+    return (y_m, z_m, -x_m)
+
+
 def _lab_offset_latlon(
     lat_deg: float,
     lon_deg: float,
@@ -112,19 +117,65 @@ def _bearing_deg(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     return (math.degrees(math.atan2(y, x)) + 360.0) % 360.0
 
 
-def _compute_operator_eye(
-    lat_deg: float,
-    lon_deg: float,
-    hdg_deg: float,
-    base_msl_ft: float,
-    eye: tuple[float, float, float],
+def _compute_sightline_operator_view(
+    pad_lat: float,
+    pad_lon: float,
+    apron: Mapping[str, Any],
+    distance_m: float,
+    eye_agl_m: float,
+    gnd_ft: float,
+    clearance_ft: float,
 ) -> dict[str, float]:
-    """World eye at operator console (lab offsets in meters)."""
-    eye_lat, eye_lon = _lab_offset_latlon(lat_deg, lon_deg, hdg_deg, eye[0], eye[1])
+    """World lookat eye on the BIKF Apron → pad line, close in; same mechanism as view_bikf_apron."""
+    apron_lat = float(apron["latitude_deg"])
+    apron_lon = float(apron["longitude_deg"])
+    toward_apron = _bearing_deg(pad_lat, pad_lon, apron_lat, apron_lon)
+    eye_lat, eye_lon = _dest_point(pad_lat, pad_lon, toward_apron, distance_m)
+    eye_alt_ft = gnd_ft + clearance_ft + eye_agl_m / 0.3048
+    look_hdg = _bearing_deg(eye_lat, eye_lon, pad_lat, pad_lon)
+    pad_msl_ft = gnd_ft + clearance_ft + 2.0
+    horiz_m = _haversine_m(eye_lat, eye_lon, pad_lat, pad_lon)
+    pitch = float(apron.get("pitch_deg", -8.0))
+    if not apron.get("use_fixed_heading_pitch", True) and horiz_m > 0.5:
+        pitch = math.degrees(
+            math.atan2((pad_msl_ft - eye_alt_ft) * 0.3048, horiz_m)
+        )
+    look_hdg = float(apron.get("heading_deg", look_hdg)) if apron.get("use_fixed_heading_pitch", True) else look_hdg
     return {
         "latitude_deg": eye_lat,
         "longitude_deg": eye_lon,
-        "altitude_ft": base_msl_ft + eye[2] / 0.3048,
+        "altitude_ft": eye_alt_ft,
+        "heading_deg": look_hdg,
+        "pitch_deg": pitch,
+    }
+
+
+def _compute_operator_aim(
+    lat_deg: float,
+    lon_deg: float,
+    hdg_deg: float,
+    gnd_ft: float,
+    clearance_ft: float,
+    eye: tuple[float, float, float],
+    target: tuple[float, float, float],
+) -> dict[str, float]:
+    """Static world lookat eye at console, aimed at screen (lab +X fwd, +Y right, +Z up)."""
+    base_ft = gnd_ft + clearance_ft
+    eye_lat, eye_lon = _lab_offset_latlon(lat_deg, lon_deg, hdg_deg, eye[0], eye[1])
+    tgt_lat, tgt_lon = _lab_offset_latlon(lat_deg, lon_deg, hdg_deg, target[0], target[1])
+    eye_alt_ft = base_ft + eye[2] / 0.3048
+    tgt_alt_ft = base_ft + target[2] / 0.3048
+    horiz_m = _haversine_m(eye_lat, eye_lon, tgt_lat, tgt_lon)
+    pitch = 0.0
+    if horiz_m > 0.1:
+        pitch = math.degrees(math.atan2((tgt_alt_ft - eye_alt_ft) * 0.3048, horiz_m))
+    return {
+        "latitude_deg": eye_lat,
+        "longitude_deg": eye_lon,
+        "altitude_ft": eye_alt_ft,
+        "heading_deg": _bearing_deg(eye_lat, eye_lon, tgt_lat, tgt_lon),
+        "pitch_deg": pitch,
+        "roll_deg": 0.0,
     }
 
 
@@ -270,19 +321,6 @@ def _build_set_xml(
     _typed_prop(orb, "starter-engage", bool(ops.get("starter_engage", False)), "bool")
     _typed_prop(orb, "bleed-air-open", bool(ops.get("bleed_air_open", False)), "bool")
 
-    vo = sim.get("view_operator") or {}
-    if isinstance(vo, dict) and (vo.get("world_eye") or vo.get("lookfrom")):
-        eye = tuple(float(x) for x in vo.get("eye_offset_m", [-1.4, -4.8, 1.65]))
-        plat_lat = float(presets_cfg.get("latitude_deg", 63.98187))
-        plat_lon = float(presets_cfg.get("longitude_deg", -22.5884))
-        plat_hdg = float(presets_cfg.get("heading_deg", 0.0))
-        base_msl = float(presets_cfg.get("altitude_ft", 158.0))
-        ovw = _compute_operator_eye(plat_lat, plat_lon, plat_hdg, base_msl, eye)
-        ovp = ET.SubElement(orb, "operator-view")
-        _typed_prop(ovp, "latitude-deg", ovw["latitude_deg"])
-        _typed_prop(ovp, "longitude-deg", ovw["longitude_deg"])
-        _typed_prop(ovp, "altitude-ft", ovw["altitude_ft"])
-
     carriers = sim.get("mp_carriers") or {}
     if isinstance(carriers, dict) and carriers:
         mc = ET.SubElement(sim_el, "mp-carriers")
@@ -308,8 +346,25 @@ def _build_set_xml(
         _text(view, "type", "lookfrom")
         _text(view, "internal", str(v.get("internal", False)).lower())
         cfg = ET.SubElement(view, "config")
-        _typed_prop(cfg, "from-model", 0, "int")
-        if v.get("property_paths"):
+        if v.get("from_model") and not v.get("property_paths"):
+            _typed_prop(cfg, "from-model", 1, "int")
+            ex = _typed_prop(cfg, "x-offset-m", float(v["x_offset_m"]))
+            ex.set("archive", "n")
+            ey = _typed_prop(cfg, "y-offset-m", float(v["y_offset_m"]))
+            ey.set("archive", "n")
+            ez = _typed_prop(cfg, "z-offset-m", float(v["z_offset_m"]))
+            ez.set("archive", "n")
+            if "pitch_offset_deg" in v:
+                ep = _typed_prop(cfg, "pitch-offset-deg", float(v["pitch_offset_deg"]))
+                ep.set("archive", "n")
+            if "heading_offset_deg" in v:
+                eh = _typed_prop(cfg, "heading-offset-deg", float(v["heading_offset_deg"]))
+                eh.set("archive", "n")
+            if v.get("limits_enabled") is False:
+                limits = ET.SubElement(cfg, "limits")
+                _typed_prop(limits, "enabled", False, "bool")
+        elif v.get("property_paths"):
+            _typed_prop(cfg, "from-model", 0, "int")
             _typed_prop(cfg, "eye-fixed", True, "bool")
             base = "/sim/model/orbitron/operator-view"
             _text(cfg, "eye-lat-deg-path", f"{base}/latitude-deg")
@@ -320,6 +375,7 @@ def _build_set_xml(
             _text(cfg, "eye-roll-deg-path", f"{base}/roll-deg")
             _typed_prop(cfg, "ground-level-nearplane-m", 0.5)
         else:
+            _typed_prop(cfg, "from-model", 0, "int")
             _typed_prop(cfg, "latitude-deg", float(v["latitude_deg"]))
             _typed_prop(cfg, "longitude-deg", float(v["longitude_deg"]))
             _typed_prop(cfg, "altitude-ft", float(v["altitude_ft"]))
@@ -327,6 +383,10 @@ def _build_set_xml(
             _typed_prop(cfg, "pitch-deg", float(v.get("pitch_deg", -10.0)))
             if "roll_deg" in v:
                 _typed_prop(cfg, "roll-deg", float(v["roll_deg"]))
+            _typed_prop(cfg, "ground-level-nearplane-m", float(v.get("ground_level_nearplane_m", 1.0)))
+            if v.get("limits_enabled") is False:
+                limits = ET.SubElement(cfg, "limits")
+                _typed_prop(limits, "enabled", False, "bool")
         if "field_of_view_deg" in v:
             ef = _typed_prop(cfg, "field-of-view-deg", float(v["field_of_view_deg"]))
             ef.set("archive", "n")
@@ -356,6 +416,9 @@ def _build_set_xml(
                     if key in v:
                         el = _typed_prop(cfg, tag, float(v[key]))
                         el.set("archive", "n")
+                if v.get("limits_enabled") is False:
+                    limits = ET.SubElement(cfg, "limits")
+                    _typed_prop(limits, "enabled", False, "bool")
             else:
                 _typed_prop(cfg, "latitude-deg", float(v["latitude_deg"]))
                 _typed_prop(cfg, "longitude-deg", float(v["longitude_deg"]))
@@ -366,6 +429,9 @@ def _build_set_xml(
                     _typed_prop(cfg, "pitch-deg", float(v["pitch_deg"]))
                 if "roll_deg" in v:
                     _typed_prop(cfg, "roll-deg", float(v["roll_deg"]))
+                if v.get("limits_enabled") is False:
+                    limits = ET.SubElement(cfg, "limits")
+                    _typed_prop(limits, "enabled", False, "bool")
         elif v.get("chase"):
             _typed_prop(cfg, "from-model", 0, "int")
             _typed_prop(cfg, "platform", True, "bool")
@@ -401,21 +467,189 @@ def _build_set_xml(
             if "heading_offset_deg" in v:
                 eh = _typed_prop(cfg, "heading-offset-deg", float(v["heading_offset_deg"]))
                 eh.set("archive", "n")
+            if v.get("platform"):
+                _typed_prop(cfg, "platform", True, "bool")
+            if v.get("limits_enabled") is False:
+                limits = ET.SubElement(cfg, "limits")
+                _typed_prop(limits, "enabled", False, "bool")
+            if "ground_level_nearplane_m" in v:
+                _typed_prop(
+                    cfg,
+                    "ground-level-nearplane-m",
+                    float(v["ground_level_nearplane_m"]),
+                )
         if "field_of_view_deg" in v:
             ef = _typed_prop(cfg, "field-of-view-deg", float(v["field_of_view_deg"]))
             ef.set("archive", "n")
 
+    apron_cfg = sim.get("view_bikf_apron") or {}
     vo_cfg = sim.get("view_operator") or {}
-    if isinstance(vo_cfg, dict) and vo_cfg.get("lookfrom") and not vo_cfg.get("world_eye"):
-        _append_lookfrom_view(sim_el, 0, vo_cfg)
-    else:
-        _append_lookat_view(sim_el, 0, vo_cfg)
+    operator_idx = int(vo_cfg.get("view_index", 2)) if isinstance(vo_cfg, dict) else 2
+    apron_idx = int(apron_cfg.get("view_index", 3)) if isinstance(apron_cfg, dict) else 3
     pad_view = sim.get("view_pad_overview") or sim.get("view_chase")
     if pad_view:
         _append_lookat_view(sim_el, 1, pad_view)
-    apron = sim.get("view_bikf_apron")
-    if isinstance(apron, dict):
-        _append_lookat_view(sim_el, 2, apron)
+    if (
+        isinstance(vo_cfg, dict)
+        and vo_cfg.get("lookfrom_world")
+        and vo_cfg.get("eye_offset_m")
+    ):
+        eye = tuple(float(x) for x in vo_cfg["eye_offset_m"])
+        aim_pt = tuple(
+            float(x)
+            for x in vo_cfg.get("aim_offset_m", vo_cfg.get("target_offset_m", [-1.4, -2.3, 1.25]))
+        )
+        plat_lat = float(presets_cfg.get("latitude_deg", 63.98187))
+        plat_lon = float(presets_cfg.get("longitude_deg", -22.5884))
+        plat_hdg = float(presets_cfg.get("heading_deg", 0.0))
+        preset_alt = float(presets_cfg.get("altitude_ft", 158.0))
+        clearance = float(vo_cfg.get("pad_clearance_ft", 1.5))
+        gnd_ft = preset_alt - clearance
+        aim = _compute_operator_aim(plat_lat, plat_lon, plat_hdg, gnd_ft, clearance, eye, aim_pt)
+        console_lf: dict[str, Any] = {
+            "name": vo_cfg["name"],
+            "internal": vo_cfg.get("internal", False),
+            "latitude_deg": aim["latitude_deg"],
+            "longitude_deg": aim["longitude_deg"],
+            "altitude_ft": aim["altitude_ft"],
+            "heading_deg": aim["heading_deg"],
+            "pitch_deg": aim["pitch_deg"],
+            "roll_deg": aim.get("roll_deg", 0.0),
+            "limits_enabled": vo_cfg.get("limits_enabled"),
+            "ground_level_nearplane_m": vo_cfg.get("ground_level_nearplane_m", 0.25),
+            "field_of_view_deg": vo_cfg.get("field_of_view_deg", 55.0),
+        }
+        _append_lookfrom_view(sim_el, operator_idx, console_lf)
+    elif (
+        isinstance(vo_cfg, dict)
+        and vo_cfg.get("same_as_bikf_apron")
+        and isinstance(apron_cfg, dict)
+    ):
+        baked_apron: dict[str, Any] = {
+            "name": vo_cfg["name"],
+            "type": "lookat",
+            "internal": vo_cfg.get("internal", False),
+            "world_eye": True,
+            "at_model": True,
+            "latitude_deg": float(apron_cfg["latitude_deg"]),
+            "longitude_deg": float(apron_cfg["longitude_deg"]),
+            "altitude_ft": float(apron_cfg["altitude_ft"]),
+            "heading_deg": float(apron_cfg["heading_deg"]),
+            "pitch_deg": float(apron_cfg["pitch_deg"]),
+            "field_of_view_deg": float(
+                vo_cfg.get("field_of_view_deg", apron_cfg.get("field_of_view_deg", 65.0))
+            ),
+        }
+        _append_lookat_view(sim_el, operator_idx, baked_apron)
+    elif (
+        isinstance(vo_cfg, dict)
+        and vo_cfg.get("eye_offset_m")
+        and not vo_cfg.get("world_eye")
+        and not vo_cfg.get("sightline_from_apron")
+    ):
+        eye = tuple(float(x) for x in vo_cfg["eye_offset_m"])
+        aim_pt = tuple(
+            float(x)
+            for x in vo_cfg.get("aim_offset_m", vo_cfg.get("target_offset_m", [-1.4, 1.6, 4.5]))
+        )
+        if vo_cfg.get("use_ac_view_offsets"):
+            ex, ey, ez = eye
+            tx, ty, tz = aim_pt
+        else:
+            ex, ey, ez = _lab_to_fg_view_offset(*eye)
+            tx, ty, tz = _lab_to_fg_view_offset(*aim_pt)
+        body: dict[str, Any] = {
+            "name": vo_cfg["name"],
+            "type": "lookat",
+            "internal": vo_cfg.get("internal", False),
+            "x_offset_m": ex,
+            "y_offset_m": ey,
+            "z_offset_m": ez,
+            "target_x_offset_m": tx,
+            "target_y_offset_m": ty,
+            "target_z_offset_m": tz,
+            "limits_enabled": vo_cfg.get("limits_enabled"),
+            "ground_level_nearplane_m": vo_cfg.get("ground_level_nearplane_m", 0.25),
+            "field_of_view_deg": vo_cfg.get("field_of_view_deg", 48.0),
+        }
+        if "heading_offset_deg" in vo_cfg:
+            body["heading_offset_deg"] = float(vo_cfg["heading_offset_deg"])
+        if "pitch_offset_deg" in vo_cfg:
+            body["pitch_offset_deg"] = float(vo_cfg["pitch_offset_deg"])
+        _append_lookat_view(sim_el, operator_idx, body)
+    elif (
+        isinstance(vo_cfg, dict)
+        and vo_cfg.get("sightline_from_apron")
+        and isinstance(apron_cfg, dict)
+    ):
+        plat_lat = float(presets_cfg.get("latitude_deg", 63.98187))
+        plat_lon = float(presets_cfg.get("longitude_deg", -22.5884))
+        preset_alt = float(presets_cfg.get("altitude_ft", 158.0))
+        clearance = float(vo_cfg.get("pad_clearance_ft", 1.5))
+        gnd_ft = preset_alt - clearance
+        aim = _compute_sightline_operator_view(
+            plat_lat,
+            plat_lon,
+            apron_cfg,
+            float(vo_cfg.get("sightline_distance_m", 14.0)),
+            float(vo_cfg.get("eye_agl_m", 1.75)),
+            gnd_ft,
+            clearance,
+        )
+        baked_sight: dict[str, Any] = {
+            "name": vo_cfg["name"],
+            "type": "lookat",
+            "internal": vo_cfg.get("internal", False),
+            "world_eye": True,
+            "at_model": vo_cfg.get("at_model", True),
+            "latitude_deg": aim["latitude_deg"],
+            "longitude_deg": aim["longitude_deg"],
+            "altitude_ft": aim["altitude_ft"],
+            "heading_deg": aim["heading_deg"],
+            "pitch_deg": aim["pitch_deg"],
+            "limits_enabled": vo_cfg.get("limits_enabled"),
+            "field_of_view_deg": vo_cfg.get("field_of_view_deg", 48.0),
+        }
+        _append_lookat_view(sim_el, operator_idx, baked_sight)
+    elif isinstance(vo_cfg, dict) and vo_cfg.get("world_eye") and vo_cfg.get("eye_offset_m"):
+        eye = tuple(float(x) for x in vo_cfg["eye_offset_m"])
+        aim_pt = tuple(
+            float(x)
+            for x in vo_cfg.get("aim_offset_m", vo_cfg.get("target_offset_m", [-1.4, -2.3, 1.25]))
+        )
+        plat_lat = float(presets_cfg.get("latitude_deg", 63.98187))
+        plat_lon = float(presets_cfg.get("longitude_deg", -22.5884))
+        plat_hdg = float(presets_cfg.get("heading_deg", 0.0))
+        preset_alt = float(presets_cfg.get("altitude_ft", 158.0))
+        clearance = float(vo_cfg.get("pad_clearance_ft", 1.5))
+        gnd_ft = preset_alt - clearance
+        aim = _compute_operator_aim(plat_lat, plat_lon, plat_hdg, gnd_ft, clearance, eye, aim_pt)
+        baked: dict[str, Any] = {
+            "name": vo_cfg["name"],
+            "type": "lookat",
+            "internal": vo_cfg.get("internal", False),
+            "world_eye": True,
+            "at_model": vo_cfg.get("at_model", True),
+            "latitude_deg": aim["latitude_deg"],
+            "longitude_deg": aim["longitude_deg"],
+            "altitude_ft": aim["altitude_ft"],
+            "heading_deg": aim["heading_deg"],
+            "pitch_deg": aim["pitch_deg"],
+            "limits_enabled": vo_cfg.get("limits_enabled"),
+            "field_of_view_deg": vo_cfg.get("field_of_view_deg", 48.0),
+        }
+        _append_lookat_view(sim_el, operator_idx, baked)
+    elif isinstance(vo_cfg, dict) and vo_cfg.get("lookfrom"):
+        if vo_cfg.get("from_model"):
+            _append_lookfrom_view(sim_el, operator_idx, vo_cfg)
+        else:
+            _append_lookfrom_view(sim_el, operator_idx, vo_cfg)
+    else:
+        _append_lookat_view(sim_el, operator_idx, vo_cfg)
+    if isinstance(apron_cfg, dict) and not (
+        isinstance(vo_cfg, dict) and vo_cfg.get("same_as_bikf_apron")
+    ):
+        _append_lookat_view(sim_el, apron_idx, apron_cfg)
 
     startup = sim.get("startup") or {}
     if isinstance(startup, dict) and "view_number" in startup:
@@ -455,6 +689,16 @@ def _build_set_xml(
         if "toggle_property" in row:
             _text(b, "command", "property-toggle")
             _text(b, "property", row["toggle_property"])
+        elif "assign_property" in row:
+            _text(b, "command", "property-assign")
+            _text(b, "property", row["assign_property"])
+            val = row["assign_value"]
+            v_el = ET.SubElement(b, "value")
+            v_el.set("type", "int" if isinstance(val, int) else "double")
+            v_el.text = f" {val} "
+        elif "nasal_script" in row:
+            _text(b, "command", "nasal")
+            _text(b, "script", row["nasal_script"] + "();")
         else:
             _text(b, "command", "property-adjust")
             _text(b, "property", row["adjust_property"])
