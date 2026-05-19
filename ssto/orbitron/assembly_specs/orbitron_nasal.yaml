@@ -82,9 +82,12 @@ orbitron_ops:
     pitch_deg: 0
     hz: 30
   operator_view:
-    eye: [-1.4, -4.8, 1.65]
-    target: [-1.4, -2.3, 1.25]
-  startup_view_number: 2
+    # AC frame (+X fwd, +Y right, +Z up). Behind console on apron, deck height, facing Screen.
+    camera: [-1.4, -4.8, 1.65]
+    look_at: [-1.4, -2.3, 1.25]
+    pitch_sign_invert: false
+  view_tune_screenshot: false
+  startup_view_number: 3
   operator_view_index: 2
   block_hijack_views: true
   timer_hz: 10

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import sys
 from pathlib import Path
 from typing import Any, Mapping
@@ -13,6 +14,20 @@ import yaml
 
 def _nas_literal_string(s: str) -> str:
     return '"' + s.replace("\\", "\\\\").replace('"', '\\"') + '"'
+
+
+def _ac_lookfrom_aim_angles_deg(
+    eye: tuple[float, float, float],
+    aim: tuple[float, float, float],
+) -> tuple[float, float]:
+    """Heading/pitch (deg) in AC (+X fwd, +Y right, +Z up) from eye toward aim."""
+    dx = aim[0] - eye[0]
+    dy = aim[1] - eye[1]
+    dz = aim[2] - eye[2]
+    hdist = math.hypot(dx, dy)
+    if hdist < 1e-9:
+        return (0.0, 90.0 if dz > 0 else -90.0)
+    return (math.degrees(math.atan2(dy, dx)), math.degrees(math.atan2(dz, hdist)))
 
 
 def _coeffs_from_json_surface(surf: Any) -> tuple[float, float, float, float] | None:
@@ -279,9 +294,32 @@ def _emit_orbitron_ops(ops: Mapping[str, Any]) -> str:
     place_retry_sec = float(repos.get("place_retry_sec", 1.0)) if repos else 1.0
     place_retry_max = int(repos.get("place_retry_max", 30)) if repos else 30
     block_hijack = bool(ops.get("block_hijack_views", False))
+    view_tune_shot = bool(ops.get("view_tune_screenshot", False))
     opview = ops.get("operator_view") or {}
-    ov_eye = opview.get("eye", [1.6, 8.2, 4.5]) if isinstance(opview, dict) else [1.6, 8.2, 4.5]
-    ov_tgt = opview.get("target", [1.6, 11.4, 4.5]) if isinstance(opview, dict) else [1.6, 11.4, 4.5]
+    ov_cam = (
+        opview.get("camera", opview.get("eye", [0.12, 0.5, 1.75]))
+        if isinstance(opview, dict)
+        else [0.12, 0.5, 1.75]
+    )
+    ov_look = (
+        opview.get("look_at", opview.get("target", [-1.4, 1.6, 4.5]))
+        if isinstance(opview, dict)
+        else [-1.4, 1.6, 4.5]
+    )
+    ov_cx, ov_cy, ov_cz = float(ov_cam[0]), float(ov_cam[1]), float(ov_cam[2])
+    ov_lx, ov_ly, ov_lz = float(ov_look[0]), float(ov_look[1]), float(ov_look[2])
+    ov_hdg, ov_pit = _ac_lookfrom_aim_angles_deg(
+        (ov_cx, ov_cy, ov_cz), (ov_lx, ov_ly, ov_lz)
+    )
+    ov_cx, ov_cy, ov_cz = ov_cy, ov_cz, -ov_cx
+    if isinstance(opview, dict):
+        if opview.get("pitch_sign_invert", True):
+            ov_pit = -ov_pit
+        if "heading_offset_deg" in opview:
+            ov_hdg = float(opview["heading_offset_deg"])
+        if "pitch_offset_deg" in opview:
+            ov_pit = float(opview["pitch_offset_deg"])
+    ov_fov = float(opview.get("field_of_view_deg", 52.0)) if isinstance(opview, dict) else 52.0
 
     lines: list[str] = []
     if header:
@@ -329,9 +367,10 @@ def _emit_orbitron_ops(ops: Mapping[str, Any]) -> str:
             "        }, 1, 0);",
         ]
     operator_view_idx = int(ops.get("operator_view_index", ops.get("startup_view_number", 2)))
-    view_n = ops.get("startup_view_number", operator_view_idx)
+    startup_view_idx = int(ops.get("startup_view_number", 3))
+    view_n = ops.get("startup_view_number", startup_view_idx)
     if view_n is not None:
-        lines.append(f'        setprop("/sim/current-view/view-number", {int(view_n)});')
+        lines.append(f'        setprop("/sim/current-view/view-number", {startup_view_idx});')
     lines += [
         "        OrbitronOps._stab_timer = nil;",
         "        settimer(func() { OrbitronOps.log_position(); }, 8.0);",
@@ -448,7 +487,37 @@ def _emit_orbitron_ops(ops: Mapping[str, Any]) -> str:
         "        OrbitronOps._parked = 1;",
         f'        print("OrbitronOps: on pad OK — view {operator_view_idx} console (v); b=apron overview, p=pad orbit");',
         f'        setprop("/sim/current-view/view-number", {operator_view_idx});',
+        "        OrbitronOps.apply_operator_view();",
+        "        settimer(func() { OrbitronOps.apply_operator_view(); }, 0);",
+        "        settimer(func() { OrbitronOps.apply_operator_view(); }, 0.5);",
         "        OrbitronOps.log_position();",
+        "    },",
+        "",
+        "    apply_operator_view: func() {",
+        f'        setprop("/sim/current-view/view-number", {operator_view_idx});',
+        f'        setprop("/sim/current-view/x-offset-m", {ov_cx});',
+        f'        setprop("/sim/current-view/y-offset-m", {ov_cy});',
+        f'        setprop("/sim/current-view/z-offset-m", {ov_cz});',
+        f'        setprop("/sim/current-view/heading-offset-deg", {ov_hdg});',
+        f'        setprop("/sim/current-view/pitch-offset-deg", {ov_pit});',
+        f'        setprop("/sim/current-view/field-of-view-deg", {ov_fov});',
+        '        print("OrbitronOps: operator lookfrom hdg=", getprop("/sim/current-view/heading-offset-deg"),',
+        '            " pit=", getprop("/sim/current-view/pitch-offset-deg"));',
+        "    },",
+        "",
+        "    maybe_view_tune_screenshot: func() {",
+        '        var path = getprop("/sim/model/orbitron/view-tune/screenshot-path");',
+        "        if (path == nil or path == \"\") return;",
+        '        var trig = getprop("/sim/model/orbitron/view-tune/trigger");',
+        "        if (trig != nil and trig != 0) return;",
+        "        settimer(func() {",
+        "            OrbitronOps.apply_operator_view();",
+        '            setprop("/sim/paths/screenshot-dir", path);',
+        '            var ok = fgcommand("screen-capture");',
+        '            print("OrbitronOps: view-tune screen-capture ok=", ok, " dir=", path);',
+        '            setprop("/sim/model/orbitron/view-tune/trigger", 1);',
+        "            settimer(func() { fgcommand(\"exit\"); }, 2.0);",
+        "        }, 2.5);",
         "    },",
         "",
         "    select_view_by_name: func(substr) {",
@@ -468,6 +537,7 @@ def _emit_orbitron_ops(ops: Mapping[str, Any]) -> str:
         "",
         "    select_startup_view: func() {",
         f'        setprop("/sim/current-view/view-number", {operator_view_idx});',
+        "        OrbitronOps.apply_operator_view();",
         "    },",
         "",
         "    log_position: func() {",

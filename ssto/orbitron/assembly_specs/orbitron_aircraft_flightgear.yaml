@@ -74,20 +74,18 @@ fg_set:
     heading_deg: 0
     onground: true
   startup:
-    view_number: 2
+    view_number: 3
   view_operator:
     name: Operator View
-    # AC frame (X fwd, Y right, Z up) — same as Pad Overview offsets (no lab remap).
-    # Feet on apron (~1.7 m), behind desk (−Y), eyes level toward Screen centre.
-    type: lookat
-    use_ac_view_offsets: true
-    eye_offset_m: [-1.4, -0.65, 1.7]
-    aim_offset_m: [-1.4, 1.6, 4.5]
-    view_index: 2
+    # lookfrom: apron behind console (−X), port side (+Y is port), console-deck height → Screen (orbitron.ac m).
+    type: lookfrom
+    from_model: true
     internal: false
+    camera_offset_m: [-1.4, -4.8, 1.65]
+    look_at_offset_m: [-1.4, -2.3, 1.25]
+    pitch_sign_invert: false
+    view_index: 2
     limits_enabled: false
-    heading_offset_deg: 0.0
-    pitch_offset_deg: 0.0
     ground_level_nearplane_m: 0.05
     field_of_view_deg: 52.0
   view_pad_overview:

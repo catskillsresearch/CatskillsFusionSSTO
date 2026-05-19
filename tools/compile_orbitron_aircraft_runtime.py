@@ -78,8 +78,31 @@ def _dest_point(lat_deg: float, lon_deg: float, course_deg: float, dist_m: float
 
 
 def _lab_to_fg_view_offset(x_m: float, y_m: float, z_m: float) -> tuple[float, float, float]:
-    """Lab (+X fwd, +Y right, +Z up) → FG lookat offsets (x right, y up, z back)."""
-    return (y_m, z_m, -x_m)
+    """Lab/AC (+X fwd, +Y right, +Z up) → FG body lookat (x fwd, y right, z up)."""
+    return (x_m, y_m, z_m)
+
+
+def _ac_to_fg_body_view_offset(x_m: float, y_m: float, z_up_m: float) -> tuple[float, float, float]:
+    """orbitron.ac → FG body lookat (same axes as AC; matches pad overview z-up)."""
+    return (x_m, y_m, z_up_m)
+
+
+def _ac_to_fg_lookfrom_offset(x_m: float, y_m: float, z_up_m: float) -> tuple[float, float, float]:
+    return (y_m, z_up_m, -x_m)
+
+
+def _ac_lookfrom_aim_angles_deg(
+    eye: tuple[float, float, float],
+    aim: tuple[float, float, float],
+) -> tuple[float, float]:
+    """Heading/pitch (deg) in AC (+X fwd, +Y right, +Z up) from eye toward aim."""
+    dx = aim[0] - eye[0]
+    dy = aim[1] - eye[1]
+    dz = aim[2] - eye[2]
+    hdist = math.hypot(dx, dy)
+    if hdist < 1e-9:
+        return (0.0, 90.0 if dz > 0 else -90.0)
+    return (math.degrees(math.atan2(dy, dx)), math.degrees(math.atan2(dz, hdist)))
 
 
 def _lab_offset_latlon(
@@ -363,6 +386,12 @@ def _build_set_xml(
             if v.get("limits_enabled") is False:
                 limits = ET.SubElement(cfg, "limits")
                 _typed_prop(limits, "enabled", False, "bool")
+            if "ground_level_nearplane_m" in v:
+                _typed_prop(
+                    cfg,
+                    "ground-level-nearplane-m",
+                    float(v["ground_level_nearplane_m"]),
+                )
         elif v.get("property_paths"):
             _typed_prop(cfg, "from-model", 0, "int")
             _typed_prop(cfg, "eye-fixed", True, "bool")
@@ -447,6 +476,8 @@ def _build_set_xml(
             _typed_prop(cfg, "y-offset-m", 0.0)
             _typed_prop(cfg, "z-offset-m", 0.0)
         else:
+            _typed_prop(cfg, "from-model", 1, "int")
+            _typed_prop(cfg, "at-model", 1, "int")
             ex = _typed_prop(cfg, "x-offset-m", float(v["x_offset_m"]))
             ex.set("archive", "n")
             ey = _typed_prop(cfg, "y-offset-m", float(v["y_offset_m"]))
@@ -543,21 +574,94 @@ def _build_set_xml(
         _append_lookat_view(sim_el, operator_idx, baked_apron)
     elif (
         isinstance(vo_cfg, dict)
-        and vo_cfg.get("eye_offset_m")
+        and vo_cfg.get("type") == "lookfrom"
+        and vo_cfg.get("from_model")
+        and (
+            vo_cfg.get("camera_offset_m")
+            or vo_cfg.get("eye_offset_m")
+            or vo_cfg.get("look_at_offset_m")
+            or vo_cfg.get("aim_offset_m")
+        )
+    ):
+        eye = tuple(
+            float(x)
+            for x in vo_cfg.get(
+                "camera_offset_m",
+                vo_cfg.get("eye_offset_m", [0.12, 0.5, 1.75]),
+            )
+        )
+        ex, ey, ez = _ac_to_fg_lookfrom_offset(*eye)
+        aim_pt = tuple(
+            float(x)
+            for x in vo_cfg.get(
+                "look_at_offset_m",
+                vo_cfg.get(
+                    "aim_offset_m",
+                    vo_cfg.get("target_offset_m", [-1.4, 1.6, 4.5]),
+                ),
+            )
+        )
+        hdg, pit = _ac_lookfrom_aim_angles_deg(eye, aim_pt)
+        if vo_cfg.get("pitch_sign_invert"):
+            pit = -pit
+        lf_body: dict[str, Any] = {
+            "name": vo_cfg["name"],
+            "from_model": True,
+            "x_offset_m": ex,
+            "y_offset_m": ey,
+            "z_offset_m": ez,
+            "limits_enabled": vo_cfg.get("limits_enabled"),
+            "ground_level_nearplane_m": vo_cfg.get("ground_level_nearplane_m", 0.05),
+            "field_of_view_deg": vo_cfg.get("field_of_view_deg", 52.0),
+            "heading_offset_deg": float(vo_cfg.get("heading_offset_deg", hdg)),
+            "pitch_offset_deg": float(vo_cfg.get("pitch_offset_deg", pit)),
+        }
+        _append_lookfrom_view(sim_el, operator_idx, lf_body)
+    elif (
+        isinstance(vo_cfg, dict)
+        and (
+            vo_cfg.get("camera_offset_m")
+            or vo_cfg.get("eye_offset_m")
+            or vo_cfg.get("look_at_offset_m")
+            or vo_cfg.get("aim_offset_m")
+        )
+        and vo_cfg.get("type", "lookat") != "lookfrom"
+        and not vo_cfg.get("lookfrom")
         and not vo_cfg.get("world_eye")
         and not vo_cfg.get("sightline_from_apron")
     ):
-        eye = tuple(float(x) for x in vo_cfg["eye_offset_m"])
-        aim_pt = tuple(
+        cam = tuple(
             float(x)
-            for x in vo_cfg.get("aim_offset_m", vo_cfg.get("target_offset_m", [-1.4, 1.6, 4.5]))
+            for x in vo_cfg.get(
+                "camera_offset_m",
+                vo_cfg.get("eye_offset_m", [-0.12, 0.5, 4.65]),
+            )
         )
-        if vo_cfg.get("use_ac_view_offsets"):
-            ex, ey, ez = eye
-            tx, ty, tz = aim_pt
+        look = tuple(
+            float(x)
+            for x in vo_cfg.get(
+                "look_at_offset_m",
+                vo_cfg.get(
+                    "aim_offset_m",
+                    vo_cfg.get("target_offset_m", [-1.4, 1.6, 4.5]),
+                ),
+            )
+        )
+        if vo_cfg.get("use_ac_lookat_direct"):
+            cx, cy, cz = cam
+            lx, ly, lz = look
+        elif vo_cfg.get("use_ac_view_offsets"):
+            cx, cy, cz = _ac_to_fg_body_view_offset(*cam)
+            lx, ly, lz = _ac_to_fg_body_view_offset(*look)
         else:
-            ex, ey, ez = _lab_to_fg_view_offset(*eye)
-            tx, ty, tz = _lab_to_fg_view_offset(*aim_pt)
+            cx, cy, cz = _lab_to_fg_view_offset(*cam)
+            lx, ly, lz = _lab_to_fg_view_offset(*look)
+        if vo_cfg.get("lookat_fg_swap", False):
+            ex, ey, ez = lx, ly, lz
+            tx, ty, tz = cx, cy, cz
+        else:
+            ex, ey, ez = cx, cy, cz
+            tx, ty, tz = lx, ly, lz
         body: dict[str, Any] = {
             "name": vo_cfg["name"],
             "type": "lookat",
@@ -629,7 +733,7 @@ def _build_set_xml(
             "type": "lookat",
             "internal": vo_cfg.get("internal", False),
             "world_eye": True,
-            "at_model": vo_cfg.get("at_model", True),
+            "at_model": vo_cfg.get("at_model", False),
             "latitude_deg": aim["latitude_deg"],
             "longitude_deg": aim["longitude_deg"],
             "altitude_ft": aim["altitude_ft"],

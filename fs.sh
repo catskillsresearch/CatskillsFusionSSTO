@@ -54,4 +54,4 @@ exec fgfs --fg-aircraft="${AC}" --aircraft="${PKG}" \
   --prop:/sim/mp-carriers/latch-always=false \
   --prop:/sim/multiplay/enabled=false \
   --prop:/sim/model/reactor/debug-ui-window=false \
-  --prop:/sim/current-view/view-number=2
+  --prop:/sim/current-view/view-number=3
