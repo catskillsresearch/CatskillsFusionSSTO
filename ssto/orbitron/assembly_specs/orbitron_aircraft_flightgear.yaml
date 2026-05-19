@@ -153,28 +153,28 @@ fg_model_orbitron_xml:
       property: /sim/model/orbitron/pad-apu-online
       factor: -35
       offset_deg: 0
-      axis: [0.031, 0.957, 0.289]
-      center_m: [-1.615, -0.060, 5.120]
+      axis: [-0.204, 0.608, 0.767]
+      center_m: [-1.620, 1.316, 4.909]
       tooltip: "Pad APU cart online"
     - object_name: Panel_Switch_Starter
       property: /sim/model/orbitron/starter-engage
       factor: -35
       offset_deg: 0
-      axis: [0.031, 0.957, 0.289]
-      center_m: [-1.480, -0.095, 5.120]
+      axis: [-0.204, 0.608, 0.767]
+      center_m: [-1.480, 1.316, 4.909]
       tooltip: "Starter engage (requires APU)"
     - object_name: Panel_Switch_Bleed
       property: /sim/model/orbitron/bleed-air-open
       factor: -35
       offset_deg: 0
-      axis: [0.031, 0.957, 0.289]
-      center_m: [-1.338, -0.130, 5.120]
+      axis: [-0.204, 0.608, 0.767]
+      center_m: [-1.340, 1.316, 4.909]
       tooltip: "Bleed air / intake path open"
   slider_animations:
     - object_name: Big_Red_Button
       extra_object_names: [Big_Red_Button_Light]
       property: /sim/model/reactor/startup-trigger
-      axis: [-0.313, -0.922, -0.227]
+      axis: [-0.969, -0.125, 0.216]
       factor: 0.002
       tooltip: "IGNITE — arm reactor (requires bleed air)"
   pick_animations:

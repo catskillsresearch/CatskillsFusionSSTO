@@ -156,10 +156,11 @@ $(ORBITRON_SOUND_XML): $(ORBITRON_SOUND_ASSETS) $(COMPILE_SOUND_XML) | $(STAND)/
 	cd '$(REPO_ROOT)' && $(POETRY) run python $(COMPILE_SOUND_XML) \
 		--spec '$(ORBITRON_SOUND_ASSETS)' --out '$(ORBITRON_SOUND_XML)'
 
-$(ORBITRON_SHUTTLE_PANEL_AC): $(BUILD_SHUTTLE_PANEL_AC) $(COCKPIT_AC) $(COCKPIT_TEX) | $(STAND)/.dirs
+$(ORBITRON_SHUTTLE_PANEL_AC): $(BUILD_SHUTTLE_PANEL_AC) $(COCKPIT_AC) $(COCKPIT_TEX) $(STAND)/Models/orbitron.ac | $(STAND)/.dirs
 	cd '$(REPO_ROOT)' && $(POETRY) run python $(BUILD_SHUTTLE_PANEL_AC) \
 		--cockpit-ac '$(COCKPIT_AC)' \
 		--cockpit-texture '$(COCKPIT_TEX)' \
+		--orbitron-ac '$(STAND)/Models/orbitron.ac' \
 		--out-ac '$(ORBITRON_SHUTTLE_PANEL_AC)' \
 		--out-dir '$(STAND)/Models'
 

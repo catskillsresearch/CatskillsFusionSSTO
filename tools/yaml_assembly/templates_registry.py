@@ -321,6 +321,10 @@ def tpl_lab_operator_console_desk(**_: Any) -> cq.Workplane:
     return d
 
 
+def tpl_lab_operator_panel(**_: Any) -> cq.Workplane:
+    return _infra().build_operator_panel()
+
+
 def tpl_lab_operator_screen(**_: Any) -> cq.Workplane:
     _, s, _, _, _, _ = _infra().build_console()
     return s
@@ -413,6 +417,7 @@ TEMPLATE_REGISTRY: dict[str, Callable[..., cq.Workplane]] = {
     "lab_helium_ash_vent": tpl_lab_helium_ash_vent,
     "lab_cryo_methane_piping": tpl_lab_cryo_methane_piping,
     "lab_operator_console_desk": tpl_lab_operator_console_desk,
+    "lab_operator_panel": tpl_lab_operator_panel,
     "lab_operator_screen": tpl_lab_operator_screen,
     "lab_big_red_button": tpl_lab_big_red_button,
     "lab_panel_switch_apu": tpl_lab_panel_switch_apu,

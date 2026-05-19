@@ -957,8 +957,24 @@ def _panel_click_binding(parent: ET.Element) -> None:
     _text(
         b,
         "script",
-        "if (typeof globals.OrbitronOps != \"nil\") globals.OrbitronOps.play_panel_click();",
+        "OrbitronOps.play_panel_click()",
     )
+
+
+def _emit_panel_hotspot_highlight(root: ET.Element, object_names: list[str]) -> None:
+    """Yellow emission on panel meshes when /sim/panel-hotspots is on (CTRL-C)."""
+    if not object_names:
+        return
+    anim = ET.SubElement(root, "animation")
+    _text(anim, "type", "material")
+    for name in object_names:
+        _text(anim, "object-name", name)
+    em = ET.SubElement(anim, "emission")
+    _text(em, "red", 1.0)
+    _text(em, "green", 0.85)
+    _text(em, "blue", 0.15)
+    cond = ET.SubElement(anim, "condition")
+    _text(cond, "property", "/sim/panel-hotspots")
 
 
 def _emit_panel_pick_animation(root: ET.Element, spec: Mapping[str, Any]) -> None:
@@ -1099,12 +1115,18 @@ def _build_orbitron_model_xml(fg_model: Mapping[str, Any]) -> str:
             _text(eoff, "heading-deg", eo["heading_deg"])
 
     knobs = fg_model.get("knob_animations") or []
+    panel_hotspot_names: list[str] = [
+        "Panel_Guard_APU",
+        "Panel_Guard_Starter",
+        "Panel_Guard_Bleed",
+    ]
     if knobs:
         root.append(ET.Comment(" Panel toggles — Space Shuttle-style knob (see Models/cockpit.xml) "))
     for knob in knobs:
         if isinstance(knob, dict):
             _emit_knob_animation(root, knob)
             _emit_panel_pick_animation(root, knob)
+            panel_hotspot_names.append(str(knob["object_name"]))
 
     for tr in fg_model.get("translate_animations") or []:
         if isinstance(tr, dict):
@@ -1116,6 +1138,12 @@ def _build_orbitron_model_xml(fg_model: Mapping[str, Any]) -> str:
     for spec in sliders:
         if isinstance(spec, dict):
             _emit_slider_animation(root, spec)
+            panel_hotspot_names.append(str(spec["object_name"]))
+            for extra in spec.get("extra_object_names") or []:
+                panel_hotspot_names.append(str(extra))
+
+    root.append(ET.Comment(" CTRL-C — highlight panel switches/guards "))
+    _emit_panel_hotspot_highlight(root, panel_hotspot_names)
 
     for i, pick in enumerate(fg_model.get("pick_animations") or []):
         if i == 0:

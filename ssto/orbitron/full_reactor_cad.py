@@ -328,17 +328,31 @@ class LabInfrastructure:
             .translate((x, y, z))
         )
 
-    def _panel_label(self, text: str, x: float, y: float, z: float) -> cq.Workplane:
-        """Raised lettering above each shuttle toggle on the slanted panel."""
-        label = (
+    # Operator_Panel pose in lab coordinates (must match build_operator_panel).
+    _PANEL_POSE_ROTATE_X_DEG = -30
+    _PANEL_POSE_TRANSLATE = (0, -2.6, 1.3)
+
+    def _panel_label(self, text: str, row_x: float, face_z: float) -> cq.Workplane:
+        """Raised lettering on the slanted Operator_Panel (offsets before panel pose)."""
+        return (
             cq.Workplane("XZ")
             .text(text, 0.028, 0.004, halign="center")
-            .translate((x, y, z))
+            .translate((row_x, 0.10, face_z))
+            .rotate((1, 0, 0), (0, 0, 0), self._PANEL_POSE_ROTATE_X_DEG)
+            .translate(self._PANEL_POSE_TRANSLATE)
         )
-        return label.rotate((1, 0, 0), (0, 0, 0), -30)
+
+    def build_operator_panel(self) -> cq.Workplane:
+        """Slanted face from podium front edge up to the bottom of the monitor."""
+        return (
+            cq.Workplane("XY")
+            .box(0.8, 0.6, 0.05)
+            .rotate((1, 0, 0), (0, 0, 0), self._PANEL_POSE_ROTATE_X_DEG)
+            .translate(self._PANEL_POSE_TRANSLATE)
+        )
 
     def build_console(self):
-        # Desk + battery only; shuttle-textured panel face + switches in orbitron_panel_shuttle.ac.
+        # Desk + battery; slanted panel is a separate mesh (Operator_Panel).
         base = cq.Workplane("XY").box(0.8, 0.8, 1.2).translate((0, -2.5, 0.6))
         batt = cq.Workplane("XY").box(0.7, 0.6, 0.4).translate((0, -2.5, 0.2))
         desk = base.union(batt)
@@ -350,12 +364,12 @@ class LabInfrastructure:
         return desk, screen, brb, sw_apu, sw_starter, sw_bleed
 
     def build_panel_labels(self) -> tuple[cq.Workplane, cq.Workplane, cq.Workplane, cq.Workplane]:
-        # Row above shuttle switches (orbitron_panel_shuttle.ac mount row).
+        # Raised on the slanted panel; shuttle meshes mount just below each label.
         return (
-            self._panel_label("APU", -0.22, -2.52, 1.50),
-            self._panel_label("START", -0.08, -2.52, 1.46),
-            self._panel_label("BLEED", 0.06, -2.52, 1.42),
-            self._panel_label("IGNITE", 0.20, -2.52, 1.44),
+            self._panel_label("APU", -0.22, 0.12),
+            self._panel_label("START", -0.08, 0.10),
+            self._panel_label("BLEED", 0.06, 0.08),
+            self._panel_label("IGNITE", 0.20, 0.10),
         )
 
     def build_fuel_farm(self):

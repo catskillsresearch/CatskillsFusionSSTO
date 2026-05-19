@@ -84,7 +84,7 @@ orbitron_ops:
   operator_view:
     view_type: lookat
     camera: [-3.64, 1.68, 16.48]
-    look_at: [-1.2, 1.38, 4.97]
+    look_at: [-1.2, 1.10, 4.95]
   view_tune_screenshot: false
   startup_view_number: 3
   operator_view_index: 2
@@ -102,8 +102,9 @@ reactor_ui:
   class_name: ReactorUI
   canvas:
     name: Reactor_Telemetry
-    size: [1024, 2000]
-    view: [1024, 2000]
+    # Match Screen mesh aspect (~14:10); tall 2000px canvas was squashed unreadably on the bezel.
+    size: [1024, 880]
+    view: [1024, 880]
     mipmapping: 1
   colors:
     outer_fill: [0.06, 0.08, 0.12, 1.0]
@@ -111,13 +112,13 @@ reactor_ui:
     hud_text: [0, 1, 0]
     title: [1, 0.8, 0]
   fonts:
-    title: { path: LiberationFonts/LiberationSans-Bold.ttf, size: 56 }
-    hud: { path: LiberationFonts/LiberationMono-Bold.ttf, size: 44 }
+    title: { path: LiberationFonts/LiberationSans-Bold.ttf, size: 40 }
+    hud: { path: LiberationFonts/LiberationMono-Bold.ttf, size: 30 }
     debug: { path: LiberationFonts/LiberationMono-Bold.ttf, size: 20 }
   title:
     text: ORBITRON + ARCJET TEST STAND
-    position: [512, 100]
-  use_screen_placement: false
+    position: [512, 72]
+  use_screen_placement: true
   startup_open_debug_dialog: false
   canvas_placement:
     node: Screen
@@ -127,64 +128,64 @@ reactor_ui:
   timer_hz: 10
   main_rows:
     - id: seq_hint
-      y: 130
+      y: 118
       kind: static
-      text: "SEQ: 1 APU  2 START  3 BLEED  SPACE IGNITE  W/S U/J"
+      text: "1 APU  2 START  3 BLEED  4 IGNITE(btn/SPACE)  then W/S U/J"
     - id: apu
-      y: 200
+      y: 168
       kind: bool_word
       prefix: "Pad APU: "
       prop: /sim/model/orbitron/pad-apu-online
       true_word: "ON"
       false_word: "OFF"
     - id: starter
-      y: 275
+      y: 218
       kind: bool_word
       prefix: "Starter: "
       prop: /sim/model/orbitron/starter-engage
       true_word: "ENGAGE"
       false_word: "OFF"
     - id: bleed
-      y: 350
+      y: 268
       kind: bool_word
       prefix: "Bleed air: "
       prop: /sim/model/orbitron/bleed-air-open
       true_word: "OPEN"
       false_word: "CLOSED"
     - id: state
-      y: 425
+      y: 318
       kind: bool_word
       prefix: "Reactor ignite: "
       prop: /sim/model/reactor/startup-trigger
       true_word: "ARMED"
       false_word: "SAFE"
     - id: beam_ma
-      y: 515
+      y: 388
       kind: float
       prop: /fdm/jsbsim/systems/reactor/beam-current-ma
       sprintf: "Ion beam: %.2f mA"
     - id: cathode_kv
-      y: 590
+      y: 448
       kind: float
       prop: /fdm/jsbsim/systems/reactor/cathode-voltage-kv
       sprintf: "Cathode: %.0f kV"
     - id: cathode_pulse
-      y: 665
+      y: 508
       kind: float
       prop: /controls/orbitron/cathode-pulse
       sprintf: "Cathode pulse: %.2f"
-    - id: plasma_n
-      y: 740
-      kind: float
-      prop: /fdm/jsbsim/systems/reactor/plasma-density-log10
-      sprintf: "log10 n: %.2f cm^-3"
     - id: comp
-      y: 600
+      y: 568
       kind: float
       prop: /controls/orbitron/compressor
       sprintf: "Compressor: %.2f"
+    - id: plasma_n
+      y: 628
+      kind: float
+      prop: /fdm/jsbsim/systems/reactor/plasma-density-log10
+      sprintf: "log10 n: %.2f cm^-3"
     - id: power
-      y: 690
+      y: 688
       kind: float
       prop: /fdm/jsbsim/systems/reactor/gross-power-mw
       sprintf: "Gross Power: %.3f MW"

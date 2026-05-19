@@ -267,6 +267,7 @@ logical:
       - hv_umbilical
       parts:
       - Operator_Console
+      - Operator_Panel
       - Screen
       - Panel_Label_APU
       - Panel_Label_STARTER
@@ -790,7 +791,7 @@ instances:
     - 0.85
     transform_chain: []
   Operator_Console:
-    narrative: 'Desk + battery block (shuttle-textured panel face is orbitron_panel_shuttle.ac).
+    narrative: 'Desk + battery block (slanted switch panel is Operator_Panel).
 
       '
     template: lab_operator_console_desk
@@ -799,6 +800,22 @@ instances:
     - 0.22
     - 0.24
     - 0.26
+    transform_chain:
+    - op: translate
+      xyz:
+      - -1.4
+      - -2.3
+      - 0.0
+  Operator_Panel:
+    narrative: 'Slanted panel from podium front edge to monitor; shuttle toggles mount on this face.
+
+      '
+    template: lab_operator_panel
+    params: {}
+    color:
+    - 0.78
+    - 0.80
+    - 0.82
     transform_chain:
     - op: translate
       xyz:

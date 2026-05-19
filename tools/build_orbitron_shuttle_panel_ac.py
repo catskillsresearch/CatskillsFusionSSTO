@@ -8,13 +8,22 @@ import re
 import shutil
 from pathlib import Path
 
-# Mount row on orbitron.ac — below Screen (y≈1.6), aligned with Panel_Label_* meshes.
-# Labels sit ~0.05 m above each switch on the slanted panel face.
-TARGETS = {
-    "Panel_Switch_APU": (-1.615, -0.06, 5.12),
-    "Panel_Switch_Starter": (-1.480, -0.095, 5.12),
-    "Panel_Switch_Bleed": (-1.338, -0.130, 5.12),
-    "Big_Red_Button": (-1.200, -0.110, 5.15),
+import numpy as np
+
+# Switch offsets in Operator_Panel local frame: (along row, along up on slanted face).
+# Row is the panel long axis (+X); up tilts toward Screen. Do not use mesh XYZ deltas.
+PANEL_SWITCH_ROW: dict[str, tuple[float, float]] = {
+    "Panel_Switch_APU": (-0.22, 0.0),
+    "Panel_Switch_Starter": (-0.08, 0.0),
+    "Panel_Switch_Bleed": (0.06, 0.0),
+    "Big_Red_Button": (0.20, 0.0),
+}
+# Fallback when orbitron.ac is missing (matches -30° X slanted panel in mesh coords).
+PANEL_FRAME_FALLBACK: dict[str, tuple[float, float, float]] = {
+    "row": (1.0, 0.0, 0.0),
+    "up": (0.0, 0.5, -0.8660254),
+    "normal": (0.0, 0.8660254, 0.5),
+    "centroid": (-1.4, 1.3, 4.9),
 }
 
 SOURCE_SWITCHES = {
@@ -28,26 +37,55 @@ GUARD_TEMPLATE_LEVER = "cont-bus-pwr-mn-a"
 ABORT_LEVER = "abort_cmd"
 ABORT_LIGHT = "indicator_light_abort"
 
-LEVER_SCALE = 1.85
-# One U-rail per MN-bus toggle (~280 verts); full R1-guards is the whole panel rack.
-GUARD_BBOX_HALF = (0.028, 0.042, 0.022)
-# Compact backplate behind the four controls (shuttle FwdCockpit grey, no schematic).
-BACKPLATE_MARGIN_X = 0.06
-BACKPLATE_MARGIN_Y = 0.05
-BACKPLATE_BEHIND_M = 0.012
+# Scale shuttle levers to Orbitron row spacing (was 2.35 — guards overlapped).
+LEVER_SCALE_MIN = 1.25
+LEVER_SCALE_MAX = 2.0
+# Single U-rail crop around cont-bus-pwr-mn-a (~120 verts at this half-extent).
+GUARD_BBOX_HALF = (0.018, 0.028, 0.015)
+SWITCH_STANDOFF_M = 0.018  # proud of panel along +normal (toward operator)
+# Mount on grey Operator_Panel in orbitron.ac — no extra backplate mesh.
 
 
-def _kabsch_rotation(src, dst) -> list[list[float]]:
-    import numpy as np
+def _normalize(v: tuple[float, float, float]) -> tuple[float, float, float]:
+    length = math.sqrt(sum(c * c for c in v)) or 1.0
+    return tuple(c / length for c in v)
 
-    h = sum(np.outer(np.array(src[i]), np.array(dst[i])) for i in range(3))
-    u, _, vt = np.linalg.svd(h)
-    r = vt.T @ u.T
-    if np.linalg.det(r) < 0:
-        vt = vt.copy()
-        vt[2, :] *= -1
-        r = vt.T @ u.T
-    return r.tolist()
+
+def _cross(
+    a: tuple[float, float, float], b: tuple[float, float, float]
+) -> tuple[float, float, float]:
+    return (
+        a[1] * b[2] - a[2] * b[1],
+        a[2] * b[0] - a[0] * b[2],
+        a[0] * b[1] - a[1] * b[0],
+    )
+
+
+def _dot(a: tuple[float, float, float], b: tuple[float, float, float]) -> float:
+    return a[0] * b[0] + a[1] * b[1] + a[2] * b[2]
+
+
+def _basis_matrix(
+    row: tuple[float, float, float],
+    up: tuple[float, float, float],
+    normal: tuple[float, float, float],
+) -> list[list[float]]:
+    return [
+        [row[0], up[0], normal[0]],
+        [row[1], up[1], normal[1]],
+        [row[2], up[2], normal[2]],
+    ]
+
+
+def _transpose(m: list[list[float]]) -> list[list[float]]:
+    return [[m[j][i] for j in range(3)] for i in range(3)]
+
+
+def _mat_mul(a: list[list[float]], b: list[list[float]]) -> list[list[float]]:
+    return [
+        [sum(a[i][k] * b[k][j] for k in range(3)) for j in range(3)]
+        for i in range(3)
+    ]
 
 
 def _mat_vec(m, v):
@@ -107,40 +145,134 @@ def _object_centroid(obj_lines: list[str]) -> tuple[float, float, float]:
     return (xs / c, ys / c, zs / c) if c else (0.0, 0.0, 0.0)
 
 
-def _panel_frame_orbitron() -> tuple[tuple[float, float, float], list[list[float]]]:
-    """Orbitron panel: row +X, face normal toward operator (+Z, slight +Y)."""
-    apu = TARGETS["Panel_Switch_APU"]
-    bleed = TARGETS["Panel_Switch_Bleed"]
-    row = (bleed[0] - apu[0], bleed[1] - apu[1], bleed[2] - apu[2])
-    rl = math.sqrt(sum(c * c for c in row)) or 1.0
-    row = tuple(c / rl for c in row)
-    # Face normal: perpendicular to row, leaning toward +Z (operator side).
-    normal = (0.0, 0.42, 0.91)
-    nl = math.sqrt(sum(c * c for c in normal))
-    normal = tuple(c / nl for c in normal)
-    # Re-orthogonalize up = normal × row
-    up = (
-        normal[1] * row[2] - normal[2] * row[1],
-        normal[2] * row[0] - normal[0] * row[2],
-        normal[0] * row[1] - normal[1] * row[0],
-    )
-    origin = TARGETS["Panel_Switch_Starter"]
-    rot = [
-        [row[0], up[0], normal[0]],
-        [row[1], up[1], normal[1]],
-        [row[2], up[2], normal[2]],
-    ]
-    return origin, rot
+def _object_vertices(obj_lines: list[str]) -> list[tuple[float, float, float]]:
+    nvert, nv_i = _object_numvert(obj_lines)
+    verts: list[tuple[float, float, float]] = []
+    for j in range(nv_i, min(nv_i + nvert, len(obj_lines))):
+        p = obj_lines[j].split()
+        if len(p) == 3:
+            verts.append(tuple(map(float, p)))
+    return verts
 
 
-def _shuttle_to_panel_rotation(objects: dict[str, list[str]]) -> list[list[float]]:
-    src_pts = [_object_centroid(objects[s]) for s in SOURCE_SWITCHES]
-    dst_pts = [TARGETS[SOURCE_SWITCHES[s]] for s in SOURCE_SWITCHES]
-    src_c = tuple(sum(p[i] for p in src_pts) / 3 for i in range(3))
-    dst_c = tuple(sum(p[i] for p in dst_pts) / 3 for i in range(3))
-    src_rel = [(p[0] - src_c[0], p[1] - src_c[1], p[2] - src_c[2]) for p in src_pts]
-    dst_rel = [(p[0] - dst_c[0], p[1] - dst_c[1], p[2] - dst_c[2]) for p in dst_pts]
-    return _kabsch_rotation(src_rel, dst_rel)
+PanelFrame = tuple[
+    tuple[float, float, float],
+    tuple[float, float, float],
+    tuple[float, float, float],
+    tuple[float, float, float],
+]
+
+
+def _operator_panel_frame(
+    panel_obj: list[str],
+    screen_obj: list[str] | None = None,
+) -> PanelFrame:
+    """Orthonormal frame from Operator_Panel mesh (row, up, normal, centroid)."""
+    verts = _object_vertices(panel_obj)
+    if len(verts) < 4:
+        fb = PANEL_FRAME_FALLBACK
+        return fb["row"], fb["up"], fb["normal"], fb["centroid"]
+    pc = _object_centroid(panel_obj)
+    arr = np.array(verts, dtype=float) - pc
+    _, _, vh = np.linalg.svd(arr, full_matrices=False)
+    row = tuple(float(c) for c in vh[0])
+    normal = tuple(float(c) for c in vh[2])
+    if normal[2] < 0.0:
+        normal = tuple(-c for c in normal)
+    if row[0] < 0.0:
+        row = tuple(-c for c in row)
+    up = _normalize(_cross(normal, row))
+    if screen_obj is not None:
+        sc = _object_centroid(screen_obj)
+        to_screen = (sc[0] - pc[0], sc[1] - pc[1], sc[2] - pc[2])
+        if _dot(up, to_screen) < 0.0:
+            up = tuple(-c for c in up)
+            normal = tuple(-c for c in normal)
+    return row, up, normal, pc
+
+
+def _targets_on_panel(
+    frame: PanelFrame,
+    offsets: dict[str, tuple[float, float]],
+) -> dict[str, tuple[float, float, float]]:
+    row, up, normal, pc = frame
+    out: dict[str, tuple[float, float, float]] = {}
+    for switch, (dr, du) in offsets.items():
+        out[switch] = (
+            pc[0] + dr * row[0] + du * up[0] + SWITCH_STANDOFF_M * normal[0],
+            pc[1] + dr * row[1] + du * up[1] + SWITCH_STANDOFF_M * normal[1],
+            pc[2] + dr * row[2] + du * up[2] + SWITCH_STANDOFF_M * normal[2],
+        )
+    return out
+
+
+def _fallback_panel_frame() -> PanelFrame:
+    fb = PANEL_FRAME_FALLBACK
+    return fb["row"], fb["up"], fb["normal"], fb["centroid"]
+
+
+def _resolve_targets_and_frame(
+    orbitron_ac: Path | None,
+) -> tuple[dict[str, tuple[float, float, float]], PanelFrame]:
+    if orbitron_ac is not None and orbitron_ac.is_file():
+        objs = _parse_objects(orbitron_ac.read_text(encoding="utf-8", errors="replace"))
+        if "Operator_Panel" in objs:
+            frame = _operator_panel_frame(
+                objs["Operator_Panel"], objs.get("Screen")
+            )
+            return _targets_on_panel(frame, PANEL_SWITCH_ROW), frame
+    frame = _fallback_panel_frame()
+    return _targets_on_panel(frame, PANEL_SWITCH_ROW), frame
+
+
+def _shuttle_r1_basis(objects: dict[str, list[str]]) -> tuple[
+    tuple[float, float, float],
+    tuple[float, float, float],
+    tuple[float, float, float],
+]:
+    """Shuttle R1 MN-bus row in cockpit.ac (panel faces +Y in shuttle coords)."""
+    sa = _object_centroid(objects["cont-bus-pwr-mn-a"])
+    sc = _object_centroid(objects["cont-bus-pwr-mn-c"])
+    row = _normalize((sc[0] - sa[0], sc[1] - sa[1], sc[2] - sa[2]))
+    shuttle_face = (0.0, 1.0, 0.0)
+    normal = _normalize(_cross(row, shuttle_face))
+    if normal[1] < 0.0:
+        normal = tuple(-c for c in normal)
+    up = _normalize(_cross(normal, row))
+    return row, up, normal
+
+
+def _fit_lever_scale(
+    objects: dict[str, list[str]],
+    row: tuple[float, float, float],
+    row_span_m: float,
+) -> float:
+    """Scale R1 levers so MN-a→MN-c spacing matches Orbitron switch row span."""
+    sa = _object_centroid(objects["cont-bus-pwr-mn-a"])
+    sc = _object_centroid(objects["cont-bus-pwr-mn-c"])
+    delta = (sc[0] - sa[0], sc[1] - sa[1], sc[2] - sa[2])
+    src_span = abs(_dot(delta, row))
+    if src_span < 1e-6:
+        return 1.6
+    scale = row_span_m / src_span
+    return max(LEVER_SCALE_MIN, min(LEVER_SCALE_MAX, scale))
+
+
+def _shuttle_to_panel_rotation(
+    objects: dict[str, list[str]],
+    row: tuple[float, float, float],
+    up: tuple[float, float, float],
+    normal: tuple[float, float, float],
+) -> list[list[float]]:
+    """Map shuttle lever basis → Operator_Panel mesh basis (no reflection)."""
+    d_row, d_up, d_normal = row, up, normal
+    # R1 levers protrude opposite panel +normal; 180° about row faces the operator.
+    d_up = tuple(-c for c in d_up)
+    d_normal = tuple(-c for c in d_normal)
+    s_row, s_up, s_normal = _shuttle_r1_basis(objects)
+    dst = _basis_matrix(d_row, d_up, d_normal)
+    src = _basis_matrix(s_row, s_up, s_normal)
+    return _mat_mul(dst, _transpose(src))
 
 
 def _snap_object_to_target(
@@ -157,44 +289,6 @@ def _transform_axis(rot: list[list[float]], axis: tuple[float, float, float]) ->
     ax = _mat_vec(rot, axis)
     al = math.sqrt(sum(c * c for c in ax)) or 1.0
     return (ax[0] / al, ax[1] / al, ax[2] / al)
-
-
-def _make_backplate(
-    center: tuple[float, float, float],
-    row: tuple[float, float, float],
-    up: tuple[float, float, float],
-    half_w: float,
-    half_h: float,
-) -> list[str]:
-    def corner(su: float, sv: float) -> tuple[float, float, float]:
-        return (
-            center[0] + su * half_w * row[0] + sv * half_h * up[0],
-            center[1] + su * half_w * row[1] + sv * half_h * up[1],
-            center[2] + su * half_w * row[2] + sv * half_h * up[2],
-        )
-
-    verts = [corner(-1, -1), corner(1, -1), corner(1, 1), corner(-1, 1)]
-    vert_lines = [f"{v[0]:.5f} {v[1]:.5f} {v[2]:.5f}" for v in verts]
-    return [
-        "OBJECT poly",
-        'name "Panel_Backplate"',
-        "data 0",
-        "FwdCockpit",
-        "crease 0.0",
-        'texture "fwd-cockpit-text-map-x.png"',
-        "texrep 1 1",
-        "numvert 4",
-        *vert_lines,
-        "numsurf 1",
-        "SURF 0X20",
-        "mat 0",
-        "refs 4",
-        "0 0 0",
-        "1 0 0",
-        "2 0 0",
-        "3 0 0",
-        "kids 0",
-    ]
 
 
 def _transform_point(
@@ -392,7 +486,11 @@ def _cockpit_materials(ac_text: str) -> list[str]:
     return [ln for ln in ac_text.splitlines() if ln.startswith("MATERIAL ")]
 
 
-def build_panel_ac(cockpit_ac: Path, out_ac: Path) -> dict[str, tuple[float, float, float]]:
+def build_panel_ac(
+    cockpit_ac: Path,
+    out_ac: Path,
+    orbitron_ac: Path | None = None,
+) -> dict[str, tuple[float, float, float]]:
     ac_text = cockpit_ac.read_text(encoding="utf-8", errors="replace")
     materials = _cockpit_materials(ac_text)
     if not materials:
@@ -405,11 +503,18 @@ def build_panel_ac(cockpit_ac: Path, out_ac: Path) -> dict[str, tuple[float, flo
     if GUARD_SOURCE not in objects:
         raise SystemExit(f"missing {GUARD_SOURCE}")
 
+    targets, panel_frame = _resolve_targets_and_frame(orbitron_ac)
+    row_unit, up_unit, normal_unit, _panel_c = panel_frame
+
+    row_offsets = [PANEL_SWITCH_ROW[k][0] for k in PANEL_SWITCH_ROW]
+    row_span_m = max(row_offsets) - min(row_offsets)
+    lever_scale = _fit_lever_scale(objects, row_unit, row_span_m)
+
     src_pts = [_object_centroid(objects[s]) for s in SOURCE_SWITCHES]
-    dst_pts = [TARGETS[SOURCE_SWITCHES[s]] for s in SOURCE_SWITCHES]
+    dst_pts = [targets[SOURCE_SWITCHES[s]] for s in SOURCE_SWITCHES]
     src_c = tuple(sum(p[i] for p in src_pts) / 3 for i in range(3))
     dst_c = tuple(sum(p[i] for p in dst_pts) / 3 for i in range(3))
-    rot = _shuttle_to_panel_rotation(objects)
+    rot = _shuttle_to_panel_rotation(objects, row_unit, up_unit, normal_unit)
     trans = (
         dst_c[0] - _mat_vec(rot, src_c)[0],
         dst_c[1] - _mat_vec(rot, src_c)[1],
@@ -445,10 +550,10 @@ def build_panel_ac(cockpit_ac: Path, out_ac: Path) -> dict[str, tuple[float, flo
                         guard_src,
                         rot,
                         trans,
-                        scale=LEVER_SCALE,
+                        scale=lever_scale,
                         scale_center=lever_c,
                     ),
-                    TARGETS[dst],
+                    targets[dst],
                 ),
                 guard_name,
             )
@@ -460,10 +565,10 @@ def build_panel_ac(cockpit_ac: Path, out_ac: Path) -> dict[str, tuple[float, flo
                     objects[src],
                     rot,
                     trans,
-                    scale=LEVER_SCALE,
+                    scale=lever_scale,
                     scale_center=lever_c,
                 ),
-                TARGETS[dst],
+                targets[dst],
             ),
             dst,
         )
@@ -473,7 +578,7 @@ def build_panel_ac(cockpit_ac: Path, out_ac: Path) -> dict[str, tuple[float, flo
     # Ignite: shuttle abort guarded slider → Big_Red_Button
     if ABORT_LEVER in objects:
         abort_c = _object_centroid(objects[ABORT_LEVER])
-        tgt = TARGETS["Big_Red_Button"]
+        tgt = targets["Big_Red_Button"]
         abort_trans = (
             tgt[0] - _mat_vec(rot, abort_c)[0],
             tgt[1] - _mat_vec(rot, abort_c)[1],
@@ -484,7 +589,7 @@ def build_panel_ac(cockpit_ac: Path, out_ac: Path) -> dict[str, tuple[float, flo
                 objects[ABORT_LEVER],
                 rot,
                 abort_trans,
-                scale=LEVER_SCALE * 1.1,
+                scale=lever_scale * 1.1,
                 scale_center=abort_c,
             ),
             tgt,
@@ -503,43 +608,14 @@ def build_panel_ac(cockpit_ac: Path, out_ac: Path) -> dict[str, tuple[float, flo
                     objects[ABORT_LIGHT],
                     rot,
                     light_trans,
-                    scale=LEVER_SCALE * 1.1,
+                    scale=lever_scale * 1.1,
                     scale_center=light_c,
                 ),
                 tgt,
             )
             out_objects.extend(_rename_object(light, "Big_Red_Button_Light"))
 
-    apu_t = centers["Panel_Switch_APU"]
-    bleed_t = centers["Panel_Switch_Bleed"]
-    ignite_t = centers["Big_Red_Button"]
-    row_vec = (bleed_t[0] - apu_t[0], bleed_t[1] - apu_t[1], bleed_t[2] - apu_t[2])
-    rl = math.sqrt(sum(c * c for c in row_vec)) or 1.0
-    row_unit = tuple(c / rl for c in row_vec)
-    _, frame_rot = _panel_frame_orbitron()
-    up_unit = (frame_rot[0][1], frame_rot[1][1], frame_rot[2][1])
-    normal_unit = (frame_rot[0][2], frame_rot[1][2], frame_rot[2][2])
-    half_w = (
-        max(
-            abs(ignite_t[0] - apu_t[0]),
-            abs(ignite_t[1] - apu_t[1]),
-            abs(ignite_t[2] - apu_t[2]),
-        )
-        / 2
-        + BACKPLATE_MARGIN_X
-    )
-    half_h = 0.055 + BACKPLATE_MARGIN_Y
-    plate_c = (
-        (apu_t[0] + ignite_t[0]) / 2,
-        (apu_t[1] + ignite_t[1]) / 2,
-        (apu_t[2] + ignite_t[2]) / 2,
-    )
-    plate_c = (
-        plate_c[0] - BACKPLATE_BEHIND_M * normal_unit[0],
-        plate_c[1] - BACKPLATE_BEHIND_M * normal_unit[1],
-        plate_c[2] - BACKPLATE_BEHIND_M * normal_unit[2],
-    )
-    out_objects = _make_backplate(plate_c, row_unit, up_unit, half_w, half_h) + out_objects
+    centers["lever_scale"] = (lever_scale, lever_scale, lever_scale)
 
     n_obj = sum(1 for ln in out_objects if ln.strip() == "OBJECT poly")
     body = (
@@ -572,17 +648,30 @@ def main() -> int:
         type=Path,
         default=Path("Aircraft/Orbitron-TestStand/Models"),
     )
+    ap.add_argument(
+        "--orbitron-ac",
+        type=Path,
+        default=Path("Aircraft/Orbitron-TestStand/Models/orbitron.ac"),
+        help="Read Panel_Label_* centroids for switch placement (rebuild glTF first).",
+    )
     args = ap.parse_args()
     repo = Path(__file__).resolve().parents[1]
     cockpit_ac = (repo / args.cockpit_ac).resolve()
     out_ac = (repo / args.out_ac).resolve()
-    centers = build_panel_ac(cockpit_ac, out_ac)
+    orbitron_ac = (repo / args.orbitron_ac).resolve()
+    if not orbitron_ac.is_file():
+        orbitron_ac = None
+        print("Note: orbitron.ac not found — using PANEL_FRAME_FALLBACK for switch mounts")
+    centers = build_panel_ac(cockpit_ac, out_ac, orbitron_ac)
     tex_dst = (repo / args.out_dir / args.cockpit_texture.name).resolve()
     tex_src = (repo / args.cockpit_texture).resolve()
     if tex_src.is_file():
         shutil.copy2(tex_src, tex_dst)
     print(f"Wrote {out_ac}")
     axis = centers.pop("knob_axis", None)
+    scale = centers.pop("lever_scale", None)
+    if scale:
+        print(f"  lever_scale={scale[0]:.3f}")
     if axis:
         print(f"  knob_axis=({axis[0]:.4f}, {axis[1]:.4f}, {axis[2]:.4f})")
     for k, v in sorted(centers.items()):
