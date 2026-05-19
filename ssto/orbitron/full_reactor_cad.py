@@ -297,45 +297,66 @@ class LabInfrastructure:
         label = cq.Workplane("XZ").text("ORBITRON p-B11", 0.08, 0.001).translate((0, -0.401, 1.025))
         return legs.union(top).union(mounts), label
 
-    def _shuttle_style_toggle(self, x: float, y: float, z: float) -> cq.Workplane:
-        """NASA-style guarded paddle toggle (matches cockpit.xml knob rotation)."""
-        bezel = cq.Workplane("XY").box(0.11, 0.075, 0.016)
-        guard = cq.Workplane("XY").box(0.095, 0.062, 0.028).translate((0, 0, 0.012))
-        paddle = cq.Workplane("XY").box(0.022, 0.052, 0.034).translate((0.034, 0, 0.022))
-        sw = bezel.union(guard).union(paddle)
-        return (
-            sw.rotate((1, 0, 0), (0, 0, 0), -30)
-            .translate((x, y, z))
-        )
+    def _shuttle_style_toggle_parts(
+        self, x: float, y: float, z: float, *, scale: float = 1.45
+    ) -> tuple[cq.Workplane, cq.Workplane]:
+        """Guarded paddle toggle: static bezel+guard on desk, paddle exported for FG knob."""
+        s = scale
+        bezel = cq.Workplane("XY").box(0.11 * s, 0.075 * s, 0.016 * s)
+        guard = cq.Workplane("XY").box(0.095 * s, 0.062 * s, 0.028 * s).translate((0, 0, 0.012 * s))
+        paddle = cq.Workplane("XY").box(0.028 * s, 0.060 * s, 0.040 * s).translate((0.038 * s, 0, 0.024 * s))
 
-    def _shuttle_style_pushbutton(self, x: float, y: float, z: float) -> cq.Workplane:
+        def _place(wp: cq.Workplane) -> cq.Workplane:
+            return wp.rotate((1, 0, 0), (0, 0, 0), -30).translate((x, y, z))
+
+        return _place(bezel.union(guard)), _place(paddle)
+
+    def _shuttle_style_toggle(self, x: float, y: float, z: float) -> cq.Workplane:
+        bezel, paddle = self._shuttle_style_toggle_parts(x, y, z)
+        return bezel.union(paddle)
+
+    def _shuttle_style_pushbutton(self, x: float, y: float, z: float, *, scale: float = 1.35) -> cq.Workplane:
         """Mushroom-head guarded pushbutton (Big Red Button)."""
-        base = cq.Workplane("XY").cylinder(0.028, 0.012)
-        guard = cq.Workplane("XY").cylinder(0.042, 0.006).translate((0, 0, 0.012))
-        stem = cq.Workplane("XY").cylinder(0.014, 0.018).translate((0, 0, 0.02))
-        cap = cq.Workplane("XY").sphere(0.024).translate((0, 0, 0.038))
+        s = scale
+        base = cq.Workplane("XY").cylinder(0.028 * s, 0.012 * s)
+        guard = cq.Workplane("XY").cylinder(0.042 * s, 0.006 * s).translate((0, 0, 0.012 * s))
+        stem = cq.Workplane("XY").cylinder(0.014 * s, 0.018 * s).translate((0, 0, 0.02 * s))
+        cap = cq.Workplane("XY").sphere(0.024 * s).translate((0, 0, 0.038 * s))
         btn = base.union(guard).union(stem).union(cap)
         return (
             btn.rotate((1, 0, 0), (0, 0, 0), -30)
             .translate((x, y, z))
         )
 
-    def build_console(self):
-        # Desk, screen, BRB, and three panel toggles as SEPARATE export meshes.
-        base = cq.Workplane("XY").box(0.8, 0.8, 1.2).translate((0, -2.5, 0.6))
-        panel = cq.Workplane("XY").box(0.8, 0.6, 0.05).rotate((1, 0, 0), (0, 0, 0), -30).translate(
-            (0, -2.6, 1.3)
+    def _panel_label(self, text: str, x: float, y: float, z: float) -> cq.Workplane:
+        """Raised lettering above each shuttle toggle on the slanted panel."""
+        label = (
+            cq.Workplane("XZ")
+            .text(text, 0.028, 0.004, halign="center")
+            .translate((x, y, z))
         )
+        return label.rotate((1, 0, 0), (0, 0, 0), -30)
+
+    def build_console(self):
+        # Desk + battery only; shuttle-textured panel face + switches in orbitron_panel_shuttle.ac.
+        base = cq.Workplane("XY").box(0.8, 0.8, 1.2).translate((0, -2.5, 0.6))
         batt = cq.Workplane("XY").box(0.7, 0.6, 0.4).translate((0, -2.5, 0.2))
-        desk = base.union(panel).union(batt)
+        desk = base.union(batt)
 
         screen = cq.Workplane("XY").box(0.7, 0.05, 0.5).translate((0, -2.2, 1.6))
-        brb = self._shuttle_style_pushbutton(0.2, -2.65, 1.35)
-        sw_apu = self._shuttle_style_toggle(-0.22, -2.58, 1.40)
-        sw_starter = self._shuttle_style_toggle(-0.08, -2.58, 1.36)
-        sw_bleed = self._shuttle_style_toggle(0.06, -2.58, 1.32)
+        # Placeholders for template API (shuttle meshes + labels exported separately).
+        brb = sw_apu = sw_starter = sw_bleed = cq.Workplane("XY").box(0.001, 0.001, 0.001)
 
         return desk, screen, brb, sw_apu, sw_starter, sw_bleed
+
+    def build_panel_labels(self) -> tuple[cq.Workplane, cq.Workplane, cq.Workplane, cq.Workplane]:
+        # Row above shuttle switches (orbitron_panel_shuttle.ac mount row).
+        return (
+            self._panel_label("APU", -0.22, -2.52, 1.50),
+            self._panel_label("START", -0.08, -2.52, 1.46),
+            self._panel_label("BLEED", 0.06, -2.52, 1.42),
+            self._panel_label("IGNITE", 0.20, -2.52, 1.44),
+        )
 
     def build_fuel_farm(self):
         h2 = cq.Workplane("XY").circle(0.15).extrude(1.2).edges(">Z").fillet(0.1).translate((0.6, 1.2, 0))

@@ -957,8 +957,29 @@ def _panel_click_binding(parent: ET.Element) -> None:
     _text(
         b,
         "script",
-        "var p = getprop('/sim/aircraft-dir'); if (p != nil) play_sample(p ~ '/Sounds/button_press1.wav');",
+        "if (typeof globals.OrbitronOps != \"nil\") globals.OrbitronOps.play_panel_click();",
     )
+
+
+def _emit_panel_pick_animation(root: ET.Element, spec: Mapping[str, Any]) -> None:
+    """Pick hotspot for CTRL-C (/sim/panel-hotspots) and mouse clicks."""
+    anim = ET.SubElement(root, "animation")
+    _text(anim, "type", "pick")
+    _text(anim, "object-name", spec["object_name"])
+    _text(anim, "visible", True)
+    act = ET.SubElement(anim, "action")
+    _text(act, "button", 0)
+    _text(act, "repeatable", "false")
+    b = ET.SubElement(act, "binding")
+    _text(b, "command", "property-toggle")
+    _text(b, "property", spec["property"])
+    _panel_click_binding(act)
+    if spec.get("tooltip"):
+        hov = ET.SubElement(anim, "hovered")
+        hb = ET.SubElement(hov, "binding")
+        _text(hb, "command", "set-tooltip")
+        _text(hb, "tooltip-id", str(spec["object_name"]))
+        _text(hb, "label", str(spec["tooltip"]))
 
 
 def _emit_knob_animation(root: ET.Element, knob: Mapping[str, Any]) -> None:
@@ -969,15 +990,26 @@ def _emit_knob_animation(root: ET.Element, knob: Mapping[str, Any]) -> None:
     _text(anim, "factor", float(knob.get("factor", -45)))
     if "offset_deg" in knob:
         _text(anim, "offset-deg", float(knob["offset_deg"]))
-    axis = knob.get("axis") or [1, 0, 0]
+    center = knob.get("center_m")
+    if isinstance(center, (list, tuple)) and len(center) == 3:
+        cen = ET.SubElement(anim, "center")
+        _text(cen, "x-m", float(center[0]))
+        _text(cen, "y-m", float(center[1]))
+        _text(cen, "z-m", float(center[2]))
+    axis = knob.get("axis") or [0, 1, 0]
     ax = ET.SubElement(anim, "axis")
     _text(ax, "x", float(axis[0]))
     _text(ax, "y", float(axis[1]))
     _text(ax, "z", float(axis[2]))
     act = ET.SubElement(anim, "action")
+    _text(act, "repeatable", "false")
     b = ET.SubElement(act, "binding")
-    _text(b, "command", "property-toggle")
+    _text(b, "command", "property-adjust")
     _text(b, "property", knob["property"])
+    _text(b, "factor", 1)
+    _text(b, "min", 0)
+    _text(b, "max", 1)
+    _text(b, "wrap", "false")
     _panel_click_binding(act)
     if knob.get("tooltip"):
         hov = ET.SubElement(anim, "hovered")
@@ -985,6 +1017,32 @@ def _emit_knob_animation(root: ET.Element, knob: Mapping[str, Any]) -> None:
         _text(hb, "command", "set-tooltip")
         _text(hb, "tooltip-id", str(knob["object_name"]))
         _text(hb, "label", str(knob["tooltip"]))
+
+
+def _emit_slider_animation(root: ET.Element, spec: Mapping[str, Any]) -> None:
+    anim = ET.SubElement(root, "animation")
+    _text(anim, "type", "slider")
+    _text(anim, "object-name", spec["object_name"])
+    for extra in spec.get("extra_object_names") or []:
+        _text(anim, "object-name", str(extra))
+    _text(anim, "property", spec["property"])
+    axis = spec.get("axis") or [-1, 0, 0]
+    ax = ET.SubElement(anim, "axis")
+    _text(ax, "x", float(axis[0]))
+    _text(ax, "y", float(axis[1]))
+    _text(ax, "z", float(axis[2]))
+    _text(anim, "factor", float(spec.get("factor", 0.002)))
+    act = ET.SubElement(anim, "action")
+    b = ET.SubElement(act, "binding")
+    _text(b, "command", "property-toggle")
+    _text(b, "property", spec["property"])
+    _panel_click_binding(act)
+    if spec.get("tooltip"):
+        hov = ET.SubElement(anim, "hovered")
+        hb = ET.SubElement(hov, "binding")
+        _text(hb, "command", "set-tooltip")
+        _text(hb, "tooltip-id", str(spec["object_name"]))
+        _text(hb, "label", str(spec["tooltip"]))
 
 
 def _emit_translate_animation(root: ET.Element, tr: Mapping[str, Any]) -> None:
@@ -1014,6 +1072,16 @@ def _build_orbitron_model_xml(fg_model: Mapping[str, Any]) -> str:
     _text(off, "y-m", o["y_m"])
     _text(off, "z-m", o["z_m"])
 
+    shuttle_panel = fg_model.get("shuttle_panel_model")
+    if isinstance(shuttle_panel, dict) and shuttle_panel.get("path"):
+        root.append(
+            ET.Comment(
+                " Space Shuttle R1 guarded toggles (cont-bus-pwr-mn-a/b/c + R1-guards) "
+            )
+        )
+        sp = ET.SubElement(root, "model")
+        _text(sp, "path", shuttle_panel["path"])
+
     for eff in fg_model.get("effect_models") or []:
         if not isinstance(eff, dict):
             continue
@@ -1036,10 +1104,18 @@ def _build_orbitron_model_xml(fg_model: Mapping[str, Any]) -> str:
     for knob in knobs:
         if isinstance(knob, dict):
             _emit_knob_animation(root, knob)
+            _emit_panel_pick_animation(root, knob)
 
     for tr in fg_model.get("translate_animations") or []:
         if isinstance(tr, dict):
             _emit_translate_animation(root, tr)
+
+    sliders = fg_model.get("slider_animations") or []
+    if sliders:
+        root.append(ET.Comment(" Shuttle abort-style guarded ignite slider "))
+    for spec in sliders:
+        if isinstance(spec, dict):
+            _emit_slider_animation(root, spec)
 
     for i, pick in enumerate(fg_model.get("pick_animations") or []):
         if i == 0:
@@ -1047,6 +1123,9 @@ def _build_orbitron_model_xml(fg_model: Mapping[str, Any]) -> str:
         anim = ET.SubElement(root, "animation")
         _text(anim, "type", "pick")
         _text(anim, "object-name", pick["object_name"])
+        for extra in pick.get("extra_object_names") or []:
+            _text(anim, "object-name", str(extra))
+        _text(anim, "visible", True)
         act = ET.SubElement(anim, "action")
         _text(act, "button", int(pick["button"]))
         _text(act, "repeatable", str(pick.get("repeatable", False)).lower())
@@ -1054,6 +1133,12 @@ def _build_orbitron_model_xml(fg_model: Mapping[str, Any]) -> str:
         _text(b, "command", "property-toggle")
         _text(b, "property", pick["toggle_property"])
         _panel_click_binding(act)
+        if pick.get("tooltip"):
+            hov = ET.SubElement(anim, "hovered")
+            hb = ET.SubElement(hov, "binding")
+            _text(hb, "command", "set-tooltip")
+            _text(hb, "tooltip-id", str(pick["object_name"]))
+            _text(hb, "label", str(pick["tooltip"]))
 
     return '<?xml version="1.0"?>\n' + ET.tostring(root, encoding="unicode")
 

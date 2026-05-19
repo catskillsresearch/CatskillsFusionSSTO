@@ -139,42 +139,51 @@ fg_set:
 fg_model_orbitron_xml:
   ac_path: orbitron.ac
   comment: Mesh orbitron.ac from orbitron_lab.gltf; tune offsets if the rig sits wrong on the runway.
+  shuttle_panel_model:
+    path: Models/orbitron_panel_shuttle.ac
   offsets:
     pitch_deg: 0
     roll_deg: 0
     heading_deg: 0
     y_m: 0.0
     z_m: 0.0
-  # Space-Shuttle-style panel hardware (see Models/cockpit.xml knob + pick patterns).
+  # Panel toggles: literal R1 MN-bus levers from Models/cockpit.ac (orbitron_panel_shuttle.ac).
   knob_animations:
     - object_name: Panel_Switch_APU
       property: /sim/model/orbitron/pad-apu-online
-      factor: -45
-      offset_deg: 10
-      axis: [1, 0, 0]
+      factor: -35
+      offset_deg: 0
+      axis: [0.031, 0.957, 0.289]
+      center_m: [-1.615, -0.060, 5.120]
       tooltip: "Pad APU cart online"
     - object_name: Panel_Switch_Starter
       property: /sim/model/orbitron/starter-engage
-      factor: -45
-      offset_deg: 10
-      axis: [1, 0, 0]
+      factor: -35
+      offset_deg: 0
+      axis: [0.031, 0.957, 0.289]
+      center_m: [-1.480, -0.095, 5.120]
       tooltip: "Starter engage (requires APU)"
     - object_name: Panel_Switch_Bleed
       property: /sim/model/orbitron/bleed-air-open
-      factor: -45
-      offset_deg: 10
-      axis: [1, 0, 0]
+      factor: -35
+      offset_deg: 0
+      axis: [0.031, 0.957, 0.289]
+      center_m: [-1.338, -0.130, 5.120]
       tooltip: "Bleed air / intake path open"
+  slider_animations:
+    - object_name: Big_Red_Button
+      extra_object_names: [Big_Red_Button_Light]
+      property: /sim/model/reactor/startup-trigger
+      axis: [-0.313, -0.922, -0.227]
+      factor: 0.002
+      tooltip: "IGNITE — arm reactor (requires bleed air)"
   pick_animations:
     - object_name: Big_Red_Button
+      extra_object_names: [Big_Red_Button_Light]
       button: 0
       repeatable: false
       toggle_property: /sim/model/reactor/startup-trigger
-  translate_animations:
-    - object_name: Big_Red_Button
-      property: /sim/model/reactor/startup-trigger
-      axis: [0, 0, 1]
-      factor: -0.012
+      tooltip: "IGNITE — arm reactor (requires bleed air)"
   effect_models:
     - name: orbitron-nozzle-exhaust
       path: Models/Effects/orbitron_nozzle_exhaust.xml

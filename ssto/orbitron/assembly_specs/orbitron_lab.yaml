@@ -266,12 +266,13 @@ logical:
       members:
       - hv_umbilical
       parts:
-      - Panel_Switch_APU
-      - Panel_Switch_Starter
-      - Panel_Switch_Bleed
-      - Big_Red_Button
       - Operator_Console
       - Screen
+      - Panel_Label_APU
+      - Panel_Label_STARTER
+      - Panel_Label_BLEED
+      - Panel_Label_IGNITE
+      # Switches + guards + ignite + panel face: Models/orbitron_panel_shuttle.ac
     thrust_sled:
       title: Thrust sled
       detail: Longitudinal rails, deck slab, **four corner load cells**, and an **engine
@@ -789,20 +790,15 @@ instances:
     - 0.85
     transform_chain: []
   Operator_Console:
-    narrative: 'Desk + tilted panel + battery block; shifted by CONSOLE_OFFSET_M in
-      the parent
-
-      lab narrative so the operator stands clear of the plume line. Behavioural spec
-
-      (interlocks, DEC sequence, telemetry): orbitron_operator_console_spec.yaml.
+    narrative: 'Desk + battery block (shuttle-textured panel face is orbitron_panel_shuttle.ac).
 
       '
     template: lab_operator_console_desk
     params: {}
     color:
-    - 0.15
-    - 0.15
-    - 0.15
+    - 0.22
+    - 0.24
+    - 0.26
     transform_chain:
     - op: translate
       xyz:
@@ -828,72 +824,34 @@ instances:
       - -1.4
       - -2.3
       - 0.0
-  Panel_Switch_APU:
-    narrative: |
-      **Pad APU cart online** — energizes the starter bus from ``Pad_Startup_Cart``.
-      FG: toggle ``/sim/model/orbitron/pad-apu-online`` (panel pick or key **1**).
-    template: lab_panel_switch_apu
+  Panel_Label_APU:
+    template: lab_panel_label_apu
     params: {}
-    color:
-    - 0.55
-    - 0.58
-    - 0.62
+    color: [0.85, 0.82, 0.55]
     transform_chain:
     - op: translate
-      xyz:
-      - -1.4
-      - -2.3
-      - 0.0
-  Panel_Switch_Starter:
-    narrative: |
-      **Starter engage** — ``Pad_Startup_Motor`` cranks the compressor spool (requires APU online).
-      FG: toggle ``/sim/model/orbitron/starter-engage`` (pick or key **2**); crank WAV via Nasal.
-    template: lab_panel_switch_starter
+      xyz: [-1.4, -2.3, 0.0]
+  Panel_Label_STARTER:
+    template: lab_panel_label_starter
     params: {}
-    color:
-    - 0.62
-    - 0.52
-    - 0.18
+    color: [0.85, 0.82, 0.55]
     transform_chain:
     - op: translate
-      xyz:
-      - -1.4
-      - -2.3
-      - 0.0
-  Panel_Switch_Bleed:
-    narrative: |
-      **Bleed air / intake path open** — bellmouth → compressor annulus (spin-up airflow).
-      FG: toggle ``/sim/model/orbitron/bleed-air-open`` (pick or key **3**). Use **U/J** for
-      compressor command once bleed is open.
-    template: lab_panel_switch_bleed
+      xyz: [-1.4, -2.3, 0.0]
+  Panel_Label_BLEED:
+    template: lab_panel_label_bleed
     params: {}
-    color:
-    - 0.22
-    - 0.48
-    - 0.72
+    color: [0.85, 0.82, 0.55]
     transform_chain:
     - op: translate
-      xyz:
-      - -1.4
-      - -2.3
-      - 0.0
-  Big_Red_Button:
-    narrative: |
-      **Reactor ignite / arm** — fusion on, thrust surrogate active (not pad APU).
-      FG: toggle ``/sim/model/reactor/startup-trigger`` (pick or **SPACE**). Requires bleed
-      open; starter should be off after turbine takeover (operator procedure).
-    template: lab_big_red_button
+      xyz: [-1.4, -2.3, 0.0]
+  Panel_Label_IGNITE:
+    template: lab_panel_label_ignite
     params: {}
-    color:
-    - 0.9
-    - 0.0
-    - 0.0
+    color: [0.95, 0.75, 0.55]
     transform_chain:
     - op: translate
-      xyz:
-      - -1.4
-      - -2.3
-      - 0.0
+      xyz: [-1.4, -2.3, 0.0]
   Pipe_H2_Feed:
     narrative: 'H₂ service valve / flex-jumper boss at the hydrogen tank roof (tank-end fitting for ``Hydrogen_Trunk_Line``).'
     template: lab_fuel_feed_valve

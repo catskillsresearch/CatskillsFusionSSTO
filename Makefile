@@ -49,6 +49,10 @@ ORBITRON_SOUND_XML := $(STAND)/Sounds/sound.xml
 ORBITRON_PHYSICS_SPEC := $(ASSEMBLY_SPECS_DIR)/orbitron_physics_surrogate.yaml
 ORBITRON_PHYSICS_SPEC_PY := $(REPO_ROOT)/tools/orbitron_physics_spec.py
 ORBITRON_MODEL_XML := $(STAND)/Models/Orbitron.xml
+ORBITRON_SHUTTLE_PANEL_AC := $(STAND)/Models/orbitron_panel_shuttle.ac
+BUILD_SHUTTLE_PANEL_AC := $(REPO_ROOT)/tools/build_orbitron_shuttle_panel_ac.py
+COCKPIT_AC := $(REPO_ROOT)/Models/cockpit.ac
+COCKPIT_TEX := $(REPO_ROOT)/Models/fwd-cockpit-text-map-x.png
 # Nozzle particle VFX: template + shared textures → aircraft package (tracked outputs).
 ORBITRON_VFX_DIR := $(STAND)/Models/Effects
 ORBITRON_NOZZLE_EXHAUST_SRC := $(REPO_ROOT)/tools/templates/orbitron_nozzle_exhaust.xml
@@ -101,6 +105,7 @@ MODEL_ARTIFACTS := \
 	$(GLTF_LAB) \
 	$(GLTF_LAB_SUBASSEMBLIES) \
 	$(STAND)/Models/orbitron.ac \
+	$(ORBITRON_SHUTTLE_PANEL_AC) \
 	$(STAND)/engine_surrogate.json \
 	$(STAND)/Sounds/.sounds_built \
 	$(STAND)/build/surrogate_sweep_results.csv \
@@ -151,8 +156,16 @@ $(ORBITRON_SOUND_XML): $(ORBITRON_SOUND_ASSETS) $(COMPILE_SOUND_XML) | $(STAND)/
 	cd '$(REPO_ROOT)' && $(POETRY) run python $(COMPILE_SOUND_XML) \
 		--spec '$(ORBITRON_SOUND_ASSETS)' --out '$(ORBITRON_SOUND_XML)'
 
+$(ORBITRON_SHUTTLE_PANEL_AC): $(BUILD_SHUTTLE_PANEL_AC) $(COCKPIT_AC) $(COCKPIT_TEX) | $(STAND)/.dirs
+	cd '$(REPO_ROOT)' && $(POETRY) run python $(BUILD_SHUTTLE_PANEL_AC) \
+		--cockpit-ac '$(COCKPIT_AC)' \
+		--cockpit-texture '$(COCKPIT_TEX)' \
+		--out-ac '$(ORBITRON_SHUTTLE_PANEL_AC)' \
+		--out-dir '$(STAND)/Models'
+
 $(STAND_FG_SET) $(STAND_JSBSIM_XML) $(ORBITRON_MODEL_XML) &: \
 		$(ORBITRON_AIRCRAFT_SPEC) $(ORBITRON_PHYSICS_SPEC) $(COMPILE_AIRCRAFT_RUNTIME) $(JSBSIM_TEMPLATE) \
+		$(ORBITRON_SHUTTLE_PANEL_AC) \
 		| $(STAND)/.dirs
 	cd '$(REPO_ROOT)' && $(POETRY) run python $(COMPILE_AIRCRAFT_RUNTIME) \
 		--aircraft-spec '$(ORBITRON_AIRCRAFT_SPEC)' \

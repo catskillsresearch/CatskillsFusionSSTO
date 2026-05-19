@@ -346,6 +346,22 @@ def tpl_lab_panel_switch_bleed(**_: Any) -> cq.Workplane:
     return sw
 
 
+def tpl_lab_panel_label_apu(**_: Any) -> cq.Workplane:
+    return _infra().build_panel_labels()[0]
+
+
+def tpl_lab_panel_label_starter(**_: Any) -> cq.Workplane:
+    return _infra().build_panel_labels()[1]
+
+
+def tpl_lab_panel_label_bleed(**_: Any) -> cq.Workplane:
+    return _infra().build_panel_labels()[2]
+
+
+def tpl_lab_panel_label_ignite(**_: Any) -> cq.Workplane:
+    return _infra().build_panel_labels()[3]
+
+
 def tpl_lab_magnet_feedthrough_bosses(**_: Any) -> cq.Workplane:
     """Solenoid OD bosses for CH₄ process, cryo thermal, and HV feedthrough (world-space)."""
     return build_magnet_feedthrough_bosses()
@@ -402,6 +418,10 @@ TEMPLATE_REGISTRY: dict[str, Callable[..., cq.Workplane]] = {
     "lab_panel_switch_apu": tpl_lab_panel_switch_apu,
     "lab_panel_switch_starter": tpl_lab_panel_switch_starter,
     "lab_panel_switch_bleed": tpl_lab_panel_switch_bleed,
+    "lab_panel_label_apu": tpl_lab_panel_label_apu,
+    "lab_panel_label_starter": tpl_lab_panel_label_starter,
+    "lab_panel_label_bleed": tpl_lab_panel_label_bleed,
+    "lab_panel_label_ignite": tpl_lab_panel_label_ignite,
 }
 
 
