@@ -78,17 +78,65 @@ def _dest_point(lat_deg: float, lon_deg: float, course_deg: float, dist_m: float
 
 
 def _lab_to_fg_view_offset(x_m: float, y_m: float, z_m: float) -> tuple[float, float, float]:
-    """Lab/AC (+X fwd, +Y right, +Z up) → FG body lookat (x fwd, y right, z up)."""
+    """Identity pass-through for view offsets.
+
+    Per FG wiki "Howto:Configure views in FlightGear" §View Offsets, the x/y/z-offset-m
+    properties on from-model lookfrom AND lookat views are in FG body axes:
+      +x = RIGHT of model origin (starboard)
+      +y = UP from model origin
+      +z = BACK / AFT from model origin
+    The orbitron.ac mesh frame uses the same convention, so mesh coordinates pass
+    through unchanged to FG.
+    """
     return (x_m, y_m, z_m)
 
 
+def _mesh_step_back_eye(
+    base: tuple[float, float, float],
+    aim: tuple[float, float, float],
+    back_ft: float,
+) -> tuple[float, float, float]:
+    """Move eye away from aim along (base − aim), preserving look direction (lookat)."""
+    back_m = back_ft * 0.3048
+    dx = base[0] - aim[0]
+    dy = base[1] - aim[1]
+    dz = base[2] - aim[2]
+    length = math.hypot(dx, dy, dz)
+    if length < 1e-9:
+        return base
+    scale = back_m / length
+    return (base[0] + dx * scale, base[1] + dy * scale, base[2] + dz * scale)
+
+
+def _mesh_to_fg_body_view_offset(x_m: float, y_m: float, z_m: float) -> tuple[float, float, float]:
+    """orbitron.ac mesh → FG body view offsets (wiki: +x right, +y up, +z aft).
+
+    Verified part extents: mesh +X = rig nose, +Y = up, +Z = starboard / console side.
+    Model heading 0 ⇒ mesh +X aligns with FG forward (−z), mesh +Z with FG right (+x).
+    """
+    return (z_m, y_m, -x_m)
+
+
 def _ac_to_fg_body_view_offset(x_m: float, y_m: float, z_up_m: float) -> tuple[float, float, float]:
-    """orbitron.ac → FG body lookat (same axes as AC; matches pad overview z-up)."""
-    return (x_m, y_m, z_up_m)
+    return _mesh_to_fg_body_view_offset(x_m, y_m, z_up_m)
 
 
 def _ac_to_fg_lookfrom_offset(x_m: float, y_m: float, z_up_m: float) -> tuple[float, float, float]:
     return (y_m, z_up_m, -x_m)
+
+
+def _mesh_lookfrom_aim_angles_deg(
+    eye: tuple[float, float, float],
+    aim: tuple[float, float, float],
+) -> tuple[float, float]:
+    """Heading/pitch (deg) for orbitron.ac mesh (+X nose, +Y up, +Z starboard)."""
+    dx = aim[0] - eye[0]
+    dy = aim[1] - eye[1]
+    dz = aim[2] - eye[2]
+    hdist = math.hypot(dx, dz)
+    if hdist < 1e-9:
+        return (90.0 if dy > 0 else -90.0, 90.0 if dy > 0 else -90.0)
+    return (math.degrees(math.atan2(dz, dx)), math.degrees(math.atan2(dy, hdist)))
 
 
 def _ac_lookfrom_aim_angles_deg(
@@ -461,6 +509,29 @@ def _build_set_xml(
                 if v.get("limits_enabled") is False:
                     limits = ET.SubElement(cfg, "limits")
                     _typed_prop(limits, "enabled", False, "bool")
+        elif v.get("model_eye_world_target"):
+            _typed_prop(cfg, "from-model", 1, "int")
+            _typed_prop(cfg, "at-model", 0, "int")
+            ex = _typed_prop(cfg, "x-offset-m", float(v["x_offset_m"]))
+            ex.set("archive", "n")
+            ey = _typed_prop(cfg, "y-offset-m", float(v["y_offset_m"]))
+            ey.set("archive", "n")
+            ez = _typed_prop(cfg, "z-offset-m", float(v["z_offset_m"]))
+            ez.set("archive", "n")
+            base = "/sim/model/orbitron/operator-view"
+            _text(cfg, "target-lat-deg-path", f"{base}/target-latitude-deg")
+            _text(cfg, "target-lon-deg-path", f"{base}/target-longitude-deg")
+            _text(cfg, "target-alt-ft-path", f"{base}/target-altitude-ft")
+            if v.get("limits_enabled") is False:
+                limits = ET.SubElement(cfg, "limits")
+                _typed_prop(limits, "enabled", False, "bool")
+            if "ground_level_nearplane_m" in v:
+                _typed_prop(
+                    cfg, "ground-level-nearplane-m", float(v["ground_level_nearplane_m"])
+                )
+            if "field_of_view_deg" in v:
+                ef = _typed_prop(cfg, "field-of-view-deg", float(v["field_of_view_deg"]))
+                ef.set("archive", "n")
         elif v.get("chase"):
             _typed_prop(cfg, "from-model", 0, "int")
             _typed_prop(cfg, "platform", True, "bool")
@@ -509,7 +580,7 @@ def _build_set_xml(
                     "ground-level-nearplane-m",
                     float(v["ground_level_nearplane_m"]),
                 )
-        if "field_of_view_deg" in v:
+        if "field_of_view_deg" in v and not v.get("model_eye_world_target"):
             ef = _typed_prop(cfg, "field-of-view-deg", float(v["field_of_view_deg"]))
             ef.set("archive", "n")
 
@@ -590,7 +661,6 @@ def _build_set_xml(
                 vo_cfg.get("eye_offset_m", [0.12, 0.5, 1.75]),
             )
         )
-        ex, ey, ez = _ac_to_fg_lookfrom_offset(*eye)
         aim_pt = tuple(
             float(x)
             for x in vo_cfg.get(
@@ -601,7 +671,12 @@ def _build_set_xml(
                 ),
             )
         )
-        hdg, pit = _ac_lookfrom_aim_angles_deg(eye, aim_pt)
+        if vo_cfg.get("use_ac_view_offsets"):
+            ex, ey, ez = _mesh_to_fg_body_view_offset(*eye)
+            hdg, pit = _mesh_lookfrom_aim_angles_deg(eye, aim_pt)
+        else:
+            ex, ey, ez = _ac_to_fg_lookfrom_offset(*eye)
+            hdg, pit = _ac_lookfrom_aim_angles_deg(eye, aim_pt)
         if vo_cfg.get("pitch_sign_invert"):
             pit = -pit
         lf_body: dict[str, Any] = {
@@ -630,13 +705,6 @@ def _build_set_xml(
         and not vo_cfg.get("world_eye")
         and not vo_cfg.get("sightline_from_apron")
     ):
-        cam = tuple(
-            float(x)
-            for x in vo_cfg.get(
-                "camera_offset_m",
-                vo_cfg.get("eye_offset_m", [-0.12, 0.5, 4.65]),
-            )
-        )
         look = tuple(
             float(x)
             for x in vo_cfg.get(
@@ -647,7 +715,22 @@ def _build_set_xml(
                 ),
             )
         )
-        if vo_cfg.get("use_ac_lookat_direct"):
+        if vo_cfg.get("eye_base_offset_m"):
+            base = tuple(float(x) for x in vo_cfg["eye_base_offset_m"])
+            back_ft = float(vo_cfg.get("eye_step_back_ft", 0))
+            cam = _mesh_step_back_eye(base, look, back_ft) if back_ft > 0 else base
+        else:
+            cam = tuple(
+                float(x)
+                for x in vo_cfg.get(
+                    "camera_offset_m",
+                    vo_cfg.get("eye_offset_m", [-0.12, 0.5, 4.65]),
+                )
+            )
+        if vo_cfg.get("use_fg_body_offsets") or vo_cfg.get("use_fg_view_offsets"):
+            cx, cy, cz = cam
+            lx, ly, lz = look
+        elif vo_cfg.get("use_ac_lookat_direct"):
             cx, cy, cz = cam
             lx, ly, lz = look
         elif vo_cfg.get("use_ac_view_offsets"):
@@ -669,13 +752,19 @@ def _build_set_xml(
             "x_offset_m": ex,
             "y_offset_m": ey,
             "z_offset_m": ez,
-            "target_x_offset_m": tx,
-            "target_y_offset_m": ty,
-            "target_z_offset_m": tz,
             "limits_enabled": vo_cfg.get("limits_enabled"),
             "ground_level_nearplane_m": vo_cfg.get("ground_level_nearplane_m", 0.25),
             "field_of_view_deg": vo_cfg.get("field_of_view_deg", 48.0),
         }
+        if vo_cfg.get("aim_world"):
+            body["model_eye_world_target"] = True
+            body["aim_latitude_deg"] = float(vo_cfg["aim_latitude_deg"])
+            body["aim_longitude_deg"] = float(vo_cfg["aim_longitude_deg"])
+            body["aim_altitude_ft"] = float(vo_cfg.get("aim_altitude_ft", 162.0))
+        else:
+            body["target_x_offset_m"] = tx
+            body["target_y_offset_m"] = ty
+            body["target_z_offset_m"] = tz
         if "heading_offset_deg" in vo_cfg:
             body["heading_offset_deg"] = float(vo_cfg["heading_offset_deg"])
         if "pitch_offset_deg" in vo_cfg:
@@ -802,7 +891,10 @@ def _build_set_xml(
             v_el.text = f" {val} "
         elif "nasal_script" in row:
             _text(b, "command", "nasal")
-            _text(b, "script", row["nasal_script"] + "();")
+            script = row["nasal_script"]
+            if script.startswith("OrbitronOps."):
+                script = "globals." + script
+            _text(b, "script", script + "();")
         else:
             _text(b, "command", "property-adjust")
             _text(b, "property", row["adjust_property"])

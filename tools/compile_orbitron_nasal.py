@@ -16,6 +16,45 @@ def _nas_literal_string(s: str) -> str:
     return '"' + s.replace("\\", "\\\\").replace('"', '\\"') + '"'
 
 
+def _mesh_step_back_eye(
+    base: tuple[float, float, float],
+    aim: tuple[float, float, float],
+    back_ft: float,
+) -> tuple[float, float, float]:
+    back_m = back_ft * 0.3048
+    dx = base[0] - aim[0]
+    dy = base[1] - aim[1]
+    dz = base[2] - aim[2]
+    length = math.hypot(dx, dy, dz)
+    if length < 1e-9:
+        return base
+    scale = back_m / length
+    return (base[0] + dx * scale, base[1] + dy * scale, base[2] + dz * scale)
+
+
+def _mesh_to_fg_body_view_offset(x_m: float, y_m: float, z_m: float) -> tuple[float, float, float]:
+    """orbitron.ac mesh (+X nose, +Y up, +Z starboard) → FG body view offsets."""
+    return (z_m, y_m, -x_m)
+
+
+def _ac_to_fg_lookfrom_offset(x_m: float, y_m: float, z_up_m: float) -> tuple[float, float, float]:
+    """CadQuery lab (+X fwd, +Y right, +Z up) → FG lookfrom position offset."""
+    return (y_m, z_up_m, -x_m)
+
+
+def _mesh_lookfrom_aim_angles_deg(
+    eye: tuple[float, float, float],
+    aim: tuple[float, float, float],
+) -> tuple[float, float]:
+    dx = aim[0] - eye[0]
+    dy = aim[1] - eye[1]
+    dz = aim[2] - eye[2]
+    hdist = math.hypot(dx, dz)
+    if hdist < 1e-9:
+        return (90.0 if dy > 0 else -90.0, 90.0 if dy > 0 else -90.0)
+    return (math.degrees(math.atan2(dz, dx)), math.degrees(math.atan2(dy, hdist)))
+
+
 def _ac_lookfrom_aim_angles_deg(
     eye: tuple[float, float, float],
     aim: tuple[float, float, float],
@@ -296,30 +335,82 @@ def _emit_orbitron_ops(ops: Mapping[str, Any]) -> str:
     block_hijack = bool(ops.get("block_hijack_views", False))
     view_tune_shot = bool(ops.get("view_tune_screenshot", False))
     opview = ops.get("operator_view") or {}
-    ov_cam = (
-        opview.get("camera", opview.get("eye", [0.12, 0.5, 1.75]))
-        if isinstance(opview, dict)
-        else [0.12, 0.5, 1.75]
+    ov_skip_offsets = bool(
+        isinstance(opview, dict)
+        and (
+            opview.get("skip_runtime_offsets")
+            or opview.get("lookfrom_world")
+            or opview.get("baked_in_set_xml")
+        )
     )
     ov_look = (
         opview.get("look_at", opview.get("target", [-1.4, 1.6, 4.5]))
         if isinstance(opview, dict)
         else [-1.4, 1.6, 4.5]
     )
-    ov_cx, ov_cy, ov_cz = float(ov_cam[0]), float(ov_cam[1]), float(ov_cam[2])
     ov_lx, ov_ly, ov_lz = float(ov_look[0]), float(ov_look[1]), float(ov_look[2])
-    ov_hdg, ov_pit = _ac_lookfrom_aim_angles_deg(
-        (ov_cx, ov_cy, ov_cz), (ov_lx, ov_ly, ov_lz)
+    aim_mesh = (ov_lx, ov_ly, ov_lz)
+    if isinstance(opview, dict) and opview.get("eye_base_offset_m"):
+        base = tuple(float(x) for x in opview["eye_base_offset_m"])
+        back_ft = float(opview.get("eye_step_back_ft", 0))
+        ov_cam = (
+            list(_mesh_step_back_eye(base, aim_mesh, back_ft))
+            if back_ft > 0
+            else list(base)
+        )
+    else:
+        ov_cam = (
+            opview.get("camera", opview.get("eye", [0.12, 0.5, 1.75]))
+            if isinstance(opview, dict)
+            else [0.12, 0.5, 1.75]
+        )
+    ov_cx, ov_cy, ov_cz = float(ov_cam[0]), float(ov_cam[1]), float(ov_cam[2])
+    ov_view_type = (
+        str(opview.get("view_type", "lookfrom")).lower()
+        if isinstance(opview, dict)
+        else "lookfrom"
     )
-    ov_cx, ov_cy, ov_cz = ov_cy, ov_cz, -ov_cx
-    if isinstance(opview, dict):
-        if opview.get("pitch_sign_invert", True):
-            ov_pit = -ov_pit
-        if "heading_offset_deg" in opview:
-            ov_hdg = float(opview["heading_offset_deg"])
-        if "pitch_offset_deg" in opview:
-            ov_pit = float(opview["pitch_offset_deg"])
+    if ov_view_type == "lookat":
+        if isinstance(opview, dict) and (
+            opview.get("use_fg_body_offsets") or opview.get("use_fg_view_offsets")
+        ):
+            ov_tx, ov_ty, ov_tz = ov_lx, ov_ly, ov_lz
+        else:
+            # orbitron.ac mesh metres → FG body offsets (+x right, +y up, +z aft).
+            ov_cx, ov_cy, ov_cz = _mesh_to_fg_body_view_offset(ov_cx, ov_cy, ov_cz)
+            ov_tx, ov_ty, ov_tz = _mesh_to_fg_body_view_offset(ov_lx, ov_ly, ov_lz)
+        ov_hdg = 0.0
+        ov_pit = 0.0
+    else:
+        if isinstance(opview, dict) and opview.get("use_lab_offsets"):
+            ov_hdg, ov_pit = _ac_lookfrom_aim_angles_deg(
+                (ov_cx, ov_cy, ov_cz), (ov_lx, ov_ly, ov_lz)
+            )
+            ov_cx, ov_cy, ov_cz = _ac_to_fg_lookfrom_offset(ov_cx, ov_cy, ov_cz)
+        else:
+            ov_hdg, ov_pit = _mesh_lookfrom_aim_angles_deg(
+                (ov_cx, ov_cy, ov_cz), (ov_lx, ov_ly, ov_lz)
+            )
+            ov_cx, ov_cy, ov_cz = _mesh_to_fg_body_view_offset(ov_cx, ov_cy, ov_cz)
+        ov_tx, ov_ty, ov_tz = 0.0, 0.0, 0.0
+        if isinstance(opview, dict):
+            if opview.get("pitch_sign_invert", True):
+                ov_pit = -ov_pit
+            if "heading_offset_deg" in opview:
+                ov_hdg = float(opview["heading_offset_deg"])
+            if "pitch_offset_deg" in opview:
+                ov_pit = float(opview["pitch_offset_deg"])
     ov_fov = float(opview.get("field_of_view_deg", 52.0)) if isinstance(opview, dict) else 52.0
+    ov_aim_world = bool(isinstance(opview, dict) and opview.get("aim_world"))
+    ov_aim_lat = (
+        float(opview.get("aim_latitude_deg", 63.9853)) if isinstance(opview, dict) else 63.9853
+    )
+    ov_aim_lon = (
+        float(opview.get("aim_longitude_deg", -22.6075))
+        if isinstance(opview, dict)
+        else -22.6075
+    )
+    ov_aim_alt = float(opview.get("aim_altitude_ft", 165.0)) if isinstance(opview, dict) else 165.0
 
     lines: list[str] = []
     if header:
@@ -494,16 +585,88 @@ def _emit_orbitron_ops(ops: Mapping[str, Any]) -> str:
         "    },",
         "",
         "    apply_operator_view: func() {",
-        f'        setprop("/sim/current-view/view-number", {operator_view_idx});',
-        f'        setprop("/sim/current-view/x-offset-m", {ov_cx});',
-        f'        setprop("/sim/current-view/y-offset-m", {ov_cy});',
-        f'        setprop("/sim/current-view/z-offset-m", {ov_cz});',
-        f'        setprop("/sim/current-view/heading-offset-deg", {ov_hdg});',
-        f'        setprop("/sim/current-view/pitch-offset-deg", {ov_pit});',
-        f'        setprop("/sim/current-view/field-of-view-deg", {ov_fov});',
-        '        print("OrbitronOps: operator lookfrom hdg=", getprop("/sim/current-view/heading-offset-deg"),',
-        '            " pit=", getprop("/sim/current-view/pitch-offset-deg"));',
-        "    },",
+        f"        var _ovi = {operator_view_idx};",
+        '        var _vb = "/sim/view[" ~ _ovi ~ "]/config/";',
+    ]
+    if ov_skip_offsets:
+        lines += [
+            f'        setprop("/sim/current-view/view-number", _ovi);',
+            '        print("OrbitronOps: operator view (set.xml offsets), view=",',
+            '            getprop("/sim/current-view/name"));',
+            "    },",
+        ]
+    elif ov_view_type == "lookat":
+        lines += [
+            f'        setprop(_vb ~ "x-offset-m", {ov_cx});',
+            f'        setprop(_vb ~ "y-offset-m", {ov_cy});',
+            f'        setprop(_vb ~ "z-offset-m", {ov_cz});',
+            f'        setprop(_vb ~ "field-of-view-deg", {ov_fov});',
+        ]
+        if ov_aim_world:
+            lines += [
+                f'        setprop("/sim/model/orbitron/operator-view/target-latitude-deg", {ov_aim_lat});',
+                f'        setprop("/sim/model/orbitron/operator-view/target-longitude-deg", {ov_aim_lon});',
+                f'        setprop("/sim/model/orbitron/operator-view/target-altitude-ft", {ov_aim_alt});',
+            ]
+        else:
+            lines += [
+                f'        setprop(_vb ~ "target-x-offset-m", {ov_tx});',
+                f'        setprop(_vb ~ "target-y-offset-m", {ov_ty});',
+                f'        setprop(_vb ~ "target-z-offset-m", {ov_tz});',
+            ]
+        lines += [
+            '        if (getprop("/sim/current-view/view-number") == _ovi)',
+            '            setprop("/sim/current-view/view-number", 1);',
+            '        setprop("/sim/current-view/view-number", _ovi);',
+            f'        setprop("/sim/current-view/x-offset-m", {ov_cx});',
+            f'        setprop("/sim/current-view/y-offset-m", {ov_cy});',
+            f'        setprop("/sim/current-view/z-offset-m", {ov_cz});',
+            f'        setprop("/sim/current-view/field-of-view-deg", {ov_fov});',
+        ]
+        if ov_aim_world:
+            lines += [
+                f'        setprop("/sim/model/orbitron/operator-view/target-latitude-deg", {ov_aim_lat});',
+                f'        setprop("/sim/model/orbitron/operator-view/target-longitude-deg", {ov_aim_lon});',
+                f'        setprop("/sim/model/orbitron/operator-view/target-altitude-ft", {ov_aim_alt});',
+                '        print("OrbitronOps: operator lookat cam=(", getprop("/sim/current-view/x-offset-m"),',
+                '            ",", getprop("/sim/current-view/y-offset-m"), ",", getprop("/sim/current-view/z-offset-m"),',
+                '            ") tgt=(", getprop("/sim/model/orbitron/operator-view/target-latitude-deg"),',
+                '            ",", getprop("/sim/model/orbitron/operator-view/target-longitude-deg"), ")");',
+            ]
+        else:
+            lines += [
+                f'        setprop("/sim/current-view/target-x-offset-m", {ov_tx});',
+                f'        setprop("/sim/current-view/target-y-offset-m", {ov_ty});',
+                f'        setprop("/sim/current-view/target-z-offset-m", {ov_tz});',
+                '        print("OrbitronOps: operator lookat cam=(", getprop("/sim/current-view/x-offset-m"),',
+                '            ",", getprop("/sim/current-view/y-offset-m"), ",", getprop("/sim/current-view/z-offset-m"),',
+                '            ") tgt=(", getprop("/sim/current-view/target-x-offset-m"),',
+                '            ",", getprop("/sim/current-view/target-y-offset-m"), ",",',
+                '            getprop("/sim/current-view/target-z-offset-m"), ")");',
+            ]
+        lines += ["    },"]
+    else:
+        lines += [
+            f'        setprop(_vb ~ "x-offset-m", {ov_cx});',
+            f'        setprop(_vb ~ "y-offset-m", {ov_cy});',
+            f'        setprop(_vb ~ "z-offset-m", {ov_cz});',
+            f'        setprop(_vb ~ "heading-offset-deg", {ov_hdg});',
+            f'        setprop(_vb ~ "pitch-offset-deg", {ov_pit});',
+            f'        setprop(_vb ~ "field-of-view-deg", {ov_fov});',
+            '        if (getprop("/sim/current-view/view-number") == _ovi)',
+            '            setprop("/sim/current-view/view-number", 1);',
+            '        setprop("/sim/current-view/view-number", _ovi);',
+            f'        setprop("/sim/current-view/x-offset-m", {ov_cx});',
+            f'        setprop("/sim/current-view/y-offset-m", {ov_cy});',
+            f'        setprop("/sim/current-view/z-offset-m", {ov_cz});',
+            f'        setprop("/sim/current-view/heading-offset-deg", {ov_hdg});',
+            f'        setprop("/sim/current-view/pitch-offset-deg", {ov_pit});',
+            f'        setprop("/sim/current-view/field-of-view-deg", {ov_fov});',
+            '        print("OrbitronOps: operator lookfrom hdg=", getprop("/sim/current-view/heading-offset-deg"),',
+            '            " pit=", getprop("/sim/current-view/pitch-offset-deg"));',
+            "    },",
+        ]
+    lines += [
         "",
         "    maybe_view_tune_screenshot: func() {",
         '        var path = getprop("/sim/model/orbitron/view-tune/screenshot-path");',
@@ -547,8 +710,11 @@ def _emit_orbitron_ops(ops: Mapping[str, Any]) -> str:
         '        var gnd = getprop("/position/ground-elev-ft");',
         '        var agl = getprop("/position/altitude-agl-ft");',
         '        var vn = getprop("/sim/current-view/name");',
-        '        print(sprintf("OrbitronOps: lat=%.5f lon=%.5f alt=%.0f gnd=%.0f agl=%.1f view=%s",',
-        "            lat or 0, lon or 0, alt or 0, gnd or 0, agl or 0, vn or \"?\"));",
+        '        var cx = getprop("/sim/current-view/x-offset-m");',
+        '        var cy = getprop("/sim/current-view/y-offset-m");',
+        '        var cz = getprop("/sim/current-view/z-offset-m");',
+        '        print(sprintf("OrbitronOps: lat=%.5f lon=%.5f alt=%.0f gnd=%.0f agl=%.1f view=%s cam=(%.2f,%.2f,%.2f)",',
+        "            lat or 0, lon or 0, alt or 0, gnd or 0, agl or 0, vn or \"?\", cx or 0, cy or 0, cz or 0));",
         "    },",
         "",
         "",
@@ -632,6 +798,7 @@ def _emit_orbitron_ops(ops: Mapping[str, Any]) -> str:
         "};",
         "",
         "var orbitron_ops = OrbitronOps.new();",
+        "globals.OrbitronOps = OrbitronOps;",
         "",
     ]
     return "\n".join(lines)

@@ -77,13 +77,11 @@ fg_set:
     view_number: 3
   view_operator:
     name: Operator View
-    # lookfrom: apron behind console (−X), port side (+Y is port), console-deck height → Screen (orbitron.ac m).
-    type: lookfrom
-    from_model: true
-    internal: false
-    camera_offset_m: [-1.4, -4.8, 1.65]
-    look_at_offset_m: [-1.4, -2.3, 1.25]
-    pitch_sign_invert: false
+    # Pad axis Z: tanks −1.2, BRB +4.97. Eye +60 ft from tank plane toward apron (was +40, still low on tanks).
+    type: lookat
+    use_ac_view_offsets: true
+    eye_offset_m: [-3.64, 1.68, 16.48]
+    aim_offset_m: [-1.2, 1.38, 4.97]
     view_index: 2
     limits_enabled: false
     ground_level_nearplane_m: 0.05
@@ -94,7 +92,7 @@ fg_set:
     internal: false
     # Fixed lookat (no platform/chase — chase breaks on ground test rigs).
     x_offset_m: -90.0
-    y_offset_m: -70.0
+    y_offset_m: 70.0
     z_offset_m: 40.0
     target_x_offset_m: 0.0
     target_y_offset_m: 0.0
@@ -128,7 +126,7 @@ fg_set:
     - { key_n: 105, name: i, desc: Increase cathode pulse (shear / PSP2-Jin), adjust_property: /controls/orbitron/cathode-pulse, step: 0.1, min: 0.0, max: 1.0 }
     - { key_n: 107, name: k, desc: Decrease cathode pulse, adjust_property: /controls/orbitron/cathode-pulse, step: -0.1, min: 0.0, max: 1.0 }
     - { key_n: 109, name: m, desc: Toggle Reactor Telemetry Debug Window, toggle_property: /sim/model/reactor/debug-ui-window }
-    - { key_n: 118, name: v, desc: Operator console (view 2, mouse look), assign_property: /sim/current-view/view-number, assign_value: 2 }
+    - { key_n: 118, name: v, desc: Operator console (view 2), nasal_script: OrbitronOps.apply_operator_view }
     - { key_n: 98, name: b, desc: Apron overview (view 3), assign_property: /sim/current-view/view-number, assign_value: 3 }
     - { key_n: 112, name: p, desc: Pad overview (view 1), assign_property: /sim/current-view/view-number, assign_value: 1 }
     - { key_n: 117, name: u, desc: Increase compressor command, adjust_property: /controls/orbitron/compressor, step: 0.1, min: 0.0, max: 1.0 }
