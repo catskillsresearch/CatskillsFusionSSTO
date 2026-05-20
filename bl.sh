@@ -49,7 +49,7 @@ elif [[ -n "${ORBITRON_LAB_GLTF:-}" ]]; then
   GLTF="$(_resolve_gltf "${ORBITRON_LAB_GLTF}")"
 fi
 
-BLENDER_BIN="${BLENDER:-blender}"
+BLENDER_RUN="${ROOT}/tools/blender_run.sh"
 OPEN_PY="${ROOT}/tools/blender_open_orbitron_lab_gltf.py"
 COL_PY="${ROOT}/tools/blender_orbitron_viewport_collections.py"
 
@@ -68,9 +68,9 @@ if [[ "${_collections}" -eq 1 ]]; then
     echo "error: missing ${COL_PY}" >&2
     exit 1
   fi
-  exec "${BLENDER_BIN}" --factory-startup \
+  exec "${BLENDER_RUN}" --factory-startup \
     --python "${COL_PY}" -- "${GLTF}" "${_extra[@]}"
 fi
 
-exec "${BLENDER_BIN}" --factory-startup \
+exec "${BLENDER_RUN}" --factory-startup \
   --python "${OPEN_PY}" -- "${GLTF}" "${_extra[@]}"

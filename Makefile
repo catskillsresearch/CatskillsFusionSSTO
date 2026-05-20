@@ -20,6 +20,10 @@ GLTF_LAB_EXTRA_SUB_NAMES := \
 	propulsive_nozzle reactor_bay turbofan_intake air_breathing_engine control_panel_stand thrust_sled
 GLTF_LAB_EXTRA_SUBS := $(foreach n,$(GLTF_LAB_EXTRA_SUB_NAMES),$(STAND)/build/$(n).gltf)
 GLTF_LAB_SUBASSEMBLIES := $(GLTF_LAB_TANK_SUBS) $(GLTF_LAB_EXTRA_SUBS)
+GLTF_LAB_ALL_GLTF := $(GLTF_LAB) $(GLTF_LAB_SUBASSEMBLIES)
+GLTF_LAB_PNGS := $(GLTF_LAB_ALL_GLTF:.gltf=.png)
+BUILD_BLENDER_RENDER_GLTF := $(REPO_ROOT)/tools/blender_render_orbitron_gltf.py
+BLENDER_RUN := $(REPO_ROOT)/tools/blender_run.sh
 
 POETRY ?= poetry
 BLENDER ?= blender
@@ -91,12 +95,12 @@ YAML_LAB_COMPILER_DEPS := \
 # Inputs that define the build graph (edit Makefile subgraph block when topology changes).
 GRAPH_INPUTS := Makefile $(ORBITRON_LAB_YAMLS) $(YAML_LAB_COMPILER_DEPS) \
 	$(ORBITRON_SOUND_ASSETS) $(SOUND_COMPILER) $(COMPILE_SOUND_XML) \
-	$(ORBITRON_AIRCRAFT_SPEC) $(ORBITRON_AIRCRAFT_PATHS) $(REPO_ROOT)/tools/orbitron_aircraft_pkg.py $(COMPILE_AIRCRAFT_RUNTIME) $(BUILD_SHUTTLE_PANEL_AC) $(JSBSIM_TEMPLATE) \
+	$(ORBITRON_AIRCRAFT_SPEC) $(ORBITRON_AIRCRAFT_PATHS) $(REPO_ROOT)/tools/orbitron_aircraft_pkg.py $(COMPILE_AIRCRAFT_RUNTIME) $(BUILD_SHUTTLE_PANEL_AC) $(BUILD_BLENDER_RENDER_GLTF) $(JSBSIM_TEMPLATE) \
 	$(ORBITRON_NOZZLE_EXHAUST_SRC) $(GENERATE_ORBITRON_VFX_TEX) \
 	$(ORBITRON_VFX_TEX_FLAME_SRC) $(ORBITRON_VFX_TEX_PLUME_SRC) \
 	$(ORBITRON_NASAL_SPEC) $(COMPILE_ORBITRON_NASAL) \
 	$(ORBITRON_PHYSICS_SPEC) $(ORBITRON_PHYSICS_SPEC_PY) $(REPO_ROOT)/tools/warpx_expression_presets.py \
-	$(ORBITRON)/build_ac3d.py $(ORBITRON)/fix_screen_uv.py $(SUR_DEP_ALL) \
+	$(ORBITRON)/build_ac3d.py $(ORBITRON)/fix_screen_uv.py $(BUILD_BLENDER_RENDER_GLTF) $(SUR_DEP_ALL) \
 	$(REPO_ROOT)/tools/orbitron_ac_hierarchy_mmd.py \
 	$(LOGICAL_ASSEMBLIES_SPEC_PY) \
 	$(ORBITRON_ASSEMBLY_SPEC)
@@ -105,6 +109,7 @@ GRAPH_INPUTS := Makefile $(ORBITRON_LAB_YAMLS) $(YAML_LAB_COMPILER_DEPS) \
 MODEL_ARTIFACTS := \
 	$(GLTF_LAB) \
 	$(GLTF_LAB_SUBASSEMBLIES) \
+	$(GLTF_LAB_PNGS) \
 	$(STAND)/Models/orbitron.ac \
 	$(ORBITRON_SHUTTLE_PANEL_AC) \
 	$(ORBITRON_PANEL_ANIMS_JSON) \
@@ -116,7 +121,7 @@ MODEL_ARTIFACTS := \
 	$(PARTS_LOGICAL_MERMAID) \
 	$(ORBITRON_VFX_ASSETS)
 
-.PHONY: all help clean graph parts-graph open-lab run-fgfs fg-ready orbitron-shuttle-panel orbitron-lab-gltf orbitron-lab-tank-sub-gltfs orbitron-lab-sub-gltfs surrogate-closure
+.PHONY: all help clean graph parts-graph open-lab run-fgfs fg-ready orbitron-shuttle-panel orbitron-lab-gltf orbitron-lab-pngs orbitron-lab-tank-sub-gltfs orbitron-lab-sub-gltfs surrogate-closure
 
 all: fg-ready
 
@@ -130,6 +135,7 @@ help:
 	@echo "  make open-lab       Launch Blender on nested $(GLTF_LAB) (same as ./bl.sh)"
 	@echo "  make orbitron-shuttle-panel  Shuttle R1 levers → $(ORBITRON_SHUTTLE_PANEL_AC) + $(ORBITRON_PANEL_ANIMS_JSON) (also via make all)"
 	@echo "  make orbitron-lab-gltf  Build $(GLTF_LAB) + all sub-assembly glTFs under build/ (tanks, air path, panel, sled)"
+	@echo "  make orbitron-lab-pngs  EEVEE PNGs ($(STAND)/build/*.png, #ECECEC) from each lab glTF"
 	@echo "  make orbitron-lab-sub-gltfs  Sub-assembly glTFs only (same set as orbitron-lab-gltf minus the full lab file)"
 	@echo "  make orbitron-lab-tank-sub-gltfs  The four tank-farm glTFs only (methane/boron/helium/tank_assy)"
 	@echo "  make surrogate-closure  0D η·P_gross vs F²/(2ṁ) check (YAML scales); add JSON via ORBITRON_CLOSURE_JSON="
@@ -211,6 +217,13 @@ $(GLTF_LAB_SUBASSEMBLIES): $(STAND)/build/%.gltf: $(ORBITRON_ASSEMBLY_SPEC) $(YA
 # Stable entry for scripts: main lab glTF + every listed sub-assembly slice (same lab mesh step as fg-ready).
 orbitron-lab-gltf: $(GLTF_LAB) $(GLTF_LAB_SUBASSEMBLIES)
 
+# Assembly hero PNGs (headless Blender, --factory-startup, solid #ECECEC world).
+$(GLTF_LAB_PNGS): $(STAND)/build/%.png: $(STAND)/build/%.gltf $(BUILD_BLENDER_RENDER_GLTF) $(BLENDER_RUN) | $(STAND)/.dirs
+	$(BLENDER_RUN) --background --factory-startup \
+		--python '$(BUILD_BLENDER_RENDER_GLTF)' -- '$<' '$@'
+
+orbitron-lab-pngs: $(GLTF_LAB_PNGS)
+
 orbitron-lab-sub-gltfs: $(GLTF_LAB_SUBASSEMBLIES)
 
 orbitron-lab-tank-sub-gltfs: $(GLTF_LAB_TANK_SUBS)
@@ -232,7 +245,7 @@ $(STAND)/.orbitron_ac_done: \
 		| $(STAND)/.dirs $(STAND_NASAL)
 	rm -f '$(STAND)/Models/orbitron.ac'
 	cd $(ORBITRON) && ORBITRON_AC_OUT='$(STAND)/Models/orbitron.ac' ORBITRON_GLTF_IN='$(GLTF_LAB)' \
-		$(BLENDER) -b --python build_ac3d.py
+		'$(BLENDER_RUN)' -b --python build_ac3d.py
 	test -f '$(STAND)/Models/orbitron.ac'
 	cd $(ORBITRON) && ORBITRON_AC_OUT='$(STAND)/Models/orbitron.ac' $(POETRY) run python fix_screen_uv.py
 	touch $@

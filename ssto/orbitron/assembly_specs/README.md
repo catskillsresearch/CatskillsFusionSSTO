@@ -15,6 +15,7 @@ shell, Nasal UI, physics/surrogate, and sound. Compilers under `tools/` emit art
 | `orbitron_aircraft_flightgear.yaml` | `compile_orbitron_aircraft_runtime.py` | `*-set.xml`, `Orbitron.xml`, panel picks, JSBSim template copy |
 | `orbitron_operator_console_spec.yaml` | (human + cross-ref) | Pad startup sequence, switch properties, interlocks |
 | [`../OPERATOR.md`](../OPERATOR.md) | (operator) | **FlightGear startup checklist** and controls (Markdown) |
+| [`../FUSION_REACTOR_TEST_STAND.md`](../FUSION_REACTOR_TEST_STAND.md) | (human) | **Narrative assembly tour** (hero PNGs in build order + pad operation) |
 | `orbitron_nasal.yaml` | `compile_orbitron_nasal.py` | `surrogate_load.nas`, `orbitron_ops.nas`, `reactor_ui.nas` |
 | `orbitron_sound_assets.yaml` | `sound_compiler.py`, `compile_sound_xml_from_yaml.py` | WAV beds + `sound.xml` |
 
@@ -121,3 +122,9 @@ Machine-readable: `orbitron_lab.yaml` (`connections`, `logical.groups`, instance
 **Core physics:** `orbitron_avalanche_core.yaml`. **Controls:** W/S ion beam, I/K cathode pulse (PSP2–Jin shear), U/J compressor (arcjet).
 
 Sub-glTF exports: `make orbitron-lab-gltf` builds `hydrogen_tank_assy.gltf` and `boron_tank_assy.gltf`.
+
+Assembly hero PNGs (solid `#ECECEC` background, perspective 3/4 hero camera + sun key/fill/rim
+lights, factory-startup empty scene): `make orbitron-lab-pngs` or `./stand.sh` — one
+`build/<assembly>.png` per lab and sub-assembly glTF (headless Blender via
+`tools/blender_render_orbitron_gltf.py`). Camera distance is solved from lens FOV + image aspect
+so the whole bounding sphere fits with `FRAME_MARGIN` padding (currently 1.25×).
