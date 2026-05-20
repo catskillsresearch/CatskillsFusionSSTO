@@ -331,8 +331,15 @@ def tpl_lab_operator_screen(**_: Any) -> cq.Workplane:
 
 
 def tpl_lab_big_red_button(**_: Any) -> cq.Workplane:
-    _, _, b, _, _, _ = _infra().build_console()
-    return b
+    return _infra().build_ignite_button()
+
+
+def tpl_lab_operator_checklist_plaque(**_: Any) -> cq.Workplane:
+    return _infra().build_operator_checklist_plaque()
+
+
+def tpl_lab_operator_checklist_ink(**_: Any) -> cq.Workplane:
+    return _infra().build_operator_checklist_ink()
 
 
 def tpl_lab_panel_switch_apu(**_: Any) -> cq.Workplane:
@@ -364,6 +371,14 @@ def tpl_lab_panel_label_bleed(**_: Any) -> cq.Workplane:
 
 def tpl_lab_panel_label_ignite(**_: Any) -> cq.Workplane:
     return _infra().build_panel_labels()[3]
+
+
+def tpl_lab_panel_label_beam(**_: Any) -> cq.Workplane:
+    return _infra().build_panel_labels()[4]
+
+
+def tpl_lab_panel_label_comp(**_: Any) -> cq.Workplane:
+    return _infra().build_panel_labels()[5]
 
 
 def tpl_lab_magnet_feedthrough_bosses(**_: Any) -> cq.Workplane:
@@ -420,6 +435,8 @@ TEMPLATE_REGISTRY: dict[str, Callable[..., cq.Workplane]] = {
     "lab_operator_panel": tpl_lab_operator_panel,
     "lab_operator_screen": tpl_lab_operator_screen,
     "lab_big_red_button": tpl_lab_big_red_button,
+    "lab_operator_checklist_plaque": tpl_lab_operator_checklist_plaque,
+    "lab_operator_checklist_ink": tpl_lab_operator_checklist_ink,
     "lab_panel_switch_apu": tpl_lab_panel_switch_apu,
     "lab_panel_switch_starter": tpl_lab_panel_switch_starter,
     "lab_panel_switch_bleed": tpl_lab_panel_switch_bleed,
@@ -427,6 +444,8 @@ TEMPLATE_REGISTRY: dict[str, Callable[..., cq.Workplane]] = {
     "lab_panel_label_starter": tpl_lab_panel_label_starter,
     "lab_panel_label_bleed": tpl_lab_panel_label_bleed,
     "lab_panel_label_ignite": tpl_lab_panel_label_ignite,
+    "lab_panel_label_beam": tpl_lab_panel_label_beam,
+    "lab_panel_label_comp": tpl_lab_panel_label_comp,
 }
 
 

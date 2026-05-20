@@ -8,7 +8,9 @@ JSBSim: copy tools/templates/orbitron-jsbsim.xml (structure); full JSBSim-in-YAM
 from __future__ import annotations
 
 import argparse
+import json
 import math
+import re
 import shutil
 import sys
 import xml.etree.ElementTree as ET
@@ -274,6 +276,64 @@ def _patch_jsbsim_template(raw: str, phys: Mapping[str, Any] | None) -> str:
     return raw
 
 
+def _emit_fdm_jsbsim_bootstrap(
+    root: ET.Element,
+    *,
+    thrust: tuple[float, float, float, float],
+    mdot: tuple[float, float, float, float],
+    power: tuple[float, float, float, float],
+    heat: tuple[float, float, float, float],
+    beam: Mapping[str, Any],
+    thrust_sled: Mapping[str, Any],
+) -> None:
+    """Declare /fdm/jsbsim/systems/orbitron/* before JSBSim reads them (Nasal mirrors sim state)."""
+    root.append(
+        ET.Comment(
+            " JSBSim FCS inputs — must exist at FDM init (OrbitronOps.sync_fdm_inputs updates) "
+        )
+    )
+    fdm = ET.SubElement(root, "fdm")
+    jsb = ET.SubElement(fdm, "jsbsim")
+    systems = ET.SubElement(jsb, "systems")
+    orb = ET.SubElement(systems, "orbitron")
+    _typed_prop(orb, "fg-pad-apu-online", 0.0)
+    _typed_prop(orb, "fg-starter-engage", 0.0)
+    _typed_prop(orb, "fg-bleed-air-open", 0.0)
+    _typed_prop(orb, "fg-startup-armed", 0.0)
+    _typed_prop(orb, "fg-throttle", 0.0)
+    _typed_prop(orb, "fg-compressor", 0.0)
+    _typed_prop(orb, "fg-cathode-pulse", 0.5)
+
+    def bilinear(parent: ET.Element, prefix: str, c: tuple[float, float, float, float]) -> None:
+        _typed_prop(parent, f"{prefix}-c0", c[0])
+        _typed_prop(parent, f"{prefix}-ct", c[1])
+        _typed_prop(parent, f"{prefix}-cc", c[2])
+        _typed_prop(parent, f"{prefix}-ctc", c[3])
+
+    sur = ET.SubElement(orb, "surrogate")
+    bilinear(sur, "thrust", thrust)
+    bilinear(sur, "mdot", mdot)
+    bilinear(sur, "power", power)
+    bilinear(sur, "heat", heat)
+    _typed_prop(sur, "beam-screen-kw-c0", float(beam.get("c0", 0)))
+    _typed_prop(sur, "beam-screen-kw-ct", float(beam.get("ct", 0)))
+    _typed_prop(sur, "beam-screen-kw-cc", float(beam.get("cc", 0)))
+    _typed_prop(sur, "beam-screen-kw-ctc", float(beam.get("ctc", 0)))
+
+    sled = ET.SubElement(orb, "thrust-sled")
+    _typed_prop(sled, "tare-lbf", float(thrust_sled.get("tare_lbf", 180.0)))
+    _typed_prop(
+        sled,
+        "compressor-moment-gain",
+        float(thrust_sled.get("compressor_moment_gain", 0.14)),
+    )
+    _typed_prop(
+        sled,
+        "throttle-moment-gain",
+        float(thrust_sled.get("throttle_moment_gain", 0.07)),
+    )
+
+
 def _surrogate_corner(
     eng: Mapping[str, Any], key: str
 ) -> tuple[float, float, float, float]:
@@ -391,6 +451,12 @@ def _build_set_xml(
     _typed_prop(orb, "pad-apu-online", bool(ops.get("pad_apu_online", False)), "bool")
     _typed_prop(orb, "starter-engage", bool(ops.get("starter_engage", False)), "bool")
     _typed_prop(orb, "bleed-air-open", bool(ops.get("bleed_air_open", False)), "bool")
+    _typed_prop(orb, "spool-sfx-armed", bool(ops.get("spool_sfx_armed", False)), "bool")
+    sfx = ET.SubElement(orb, "sfx")
+    _typed_prop(sfx, "inlet-volume", 0.0)
+    _typed_prop(sfx, "motor-volume", 0.0)
+    _typed_prop(sfx, "nozzle-volume", 0.0)
+    _typed_prop(ET.SubElement(orb, "vfx"), "nozzle-active", 0.0)
 
     carriers = sim.get("mp_carriers") or {}
     if isinstance(carriers, dict) and carriers:
@@ -860,6 +926,15 @@ def _build_set_xml(
             " ======================================================== "
         )
     )
+    _emit_fdm_jsbsim_bootstrap(
+        root,
+        thrust=thrust,
+        mdot=mdot,
+        power=power,
+        heat=heat,
+        beam=beam,
+        thrust_sled=tsl,
+    )
     ctrls = ET.SubElement(root, "controls")
     cd = sim["controls_defaults"]
     rth = ET.SubElement(ctrls, "reactor")
@@ -977,6 +1052,18 @@ def _emit_panel_hotspot_highlight(root: ET.Element, object_names: list[str]) -> 
     _text(cond, "property", "/sim/panel-hotspots")
 
 
+def _ac3d_object_names(ac_path: Path) -> set[str]:
+    """Object names from an AC3D export (top-level OBJECT poly names)."""
+    if not ac_path.is_file():
+        return set()
+    names: set[str] = set()
+    for line in ac_path.read_text(encoding="utf-8", errors="replace").splitlines():
+        m = re.match(r'^\s*name\s+"(.+)"\s*$', line)
+        if m:
+            names.add(m.group(1))
+    return names
+
+
 def _emit_panel_pick_animation(root: ET.Element, spec: Mapping[str, Any]) -> None:
     """Pick hotspot for CTRL-C (/sim/panel-hotspots) and mouse clicks."""
     anim = ET.SubElement(root, "animation")
@@ -996,6 +1083,20 @@ def _emit_panel_pick_animation(root: ET.Element, spec: Mapping[str, Any]) -> Non
         _text(hb, "command", "set-tooltip")
         _text(hb, "tooltip-id", str(spec["object_name"]))
         _text(hb, "label", str(spec["tooltip"]))
+
+
+def _is_shuttle_panel_mesh(name: str) -> bool:
+    """Meshes in orbitron_panel_shuttle.ac (nested model)."""
+    return (
+        name.startswith("Panel_Switch_")
+        or name.startswith("Panel_Lever_")
+        or name.startswith("Panel_Guard_")
+    )
+
+
+def _shuttle_panel_knob_in_nested_xml(name: str) -> bool:
+    """All panel knobs/guards — mesh is panel-local; nested model offsets place on console."""
+    return _is_shuttle_panel_mesh(name)
 
 
 def _emit_knob_animation(root: ET.Element, knob: Mapping[str, Any]) -> None:
@@ -1018,11 +1119,19 @@ def _emit_knob_animation(root: ET.Element, knob: Mapping[str, Any]) -> None:
     _text(ax, "y", float(axis[1]))
     _text(ax, "z", float(axis[2]))
     act = ET.SubElement(anim, "action")
-    _text(act, "repeatable", "false")
+    is_analog = str(knob.get("property", "")).startswith("/controls/")
+    _text(
+        act,
+        "repeatable",
+        str(knob.get("repeatable", is_analog)).lower(),
+    )
     b = ET.SubElement(act, "binding")
     _text(b, "command", "property-adjust")
     _text(b, "property", knob["property"])
-    _text(b, "factor", 1)
+    adj_factor = knob.get("drag_factor")
+    if adj_factor is None:
+        adj_factor = 0.04 if is_analog else 1
+    _text(b, "factor", float(adj_factor))
     _text(b, "min", 0)
     _text(b, "max", 1)
     _text(b, "wrap", "false")
@@ -1074,7 +1183,121 @@ def _emit_translate_animation(root: ET.Element, tr: Mapping[str, Any]) -> None:
     _text(anim, "factor", float(tr.get("factor", -0.012)))
 
 
-def _build_orbitron_model_xml(fg_model: Mapping[str, Any]) -> str:
+def _merge_panel_animation_json(
+    fg_model: Mapping[str, Any], models_dir: Path
+) -> None:
+    """Apply pivots/axis from build_orbitron_shuttle_panel_ac.py (must match mesh)."""
+    path = models_dir / "orbitron_panel_anims.json"
+    if not path.is_file():
+        return
+    data = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(data, dict):
+        return
+    objects = data.get("objects")
+    if not isinstance(objects, dict):
+        return
+    default_factor = float(data.get("knob_factor", -35))
+    lever_factor = float(data.get("lever_factor", -36))
+    lever_offset = float(data.get("lever_offset_deg", 0))
+    knobs = fg_model.get("knob_animations")
+    if not isinstance(knobs, list):
+        return
+    for knob in knobs:
+        if not isinstance(knob, dict):
+            continue
+        name = str(knob.get("object_name", ""))
+        block = objects.get(name)
+        if not isinstance(block, dict):
+            continue
+        if "center_m" in block:
+            knob["center_m"] = block["center_m"]
+        if "axis" in block:
+            knob["axis"] = block["axis"]
+        if block.get("kind") == "lever":
+            knob["kind"] = "lever"
+        is_lever = name.startswith("Panel_Lever_") or block.get("kind") == "lever"
+        if is_lever:
+            if knob.get("sync_shuttle_factor", True):
+                knob["factor"] = lever_factor
+            if "offset_deg" not in knob:
+                knob["offset_deg"] = lever_offset
+        elif knob.get("sync_shuttle_factor", True):
+            knob["factor"] = default_factor
+
+
+def _xml_property_list(root: ET.Element) -> str:
+    _indent(root, 0)
+    return '<?xml version="1.0"?>\n' + ET.tostring(root, encoding="unicode")
+
+
+def _collect_panel_hotspot_names(
+    fg_model: Mapping[str, Any], *, include_ignite: bool = True
+) -> list[str]:
+    names: list[str] = [
+        "Panel_Guard_APU",
+        "Panel_Guard_Starter",
+        "Panel_Guard_Bleed",
+    ]
+    if include_ignite:
+        names.append("Big_Red_Button")
+    for knob in fg_model.get("knob_animations") or []:
+        if isinstance(knob, dict):
+            oname = str(knob.get("object_name", ""))
+            if _is_shuttle_panel_mesh(oname):
+                names.append(oname)
+    for spec in fg_model.get("slider_animations") or []:
+        if isinstance(spec, dict):
+            oname = str(spec.get("object_name", ""))
+            if _is_shuttle_panel_mesh(oname):
+                names.append(oname)
+                for extra in spec.get("extra_object_names") or []:
+                    if _is_shuttle_panel_mesh(str(extra)):
+                        names.append(str(extra))
+    for pick in fg_model.get("pick_animations") or []:
+        if isinstance(pick, dict):
+            names.append(str(pick.get("object_name", "")))
+    return names
+
+
+def _build_shuttle_panel_model_xml(
+    fg_model: Mapping[str, Any], hotspot_names: list[str] | None = None
+) -> str:
+    """Panel-local PropertyList — knob rotations use the nested model frame (Shuttle-style)."""
+    root = ET.Element("PropertyList")
+    root.append(
+        ET.Comment(
+            " Space Shuttle panel: animations must live here so rotate centers match "
+            "orbitron_panel_shuttle.ac (see cockpit.xml L1-disp-dim knob). "
+        )
+    )
+    _text(root, "path", "orbitron_panel_shuttle.ac")
+
+    knobs = fg_model.get("knob_animations") or []
+    if knobs:
+        root.append(ET.Comment(" Panel knobs — rotate in place on drag "))
+    for knob in knobs:
+        if not isinstance(knob, dict):
+            continue
+        oname = str(knob.get("object_name", ""))
+        if not _shuttle_panel_knob_in_nested_xml(oname):
+            continue
+        _emit_knob_animation(root, knob)
+        _emit_panel_pick_animation(root, knob)
+
+    if hotspot_names:
+        shuttle_only = [n for n in hotspot_names if n != "Big_Red_Button"]
+        if shuttle_only:
+            root.append(
+                ET.Comment(
+                    " CTRL-C — highlight switches/guards/levers (must be in this XML) "
+                )
+            )
+            _emit_panel_hotspot_highlight(root, shuttle_only)
+
+    return _xml_property_list(root)
+
+
+def _build_orbitron_model_xml(fg_model: Mapping[str, Any], models_dir: Path) -> str:
     root = ET.Element("PropertyList")
     root.append(ET.Comment(f" {fg_model['comment']} "))
     _text(root, "path", fg_model["ac_path"])
@@ -1097,6 +1320,39 @@ def _build_orbitron_model_xml(fg_model: Mapping[str, Any]) -> str:
         )
         sp = ET.SubElement(root, "model")
         _text(sp, "path", shuttle_panel["path"])
+        sp_off = shuttle_panel.get("offsets") or {}
+        if sp_off:
+            sp_ofs = ET.SubElement(sp, "offsets")
+            if "x_m" in sp_off:
+                _text(sp_ofs, "x-m", float(sp_off["x_m"]))
+            if "y_m" in sp_off:
+                _text(sp_ofs, "y-m", float(sp_off["y_m"]))
+            if "z_m" in sp_off:
+                _text(sp_ofs, "z-m", float(sp_off["z_m"]))
+
+    if fg_model.get("hide_cadquery_panel_labels"):
+        ac_names = _ac3d_object_names(models_dir / fg_model.get("ac_path", "orbitron.ac"))
+        hide_labels = (
+            "Panel_Label_APU",
+            "Panel_Label_STARTER",
+            "Panel_Label_BLEED",
+            "Panel_Label_IGNITE",
+        )
+        present = [lb for lb in hide_labels if lb in ac_names]
+        if present:
+            root.append(
+                ET.Comment(" Hide CadQuery embossed labels when exported in orbitron.ac ")
+            )
+            for label in present:
+                anim = ET.SubElement(root, "animation")
+                _text(anim, "type", "material")
+                _text(anim, "object-name", label)
+                amb = ET.SubElement(anim, "ambient")
+                _text(amb, "alpha", 0.0)
+                diff = ET.SubElement(anim, "diffuse")
+                _text(diff, "alpha", 0.0)
+                em = ET.SubElement(anim, "emission")
+                _text(em, "alpha", 0.0)
 
     for eff in fg_model.get("effect_models") or []:
         if not isinstance(eff, dict):
@@ -1114,40 +1370,23 @@ def _build_orbitron_model_xml(fg_model: Mapping[str, Any]) -> str:
         if "heading_deg" in eo:
             _text(eoff, "heading-deg", eo["heading_deg"])
 
-    knobs = fg_model.get("knob_animations") or []
-    panel_hotspot_names: list[str] = [
-        "Panel_Guard_APU",
-        "Panel_Guard_Starter",
-        "Panel_Guard_Bleed",
-    ]
-    if knobs:
-        root.append(ET.Comment(" Panel toggles — Space Shuttle-style knob (see Models/cockpit.xml) "))
-    for knob in knobs:
-        if isinstance(knob, dict):
-            _emit_knob_animation(root, knob)
-            _emit_panel_pick_animation(root, knob)
-            panel_hotspot_names.append(str(knob["object_name"]))
-
     for tr in fg_model.get("translate_animations") or []:
         if isinstance(tr, dict):
             _emit_translate_animation(root, tr)
 
     sliders = fg_model.get("slider_animations") or []
     if sliders:
-        root.append(ET.Comment(" Shuttle abort-style guarded ignite slider "))
+        root.append(ET.Comment(" IGNITE pushbutton (CadQuery Big_Red_Button on orbitron.ac) "))
     for spec in sliders:
         if isinstance(spec, dict):
             _emit_slider_animation(root, spec)
-            panel_hotspot_names.append(str(spec["object_name"]))
-            for extra in spec.get("extra_object_names") or []:
-                panel_hotspot_names.append(str(extra))
 
-    root.append(ET.Comment(" CTRL-C — highlight panel switches/guards "))
-    _emit_panel_hotspot_highlight(root, panel_hotspot_names)
-
-    for i, pick in enumerate(fg_model.get("pick_animations") or []):
+    picks = fg_model.get("pick_animations") or []
+    for i, pick in enumerate(picks):
+        if not isinstance(pick, dict):
+            continue
         if i == 0:
-            root.append(ET.Comment(" Big Red Button pick "))
+            root.append(ET.Comment(" IGNITE pick (click) "))
         anim = ET.SubElement(root, "animation")
         _text(anim, "type", "pick")
         _text(anim, "object-name", pick["object_name"])
@@ -1168,7 +1407,23 @@ def _build_orbitron_model_xml(fg_model: Mapping[str, Any]) -> str:
             _text(hb, "tooltip-id", str(pick["object_name"]))
             _text(hb, "label", str(pick["tooltip"]))
 
-    return '<?xml version="1.0"?>\n' + ET.tostring(root, encoding="unicode")
+    root.append(ET.Comment(" IGNITE armed — brighten red cap "))
+    brb_em = ET.SubElement(root, "animation")
+    _text(brb_em, "type", "material")
+    _text(brb_em, "object-name", "Big_Red_Button")
+    em = ET.SubElement(brb_em, "emission")
+    _text(em, "red", 0.45)
+    _text(em, "green", 0.05)
+    _text(em, "blue", 0.02)
+    cond = ET.SubElement(brb_em, "condition")
+    gt = ET.SubElement(cond, "greater-than")
+    _text(gt, "property", "/sim/model/reactor/startup-trigger")
+    _text(gt, "value", 0.5)
+
+    root.append(ET.Comment(" CTRL-C — IGNITE on orbitron.ac (not nested shuttle panel) "))
+    _emit_panel_hotspot_highlight(root, ["Big_Red_Button"])
+
+    return _xml_property_list(root)
 
 
 def main() -> int:
@@ -1248,13 +1503,20 @@ def main() -> int:
     repo_root = spec_path.parents[3]
     _install_vfx_assets(out_dir, repo_root, fg_model)
     _install_panel_click_sounds(out_dir, repo_root)
+    _merge_panel_animation_json(fg_model, models)
+
+    if fg_model.get("shuttle_panel_model"):
+        shuttle_hotspots = _collect_panel_hotspot_names(fg_model, include_ignite=False)
+        panel_xml = _build_shuttle_panel_model_xml(fg_model, shuttle_hotspots)
+        (models / "orbitron_panel_shuttle.xml").write_text(panel_xml, encoding="utf-8")
+        print("Wrote", models / "orbitron_panel_shuttle.xml")
 
     set_text = _build_set_xml(fg, physics_eng, thrust_sled_load)
     set_name = f"{pkg}-set.xml"
     (out_dir / set_name).write_text(set_text, encoding="utf-8")
     print("Wrote", out_dir / set_name)
 
-    model_text = _build_orbitron_model_xml(fg_model)
+    model_text = _build_orbitron_model_xml(fg_model, models)
     (models / "Orbitron.xml").write_text(model_text, encoding="utf-8")
     print("Wrote", models / "Orbitron.xml")
 

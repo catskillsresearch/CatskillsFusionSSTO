@@ -316,31 +316,77 @@ class LabInfrastructure:
         return bezel.union(paddle)
 
     def _shuttle_style_pushbutton(self, x: float, y: float, z: float, *, scale: float = 1.35) -> cq.Workplane:
-        """Mushroom-head guarded pushbutton (Big Red Button)."""
+        """Mushroom-head guarded pushbutton (Big Red Button / IGNITE)."""
         s = scale
         base = cq.Workplane("XY").cylinder(0.028 * s, 0.012 * s)
-        guard = cq.Workplane("XY").cylinder(0.042 * s, 0.006 * s).translate((0, 0, 0.012 * s))
-        stem = cq.Workplane("XY").cylinder(0.014 * s, 0.018 * s).translate((0, 0, 0.02 * s))
-        cap = cq.Workplane("XY").sphere(0.024 * s).translate((0, 0, 0.038 * s))
+        guard = cq.Workplane("XY").cylinder(0.048 * s, 0.008 * s).translate((0, 0, 0.012 * s))
+        stem = cq.Workplane("XY").cylinder(0.016 * s, 0.022 * s).translate((0, 0, 0.022 * s))
+        cap = cq.Workplane("XY").sphere(0.032 * s).translate((0, 0, 0.048 * s))
         btn = base.union(guard).union(stem).union(cap)
         return (
-            btn.rotate((1, 0, 0), (0, 0, 0), -30)
-            .translate((x, y, z))
+            btn.rotate((1, 0, 0), (0, 0, 0), self._PANEL_POSE_ROTATE_X_DEG)
+            .translate(self._PANEL_POSE_TRANSLATE)
+            .translate((x, 0.10, z))
         )
+
+    def build_ignite_button(self) -> cq.Workplane:
+        """Red IGNITE pushbutton on the slanted panel (row +X = 0.20)."""
+        return self._shuttle_style_pushbutton(0.20, 0.0, 0.06, scale=1.55)
 
     # Operator_Panel pose in lab coordinates (must match build_operator_panel).
     _PANEL_POSE_ROTATE_X_DEG = -30
     _PANEL_POSE_TRANSLATE = (0, -2.6, 1.3)
-
-    def _panel_label(self, text: str, row_x: float, face_z: float) -> cq.Workplane:
-        """Raised lettering on the slanted Operator_Panel (offsets before panel pose)."""
+    def _panel_label_on_face(self, text: str, row_x: float, row_y: float) -> cq.Workplane:
+        """Dark label on the panel +Y face (before −30° X pose; matches shuttle row_x/row_up)."""
         return (
-            cq.Workplane("XZ")
-            .text(text, 0.028, 0.004, halign="center")
-            .translate((row_x, 0.10, face_z))
+            cq.Workplane("XY")
+            .text(text, 0.030, 0.005, halign="center")
+            .translate((row_x, row_y, 0.028))
             .rotate((1, 0, 0), (0, 0, 0), self._PANEL_POSE_ROTATE_X_DEG)
             .translate(self._PANEL_POSE_TRANSLATE)
         )
+
+    def _checklist_on_panel_pose(self, body: cq.Workplane) -> cq.Workplane:
+        """Apply the same −30° X pose as Operator_Panel (card lies on the control face)."""
+        return (
+            body.rotate((1, 0, 0), (0, 0, 0), self._PANEL_POSE_ROTATE_X_DEG)
+            .translate(self._PANEL_POSE_TRANSLATE)
+        )
+
+    # Checklist on +Z panel face (2D center/size); below knobs, left of switches.
+    _CHECKLIST_FACE_CENTER = (-0.30, -0.21)
+    _CHECKLIST_FACE_SIZE = (0.22, 0.13)
+
+    def build_operator_checklist_plaque(self) -> cq.Workplane:
+        """Cream card on the panel +Z face (same plane as control labels)."""
+        cx, cy = self._CHECKLIST_FACE_CENTER
+        w, h = self._CHECKLIST_FACE_SIZE
+        z_face = 0.028
+        card = cq.Workplane("XY").box(w, h, 0.006).translate((cx, cy, z_face + 0.003))
+        return self._checklist_on_panel_pose(card)
+
+    def build_operator_checklist_ink(self) -> cq.Workplane:
+        """Steps 1–6 embossed on the card (same +Z face, proud of plaque)."""
+        cx, cy = self._CHECKLIST_FACE_CENTER
+        lines = [
+            ("ORBITRON", 0.030, 0.0, 0.058),
+            ("LIGHT-OFF", 0.027, 0.0, 0.044),
+            ("1  PAD APU", 0.024, -0.095, 0.026),
+            ("2  START", 0.024, -0.095, 0.012),
+            ("3  BLEED", 0.024, -0.095, -0.002),
+            ("4  IGNITE", 0.024, -0.095, -0.016),
+            ("5  BEAM", 0.024, -0.095, -0.030),
+            ("6  COMP", 0.024, -0.095, -0.044),
+        ]
+        wp = cq.Workplane("XY").box(0.001, 0.001, 0.001)
+        z_ink = 0.028 + 0.007
+        for text, sz, dx, dy in lines:
+            wp = wp.union(
+                cq.Workplane("XY")
+                .text(text, sz, 0.004, halign="left")
+                .translate((cx + dx, cy + dy, z_ink))
+            )
+        return self._checklist_on_panel_pose(wp)
 
     def build_operator_panel(self) -> cq.Workplane:
         """Slanted face from podium front edge up to the bottom of the monitor."""
@@ -352,24 +398,38 @@ class LabInfrastructure:
         )
 
     def build_console(self):
-        # Desk + battery; slanted panel is a separate mesh (Operator_Panel).
+        # Desk + battery; checklist is a separate part (Operator_Checklist_*).
         base = cq.Workplane("XY").box(0.8, 0.8, 1.2).translate((0, -2.5, 0.6))
         batt = cq.Workplane("XY").box(0.7, 0.6, 0.4).translate((0, -2.5, 0.2))
         desk = base.union(batt)
 
         screen = cq.Workplane("XY").box(0.7, 0.05, 0.5).translate((0, -2.2, 1.6))
-        # Placeholders for template API (shuttle meshes + labels exported separately).
-        brb = sw_apu = sw_starter = sw_bleed = cq.Workplane("XY").box(0.001, 0.001, 0.001)
+        # Switches from orbitron_panel_shuttle.ac; IGNITE is CadQuery mesh below.
+        brb = self.build_ignite_button()
+        sw_apu = sw_starter = sw_bleed = cq.Workplane("XY").box(0.001, 0.001, 0.001)
 
         return desk, screen, brb, sw_apu, sw_starter, sw_bleed
 
-    def build_panel_labels(self) -> tuple[cq.Workplane, cq.Workplane, cq.Workplane, cq.Workplane]:
-        # Raised on the slanted panel; shuttle meshes mount just below each label.
+    def build_panel_labels(
+        self,
+    ) -> tuple[
+        cq.Workplane,
+        cq.Workplane,
+        cq.Workplane,
+        cq.Workplane,
+        cq.Workplane,
+        cq.Workplane,
+    ]:
+        # Face Y matches shuttle row_up; row_x matches PANEL_SWITCH_ROW.
+        y_switch = 0.085
+        y_knob = -0.020
         return (
-            self._panel_label("APU", -0.22, 0.12),
-            self._panel_label("START", -0.08, 0.10),
-            self._panel_label("BLEED", 0.06, 0.08),
-            self._panel_label("IGNITE", 0.20, 0.10),
+            self._panel_label_on_face("APU", -0.22, y_switch),
+            self._panel_label_on_face("START", -0.08, y_switch),
+            self._panel_label_on_face("BLEED", 0.06, y_switch),
+            self._panel_label_on_face("IGNITE", 0.20, 0.115),
+            self._panel_label_on_face("BEAM", -0.10, y_knob),
+            self._panel_label_on_face("COMP", 0.10, y_knob),
         )
 
     def build_fuel_farm(self):

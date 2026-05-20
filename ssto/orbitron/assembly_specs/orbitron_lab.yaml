@@ -267,13 +267,18 @@ logical:
       - hv_umbilical
       parts:
       - Operator_Console
+      - Operator_Checklist_Plaque
+      - Operator_Checklist_Ink
       - Operator_Panel
       - Screen
+      - Big_Red_Button
       - Panel_Label_APU
       - Panel_Label_STARTER
       - Panel_Label_BLEED
       - Panel_Label_IGNITE
-      # Switches + guards + ignite + panel face: Models/orbitron_panel_shuttle.ac
+      - Panel_Label_BEAM
+      - Panel_Label_COMP
+      # APU/START/BLEED toggles: Models/orbitron_panel_shuttle.ac
     thrust_sled:
       title: Thrust sled
       detail: Longitudinal rails, deck slab, **four corner load cells**, and an **engine
@@ -790,6 +795,26 @@ instances:
     - 0.8
     - 0.85
     transform_chain: []
+  Operator_Checklist_Plaque:
+    narrative: 'Shuttle-style light-off card on the slanted control panel (cream plaque).
+
+      '
+    template: lab_operator_checklist_plaque
+    params: {}
+    color: [0.97, 0.95, 0.88]
+    transform_chain:
+    - op: translate
+      xyz: [-1.4, -2.3, 0.0]
+  Operator_Checklist_Ink:
+    narrative: 'Checklist lettering on the desk card (steps 1–6).
+
+      '
+    template: lab_operator_checklist_ink
+    params: {}
+    color: [0.10, 0.08, 0.06]
+    transform_chain:
+    - op: translate
+      xyz: [-1.4, -2.3, 0.0]
   Operator_Console:
     narrative: 'Desk + battery block (slanted switch panel is Operator_Panel).
 
@@ -844,28 +869,52 @@ instances:
   Panel_Label_APU:
     template: lab_panel_label_apu
     params: {}
-    color: [0.85, 0.82, 0.55]
+    color: [0.12, 0.12, 0.14]
     transform_chain:
     - op: translate
       xyz: [-1.4, -2.3, 0.0]
   Panel_Label_STARTER:
     template: lab_panel_label_starter
     params: {}
-    color: [0.85, 0.82, 0.55]
+    color: [0.12, 0.12, 0.14]
     transform_chain:
     - op: translate
       xyz: [-1.4, -2.3, 0.0]
   Panel_Label_BLEED:
     template: lab_panel_label_bleed
     params: {}
-    color: [0.85, 0.82, 0.55]
+    color: [0.12, 0.12, 0.14]
+    transform_chain:
+    - op: translate
+      xyz: [-1.4, -2.3, 0.0]
+  Big_Red_Button:
+    narrative: 'Red mushroom IGNITE pushbutton on the slanted panel (key 4 / SPACE).
+
+      '
+    template: lab_big_red_button
+    params: {}
+    color: [0.88, 0.10, 0.06]
     transform_chain:
     - op: translate
       xyz: [-1.4, -2.3, 0.0]
   Panel_Label_IGNITE:
     template: lab_panel_label_ignite
     params: {}
-    color: [0.95, 0.75, 0.55]
+    color: [0.75, 0.08, 0.06]
+    transform_chain:
+    - op: translate
+      xyz: [-1.4, -2.3, 0.0]
+  Panel_Label_BEAM:
+    template: lab_panel_label_beam
+    params: {}
+    color: [0.12, 0.12, 0.14]
+    transform_chain:
+    - op: translate
+      xyz: [-1.4, -2.3, 0.0]
+  Panel_Label_COMP:
+    template: lab_panel_label_comp
+    params: {}
+    color: [0.12, 0.12, 0.14]
     transform_chain:
     - op: translate
       xyz: [-1.4, -2.3, 0.0]

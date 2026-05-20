@@ -57,6 +57,7 @@ fg_set:
     pad_apu_online: false
     starter_engage: false
     bleed_air_open: false
+    spool_sfx_armed: false
   mp_carriers:
     enabled: false
     auto_attach: false
@@ -120,7 +121,10 @@ fg_set:
     - { key_n: 49, name: "1", desc: Pad APU cart online, toggle_property: /sim/model/orbitron/pad-apu-online }
     - { key_n: 50, name: "2", desc: Starter engage (requires APU), toggle_property: /sim/model/orbitron/starter-engage }
     - { key_n: 51, name: "3", desc: Bleed air / intake path open, toggle_property: /sim/model/orbitron/bleed-air-open }
-    - { key_n: 32, name: SPACE, desc: Reactor ignite / arm (requires bleed), toggle_property: /sim/model/reactor/startup-trigger }
+    - { key_n: 52, name: "4", desc: IGNITE — arm reactor (requires bleed), toggle_property: /sim/model/reactor/startup-trigger }
+    - { key_n: 32, name: SPACE, desc: IGNITE — arm reactor (requires bleed), toggle_property: /sim/model/reactor/startup-trigger }
+    - { key_n: 53, name: "5", desc: BEAM — increase ion beam command, adjust_property: /controls/reactor/throttle, step: 0.1, min: 0.0, max: 1.0 }
+    - { key_n: 54, name: "6", desc: COMP — increase compressor command, adjust_property: /controls/orbitron/compressor, step: 0.1, min: 0.0, max: 1.0 }
     - { key_n: 119, name: w, desc: Increase ion beam command, adjust_property: /controls/reactor/throttle, step: 0.1, min: 0.0, max: 1.0 }
     - { key_n: 115, name: s, desc: Decrease ion beam command, adjust_property: /controls/reactor/throttle, step: -0.1, min: 0.0, max: 1.0 }
     - { key_n: 105, name: i, desc: Increase cathode pulse (shear / PSP2-Jin), adjust_property: /controls/orbitron/cathode-pulse, step: 0.1, min: 0.0, max: 1.0 }
@@ -139,8 +143,9 @@ fg_set:
 fg_model_orbitron_xml:
   ac_path: orbitron.ac
   comment: Mesh orbitron.ac from orbitron_lab.gltf; tune offsets if the rig sits wrong on the runway.
+  hide_cadquery_panel_labels: false
   shuttle_panel_model:
-    path: Models/orbitron_panel_shuttle.ac
+    path: Models/orbitron_panel_shuttle.xml
   offsets:
     pitch_deg: 0
     roll_deg: 0
@@ -170,6 +175,21 @@ fg_model_orbitron_xml:
       axis: [-0.204, 0.608, 0.767]
       center_m: [-1.340, 1.316, 4.909]
       tooltip: "Bleed air / intake path open"
+    # Shuttle display dimmer knobs (L1-disp-dim, DIM/BRT stripe); pivot/axis from orbitron_panel_anims.json
+    - object_name: Panel_Lever_Beam
+      property: /controls/reactor/throttle
+      sync_shuttle_factor: true
+      offset_deg: 0
+      drag_factor: 0.04
+      repeatable: true
+      tooltip: "BEAM — ion beam rate (W/S also)"
+    - object_name: Panel_Lever_Compressor
+      property: /controls/orbitron/compressor
+      sync_shuttle_factor: true
+      offset_deg: 0
+      drag_factor: 0.04
+      repeatable: true
+      tooltip: "COMP — compressor rate (U/J also)"
   slider_animations:
     - object_name: Big_Red_Button
       extra_object_names: [Big_Red_Button_Light]

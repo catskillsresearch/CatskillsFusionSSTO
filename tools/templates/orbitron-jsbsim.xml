@@ -104,14 +104,14 @@
             <!-- Ion beam command 0..1 → mA (Avalanche >1 mA milestone at moderate command) -->
             <fcs_function name="systems/reactor/ion-beam-command">
                 <function>
-                    <property>/controls/reactor/throttle</property>
+                    <property>systems/orbitron/fg-throttle</property>
                 </function>
             </fcs_function>
 
             <switch name="systems/reactor/active">
                 <default value="0.0"/>
                 <test value="1.0">
-                    /sim/model/reactor/startup-trigger == 1
+                    systems/orbitron/fg-startup-armed GT 0.5
                 </test>
             </switch>
         </channel>
@@ -122,19 +122,19 @@
                     <product>
                         <property>systems/reactor/active</property>
                         <sum>
-                            <property>/sim/model/orbitron/surrogate/power-c0</property>
+                            <property>systems/orbitron/surrogate/power-c0</property>
                             <product>
-                                <property>/controls/reactor/throttle</property>
-                                <property>/sim/model/orbitron/surrogate/power-ct</property>
+                                <property>systems/orbitron/fg-throttle</property>
+                                <property>systems/orbitron/surrogate/power-ct</property>
                             </product>
                             <product>
                                 <property>systems/orbitron/compressor-effective</property>
-                                <property>/sim/model/orbitron/surrogate/power-cc</property>
+                                <property>systems/orbitron/surrogate/power-cc</property>
                             </product>
                             <product>
-                                <property>/controls/reactor/throttle</property>
+                                <property>systems/orbitron/fg-throttle</property>
                                 <property>systems/orbitron/compressor-effective</property>
-                                <property>/sim/model/orbitron/surrogate/power-ctc</property>
+                                <property>systems/orbitron/surrogate/power-ctc</property>
                             </product>
                         </sum>
                     </product>
@@ -146,19 +146,19 @@
                     <product>
                         <property>systems/reactor/active</property>
                         <sum>
-                            <property>/sim/model/orbitron/surrogate/heat-c0</property>
+                            <property>systems/orbitron/surrogate/heat-c0</property>
                             <product>
-                                <property>/controls/reactor/throttle</property>
-                                <property>/sim/model/orbitron/surrogate/heat-ct</property>
+                                <property>systems/orbitron/fg-throttle</property>
+                                <property>systems/orbitron/surrogate/heat-ct</property>
                             </product>
                             <product>
                                 <property>systems/orbitron/compressor-effective</property>
-                                <property>/sim/model/orbitron/surrogate/heat-cc</property>
+                                <property>systems/orbitron/surrogate/heat-cc</property>
                             </product>
                             <product>
-                                <property>/controls/reactor/throttle</property>
+                                <property>systems/orbitron/fg-throttle</property>
                                 <property>systems/orbitron/compressor-effective</property>
-                                <property>/sim/model/orbitron/surrogate/heat-ctc</property>
+                                <property>systems/orbitron/surrogate/heat-ctc</property>
                             </product>
                         </sum>
                     </product>
@@ -171,19 +171,19 @@
                     <product>
                         <property>systems/reactor/active</property>
                         <sum>
-                            <property>/sim/model/orbitron/surrogate/beam-screen-kw-c0</property>
+                            <property>systems/orbitron/surrogate/beam-screen-kw-c0</property>
                             <product>
-                                <property>/controls/reactor/throttle</property>
-                                <property>/sim/model/orbitron/surrogate/beam-screen-kw-ct</property>
+                                <property>systems/orbitron/fg-throttle</property>
+                                <property>systems/orbitron/surrogate/beam-screen-kw-ct</property>
                             </product>
                             <product>
                                 <property>systems/orbitron/compressor-effective</property>
-                                <property>/sim/model/orbitron/surrogate/beam-screen-kw-cc</property>
+                                <property>systems/orbitron/surrogate/beam-screen-kw-cc</property>
                             </product>
                             <product>
-                                <property>/controls/reactor/throttle</property>
+                                <property>systems/orbitron/fg-throttle</property>
                                 <property>systems/orbitron/compressor-effective</property>
-                                <property>/sim/model/orbitron/surrogate/beam-screen-kw-ctc</property>
+                                <property>systems/orbitron/surrogate/beam-screen-kw-ctc</property>
                             </product>
                         </sum>
                     </product>
@@ -195,6 +195,7 @@
                 <function>
                     <max>
                         <product>
+                            <property>systems/reactor/active</property>
                             <property>systems/reactor/ion-beam-command</property>
                             <value> 5.0 </value>
                         </product>
@@ -234,7 +235,7 @@
                                 <value> 1.8 </value>
                             </product>
                             <product>
-                                <property>/controls/orbitron/cathode-pulse</property>
+                                <property>systems/orbitron/fg-cathode-pulse</property>
                                 <value> 1.2 </value>
                             </product>
                             <product>
@@ -272,20 +273,20 @@
             <switch name="systems/orbitron/pad-apu-online">
                 <default value="0.0"/>
                 <test value="1.0">
-                    /sim/model/orbitron/pad-apu-online == 1
+                    systems/orbitron/fg-pad-apu-online GT 0.5
                 </test>
             </switch>
             <switch name="systems/orbitron/starter-engage">
                 <default value="0.0"/>
                 <test value="1.0">
-                    systems/orbitron/pad-apu-online == 1
-                    /sim/model/orbitron/starter-engage == 1
+                    systems/orbitron/pad-apu-online GT 0.5
+                    systems/orbitron/fg-starter-engage GT 0.5
                 </test>
             </switch>
             <switch name="systems/orbitron/bleed-air-open">
                 <default value="0.0"/>
                 <test value="1.0">
-                    /sim/model/orbitron/bleed-air-open == 1
+                    systems/orbitron/fg-bleed-air-open GT 0.5
                 </test>
             </switch>
             <!-- Spool drive: full when reactor armed; partial when starter cranking with bleed -->
@@ -307,7 +308,7 @@
             <fcs_function name="systems/orbitron/compressor-effective">
                 <function>
                     <product>
-                        <property>/controls/orbitron/compressor</property>
+                        <property>systems/orbitron/fg-compressor</property>
                         <property>systems/orbitron/bleed-air-open</property>
                         <property>systems/orbitron/spool-drive-factor</property>
                     </product>
@@ -325,19 +326,19 @@
                     <product>
                         <property>systems/reactor/active</property>
                         <sum>
-                            <property>/sim/model/orbitron/surrogate/thrust-c0</property>
+                            <property>systems/orbitron/surrogate/thrust-c0</property>
                             <product>
-                                <property>/controls/reactor/throttle</property>
-                                <property>/sim/model/orbitron/surrogate/thrust-ct</property>
+                                <property>systems/orbitron/fg-throttle</property>
+                                <property>systems/orbitron/surrogate/thrust-ct</property>
                             </product>
                             <product>
                                 <property>systems/orbitron/compressor-effective</property>
-                                <property>/sim/model/orbitron/surrogate/thrust-cc</property>
+                                <property>systems/orbitron/surrogate/thrust-cc</property>
                             </product>
                             <product>
-                                <property>/controls/reactor/throttle</property>
+                                <property>systems/orbitron/fg-throttle</property>
                                 <property>systems/orbitron/compressor-effective</property>
-                                <property>/sim/model/orbitron/surrogate/thrust-ctc</property>
+                                <property>systems/orbitron/surrogate/thrust-ctc</property>
                             </product>
                         </sum>
                     </product>
@@ -350,19 +351,19 @@
                         <product>
                             <property>systems/reactor/active</property>
                             <sum>
-                                <property>/sim/model/orbitron/surrogate/mdot-c0</property>
+                                <property>systems/orbitron/surrogate/mdot-c0</property>
                                 <product>
-                                    <property>/controls/reactor/throttle</property>
-                                    <property>/sim/model/orbitron/surrogate/mdot-ct</property>
+                                    <property>systems/orbitron/fg-throttle</property>
+                                    <property>systems/orbitron/surrogate/mdot-ct</property>
                                 </product>
                                 <product>
                                     <property>systems/orbitron/compressor-effective</property>
-                                    <property>/sim/model/orbitron/surrogate/mdot-cc</property>
+                                    <property>systems/orbitron/surrogate/mdot-cc</property>
                                 </product>
                                 <product>
-                                    <property>/controls/reactor/throttle</property>
+                                    <property>systems/orbitron/fg-throttle</property>
                                     <property>systems/orbitron/compressor-effective</property>
-                                    <property>/sim/model/orbitron/surrogate/mdot-ctc</property>
+                                    <property>systems/orbitron/surrogate/mdot-ctc</property>
                                 </product>
                             </sum>
                         </product>
@@ -379,7 +380,7 @@
                             </max>
                             <product>
                                 <property>systems/orbitron/compressor-effective</property>
-                                <property>/sim/model/orbitron/surrogate/mdot-cc</property>
+                                <property>systems/orbitron/surrogate/mdot-cc</property>
                                 <value> 0.28 </value>
                             </product>
                         </product>
@@ -441,7 +442,7 @@
                         <property>systems/reactor/active</property>
                         <sum>
                             <property>systems/arcjet/thrust-lbf</property>
-                            <property>/sim/model/orbitron/thrust-sled/tare-lbf</property>
+                            <property>systems/orbitron/thrust-sled/tare-lbf</property>
                         </sum>
                     </product>
                 </function>
@@ -460,7 +461,7 @@
                         <property>systems/reactor/active</property>
                         <sum>
                             <quotient>
-                                <property>/sim/model/orbitron/thrust-sled/tare-lbf</property>
+                                <property>systems/orbitron/thrust-sled/tare-lbf</property>
                                 <value> 4.0 </value>
                             </quotient>
                             <product>
@@ -469,12 +470,12 @@
                                     <value> 0.25 </value>
                                     <sum>
                                         <product>
-                                            <property>/sim/model/orbitron/thrust-sled/compressor-moment-gain</property>
-                                            <property>/controls/orbitron/compressor</property>
+                                            <property>systems/orbitron/thrust-sled/compressor-moment-gain</property>
+                                            <property>systems/orbitron/fg-compressor</property>
                                         </product>
                                         <product>
-                                            <property>/sim/model/orbitron/thrust-sled/throttle-moment-gain</property>
-                                            <property>/controls/reactor/throttle</property>
+                                            <property>systems/orbitron/thrust-sled/throttle-moment-gain</property>
+                                            <property>systems/orbitron/fg-throttle</property>
                                         </product>
                                     </sum>
                                 </difference>
@@ -490,7 +491,7 @@
                         <property>systems/reactor/active</property>
                         <sum>
                             <quotient>
-                                <property>/sim/model/orbitron/thrust-sled/tare-lbf</property>
+                                <property>systems/orbitron/thrust-sled/tare-lbf</property>
                                 <value> 4.0 </value>
                             </quotient>
                             <product>
@@ -498,12 +499,12 @@
                                 <sum>
                                     <value> 0.25 </value>
                                     <product>
-                                        <property>/sim/model/orbitron/thrust-sled/compressor-moment-gain</property>
-                                        <property>/controls/orbitron/compressor</property>
+                                        <property>systems/orbitron/thrust-sled/compressor-moment-gain</property>
+                                        <property>systems/orbitron/fg-compressor</property>
                                     </product>
                                     <product>
-                                        <property>/sim/model/orbitron/thrust-sled/throttle-moment-gain</property>
-                                        <property>/controls/reactor/throttle</property>
+                                        <property>systems/orbitron/thrust-sled/throttle-moment-gain</property>
+                                        <property>systems/orbitron/fg-throttle</property>
                                         <value> -1.0 </value>
                                     </product>
                                 </sum>
@@ -519,7 +520,7 @@
                         <property>systems/reactor/active</property>
                         <sum>
                             <quotient>
-                                <property>/sim/model/orbitron/thrust-sled/tare-lbf</property>
+                                <property>systems/orbitron/thrust-sled/tare-lbf</property>
                                 <value> 4.0 </value>
                             </quotient>
                             <product>
@@ -527,13 +528,13 @@
                                 <sum>
                                     <value> 0.25 </value>
                                     <product>
-                                        <property>/sim/model/orbitron/thrust-sled/compressor-moment-gain</property>
-                                        <property>/controls/orbitron/compressor</property>
+                                        <property>systems/orbitron/thrust-sled/compressor-moment-gain</property>
+                                        <property>systems/orbitron/fg-compressor</property>
                                         <value> -1.0 </value>
                                     </product>
                                     <product>
-                                        <property>/sim/model/orbitron/thrust-sled/throttle-moment-gain</property>
-                                        <property>/controls/reactor/throttle</property>
+                                        <property>systems/orbitron/thrust-sled/throttle-moment-gain</property>
+                                        <property>systems/orbitron/fg-throttle</property>
                                     </product>
                                 </sum>
                             </product>
@@ -548,7 +549,7 @@
                         <property>systems/reactor/active</property>
                         <sum>
                             <quotient>
-                                <property>/sim/model/orbitron/thrust-sled/tare-lbf</property>
+                                <property>systems/orbitron/thrust-sled/tare-lbf</property>
                                 <value> 4.0 </value>
                             </quotient>
                             <product>
@@ -556,12 +557,12 @@
                                 <sum>
                                     <value> 0.25 </value>
                                     <product>
-                                        <property>/sim/model/orbitron/thrust-sled/compressor-moment-gain</property>
-                                        <property>/controls/orbitron/compressor</property>
+                                        <property>systems/orbitron/thrust-sled/compressor-moment-gain</property>
+                                        <property>systems/orbitron/fg-compressor</property>
                                     </product>
                                     <product>
-                                        <property>/sim/model/orbitron/thrust-sled/throttle-moment-gain</property>
-                                        <property>/controls/reactor/throttle</property>
+                                        <property>systems/orbitron/thrust-sled/throttle-moment-gain</property>
+                                        <property>systems/orbitron/fg-throttle</property>
                                         <value> -1.0 </value>
                                     </product>
                                 </sum>
@@ -602,7 +603,7 @@
                                 <sum>
                                     <value> 0.05 </value>
                                     <product>
-                                        <property>/controls/reactor/throttle</property>
+                                        <property>systems/orbitron/fg-throttle</property>
                                         <value> 0.48 </value>
                                     </product>
                                     <product>
@@ -610,7 +611,7 @@
                                         <value> 0.20 </value>
                                     </product>
                                     <product>
-                                        <property>/controls/orbitron/compressor</property>
+                                        <property>systems/orbitron/fg-compressor</property>
                                         <value> 0.14 </value>
                                     </product>
                                 </sum>
@@ -621,6 +622,7 @@
             </fcs_function>
 
             <!-- Bellmouth / electric compressor ingestion + duct mass flow -->
+            <!-- Bleed + compressor spin-up audible before full ignite; louder when reactor active -->
             <fcs_function name="systems/orbitron_sfx/inlet_volume">
                 <function>
                     <min>
@@ -628,20 +630,37 @@
                         <max>
                             <value> 0.0 </value>
                             <product>
-                                <property>systems/reactor/active</property>
-                                <property>/controls/orbitron/compressor</property>
-                                <sum>
-                                    <value> 0.12 </value>
+                                <property>systems/orbitron/bleed-air-open</property>
+                                <property>systems/orbitron_sfx/atmo_transmission</property>
+                                <max>
+                                    <property>systems/orbitron/fg-compressor</property>
                                     <product>
-                                        <property>systems/arcjet/mass-flow-kgps</property>
-                                        <value> 0.14 </value>
+                                        <property>systems/orbitron/starter-engage</property>
+                                        <property>systems/orbitron/pad-apu-online</property>
+                                        <value> 0.22 </value>
+                                    </product>
+                                </max>
+                                <sum>
+                                    <value> 0.14 </value>
+                                    <product>
+                                        <property>systems/orbitron/compressor-effective</property>
+                                        <value> 0.42 </value>
                                     </product>
                                     <product>
-                                        <property>systems/arcjet/thrust-lbf</property>
-                                        <value> 0.00006 </value>
+                                        <property>systems/reactor/active</property>
+                                        <sum>
+                                            <value> 0.14 </value>
+                                            <product>
+                                                <property>systems/arcjet/mass-flow-kgps</property>
+                                                <value> 0.14 </value>
+                                            </product>
+                                            <product>
+                                                <property>systems/arcjet/thrust-lbf</property>
+                                                <value> 0.00006 </value>
+                                            </product>
+                                        </sum>
                                     </product>
                                 </sum>
-                                <property>systems/orbitron_sfx/atmo_transmission</property>
                             </product>
                         </max>
                     </min>
@@ -820,7 +839,7 @@
                                         <value> 0.10 </value>
                                     </product>
                                     <product>
-                                        <property>/controls/orbitron/compressor</property>
+                                        <property>systems/orbitron/fg-compressor</property>
                                         <value> 0.12 </value>
                                     </product>
                                 </sum>
@@ -904,12 +923,14 @@
                             <value> 0.0 </value>
                             <sum>
                                 <product>
+                                    <property>systems/orbitron/bleed-air-open</property>
+                                    <property>systems/orbitron/pad-apu-online</property>
                                     <property>systems/orbitron/starter-engage</property>
                                     <sum>
-                                        <value> 0.12 </value>
+                                        <value> 0.18 </value>
                                         <product>
                                             <property>systems/orbitron/compressor-effective</property>
-                                            <value> 0.55 </value>
+                                            <value> 0.62 </value>
                                         </product>
                                     </sum>
                                 </product>
@@ -949,7 +970,7 @@
                             <value> 0.0 </value>
                             <product>
                                 <property>systems/reactor/active</property>
-                                <property>/controls/orbitron/compressor</property>
+                                <property>systems/orbitron/fg-compressor</property>
                                 <min>
                                     <value> 1.0 </value>
                                     <product>

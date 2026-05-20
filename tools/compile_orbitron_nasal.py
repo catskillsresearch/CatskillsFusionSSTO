@@ -111,6 +111,10 @@ def _emit_surrogate_load(
     delay = float(sl.get("init_delay_sec", 0))
     surfaces = sl.get("surfaces") or []
     beam = sl.get("beam_screen_optional") or {}
+    beam_defaults = sl.get("beam_screen_defaults") or {}
+    fdm_sur = "/fdm/jsbsim/systems/orbitron/surrogate"
+    fdm_sled = "/fdm/jsbsim/systems/orbitron/thrust-sled"
+    sim_sled = "/sim/model/orbitron/thrust-sled"
 
     doc: Mapping[str, Any] | None = None
     bake_source = "set.xml defaults (no engine_surrogate.json at compile time)"
@@ -136,8 +140,16 @@ def _emit_surrogate_load(
         '    setprop(root ~ "/" ~ prefix ~ "-ctc", ctc);',
         "};",
         "",
+        "var _mirror_surface = func(sim_root, fdm_root, prefix) {",
+        '    foreach (var suf; ["-c0", "-ct", "-cc", "-ctc"]) {',
+        '        var v = getprop(sim_root ~ "/" ~ prefix ~ suf);',
+        "        if (v != nil) setprop(fdm_root ~ \"/\" ~ prefix ~ suf, v);",
+        "    }",
+        "};",
+        "",
         "var _load_once = func {",
         f'    var root = {_nas_literal_string(root)};',
+        f'    var fdm_root = {_nas_literal_string(fdm_sur)};',
     ]
 
     if doc is not None:
@@ -165,10 +177,31 @@ def _emit_surrogate_load(
             coeffs = _coeffs_from_json_surface(doc.get(bil))
             if coeffs is not None:
                 c0, ct, cc, ctc = coeffs
+                if (
+                    isinstance(beam_defaults, dict)
+                    and c0 == 0.0
+                    and ct == 0.0
+                    and cc == 0.0
+                    and ctc == 0.0
+                ):
+                    c0 = float(beam_defaults.get("c0", 0))
+                    ct = float(beam_defaults.get("ct", 0))
+                    cc = float(beam_defaults.get("cc", 0))
+                    ctc = float(beam_defaults.get("ctc", 0))
                 lines.append(
                     f"    _set_surface(root, {_nas_literal_string(pfx)}, "
                     f"{c0}, {ct}, {cc}, {ctc});"
                 )
+
+    lines += [
+        '    foreach (var pfx; ["thrust", "mdot", "power", "heat", "beam-screen-kw"]) {',
+        "        _mirror_surface(root, fdm_root, pfx);",
+        "    }",
+        f'  foreach (var k; ["tare-lbf", "compressor-moment-gain", "throttle-moment-gain"]) {{',
+        f'      var v = getprop({_nas_literal_string(sim_sled)} ~ "/" ~ k);',
+        f'      if (v != nil) setprop({_nas_literal_string(fdm_sled)} ~ "/" ~ k, v);',
+        "  }",
+    ]
 
     p0 = str(surfaces[0]["fg_prefix"]) if surfaces else "thrust"
     p1 = str(surfaces[1]["fg_prefix"]) if len(surfaces) > 1 else "mdot"
@@ -325,6 +358,24 @@ def _emit_orbitron_ops(ops: Mapping[str, Any]) -> str:
     starter = str(props.get("starter", "/sim/model/orbitron/starter-engage"))
     bleed = str(props.get("bleed", "/sim/model/orbitron/bleed-air-open"))
     ignite = str(props.get("ignite", "/sim/model/reactor/startup-trigger"))
+    spool_sfx = str(props.get("spool_sfx", "/sim/model/orbitron/spool-sfx-armed"))
+    bridge = ops.get("fdm_bridge") or {}
+    fdm_pad = str(bridge.get("pad_apu", "/fdm/jsbsim/systems/orbitron/fg-pad-apu-online"))
+    fdm_starter = str(
+        bridge.get("starter", "/fdm/jsbsim/systems/orbitron/fg-starter-engage")
+    )
+    fdm_bleed = str(bridge.get("bleed", "/fdm/jsbsim/systems/orbitron/fg-bleed-air-open"))
+    fdm_startup = str(
+        bridge.get("startup_armed", "/fdm/jsbsim/systems/orbitron/fg-startup-armed")
+    )
+    sur_sim = str(
+        bridge.get("surrogate_sim", "/sim/model/orbitron/surrogate")
+    )
+    sur_fdm = str(
+        bridge.get("surrogate_fdm", "/fdm/jsbsim/systems/orbitron/surrogate")
+    )
+    key_ramp_hz = float(ops.get("key_ramp_hz", 0))
+    key_ramp_step = float(ops.get("key_ramp_step", 0.04))
     repos = ops.get("startup_reposition") or {}
     stab = ops.get("pad_stabilize") or {}
     stab_hz = float(stab.get("hz", 120)) if isinstance(stab, dict) else 120.0
@@ -422,6 +473,7 @@ def _emit_orbitron_ops(ops: Mapping[str, Any]) -> str:
         "    new: func() {",
         "        var m = { parents: [OrbitronOps] };",
         f"        m._last_starter = 0;",
+        f"        m._last_bleed = 0;",
         f"        m._last_ignite = 0;",
         "        m._hint_ignite = 0;",
         "        OrbitronOps._pad_heading_deg = 0.0;",
@@ -446,6 +498,13 @@ def _emit_orbitron_ops(ops: Mapping[str, Any]) -> str:
         '        setprop("/sim/model/reactor/debug-ui-window", 0);',
         "        OrbitronOps.disable_carriers();",
         f"        m.timer = maketimer({1.0 / hz}, m, OrbitronOps.update);",
+    ]
+    if key_ramp_hz > 0:
+        lines += [
+            f"        m._key_ramp = maketimer({1.0 / key_ramp_hz}, m, OrbitronOps.key_ramp);",
+            "        m._key_ramp.start();",
+        ]
+    lines += [
         "        m.timer.start();",
     ]
     if block_hijack:
@@ -784,7 +843,124 @@ def _emit_orbitron_ops(ops: Mapping[str, Any]) -> str:
     lines += [
         "    },",
         "",
+        "    bilinear_surface: func(root, pfx, thr, comp) {",
+        "        var c0 = getprop(root ~ \"/\" ~ pfx ~ \"-c0\") or 0;",
+        "        var ct = getprop(root ~ \"/\" ~ pfx ~ \"-ct\") or 0;",
+        "        var cc = getprop(root ~ \"/\" ~ pfx ~ \"-cc\") or 0;",
+        "        var ctc = getprop(root ~ \"/\" ~ pfx ~ \"-ctc\") or 0;",
+        "        return c0 + thr * ct + comp * cc + thr * comp * ctc;",
+        "    },",
+        "",
+        "    compressor_effective: func(bleed_on, starter_on, armed, comp) {",
+        "        if (!bleed_on) return 0;",
+        "        var spool = 1.0;",
+        "        if (!armed) spool = starter_on ? 0.42 : 0.12;",
+        "        return comp * spool;",
+        "    },",
+        "",
+        "    sync_fdm_inputs: func() {",
+        f'        var apu = (getprop({_nas_literal_string(pad_apu)}) or 0) != 0;',
+        f'        var starter = (getprop({_nas_literal_string(starter)}) or 0) != 0;',
+        f'        var bleed = (getprop({_nas_literal_string(bleed)}) or 0) != 0;',
+        f'        var armed = (getprop({_nas_literal_string(ignite)}) or 0) != 0;',
+        f"        setprop({_nas_literal_string(fdm_pad)}, apu ? 1 : 0);",
+        f"        setprop({_nas_literal_string(fdm_starter)}, starter ? 1 : 0);",
+        f"        setprop({_nas_literal_string(fdm_bleed)}, bleed ? 1 : 0);",
+        f"        setprop({_nas_literal_string(fdm_startup)}, armed ? 1 : 0);",
+        "        var thr = getprop(\"/controls/reactor/throttle\") or 0;",
+        "        var comp = getprop(\"/controls/orbitron/compressor\") or 0;",
+        "        var cpulse = getprop(\"/controls/orbitron/cathode-pulse\") or 0;",
+        '        setprop("/fdm/jsbsim/systems/orbitron/fg-throttle", thr);',
+        '        setprop("/fdm/jsbsim/systems/orbitron/fg-compressor", comp);',
+        '        setprop("/fdm/jsbsim/systems/orbitron/fg-cathode-pulse", cpulse);',
+        "        # Inlet + motor loops: APU+bleed (idle path), louder with starter / ignite / COMP.",
+        f'        var spool = (apu and bleed and (starter or armed or comp > 0.02)) ? 1 : 0;',
+        f"        setprop({_nas_literal_string(spool_sfx)}, spool);",
+        f'        var sim_sur = {_nas_literal_string(sur_sim)};',
+        f'        var fdm_sur = {_nas_literal_string(sur_fdm)};',
+        '        foreach (var pfx; ["thrust", "mdot", "power", "heat", "beam-screen-kw"]) {',
+        '            foreach (var suf; ["-c0", "-ct", "-cc", "-ctc"]) {',
+        '                var v = getprop(sim_sur ~ "/" ~ pfx ~ suf);',
+        "                if (v != nil) setprop(fdm_sur ~ \"/\" ~ pfx ~ suf, v);",
+        "            }",
+        "        }",
+        "        var comp_eff = OrbitronOps.compressor_effective(bleed, starter, armed, comp);",
+        "        var thrust_lbf = 0.0;",
+        "        var mdot_kgps = 0.0;",
+        "        var power_mw = 0.0;",
+        "        if (armed) {",
+        '            thrust_lbf = math.max(0, OrbitronOps.bilinear_surface(sim_sur, "thrust", thr, comp_eff));',
+        '            mdot_kgps = math.max(0, OrbitronOps.bilinear_surface(sim_sur, "mdot", thr, comp_eff));',
+        '            power_mw = math.max(0, OrbitronOps.bilinear_surface(sim_sur, "power", thr, comp_eff));',
+        "        } else if (bleed and starter and apu) {",
+        '            var mdcc = getprop(sim_sur ~ "/mdot-cc") or 0;',
+        "            mdot_kgps = math.max(0, 0.28 * comp_eff * mdcc);",
+        "        }",
+        '        setprop("/fdm/jsbsim/systems/arcjet/thrust-lbf", thrust_lbf);',
+        '        setprop("/fdm/jsbsim/systems/arcjet/mass-flow-kgps", mdot_kgps);',
+        '        setprop("/fdm/jsbsim/systems/reactor/gross-power-mw", power_mw);',
+        "        var inlet_vol = 0.0;",
+        "        if (apu and bleed) {",
+        "            inlet_vol = 0.14 + 0.55 * comp_eff;",
+        "            if (starter) inlet_vol += 0.12;",
+        "            if (armed) inlet_vol += 0.1;",
+        "            inlet_vol = math.min(1, inlet_vol * math.max(comp, starter ? 0.22 : 0.08));",
+        "        }",
+        "        var motor_vol = 0.0;",
+        "        if (apu and bleed and starter) {",
+        "            motor_vol = math.min(1, 0.22 + 0.72 * comp_eff);",
+        "        }",
+        "        var nozzle_vol = 0.0;",
+        "        if (armed and thr > 0.04) {",
+        "            nozzle_vol = math.min(1, 0.06 + thrust_lbf / 350 + power_mw * 0.4);",
+        "        }",
+        '        setprop("/sim/model/orbitron/sfx/inlet-volume", inlet_vol);',
+        '        setprop("/sim/model/orbitron/sfx/motor-volume", motor_vol);',
+        '        setprop("/sim/model/orbitron/sfx/nozzle-volume", nozzle_vol);',
+        '        setprop("/sim/model/orbitron/vfx/nozzle-active", nozzle_vol > 0.03 ? 1 : 0);',
+        '        setprop("/fdm/jsbsim/systems/orbitron_sfx/inlet_volume", inlet_vol);',
+        '        setprop("/fdm/jsbsim/systems/orbitron_sfx/motor_generator_volume", motor_vol);',
+        '        setprop("/fdm/jsbsim/systems/orbitron_sfx/nozzle_volume", nozzle_vol);',
+        "        if (nozzle_vol > 0.03) {",
+        '            var jet_mps = (mdot_kgps > 1e-6) ? (thrust_lbf * 4.4482216152605 / mdot_kgps) : 120;',
+        '            setprop("/fdm/jsbsim/systems/orbitron_vfx/nozzle_exhaust_speed-mps", math.max(40, jet_mps));',
+        '            setprop("/fdm/jsbsim/systems/orbitron_vfx/nozzle_core_particle_rate",',
+        "                math.min(220, 20 + thrust_lbf * 0.12));",
+        '            setprop("/fdm/jsbsim/systems/orbitron_vfx/nozzle_plume_particle_rate",',
+        "                math.min(160, 14 + mdot_kgps * 55));",
+        '            setprop("/fdm/jsbsim/systems/orbitron_vfx/nozzle_core_size-m",',
+        "                math.min(1.6, 0.2 + nozzle_vol * 0.9));",
+        '            setprop("/fdm/jsbsim/systems/orbitron_vfx/nozzle_throat_glow_rate",',
+        "                math.min(1, 0.15 + thrust_lbf * 0.0002));",
+        "        }",
+        "    },",
+        "",
+        "    key_ramp: func() {",
+        f"        var step = {key_ramp_step};",
+        '        var kbd = props.globals.getNode("/devices/status/keyboard", 0);',
+        "        if (kbd == nil) return;",
+        "        var rows = [",
+        '            ["w", "/controls/reactor/throttle"],',
+        '            ["s", "/controls/reactor/throttle"],',
+        '            ["u", "/controls/orbitron/compressor"],',
+        '            ["j", "/controls/orbitron/compressor"],',
+        "        ];",
+        "        foreach (var row; rows) {",
+        "            var kn = kbd.getChild(\"key-\" ~ row[0]);",
+        "            if (kn == nil) kn = kbd.getChild(\"key[\" ~ row[0] ~ \"]\");",
+        "            if (kn == nil or !kn.getBoolValue()) continue;",
+        "            var prop = row[1];",
+        "            var delta = step;",
+        '            if (row[0] == "s" or row[0] == "j") delta = -step;',
+        "            var v = (getprop(prop) or 0) + delta;",
+        "            if (v < 0) v = 0;",
+        "            if (v > 1) v = 1;",
+        "            setprop(prop, v);",
+        "        }",
+        "    },",
+        "",
         "    update: func() {",
+        "        OrbitronOps.sync_fdm_inputs();",
         f'        var apu = (getprop({_nas_literal_string(pad_apu)}) or 0) != 0;',
         f'        var starter = (getprop({_nas_literal_string(starter)}) or 0) != 0;',
         f'        var bleed = (getprop({_nas_literal_string(bleed)}) or 0) != 0;',
@@ -795,6 +971,11 @@ def _emit_orbitron_ops(ops: Mapping[str, Any]) -> str:
         f"            settimer(func() {{ setprop({_nas_literal_string(crank_prop)}, 0); }}, {crank_reset});",
         "        }",
         "        me._last_starter = starter;",
+        "",
+        "        if (bleed and !me._last_bleed and apu) {",
+        '            print("OrbitronOps: bleed OPEN — electric compressor path live (inlet hiss + motor when starter is on).");',
+        "        }",
+        "        me._last_bleed = bleed;",
         "",
         "        if (ignite and !bleed) {",
         '            setprop("/sim/model/reactor/startup-trigger", 0);',
@@ -808,7 +989,7 @@ def _emit_orbitron_ops(ops: Mapping[str, Any]) -> str:
         '            print("OrbitronOps: reactor ARMED — raise beam W/S and compressor U/J for thrust / plume.");',
         "        }",
         "        if (bleed and apu and starter and !ignite and !me._hint_ignite) {",
-        '            print("OrbitronOps: steps 1–3 OK — arm with SPACE or IGNITE (rightmost control under label).");',
+        '            print("OrbitronOps: steps 1–3 OK — press 4 or SPACE on red IGNITE (see desk checklist).");',
         "            me._hint_ignite = 1;",
         "        }",
         "        me._last_ignite = ignite;",
@@ -1012,6 +1193,8 @@ def _emit_reactor_ui(ui: Mapping[str, Any]) -> str:
         "    },",
         "",
         "    update: func() {",
+        '        if (globals.OrbitronOps != nil and OrbitronOps.sync_fdm_inputs != nil)',
+        "            OrbitronOps.sync_fdm_inputs();",
         "        me.sync_debug_window();",
         "",
     ]
@@ -1029,7 +1212,36 @@ def _emit_reactor_ui(ui: Mapping[str, Any]) -> str:
         lines.append(
             f"        var {var} = getprop({_nas_literal_string(prop)}) or 0.0;"
         )
-    lines.append("")
+    lines += [
+        "        var comp_cmd = getprop(\"/controls/orbitron/compressor\") or 0.0;",
+        "        var comp_eff = OrbitronOps.compressor_effective(bleed_on, starter_on, startup_on, comp_cmd);",
+        '        var sur = "/sim/model/orbitron/surrogate";',
+        "        if (startup_on) {",
+        "            if (math.abs(bma) < 1e-6) {",
+        "                var bkw_fb = OrbitronOps.bilinear_surface(sur, \"beam-screen-kw\", nbi, comp_eff);",
+        "                bma = math.max(nbi * 5.0, bkw_fb / 8.0);",
+        "            }",
+        "            if (math.abs(power) < 1e-6)",
+        "                power = OrbitronOps.bilinear_surface(sur, \"power\", nbi, comp_eff);",
+        "            if (math.abs(thrust) < 1e-3)",
+        '                thrust = OrbitronOps.bilinear_surface(sur, "thrust", nbi, comp_eff);',
+        "            if (math.abs(mdot) < 1e-6)",
+        '                mdot = OrbitronOps.bilinear_surface(sur, "mdot", nbi, comp_eff);',
+        "            if (math.abs(jet_p_mw) < 1e-6 and thrust > 0 and mdot > 1e-6)",
+        "                jet_p_mw = (thrust * 4.4482216152605) * (thrust * 4.4482216152605)",
+        "                    / (2 * mdot * 1000000);",
+        "            if (math.abs(jet_ve) < 1e-3 and thrust > 0 and mdot > 1e-6)",
+        "                jet_ve = (thrust * 4.4482216152605) / mdot;",
+        "            if (math.abs(thrust_kn) < 1e-6 and thrust > 0)",
+        "                thrust_kn = thrust * 4.4482216152605 * 0.001;",
+        "            if (math.abs(cathode_kv) < 1e-6)",
+        "                cathode_kv = (100.0 + 200.0 * nbi) * (startup_on ? 1 : 0);",
+        "            if (math.abs(plasma_n) < 1e-6)",
+        "                plasma_n = 9.0 + 1.8 * nbi + 1.2 * (getprop(\"/controls/orbitron/cathode-pulse\") or 0)",
+        "                    + 0.3 * comp_eff;",
+        "        }",
+        "",
+    ]
 
     # nbi_display from yaml scale on the scaled_float row
     scale = 100.0

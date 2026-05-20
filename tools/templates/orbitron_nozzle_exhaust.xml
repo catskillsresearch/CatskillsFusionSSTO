@@ -17,7 +17,7 @@
     <heading-deg>0.0</heading-deg>
     <condition>
       <greater-than>
-        <property>/fdm/jsbsim/systems/orbitron_sfx/nozzle_volume</property>
+        <property>/sim/model/orbitron/sfx/nozzle-volume</property>
         <value>0.02</value>
       </greater-than>
     </condition>
@@ -50,7 +50,7 @@
           <green><value>0.92</value></green>
           <blue><value>0.55</value></blue>
           <alpha>
-            <property>/fdm/jsbsim/systems/orbitron_sfx/nozzle_volume</property>
+            <property>/sim/model/orbitron/sfx/nozzle-volume</property>
             <factor>0.95</factor>
             <offset>0.05</offset>
             <min>0.0</min>
@@ -70,7 +70,7 @@
           <green><value>0.42</value></green>
           <blue><value>0.06</value></blue>
           <alpha>
-            <property>/fdm/jsbsim/systems/orbitron_sfx/nozzle_volume</property>
+            <property>/sim/model/orbitron/sfx/nozzle-volume</property>
             <factor>0.25</factor>
             <min>0.0</min>
             <max>0.5</max>
@@ -112,7 +112,7 @@
     <heading-deg>0.0</heading-deg>
     <condition>
       <greater-than>
-        <property>/fdm/jsbsim/systems/orbitron_sfx/nozzle_volume</property>
+        <property>/sim/model/orbitron/sfx/nozzle-volume</property>
         <value>0.04</value>
       </greater-than>
     </condition>
@@ -146,7 +146,7 @@
           <green><value>0.80</value></green>
           <blue><value>0.84</value></blue>
           <alpha>
-            <property>/fdm/jsbsim/systems/orbitron_sfx/nozzle_volume</property>
+            <property>/sim/model/orbitron/sfx/nozzle-volume</property>
             <factor>0.48</factor>
             <offset>0.06</offset>
             <min>0.0</min>
@@ -199,7 +199,7 @@
     <z-m>0.0</z-m>
     <condition>
       <greater-than>
-        <property>/fdm/jsbsim/systems/orbitron_sfx/nozzle_volume</property>
+        <property>/sim/model/orbitron/sfx/nozzle-volume</property>
         <value>0.02</value>
       </greater-than>
     </condition>
@@ -231,7 +231,7 @@
           <green><value>0.88</value></green>
           <blue><value>0.45</value></blue>
           <alpha>
-            <property>/fdm/jsbsim/systems/orbitron_sfx/nozzle_volume</property>
+            <property>/sim/model/orbitron/sfx/nozzle-volume</property>
             <factor>0.85</factor>
             <min>0.0</min>
             <max>1.0</max>

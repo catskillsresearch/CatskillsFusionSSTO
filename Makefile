@@ -50,6 +50,7 @@ ORBITRON_PHYSICS_SPEC := $(ASSEMBLY_SPECS_DIR)/orbitron_physics_surrogate.yaml
 ORBITRON_PHYSICS_SPEC_PY := $(REPO_ROOT)/tools/orbitron_physics_spec.py
 ORBITRON_MODEL_XML := $(STAND)/Models/Orbitron.xml
 ORBITRON_SHUTTLE_PANEL_AC := $(STAND)/Models/orbitron_panel_shuttle.ac
+ORBITRON_PANEL_ANIMS_JSON := $(STAND)/Models/orbitron_panel_anims.json
 BUILD_SHUTTLE_PANEL_AC := $(REPO_ROOT)/tools/build_orbitron_shuttle_panel_ac.py
 COCKPIT_AC := $(REPO_ROOT)/Models/cockpit.ac
 COCKPIT_TEX := $(REPO_ROOT)/Models/fwd-cockpit-text-map-x.png
@@ -90,7 +91,7 @@ YAML_LAB_COMPILER_DEPS := \
 # Inputs that define the build graph (edit Makefile subgraph block when topology changes).
 GRAPH_INPUTS := Makefile $(ORBITRON_LAB_YAMLS) $(YAML_LAB_COMPILER_DEPS) \
 	$(ORBITRON_SOUND_ASSETS) $(SOUND_COMPILER) $(COMPILE_SOUND_XML) \
-	$(ORBITRON_AIRCRAFT_SPEC) $(ORBITRON_AIRCRAFT_PATHS) $(REPO_ROOT)/tools/orbitron_aircraft_pkg.py $(COMPILE_AIRCRAFT_RUNTIME) $(JSBSIM_TEMPLATE) \
+	$(ORBITRON_AIRCRAFT_SPEC) $(ORBITRON_AIRCRAFT_PATHS) $(REPO_ROOT)/tools/orbitron_aircraft_pkg.py $(COMPILE_AIRCRAFT_RUNTIME) $(BUILD_SHUTTLE_PANEL_AC) $(JSBSIM_TEMPLATE) \
 	$(ORBITRON_NOZZLE_EXHAUST_SRC) $(GENERATE_ORBITRON_VFX_TEX) \
 	$(ORBITRON_VFX_TEX_FLAME_SRC) $(ORBITRON_VFX_TEX_PLUME_SRC) \
 	$(ORBITRON_NASAL_SPEC) $(COMPILE_ORBITRON_NASAL) \
@@ -106,6 +107,7 @@ MODEL_ARTIFACTS := \
 	$(GLTF_LAB_SUBASSEMBLIES) \
 	$(STAND)/Models/orbitron.ac \
 	$(ORBITRON_SHUTTLE_PANEL_AC) \
+	$(ORBITRON_PANEL_ANIMS_JSON) \
 	$(STAND)/engine_surrogate.json \
 	$(STAND)/Sounds/.sounds_built \
 	$(STAND)/build/surrogate_sweep_results.csv \
@@ -114,7 +116,7 @@ MODEL_ARTIFACTS := \
 	$(PARTS_LOGICAL_MERMAID) \
 	$(ORBITRON_VFX_ASSETS)
 
-.PHONY: all help clean graph parts-graph open-lab run-fgfs fg-ready orbitron-lab-gltf orbitron-lab-tank-sub-gltfs orbitron-lab-sub-gltfs surrogate-closure
+.PHONY: all help clean graph parts-graph open-lab run-fgfs fg-ready orbitron-shuttle-panel orbitron-lab-gltf orbitron-lab-tank-sub-gltfs orbitron-lab-sub-gltfs surrogate-closure
 
 all: fg-ready
 
@@ -126,6 +128,7 @@ help:
 	@echo "  make graph          Regenerate $(MERMAID_OUT) only (also runs as part of make all)"
 	@echo "  make parts-graph    Regenerate mesh Mermaid: $(PARTS_MERMAID) + $(PARTS_LOGICAL_MERMAID)"
 	@echo "  make open-lab       Launch Blender on nested $(GLTF_LAB) (same as ./bl.sh)"
+	@echo "  make orbitron-shuttle-panel  Shuttle R1 levers → $(ORBITRON_SHUTTLE_PANEL_AC) + $(ORBITRON_PANEL_ANIMS_JSON) (also via make all)"
 	@echo "  make orbitron-lab-gltf  Build $(GLTF_LAB) + all sub-assembly glTFs under build/ (tanks, air path, panel, sled)"
 	@echo "  make orbitron-lab-sub-gltfs  Sub-assembly glTFs only (same set as orbitron-lab-gltf minus the full lab file)"
 	@echo "  make orbitron-lab-tank-sub-gltfs  The four tank-farm glTFs only (methane/boron/helium/tank_assy)"
@@ -156,7 +159,9 @@ $(ORBITRON_SOUND_XML): $(ORBITRON_SOUND_ASSETS) $(COMPILE_SOUND_XML) | $(STAND)/
 	cd '$(REPO_ROOT)' && $(POETRY) run python $(COMPILE_SOUND_XML) \
 		--spec '$(ORBITRON_SOUND_ASSETS)' --out '$(ORBITRON_SOUND_XML)'
 
-$(ORBITRON_SHUTTLE_PANEL_AC): $(BUILD_SHUTTLE_PANEL_AC) $(COCKPIT_AC) $(COCKPIT_TEX) $(STAND)/Models/orbitron.ac | $(STAND)/.dirs
+# Shuttle panel: cockpit.ac → orbitron_panel_shuttle.ac + anims JSON; compile → orbitron_panel_shuttle.xml
+$(ORBITRON_SHUTTLE_PANEL_AC) $(ORBITRON_PANEL_ANIMS_JSON) &: \
+		$(BUILD_SHUTTLE_PANEL_AC) $(COCKPIT_AC) $(COCKPIT_TEX) $(STAND)/Models/orbitron.ac | $(STAND)/.dirs
 	cd '$(REPO_ROOT)' && $(POETRY) run python $(BUILD_SHUTTLE_PANEL_AC) \
 		--cockpit-ac '$(COCKPIT_AC)' \
 		--cockpit-texture '$(COCKPIT_TEX)' \
@@ -164,9 +169,12 @@ $(ORBITRON_SHUTTLE_PANEL_AC): $(BUILD_SHUTTLE_PANEL_AC) $(COCKPIT_AC) $(COCKPIT_
 		--out-ac '$(ORBITRON_SHUTTLE_PANEL_AC)' \
 		--out-dir '$(STAND)/Models'
 
+.PHONY: orbitron-shuttle-panel
+orbitron-shuttle-panel: $(ORBITRON_SHUTTLE_PANEL_AC) $(ORBITRON_PANEL_ANIMS_JSON)
+
 $(STAND_FG_SET) $(STAND_JSBSIM_XML) $(ORBITRON_MODEL_XML) &: \
 		$(ORBITRON_AIRCRAFT_SPEC) $(ORBITRON_PHYSICS_SPEC) $(COMPILE_AIRCRAFT_RUNTIME) $(JSBSIM_TEMPLATE) \
-		$(ORBITRON_SHUTTLE_PANEL_AC) \
+		$(ORBITRON_SHUTTLE_PANEL_AC) $(ORBITRON_PANEL_ANIMS_JSON) \
 		| $(STAND)/.dirs
 	cd '$(REPO_ROOT)' && $(POETRY) run python $(COMPILE_AIRCRAFT_RUNTIME) \
 		--aircraft-spec '$(ORBITRON_AIRCRAFT_SPEC)' \

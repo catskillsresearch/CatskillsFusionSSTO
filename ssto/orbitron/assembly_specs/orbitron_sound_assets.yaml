@@ -64,9 +64,9 @@ sounds:
       display_name: Orbitron bellmouth / compressor ingestion
       mode: looped
       condition:
-        property: /sim/model/reactor/startup-trigger
+        property: /sim/model/orbitron/spool-sfx-armed
       volume:
-        property: /fdm/jsbsim/systems/orbitron_sfx/inlet_volume
+        property: /sim/model/orbitron/sfx/inlet-volume
         factor: 1.0
         offset: 0.0
         min: 0.0
@@ -98,7 +98,7 @@ sounds:
       condition:
         property: /sim/model/reactor/startup-trigger
       volume:
-        property: /fdm/jsbsim/systems/orbitron_sfx/nozzle_volume
+        property: /sim/model/orbitron/sfx/nozzle-volume
         factor: 1.0
         offset: 0.0
         min: 0.0
@@ -218,9 +218,9 @@ sounds:
       display_name: Orbitron motor / turbofan generator
       mode: looped
       condition:
-        property: /sim/model/reactor/startup-trigger
+        property: /sim/model/orbitron/spool-sfx-armed
       volume:
-        property: /fdm/jsbsim/systems/orbitron_sfx/motor_generator_volume
+        property: /sim/model/orbitron/sfx/motor-volume
         factor: 0.88
         offset: 0.0
         min: 0.0

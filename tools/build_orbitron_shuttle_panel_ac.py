@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import math
 import re
 import shutil
@@ -16,8 +17,18 @@ PANEL_SWITCH_ROW: dict[str, tuple[float, float]] = {
     "Panel_Switch_APU": (-0.22, 0.0),
     "Panel_Switch_Starter": (-0.08, 0.0),
     "Panel_Switch_Bleed": (0.06, 0.0),
-    "Big_Red_Button": (0.20, 0.0),
+    # IGNITE: CadQuery Big_Red_Button on orbitron.ac (not shuttle abort_cmd)
+    # Same R1 MN-bus levers as toggles (full scale + guards) — analog row below
+    "Panel_Lever_Beam": (-0.10, -0.075),
+    "Panel_Lever_Compressor": (0.10, -0.075),
 }
+
+# Display dimmer knob (DIM/BRT stripe pointer) — cockpit.xml L1-disp-dim.
+SHUTTLE_DIM_KNOB = "L1-disp-dim"
+SHUTTLE_DIM_KNOB_AXIS = (1.0, 0.0, 0.266)
+RATE_KNOB_NAMES = ("Panel_Lever_Beam", "Panel_Lever_Compressor")
+# Upscale ~2 cm shuttle knob to ~5–6 cm on the Orbitron panel.
+DIM_KNOB_SCALE_MULT = 2.15
 # Fallback when orbitron.ac is missing (matches -30° X slanted panel in mesh coords).
 PANEL_FRAME_FALLBACK: dict[str, tuple[float, float, float]] = {
     "row": (1.0, 0.0, 0.0),
@@ -37,12 +48,12 @@ GUARD_TEMPLATE_LEVER = "cont-bus-pwr-mn-a"
 ABORT_LEVER = "abort_cmd"
 ABORT_LIGHT = "indicator_light_abort"
 
-# Scale shuttle levers to Orbitron row spacing (was 2.35 — guards overlapped).
-LEVER_SCALE_MIN = 1.25
-LEVER_SCALE_MAX = 2.0
+# Scale shuttle levers to Orbitron row spacing.
 # Single U-rail crop around cont-bus-pwr-mn-a (~120 verts at this half-extent).
 GUARD_BBOX_HALF = (0.018, 0.028, 0.015)
-SWITCH_STANDOFF_M = 0.018  # proud of panel along +normal (toward operator)
+SWITCH_STANDOFF_M = 0.042  # proud of panel along +normal (toward operator)
+LEVER_SCALE_MIN = 1.55
+LEVER_SCALE_MAX = 2.35
 # Mount on grey Operator_Panel in orbitron.ac — no extra backplate mesh.
 
 
@@ -463,6 +474,16 @@ def _translate_object_local(
     return out
 
 
+def _force_material_index(obj_lines: list[str], mat_index: int = 0) -> list[str]:
+    """Shuttle sources use mat slots that render black in Orbitron; use FwdCockpit (0)."""
+    out = list(obj_lines)
+    for i, ln in enumerate(out):
+        st = ln.strip()
+        if st.startswith("mat "):
+            out[i] = f"mat {mat_index}"
+    return out
+
+
 def _rename_object(obj_lines: list[str], new_name: str) -> list[str]:
     out = list(obj_lines)
     for i, ln in enumerate(out):
@@ -502,6 +523,8 @@ def build_panel_ac(
         raise SystemExit(f"missing objects in {cockpit_ac}: {missing}")
     if GUARD_SOURCE not in objects:
         raise SystemExit(f"missing {GUARD_SOURCE}")
+    if SHUTTLE_DIM_KNOB not in objects:
+        raise SystemExit(f"missing {SHUTTLE_DIM_KNOB} in {cockpit_ac}")
 
     targets, panel_frame = _resolve_targets_and_frame(orbitron_ac)
     row_unit, up_unit, normal_unit, _panel_c = panel_frame
@@ -509,6 +532,7 @@ def build_panel_ac(
     row_offsets = [PANEL_SWITCH_ROW[k][0] for k in PANEL_SWITCH_ROW]
     row_span_m = max(row_offsets) - min(row_offsets)
     lever_scale = _fit_lever_scale(objects, row_unit, row_span_m)
+    dim_knob_scale = lever_scale * DIM_KNOB_SCALE_MULT
 
     src_pts = [_object_centroid(objects[s]) for s in SOURCE_SWITCHES]
     dst_pts = [targets[SOURCE_SWITCHES[s]] for s in SOURCE_SWITCHES]
@@ -524,6 +548,7 @@ def build_panel_ac(
     out_objects: list[str] = []
     centers: dict[str, tuple[float, float, float]] = {}
     knob_axis = _transform_axis(rot, (1.0, 0.3, 0.0))
+    lever_knob_axis = _transform_axis(rot, SHUTTLE_DIM_KNOB_AXIS)
 
     ref_c = _object_centroid(objects[GUARD_TEMPLATE_LEVER])
     guard_template = _crop_object_bbox(
@@ -557,65 +582,60 @@ def build_panel_ac(
                 ),
                 guard_name,
             )
-            out_objects.extend(guard)
+            out_objects.extend(_force_material_index(guard))
 
         lever = _rename_object(
-            _snap_object_to_target(
-                _transform_object(
-                    objects[src],
-                    rot,
-                    trans,
-                    scale=lever_scale,
-                    scale_center=lever_c,
-                ),
-                targets[dst],
+            _force_material_index(
+                _snap_object_to_target(
+                    _transform_object(
+                        objects[src],
+                        rot,
+                        trans,
+                        scale=lever_scale,
+                        scale_center=lever_c,
+                    ),
+                    targets[dst],
+                )
             ),
             dst,
         )
         out_objects.extend(lever)
         centers[dst] = _object_centroid(lever)
 
-    # Ignite: shuttle abort guarded slider → Big_Red_Button
-    if ABORT_LEVER in objects:
-        abort_c = _object_centroid(objects[ABORT_LEVER])
-        tgt = targets["Big_Red_Button"]
-        abort_trans = (
-            tgt[0] - _mat_vec(rot, abort_c)[0],
-            tgt[1] - _mat_vec(rot, abort_c)[1],
-            tgt[2] - _mat_vec(rot, abort_c)[2],
+    # Analog row: Shuttle display dimmer knobs (DIM/BRT style, no guards).
+    dim_src = objects[SHUTTLE_DIM_KNOB]
+    dim_c = _object_centroid(dim_src)
+    for dst in RATE_KNOB_NAMES:
+        if dst not in targets:
+            continue
+        tgt = targets[dst]
+        knob_trans = (
+            tgt[0] - _mat_vec(rot, dim_c)[0],
+            tgt[1] - _mat_vec(rot, dim_c)[1],
+            tgt[2] - _mat_vec(rot, dim_c)[2],
         )
-        brb = _snap_object_to_target(
-            _transform_object(
-                objects[ABORT_LEVER],
-                rot,
-                abort_trans,
-                scale=lever_scale * 1.1,
-                scale_center=abort_c,
+        knob = _rename_object(
+            _force_material_index(
+                _snap_object_to_target(
+                    _transform_object(
+                        dim_src,
+                        rot,
+                        knob_trans,
+                        scale=dim_knob_scale,
+                        scale_center=dim_c,
+                    ),
+                    tgt,
+                )
             ),
-            tgt,
+            dst,
         )
-        out_objects.extend(_rename_object(brb, "Big_Red_Button"))
-        centers["Big_Red_Button"] = _object_centroid(brb)
-        if ABORT_LIGHT in objects:
-            light_c = _object_centroid(objects[ABORT_LIGHT])
-            light_trans = (
-                tgt[0] - _mat_vec(rot, light_c)[0],
-                tgt[1] - _mat_vec(rot, light_c)[1],
-                tgt[2] - _mat_vec(rot, light_c)[2],
-            )
-            light = _snap_object_to_target(
-                _transform_object(
-                    objects[ABORT_LIGHT],
-                    rot,
-                    light_trans,
-                    scale=lever_scale * 1.1,
-                    scale_center=light_c,
-                ),
-                tgt,
-            )
-            out_objects.extend(_rename_object(light, "Big_Red_Button_Light"))
+        out_objects.extend(knob)
+        # Pivot at placed knob centroid (matches panel-local XML frame).
+        centers[dst] = _object_centroid(knob)
 
     centers["lever_scale"] = (lever_scale, lever_scale, lever_scale)
+    centers["dim_knob_scale"] = (dim_knob_scale, dim_knob_scale, dim_knob_scale)
+    centers["lever_knob_axis"] = lever_knob_axis
 
     n_obj = sum(1 for ln in out_objects if ln.strip() == "OBJECT poly")
     body = (
@@ -627,7 +647,47 @@ def build_panel_ac(
     out_ac.parent.mkdir(parents=True, exist_ok=True)
     out_ac.write_text("\n".join(body) + "\n", encoding="utf-8")
     centers["knob_axis"] = knob_axis
+    centers["panel_row_axis"] = row_unit
     return centers
+
+
+def write_panel_animation_json(
+    centers: dict[str, tuple[float, float, float]],
+    out_path: Path,
+) -> None:
+    """Emit pivot + axis for Orbitron.xml (compile merges into knob_animations)."""
+    switch_axis = centers.get("knob_axis")
+    lever_axis = centers.get("lever_knob_axis") or centers.get("panel_row_axis") or switch_axis
+    if switch_axis is None:
+        return
+    objects: dict[str, dict[str, list[float]]] = {}
+    for name, c in centers.items():
+        if name in (
+            "knob_axis",
+            "lever_knob_axis",
+            "panel_row_axis",
+            "lever_scale",
+            "dim_knob_scale",
+        ) or not name.startswith("Panel_"):
+            continue
+        is_lever = name.startswith("Panel_Lever_")
+        ax = lever_axis if is_lever else switch_axis
+        entry: dict[str, object] = {
+            "axis": [round(ax[0], 4), round(ax[1], 4), round(ax[2], 4)],
+            "center_m": [round(c[0], 4), round(c[1], 4), round(c[2], 4)],
+        }
+        if is_lever:
+            entry["kind"] = "lever"
+        objects[name] = entry
+    payload: dict[str, object] = {
+        "comment": "Auto from build_orbitron_shuttle_panel_ac.py — pivots from Shuttle cockpit.xml",
+        "knob_factor": -35,
+        "lever_factor": -36,
+        "lever_offset_deg": 0,
+        "objects": objects,
+    }
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    out_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
 
 
 def main() -> int:
@@ -663,15 +723,26 @@ def main() -> int:
         orbitron_ac = None
         print("Note: orbitron.ac not found — using PANEL_FRAME_FALLBACK for switch mounts")
     centers = build_panel_ac(cockpit_ac, out_ac, orbitron_ac)
+    anim_json = (repo / args.out_dir / "orbitron_panel_anims.json").resolve()
+    write_panel_animation_json(centers, anim_json)
+    print(f"Wrote {anim_json}")
     tex_dst = (repo / args.out_dir / args.cockpit_texture.name).resolve()
     tex_src = (repo / args.cockpit_texture).resolve()
     if tex_src.is_file():
         shutil.copy2(tex_src, tex_dst)
     print(f"Wrote {out_ac}")
     axis = centers.pop("knob_axis", None)
+    lever_axis = centers.pop("lever_knob_axis", None)
     scale = centers.pop("lever_scale", None)
+    dim_scale = centers.pop("dim_knob_scale", None)
     if scale:
         print(f"  lever_scale={scale[0]:.3f}")
+    if dim_scale:
+        print(f"  dim_knob_scale={dim_scale[0]:.3f}")
+    if lever_axis:
+        print(
+            f"  lever_axis=({lever_axis[0]:.4f}, {lever_axis[1]:.4f}, {lever_axis[2]:.4f})"
+        )
     if axis:
         print(f"  knob_axis=({axis[0]:.4f}, {axis[1]:.4f}, {axis[2]:.4f})")
     for k, v in sorted(centers.items()):
