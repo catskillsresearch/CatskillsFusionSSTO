@@ -144,8 +144,7 @@ fg_model_orbitron_xml:
   ac_path: orbitron.ac
   comment: Mesh orbitron.ac from orbitron_lab.gltf; tune offsets if the rig sits wrong on the runway.
   hide_cadquery_panel_labels: false
-  shuttle_panel_model:
-    path: Models/orbitron_panel_shuttle.xml
+  # Panel meshes merged into orbitron.ac (build_orbitron_shuttle_panel_ac.py); no nested model.
   offsets:
     pitch_deg: 0
     roll_deg: 0
@@ -208,9 +207,10 @@ fg_model_orbitron_xml:
     - name: orbitron-nozzle-exhaust
       path: Models/Effects/orbitron_nozzle_exhaust.xml
       offsets:
-        x_m: 3.25
-        y_m: 0.0
-        z_m: 0.48
+        # Nozzle_Exit_Hardware centroid in orbitron.ac (mesh coords).
+        x_m: 1.765
+        y_m: 0.319
+        z_m: 0.0
         pitch_deg: 0.0
         heading_deg: 0.0
 

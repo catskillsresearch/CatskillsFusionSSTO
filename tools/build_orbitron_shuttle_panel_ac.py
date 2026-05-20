@@ -25,7 +25,15 @@ PANEL_SWITCH_ROW: dict[str, tuple[float, float]] = {
 
 # Display dimmer knob (DIM/BRT stripe pointer) — cockpit.xml L1-disp-dim.
 SHUTTLE_DIM_KNOB = "L1-disp-dim"
-SHUTTLE_DIM_KNOB_AXIS = (1.0, 0.0, 0.266)
+# FG animation frame (cockpit.xml), not AC3D vertex coords — see _ac_vertex_to_fg_anim().
+SHUTTLE_SWITCH_AXIS_FG = (1.0, 0.3, 0.0)
+SHUTTLE_DIM_KNOB_AXIS_FG = (1.0, 0.0, 0.266)
+SHUTTLE_SWITCH_PIVOT_FG: dict[str, tuple[float, float, float]] = {
+    "cont-bus-pwr-mn-a": (-12.3372, 1.1858, -0.6509),
+    "cont-bus-pwr-mn-b": (-12.3338, 1.1754, -0.6936),
+    "cont-bus-pwr-mn-c": (-12.3304, 1.1651, -0.7360),
+}
+SHUTTLE_DIM_KNOB_PIVOT_FG = (-12.40858, -0.62893, -0.64136)
 RATE_KNOB_NAMES = ("Panel_Lever_Beam", "Panel_Lever_Compressor")
 # Upscale ~2 cm shuttle knob to ~5–6 cm on the Orbitron panel.
 DIM_KNOB_SCALE_MULT = 2.15
@@ -55,6 +63,20 @@ SWITCH_STANDOFF_M = 0.042  # proud of panel along +normal (toward operator)
 LEVER_SCALE_MIN = 1.55
 LEVER_SCALE_MAX = 2.35
 # Mount on grey Operator_Panel in orbitron.ac — no extra backplate mesh.
+
+
+def _ac_vertex_to_fg_anim(
+    x: float, y: float, z: float
+) -> tuple[float, float, float]:
+    """AC3D vertex coords → FlightGear knob/rotate center and axis (Shuttle convention)."""
+    return (x, -z, y)
+
+
+def _fg_anim_to_ac_vertex(
+    x: float, y: float, z: float
+) -> tuple[float, float, float]:
+    """Inverse of _ac_vertex_to_fg_anim — cockpit.xml pivots → AC3D frame."""
+    return (x, z, -y)
 
 
 def _normalize(v: tuple[float, float, float]) -> tuple[float, float, float]:
@@ -547,8 +569,14 @@ def build_panel_ac(
 
     out_objects: list[str] = []
     centers: dict[str, tuple[float, float, float]] = {}
-    knob_axis = _transform_axis(rot, (1.0, 0.3, 0.0))
-    lever_knob_axis = _transform_axis(rot, SHUTTLE_DIM_KNOB_AXIS)
+    switch_axis_ac = _normalize(
+        _mat_vec(rot, _fg_anim_to_ac_vertex(*SHUTTLE_SWITCH_AXIS_FG))
+    )
+    lever_axis_ac = _normalize(
+        _mat_vec(rot, _fg_anim_to_ac_vertex(*SHUTTLE_DIM_KNOB_AXIS_FG))
+    )
+    knob_axis = _ac_vertex_to_fg_anim(*switch_axis_ac)
+    lever_knob_axis = _ac_vertex_to_fg_anim(*lever_axis_ac)
 
     ref_c = _object_centroid(objects[GUARD_TEMPLATE_LEVER])
     guard_template = _crop_object_bbox(
@@ -600,11 +628,14 @@ def build_panel_ac(
             dst,
         )
         out_objects.extend(lever)
-        centers[dst] = _object_centroid(lever)
+        pivot_ac = _fg_anim_to_ac_vertex(*SHUTTLE_SWITCH_PIVOT_FG[src])
+        pivot_orbitron = _transform_point(pivot_ac, rot, trans)
+        centers[dst] = _ac_vertex_to_fg_anim(*pivot_orbitron)
 
     # Analog row: Shuttle display dimmer knobs (DIM/BRT style, no guards).
     dim_src = objects[SHUTTLE_DIM_KNOB]
     dim_c = _object_centroid(dim_src)
+    dim_pivot_ac = _fg_anim_to_ac_vertex(*SHUTTLE_DIM_KNOB_PIVOT_FG)
     for dst in RATE_KNOB_NAMES:
         if dst not in targets:
             continue
@@ -630,8 +661,8 @@ def build_panel_ac(
             dst,
         )
         out_objects.extend(knob)
-        # Pivot at placed knob centroid (matches panel-local XML frame).
-        centers[dst] = _object_centroid(knob)
+        pivot_orbitron = _transform_point(dim_pivot_ac, rot, knob_trans)
+        centers[dst] = _ac_vertex_to_fg_anim(*pivot_orbitron)
 
     centers["lever_scale"] = (lever_scale, lever_scale, lever_scale)
     centers["dim_knob_scale"] = (dim_knob_scale, dim_knob_scale, dim_knob_scale)
@@ -648,7 +679,103 @@ def build_panel_ac(
     out_ac.write_text("\n".join(body) + "\n", encoding="utf-8")
     centers["knob_axis"] = knob_axis
     centers["panel_row_axis"] = row_unit
-    return centers
+    return centers, out_objects
+
+
+PANEL_MERGED_PREFIXES = ("Panel_Switch_", "Panel_Guard_", "Panel_Lever_")
+
+
+def _orbitron_grey_material_index(ac_text: str) -> int:
+    """Material slot index of light grey mat_16 on orbitron.ac for merged panel meshes."""
+    idx = 0
+    for ln in ac_text.splitlines():
+        if ln.startswith("MATERIAL "):
+            if 'MATERIAL "mat_16"' in ln:
+                return idx
+            idx += 1
+    return 0
+
+
+def _strip_merged_panel_objects(lines: list[str]) -> tuple[list[str], int]:
+    """Remove prior Panel_* switch/guard/lever chunks (idempotent rebuild)."""
+    objs = _parse_objects("\n".join(lines))
+    remove = {
+        n
+        for n in objs
+        if any(n.startswith(p) for p in PANEL_MERGED_PREFIXES)
+    }
+    if not remove:
+        return lines, 0
+    out: list[str] = []
+    i = 0
+    while i < len(lines):
+        if lines[i].strip() == "OBJECT poly" and i + 1 < len(lines):
+            m = re.match(r'name\s+"(.*)"', lines[i + 1].strip())
+            if m and m.group(1) in remove:
+                i += 2
+                while i < len(lines) and lines[i].strip() != "kids 0":
+                    i += 1
+                if i < len(lines):
+                    i += 1
+                continue
+        out.append(lines[i])
+        i += 1
+    # Decrement root world kids count.
+    for i, ln in enumerate(out):
+        if ln.strip() == "OBJECT world":
+            for j in range(i + 1, min(i + 6, len(out))):
+                km = re.match(r"kids\s+(\d+)", out[j].strip())
+                if km:
+                    n = max(0, int(km.group(1)) - len(remove))
+                    out[j] = f"kids {n}"
+                    break
+            break
+    return out, len(remove)
+
+
+def _split_ac_poly_objects(flat_lines: list[str]) -> list[list[str]]:
+    """Split a flat AC object list into per-OBJECT poly chunks."""
+    chunks: list[list[str]] = []
+    i = 0
+    while i < len(flat_lines):
+        if flat_lines[i].strip() != "OBJECT poly":
+            i += 1
+            continue
+        start = i
+        i += 2
+        while i < len(flat_lines) and flat_lines[i].strip() != "kids 0":
+            i += 1
+        if i < len(flat_lines):
+            chunks.append(flat_lines[start : i + 1])
+            i += 1
+    return chunks
+
+
+def merge_panel_into_orbitron_ac(
+    orbitron_ac: Path, panel_flat_objects: list[str]
+) -> int:
+    """Append panel switches/knobs into orbitron.ac so FG anim pivots match mesh (no nested model)."""
+    n_add = sum(1 for ln in panel_flat_objects if ln.strip() == "OBJECT poly")
+    if n_add == 0:
+        return 0
+    text = orbitron_ac.read_text(encoding="utf-8", errors="replace")
+    lines, _ = _strip_merged_panel_objects(text.splitlines())
+    mat_idx = _orbitron_grey_material_index(text)
+    chunks = _split_ac_poly_objects(panel_flat_objects)
+    remapped: list[str] = []
+    for chunk in chunks:
+        remapped.extend(_force_material_index(chunk, mat_idx))
+    for i, ln in enumerate(lines):
+        if ln.strip() == "OBJECT world":
+            for j in range(i + 1, min(i + 6, len(lines))):
+                m = re.match(r"kids\s+(\d+)", lines[j].strip())
+                if m:
+                    lines[j] = f"kids {int(m.group(1)) + n_add}"
+                    break
+            break
+    out = "\n".join(lines + remapped) + "\n"
+    orbitron_ac.write_text(out, encoding="utf-8")
+    return n_add
 
 
 def write_panel_animation_json(
@@ -680,7 +807,7 @@ def write_panel_animation_json(
             entry["kind"] = "lever"
         objects[name] = entry
     payload: dict[str, object] = {
-        "comment": "Auto from build_orbitron_shuttle_panel_ac.py — pivots from Shuttle cockpit.xml",
+        "comment": "Auto from build_orbitron_shuttle_panel_ac.py — FG anim coords (x, -z_ac, y_ac); pivots from cockpit.xml",
         "knob_factor": -35,
         "lever_factor": -36,
         "lever_offset_deg": 0,
@@ -722,9 +849,13 @@ def main() -> int:
     if not orbitron_ac.is_file():
         orbitron_ac = None
         print("Note: orbitron.ac not found — using PANEL_FRAME_FALLBACK for switch mounts")
-    centers = build_panel_ac(cockpit_ac, out_ac, orbitron_ac)
+    centers, flat_objects = build_panel_ac(cockpit_ac, out_ac, orbitron_ac)
     anim_json = (repo / args.out_dir / "orbitron_panel_anims.json").resolve()
     write_panel_animation_json(centers, anim_json)
+    if orbitron_ac is not None and orbitron_ac.is_file():
+        n = merge_panel_into_orbitron_ac(orbitron_ac, flat_objects)
+        if n:
+            print(f"Merged {n} panel objects into {orbitron_ac}")
     print(f"Wrote {anim_json}")
     tex_dst = (repo / args.out_dir / args.cockpit_texture.name).resolve()
     tex_src = (repo / args.cockpit_texture).resolve()

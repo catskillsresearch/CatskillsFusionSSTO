@@ -278,7 +278,7 @@ logical:
       - Panel_Label_IGNITE
       - Panel_Label_BEAM
       - Panel_Label_COMP
-      # APU/START/BLEED toggles: Models/orbitron_panel_shuttle.ac
+      # APU/START/BLEED toggles + BEAM/COMP knobs: merged into orbitron.ac at FG build (not CadQuery)
     thrust_sled:
       title: Thrust sled
       detail: Longitudinal rails, deck slab, **four corner load cells**, and an **engine

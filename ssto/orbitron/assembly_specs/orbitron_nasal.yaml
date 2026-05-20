@@ -210,27 +210,6 @@ reactor_ui:
       prop: /fdm/jsbsim/systems/reactor/gross-power-mw
       sprintf: "Gross Power: %.3f MW"
       hud_placeholder: "Gross Power: 0.00 MW"
-    - id: amps
-      y: 780
-      kind: float
-      prop: /fdm/jsbsim/systems/reactor/current-amps
-      sprintf: "DEC Current: %.3f A"
-    - id: decv
-      y: 870
-      kind: float
-      prop: /fdm/jsbsim/systems/arcjet/dec-voltage-mv
-      sprintf: "DEC Bias: %.1f MV"
-    - id: heat
-      y: 960
-      kind: float
-      prop: /fdm/jsbsim/systems/reactor/heat-kw
-      sprintf: "Brem. Heat: %.1f kW"
-      hud_placeholder: "Brem. Heat: 0.00 kW"
-    - id: q
-      y: 1050
-      kind: float
-      prop: /fdm/jsbsim/systems/reactor/q-factor
-      sprintf: "Q-Factor: %.2f"
     - id: thrust
       y: 1140
       kind: float
@@ -256,41 +235,9 @@ reactor_ui:
       kind: float
       prop: /fdm/jsbsim/systems/arcjet/mass-flow-kgps
       sprintf: "Airflow (mdot): %.3f kg/s"
-    - id: sled_load
-      y: 1515
-      kind: float
-      prop: /fdm/jsbsim/systems/arcjet/sled-load-total-lbf
-      sprintf: "Sled Load Total: %.0f lbf"
-    - id: lc0
-      y: 1590
-      kind: float
-      prop: /fdm/jsbsim/systems/arcjet/load-cell-0-lbf
-      sprintf: "LC +X+Y: %.0f lbf"
-    - id: lc1
-      y: 1665
-      kind: float
-      prop: /fdm/jsbsim/systems/arcjet/load-cell-1-lbf
-      sprintf: "LC -X+Y: %.0f lbf"
-    - id: lc2
-      y: 1740
-      kind: float
-      prop: /fdm/jsbsim/systems/arcjet/load-cell-2-lbf
-      sprintf: "LC +X-Y: %.0f lbf"
-    - id: lc3
-      y: 1815
-      kind: float
-      prop: /fdm/jsbsim/systems/arcjet/load-cell-3-lbf
-      sprintf: "LC -X-Y: %.0f lbf"
-    - id: beam
-      y: 1890
-      kind: sprintf2
-      fmt: "Viewport beam: %.1f kW  |  %.2f mA"
-      props:
-        - /fdm/jsbsim/systems/reactor/beam-screen-deposition-kw
-        - /fdm/jsbsim/systems/reactor/beam-current-ma
   debug_window:
     title: Arcjet / Reactor Telemetry
-    size: [520, 780]
+    size: [520, 520]
     background: [0.03, 0.03, 0.03, 0.90]
     line_start_y: 28
     line_step: 38
@@ -318,26 +265,6 @@ reactor_ui:
         kind: float
         prop: /fdm/jsbsim/systems/reactor/gross-power-mw
         sprintf: "Gross Power: %.3f MW"
-      - label_static: "DEC Current: 0.000 A"
-        kind: float
-        prop: /fdm/jsbsim/systems/reactor/current-amps
-        sprintf: "DEC Current: %.3f A"
-      - label_static: "DEC Bias: 0.0 MV"
-        kind: float
-        prop: /fdm/jsbsim/systems/arcjet/dec-voltage-mv
-        sprintf: "DEC Bias: %.1f MV"
-      - label_static: "Brem. Heat: 0.0 kW"
-        kind: float
-        prop: /fdm/jsbsim/systems/reactor/heat-kw
-        sprintf: "Brem. Heat: %.1f kW"
-      - label_static: "Beam viewport: 0.0 kW (WarpX ROI)"
-        kind: float
-        prop: /fdm/jsbsim/systems/reactor/beam-screen-deposition-kw
-        sprintf: "Beam viewport: %.1f kW"
-      - label_static: "Beam current: 0.00 mA (8 MV eq.)"
-        kind: float
-        prop: /fdm/jsbsim/systems/reactor/beam-current-ma
-        sprintf: "Beam current: %.2f mA"
       - label_static: "Thrust: 0 lbf"
         kind: float
         prop: /fdm/jsbsim/systems/arcjet/thrust-lbf
@@ -358,27 +285,3 @@ reactor_ui:
         kind: float
         prop: /fdm/jsbsim/systems/arcjet/mass-flow-kgps
         sprintf: "Airflow (mdot): %.3f kg/s"
-      - label_static: "Sled Load Total: 0 lbf"
-        kind: float
-        prop: /fdm/jsbsim/systems/arcjet/sled-load-total-lbf
-        sprintf: "Sled Load Total: %.0f lbf"
-      - label_static: "LC +X+Y: 0 lbf"
-        kind: float
-        prop: /fdm/jsbsim/systems/arcjet/load-cell-0-lbf
-        sprintf: "LC +X+Y: %.0f lbf"
-      - label_static: "LC -X+Y: 0 lbf"
-        kind: float
-        prop: /fdm/jsbsim/systems/arcjet/load-cell-1-lbf
-        sprintf: "LC -X+Y: %.0f lbf"
-      - label_static: "LC +X-Y: 0 lbf"
-        kind: float
-        prop: /fdm/jsbsim/systems/arcjet/load-cell-2-lbf
-        sprintf: "LC +X-Y: %.0f lbf"
-      - label_static: "LC -X-Y: 0 lbf"
-        kind: float
-        prop: /fdm/jsbsim/systems/arcjet/load-cell-3-lbf
-        sprintf: "LC -X-Y: %.0f lbf"
-      - label_static: "Q-Factor: 0.00"
-        kind: float
-        prop: /fdm/jsbsim/systems/reactor/q-factor
-        sprintf: "Q-Factor: %.2f"

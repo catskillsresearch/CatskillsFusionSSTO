@@ -174,6 +174,15 @@ def logical_node_id(group_key: str) -> str:
     return "log_" + s
 
 
+def _is_fg_runtime_panel_mesh(name: str) -> bool:
+    """Meshes merged into orbitron.ac by build_orbitron_shuttle_panel_ac.py (not CadQuery lab)."""
+    return (
+        name.startswith("Panel_Switch_")
+        or name.startswith("Panel_Guard_")
+        or name.startswith("Panel_Lever_")
+    )
+
+
 def mesh_parts_list(spec: dict[str, Any]) -> list[str]:
     """Mesh objects declared on this group (synonym keys: mesh_parts, parts)."""
     mp = spec.get("mesh_parts")
@@ -244,7 +253,8 @@ def validate_assemblies(mesh_names: set[str], data: dict[str, Any]) -> None:
 
     visit(root_key, set())
 
-    missing = sorted(mesh_names - set(part_to_group))
+    runtime_panel = {n for n in mesh_names if _is_fg_runtime_panel_mesh(n)}
+    missing = sorted(mesh_names - set(part_to_group) - runtime_panel)
     extra = sorted(set(part_to_group) - mesh_names)
     if missing:
         raise ValueError(

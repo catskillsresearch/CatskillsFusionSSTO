@@ -1255,7 +1255,9 @@ def _collect_panel_hotspot_names(
                         names.append(str(extra))
     for pick in fg_model.get("pick_animations") or []:
         if isinstance(pick, dict):
-            names.append(str(pick.get("object_name", "")))
+            oname = str(pick.get("object_name", ""))
+            if _is_shuttle_panel_mesh(oname):
+                names.append(oname)
     return names
 
 
@@ -1312,7 +1314,10 @@ def _build_orbitron_model_xml(fg_model: Mapping[str, Any], models_dir: Path) -> 
     _text(off, "z-m", o["z_m"])
 
     shuttle_panel = fg_model.get("shuttle_panel_model")
-    if isinstance(shuttle_panel, dict) and shuttle_panel.get("path"):
+    use_nested_panel = (
+        isinstance(shuttle_panel, dict) and bool(shuttle_panel.get("path"))
+    )
+    if use_nested_panel:
         root.append(
             ET.Comment(
                 " Space Shuttle R1 guarded toggles (cont-bus-pwr-mn-a/b/c + R1-guards) "
@@ -1329,6 +1334,30 @@ def _build_orbitron_model_xml(fg_model: Mapping[str, Any], models_dir: Path) -> 
                 _text(sp_ofs, "y-m", float(sp_off["y_m"]))
             if "z_m" in sp_off:
                 _text(sp_ofs, "z-m", float(sp_off["z_m"]))
+
+    knobs = fg_model.get("knob_animations") or []
+    panel_knobs = [
+        k
+        for k in knobs
+        if isinstance(k, dict) and _is_shuttle_panel_mesh(str(k.get("object_name", "")))
+    ]
+    if panel_knobs and not use_nested_panel:
+        root.append(
+            ET.Comment(
+                " Panel controls merged into orbitron.ac — knob pivots use mesh coords "
+            )
+        )
+        for knob in panel_knobs:
+            _emit_knob_animation(root, knob)
+            _emit_panel_pick_animation(root, knob)
+        panel_hotspots = _collect_panel_hotspot_names(fg_model, include_ignite=False)
+        if panel_hotspots:
+            root.append(
+                ET.Comment(
+                    " CTRL-C — panel switches/guards/levers (meshes in orbitron.ac) "
+                )
+            )
+            _emit_panel_hotspot_highlight(root, panel_hotspots)
 
     if fg_model.get("hide_cadquery_panel_labels"):
         ac_names = _ac3d_object_names(models_dir / fg_model.get("ac_path", "orbitron.ac"))
