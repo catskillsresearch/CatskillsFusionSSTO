@@ -18,7 +18,7 @@
 4. **Turbine** (same shaft) extracts enough **shaft work** to keep the **compressor** spinning after startup.
 5. **Nozzle** expands what is left → **high exit velocity** → **thrust**.
 
-Fusion **does not** shove outside air into the plasma. **H₂ / B₂H₆** feed **NBI** only. **CH₄** and **DEC** are optional SSTO add-ons (walls / ship power), not the core thrust story.
+Fusion **does not** shove outside air into the plasma. **H₂ / B₂H₆** feed **NBI** only. **CH₄** cools the anode boundary (U2). Thrust energy leaves via the **air Brayton** path, not DEC or grid tie.
 
 ---
 

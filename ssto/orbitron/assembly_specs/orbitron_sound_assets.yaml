@@ -113,10 +113,9 @@ sounds:
       reference_dist: 3.2
       max_dist: 140.0
 
-  - part_mesh: DEC_Grid
+  - part_mesh: Magnet
     narrative: |
-      DEC and magnet-bus arc crackle—your “orange stack” electricity story without a
-      scripted timeline.
+      HV bus / magnet crackle at the core — scales with cathode kV and beam current (not DEC).
     description_formal: |
       Recipe seamless_dec_arc: AM 120×37 Hz, texture seed=4, additional AM bands,
       HF burst product; tanh limiter.
@@ -125,20 +124,20 @@ sounds:
       recipe: seamless_dec_arc
       params: {}
     flightgear:
-      fx_tag: orbitron-dec-arc
-      display_name: Orbitron DEC / magnet arc crackle
+      fx_tag: orbitron-hv-arc
+      display_name: Orbitron HV / magnet arc crackle
       mode: looped
       condition:
         property: /sim/model/reactor/startup-trigger
       volume:
-        property: /fdm/jsbsim/systems/orbitron_sfx/dec_arc_volume
+        property: /fdm/jsbsim/systems/orbitron_sfx/hv_arc_volume
         factor: 1.0
         offset: 0.0
         min: 0.0
         max: 1.0
       pitch:
-        property: /fdm/jsbsim/systems/arcjet/dec-voltage-mv
-        factor: 0.055
+        property: /fdm/jsbsim/systems/reactor/cathode-voltage-kv
+        factor: 0.0011
         offset: 0.88
         min: 0.78
         max: 1.35

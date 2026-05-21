@@ -1,40 +1,47 @@
-# Orbitron core physics — Avalanche-class machine, p-¹¹B fuel (Catskills extension).
-# Same stability recipe as Avalanche’s public D₂ Orbitron; fueling rewritten for aneutronic p-¹¹B.
+# p-¹¹B Orbitron core physics — topology inspired by Avalanche Energy’s public D₂ Orbitron only.
+# Avalanche has published work on deuterium fuel only; they have not published p-¹¹B on this machine.
+# Catskills assumes ~600 kV cathode class for p-¹¹B (vs ~300 kV adequate for their D₂ path).
 # SSTO layers (arcjet, thrust sled, CH₄ thermal) live in orbitron_lab.yaml.
 #
-# References: Avalanche public materials; https://youtu.be/_7Hfyz-JIDA
+# Reference (machine class only): Avalanche public materials; https://youtu.be/_7Hfyz-JIDA
 
 schema_version: 1
-title: Orbitron core — Avalanche physics, p-¹¹B fuel
+title: p-¹¹B Orbitron core physics (Catskills)
 
 narrative: |
-  **Machine class:** Avalanche Energy **Orbitron** (magneto-electrostatic hybrid, gridless volume,
-  tangential keV injection, E×B electrons, cathode-pulse shear vs rotating mode)—unchanged.
+  **Machine class (topology only):** Magneto-electrostatic hybrid in the spirit of Avalanche’s public
+  **Orbitron** — electrostatic **orbitrap** ions, **magnetron** electrons, **gridless** plasma volume,
+  tangential keV injection, E×B space-charge neutralization, cathode-pulse shear vs **rotating mode**.
+  We **do not** import Avalanche’s D₂ fueling, voltage milestones, or unpublished p-¹¹B plans.
 
-  **Fuel (Catskills unobtainium leap):** Replace Avalanche’s published **D₂** development fuel with
-  **p-¹¹B** after gas dissociation in the discharge: ``¹H + ¹¹B → 3 ⁴He``. **H₂** supplies hydrogenic /
-  proton inventory; **B₂H₆** supplies gaseous boron to the **same tangential ion beam injectors**.
-  Same injection geometry, cathode voltage program, and stability levers as the D₂ machine—only the
-  ion species and ash handling change.
+  **Fuel (Catskills):** **p-¹¹B** after dissociation: ``¹H + ¹¹B → 3 ⁴He``. **H₂** supplies hydrogenic /
+  proton inventory; **B₂H₆** supplies gaseous boron to tangential ion beam injectors.
+
+  **Excitation:** Design cathode **~−600 kV** operating band (**400–600 kV** lab surrogate). Public D₂
+  Orbitron development at **~300 kV** is **not** canon for this article.
+
+  **Energy offload (test stand / SSTO):** Fusion enthalpy is vented through a **fusion-heated Brayton**
+  air path (hot walls + plenum mixer + turbine + nozzle), not electrical grid tie or in-duct multi-MV arcs.
 
 architecture:
   confinement_class: magneto_electrostatic_hybrid
   ion_confinement: electrostatic_orbitrap
   electron_confinement: magnetron_weak_axial_B
   gridless_plasma_volume: true
-  inherits_from_avalanche_d2_orbitron: true
+  topology_inspired_by_avalanche_d2_orbitron: true
+  avalanche_published_fuel: deuterium_only
+  catskills_fuel_not_avalanche_canon: p-11B
 
 fields_and_geometry:
   cathode_potential_kv:
-    design_milestone: 300
-    operating_band_kv: [100, 300]
+    design_operating_kv: 600
+    operating_band_kv: [400, 600]
+    note: D2 Orbitron public milestone ~300 kV is reference for a different fuel only
   axial_B_tesla:
     lab_surrogate_pic: 2.0
 
 ion_injection:
   mechanism: tangential_keV_beam_injection
-  avalanche_reference_fuel: deuterium
-  catskills_fuel: p-11B
   injectant_streams:
     - species: H2
       role: proton_inventory_stability_co_injectant
@@ -50,14 +57,14 @@ electron_space_charge:
 
 stability_and_density:
   limiting_instability: rotating_mode
-  mitigation_public_arc:
+  mitigation_design_arc:
     - rotational_shear_relaminarization
     - PSP2_Jin_cathode_pulse
   density_milestones_per_cm3:
-    series_a_target: 1.0e11
-    reported_breakthrough_order: 4.0e12
+    sprint2_target: 1.0e11
+    stretch_goal: 4.0e12
   beam_current_ma:
-    milestone_greater_than: 1.0
+    integration_target_greater_than: 1.0
 
 fusion_products:
   primary_ash: He4
@@ -75,10 +82,10 @@ mesh_instance_mapping:
   boron_trunk: Boron_Trunk_Line
   helium_ash_vent: Helium_Ash_Vent_Line
   hv_feed: High_Voltage_Umbilical
-  ssto_optional_dec: DEC_Grid
   ssto_optional_ch4: Tank_Cryo_Methane
 
 reference_plant_spec: orbitron_reference_plant.yaml
+unobtainium_spec: ../UNOBTANIUM.md
 
 flightgear_controls:
   ion_beam_command: /controls/reactor/throttle
@@ -88,7 +95,7 @@ flightgear_controls:
 
 picmi_deck:
   script: ssto/orbitron/laminar_flow_2d_arcjet.py
-  cathode_v: -300000
+  cathode_v: -600000
   inject_beams: [h_inject_beam, b_inject_beam]
   tangential_dominant: uz
   cathode_pulse_ramp: first 35% of steps (see orbitron_physics_surrogate.yaml cathode_pulse_ramp)

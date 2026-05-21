@@ -82,7 +82,7 @@ The operator **Screen** (10 Hz, `reactor_ui.nas`) shows:
 
 - Pad APU, starter, bleed, reactor ignite state
 - Ion beam (mA), cathode kV, compressor command
-- Gross power, DEC current/bias, Brem. heat, Q-factor
+- Gross power, wall-heat (Bremsstrahlung proxy), cathode kV
 - Thrust (lbf / kN), jet equivalent exhaust speed, jet kinetic power
 - Airflow (mdot), sled load total, four corner load cells (+X±Y)
 

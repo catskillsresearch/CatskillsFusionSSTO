@@ -177,14 +177,14 @@ def beam_screen_kw_from_rho(
     Map reduced beam charge proxies to engineering scalars for surrogate fitting.
 
     beam_screen_kw: effective power deposited into notional viewport / gas in front of
-    screen, from P ~ I_eff * V with V = 8 MV story (same order as Shuttle: physics in
+    screen, from P ~ I_eff * V with V = 600 kV class (P_kW ≈ I_mA * V_kV / 1000;
     FDM, FG only reads levels).
 
     beam_current_ma: I_ma = P_kw / beam_screen_kw_per_ma (consistent with equivalent DC story).
     """
     eng = eng or {}
     k_ma = float(eng.get("beam_current_scale_ma", 95.0))
-    k_kw = float(eng.get("beam_screen_kw_per_ma", 8.0))
+    k_kw = float(eng.get("beam_screen_kw_per_ma", 0.6))
     t = max(0.0, min(1.0, throttle))
     c = max(0.0, min(1.0, compressor))
     if math.isfinite(rho_screen) and math.isfinite(rho_screen_ref) and rho_screen_ref > 0:

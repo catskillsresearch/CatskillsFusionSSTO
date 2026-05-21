@@ -41,7 +41,7 @@ startup_sequence:
     mesh_pick: Big_Red_Button
     keyboard: SPACE
     requires: [/sim/model/orbitron/bleed-air-open]
-    action: Fusion armed; thrust / power / DEC per surrogate.
+    action: Fusion armed; thrust / power / wall-heat per surrogate.
   - step: 5
     name: run_controls
     label: "5. RUN"

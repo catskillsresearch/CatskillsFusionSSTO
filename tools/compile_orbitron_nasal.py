@@ -248,10 +248,8 @@ def _float_prop_var_map(
         "/controls/orbitron/compressor": "comp",
         "/controls/orbitron/cathode-pulse": "cathode_pulse",
         "/fdm/jsbsim/systems/reactor/gross-power-mw": "power",
-        "/fdm/jsbsim/systems/reactor/current-amps": "amps",
         "/fdm/jsbsim/systems/reactor/cathode-voltage-kv": "cathode_kv",
         "/fdm/jsbsim/systems/reactor/plasma-density-log10": "plasma_n",
-        "/fdm/jsbsim/systems/arcjet/dec-voltage-mv": "decv",
         "/fdm/jsbsim/systems/reactor/heat-kw": "heat",
         "/fdm/jsbsim/systems/reactor/beam-screen-deposition-kw": "bkw",
         "/fdm/jsbsim/systems/reactor/beam-current-ma": "bma",
@@ -265,7 +263,6 @@ def _float_prop_var_map(
         "/fdm/jsbsim/systems/arcjet/load-cell-1-lbf": "lc1",
         "/fdm/jsbsim/systems/arcjet/load-cell-2-lbf": "lc2",
         "/fdm/jsbsim/systems/arcjet/load-cell-3-lbf": "lc3",
-        "/fdm/jsbsim/systems/reactor/q-factor": "q",
     }
     for rows in (main_rows, dbg_rows or []):
         for row in rows:

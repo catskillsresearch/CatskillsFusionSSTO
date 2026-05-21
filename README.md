@@ -7,19 +7,19 @@ A high-performance Single-Stage-to-Orbit (SSTO) aircraft for FlightGear, powered
 The **Orbitron fusion arcjet laboratory** is specified in
 `ssto/orbitron/assembly_specs/orbitron_lab.yaml` (schema v2: geometry + logical tree SSOT).
 
-**Purpose:** **SSTO** imagining built on Avalanche’s **Orbitron** machine class (orbitrap + **E×B**
-electrons, tangential keV injection, cathode-pulse stability)—with an **unobtainium p-¹¹B fuel**
-leap (**H₂ + B₂H₆** injectants, ``¹H + ¹¹B → 3 ⁴He``) instead of their published **D₂** path.
-Air-breathing + CD-nozzle energy offload; FlightGear telemetry. Core spec:
-[`ssto/orbitron/assembly_specs/orbitron_avalanche_core.yaml`](ssto/orbitron/assembly_specs/orbitron_avalanche_core.yaml).
+**Purpose:** **SSTO** imagining of a **p-¹¹B** Orbitron-class core (topology inspired by Avalanche’s
+public **D₂** machine only—they have **not** published p-¹¹B). Design **~−600 kV** cathode class;
+**H₂ + B₂H₆** injectants; ``¹H + ¹¹B → 3 ⁴He``. Energy offload: **fusion-heated Brayton** on air
+(not DEC / grid tie / in-duct multi-MV arc). Core + unobtainium specs:
+[`orbitron_avalanche_core.yaml`](ssto/orbitron/assembly_specs/orbitron_avalanche_core.yaml),
+[`UNOBTANIUM.md`](ssto/orbitron/UNOBTANIUM.md).
 
 **Propulsion plant:** Single-spool **fusion-heated Brayton** — air ingested at **−X**,
 compressed, heated on **hot reactor walls** and in a **plenum mixer** (core exhaust + ⁴He ash),
 expanded through a **turbine** that drives the **compressor** after pad **electric start**, then
 through a **CD nozzle** for thrust. Canonical spec:
 [`orbitron_reference_plant.yaml`](ssto/orbitron/assembly_specs/orbitron_reference_plant.yaml).
-**Energy offload** is this thermodynamic path (not multi-MV on inlet air). **CH₄** is optional
-wall thermal only.
+**Energy offload** is this thermodynamic path only. **CH₄** = anode wall-thermal loop (see UNOBTANIUM U2).
 
 **Fuels and services:**
 

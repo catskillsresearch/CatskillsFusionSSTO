@@ -6,20 +6,17 @@ assembly:
     Single YAML SSOT: CadQuery ``instances`` plus ``logical.groups``; ``cq.Assembly``
     export mirrors the logical tree (no second nest pass).
 
-    **Fusion core (defer to Avalanche):** Stable long-run operation follows the public
-    **Orbitron** recipe in ``orbitron_avalanche_core.yaml``—magneto-electrostatic hybrid
-    (electrostatic **orbitrap** ions + **magnetron** electrons), **gridless** plasma volume,
-    **tangential keV ion injection**, **E×B** co-rotating electron space-charge neutralization,
-    **cathode pulsing / rotational shear** against the **rotating mode**—same levers Avalanche
-    describes for D₂. This repo does **not** re-invent that machine class.
+    **Fusion core:** Topology inspired by Avalanche’s public **D₂ Orbitron** (orbitrap + magnetron +
+    tangential keV beams + cathode pulse)—see ``orbitron_avalanche_core.yaml``. Avalanche has **not**
+    published p-¹¹B on that machine; we do **not** treat their **~300 kV D₂** milestone as canon here.
 
-    **Fuel (unobtainium leap):** Same Orbitron, **p-¹¹B** instead of D₂—``¹H + ¹¹B → 3 ⁴He`` after
-    dissociation; **tangential keV beams** fed by **H₂** (protons / stability) and **B₂H₆** (boron
-    carrier) per ``orbitron_avalanche_core.yaml``.
+    **Fuel & voltage (Catskills):** **p-¹¹B** — ``¹H + ¹¹B → 3 ⁴He``; **H₂** + **B₂H₆** to tangential
+    injectors; design cathode **~−600 kV** class (**400–600 kV** band). Unobtainium material specs:
+    ``UNOBTANIUM.md``.
 
-    **SSTO application layer:** Air-breathing + CD nozzle energy offload, thrust sled, pad plumbing.
-    **CH₄** dewar and **DEC** mesh are **SSTO-only** add-ons (wall thermal, optional power tap)—not
-    required for the p-¹¹B Orbitron core recipe.
+    **SSTO application layer:** Fusion-heated **Brayton** on air (bellmouth → compressor → hot section →
+    turbine → nozzle), thrust sled, pad plumbing. **CH₄** dewar = wall-thermal working fluid (see U2 in
+    ``UNOBTANIUM.md``). No DEC grid, grid tie, or multi-MV arc in the intake duct.
 
     **Propulsion plant:** Single-spool **fusion-heated Brayton** — bellmouth → **compressor** → hot
     annulus / mixer → **turbine** (drives compressor after light-off) → **CD nozzle**. Air is the
@@ -38,11 +35,11 @@ logical:
   # logical_only: true — composite folders only (child groups already export meshes). Never for
   # buildable hardware; use instances + parts (or a member assembly’s parts) instead.
   glossary:
-  - term: Avalanche Orbitron core
+  - term: Orbitron-class core (topology)
     definition: |
-      Public magneto-electrostatic fusion core documented in ``orbitron_avalanche_core.yaml``.
-      Catskills SSTO work **inherits** ion/electron rotation, space-charge neutralization, cathode
-      pulsing, and tangential keV injection from that basis; **p-¹¹B** fueling is our extension of their D₂ recipe.
+      Magneto-electrostatic hybrid per ``orbitron_avalanche_core.yaml`` — inspired by Avalanche’s public
+      **D₂** Orbitron geometry only. **p-¹¹B** fuel and **~600 kV** excitation are Catskills assumptions,
+      not Avalanche publications.
   - term: Orbitrap (ion confinement)
     definition: |
       Ions trapped in **elliptical orbits** between outer anode (+) and central cathode (−) by
@@ -78,7 +75,7 @@ logical:
   - term: Ion beam injectors (NBI)
     definition: |
       **Tangential keV ion beam** hardware on the core—not a low-energy gas bleed. FG throttle
-      commands **beam current (mA)** toward Avalanche’s **>1 mA** integration milestone.
+      commands **beam current (mA)** toward the **>1 mA** Sprint 2 integration target.
   - term: p-¹¹B headline channel
     definition: |
       After dissociation in the discharge: ``¹H + ¹¹B → 3 ⁴He``. **B₂H₆** is the boron carrier;
@@ -93,9 +90,10 @@ logical:
   - term: Helium ash (⁴He product)
     definition: |
       Fusion alphas from p-¹¹B vent via ``Helium_Ash_Vent_Line`` into the nozzle plenum—not from supply tanks.
-  - term: SSTO-only services (optional)
+  - term: Cryo methane (wall thermal)
     definition: |
-      **Liquid CH₄** (wall thermal) and **DEC_Grid** (power pickup)—spaceplane article add-ons, not core p-¹¹B Orbitron fueling.
+      **Liquid CH₄** annulus cooling for anode / boundary heat (U2 in ``UNOBTANIUM.md``). Optional on the
+      pad mesh for early integration; physically required for steady full-power wall loads.
   - term: Reference plant (fusion-heated Brayton)
     definition: |
       **Air** ingested at **−X**, compressed on a **shaft**, heated in the **annulus** (wall losses)
@@ -244,7 +242,7 @@ logical:
   groups:
     test_stand:
       title: Orbitron test stand
-      detail: 'Pad-credible ground article: **Avalanche-class Orbitron core** in an SSTO
+      detail: 'Pad-credible ground article: **p-¹¹B Orbitron-class core** in an SSTO
         air-breathing flowpath with segmented nozzle, fuel farm (H₂ + B₂H₆ p-¹¹B core, optional CH₄),
         HV and cryostat services,
         and operator station. Intended for continuous steady operation while consumables
@@ -254,7 +252,6 @@ logical:
       - thrust_sled
       - tank_assy
       - pad_startup_services
-      - ssto_flight_article_addons
       - air_breathing_engine
     control_panel_stand:
       title: Control panel and operator station
@@ -350,14 +347,13 @@ logical:
       - Fusion_Hot_Gas_Outlet
       - Helium_Ash_Vent_Line
     fusion_reactor:
-      title: Orbitron fusion core (Avalanche-aligned)
+      title: p-¹¹B Orbitron fusion core
       detail: |
         **Gridless** magneto-electrostatic core per ``orbitron_avalanche_core.yaml``: ``Anode`` shell,
-        on-axis ``Cathode`` (−100…−300 kV class), ``Magnet`` axial B for electrons, tangential
-        ``NBI_Injector`` tangential keV **H⁺ / B⁺** beams (p-¹¹B fueling), ``Insulators``. **No fusor grids**.
-        ``Magnet_Service_Bosses`` are OD weld stubs for **CH₄** wall-thermal, **cryo** jacket tap, and **HV** feedthrough—co-located with trunk routing.
-        1×1 lab surrogate of a multi-channel flight article. ``DEC_Grid`` is **not** in this group—
-        see ``ssto_flight_article_addons``.
+        on-axis ``Cathode`` (**~−600 kV** design class), ``Magnet`` **2 T** axial B, tangential
+        ``NBI_Injector`` keV **H⁺ / B⁺** beams, ``Insulators``. **No fusor grids**, no DEC mesh.
+        ``Magnet_Service_Bosses`` — **CH₄** wall-thermal, cryo jacket tap, **HV** feedthrough.
+        1×1 lab surrogate of a multi-channel flight article.
       members:
       - fusion_hot_gas_outlet
       parts:
@@ -367,11 +363,6 @@ logical:
       - Magnet_Service_Bosses
       - NBI_Injector
       - Insulators
-    ssto_flight_article_addons:
-      title: SSTO flight-article add-ons (not Avalanche seed core)
-      detail: Optional **CH₄** wall thermal and **DEC** power tap—SSTO spaceplane add-ons only (not p-¹¹B core fuel).
-      parts:
-      - DEC_Grid
     bd_annulus_path:
       title: Annulus flow path
       detail: Ring-shaped bypass / conditioning passage carrying compressor or bypass
@@ -1227,7 +1218,7 @@ instances:
       lab rotation) carries a **bolted mounting flange** and open bore for the compressor
       train; **+Z** carries a **thicker exhaust boss** toward the outlet ring. Five
       shallow **OD jacket rings** stand in for liquid CH₄ jacket segmentation. Same
-      inner clearance as the legacy thin-wall cylinder for DEC / cathode inserts.
+      inner clearance for cathode / insulator inserts.
 
       '
     template: orbitron_anode
@@ -1248,34 +1239,12 @@ instances:
       - 0.0
       - 0.32
       angle_deg: 90.0
-  DEC_Grid:
-    narrative: |
-      **SSTO flight-article optional** — direct-energy conversion pickup mesh inside the anode bore.
-      **Not** a fusor-style ion accelerator grid; the Avalanche Orbitron plasma volume is **gridless**.
-      Omitted from ``fusion_reactor`` logical group; see ``ssto_flight_article_addons``.
-    template: orbitron_dec_grid
-    params: {}
-    color:
-    - 0.8
-    - 0.6
-    - 0.1
-    transform_chain:
-    - op: translate
-      xyz:
-      - 0.0
-      - 0.0
-      - 0.92
-    - op: rotate_y_about_point
-      pivot:
-      - 0.0
-      - 0.0
-      - 0.32
-      angle_deg: 90.0
   Cathode:
     narrative: |
-      On-axis **cathode** (−100…−300 kV class in Avalanche milestones). Radial **E** with the
-      anode traps ions in orbitrap trajectories; **cathode pulsing** (PSP2/Jin shear program) is
-      the public stability lever against the **rotating mode**—FG: ``/controls/orbitron/cathode-pulse``.
+      On-axis **cathode** (**~−600 kV** design class for p-¹¹B; D₂ Orbitron **~300 kV** is not canon).
+      Radial **E** with the anode traps ions in orbitrap trajectories; **cathode pulsing** (PSP2/Jin
+      shear) mitigates the **rotating mode**—FG: ``/controls/orbitron/cathode-pulse``. Surface per U1
+      in ``UNOBTANIUM.md``.
     template: orbitron_cathode
     params: {}
     color:

@@ -190,7 +190,7 @@
                 </function>
             </fcs_function>
 
-            <!-- Beam current: surrogate kW path / 8 MV equivalent, floored at throttle×5 mA scale. -->
+            <!-- Beam current: P_beam_kW ≈ I_mA × 0.6 kW/mA at 600 kV class (I = P/0.6), floored at throttle×5 mA. -->
             <fcs_function name="systems/reactor/beam-current-ma">
                 <function>
                     <max>
@@ -201,19 +201,19 @@
                         </product>
                         <quotient>
                             <property>systems/reactor/beam-screen-deposition-kw</property>
-                            <value> 8.0 </value>
+                            <value> 0.6 </value>
                         </quotient>
                     </max>
                 </function>
             </fcs_function>
 
-            <!-- Avalanche Series A cathode milestone: ~100–300 kV vs throttle when active -->
+            <!-- p-¹¹B design cathode: ~400–600 kV vs throttle when active (D₂ Orbitron ~300 kV is not canon here). -->
             <fcs_function name="systems/reactor/cathode-voltage-kv">
                 <function>
                     <product>
                         <property>systems/reactor/active</property>
                         <sum>
-                            <value> 100.0 </value>
+                            <value> 400.0 </value>
                             <product>
                                 <property>systems/reactor/ion-beam-command</property>
                                 <value> 200.0 </value>
@@ -247,23 +247,6 @@
                 </function>
             </fcs_function>
 
-            <fcs_function name="systems/reactor/current-amps">
-                <function>
-                    <quotient>
-                        <property>systems/reactor/gross-power-mw</property>
-                        <value> 4.0 </value> 
-                    </quotient>
-                </function>
-            </fcs_function>
-
-            <fcs_function name="systems/reactor/q-factor">
-                <function>
-                    <product>
-                        <property>systems/reactor/active</property>
-                        <value> 26.9 </value> 
-                    </product>
-                </function>
-            </fcs_function>
         </channel>
     </system>
 
@@ -427,13 +410,6 @@
                     </product>
                 </function>
             </fcs_function>
-
-            <switch name="systems/arcjet/dec-voltage-mv">
-                <default value="0.0"/>
-                <test value="4.0">
-                    systems/reactor/active == 1
-                </test>
-            </switch>
 
             <!-- Total sled compression (thrust reaction + engine tare); coeffs from physics YAML → set.xml -->
             <fcs_function name="systems/arcjet/sled-load-total-lbf">
@@ -849,8 +825,8 @@
                 </function>
             </fcs_function>
 
-            <!-- DEC arc / magnet bus crackle scales with current and MV bias -->
-            <fcs_function name="systems/orbitron_sfx/dec_arc_volume">
+            <!-- HV bus crackle at the magnet / feedthrough (cathode kV class, not DEC). -->
+            <fcs_function name="systems/orbitron_sfx/hv_arc_volume">
                 <function>
                     <min>
                         <value> 1.0 </value>
@@ -861,15 +837,15 @@
                                 <min>
                                     <value> 1.0 </value>
                                     <product>
-                                        <property>systems/reactor/current-amps</property>
+                                        <property>systems/reactor/beam-current-ma</property>
                                         <value> 0.022 </value>
                                     </product>
                                 </min>
                                 <min>
                                     <value> 1.0 </value>
                                     <quotient>
-                                        <property>systems/arcjet/dec-voltage-mv</property>
-                                        <value> 8.0 </value>
+                                        <property>systems/reactor/cathode-voltage-kv</property>
+                                        <value> 600.0 </value>
                                     </quotient>
                                 </min>
                             </product>
@@ -878,7 +854,7 @@
                 </function>
             </fcs_function>
 
-            <!-- Viewport / beam sputter: driven by WarpX-surrogate beam_screen_kw + derived current -->
+            <!-- Viewport / beam sputter: WarpX-surrogate beam_screen_kw + derived beam current -->
             <fcs_function name="systems/orbitron_sfx/screen_beam_volume">
                 <function>
                     <min>
@@ -904,8 +880,8 @@
                                 <min>
                                     <value> 1.0 </value>
                                     <quotient>
-                                        <property>systems/arcjet/dec-voltage-mv</property>
-                                        <value> 8.0 </value>
+                                        <property>systems/reactor/cathode-voltage-kv</property>
+                                        <value> 600.0 </value>
                                     </quotient>
                                 </min>
                             </product>

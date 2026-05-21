@@ -21,9 +21,9 @@ narrative: |
   is the single place to change grids, ROI geometry, sweep layout, and placeholder
   engineering gains without editing reduction code.
 
-  **Fusion core alignment:** Field scales and stability narrative defer to
-  ``orbitron_avalanche_core.yaml`` (Orbitron magneto-electrostatic hybrid, 300 kV class
-  cathode, E×B electrons, tangential keV p-¹¹B beams, cathode-pulse shear vs rotating mode).
+  **Fusion core alignment:** Field scales defer to ``orbitron_avalanche_core.yaml`` (p-¹¹B,
+  **~−600 kV** cathode class, 2 T B, E×B electrons, tangential keV beams). Avalanche **D₂ @ ~300 kV**
+  is not canon for this fuel.
 
   **3.5 MW and thrust (design coherence):** ``surrogate_engineering.design_gross_fusion_power_mw``
   is the **SSTO thermal headline** at full (throttle×compressor×PIC-proxy). A fraction
@@ -71,7 +71,7 @@ formal:
     with r = sqrt(x^2+z^2) in simulation coordinates (horizontal stand: beam from +x).
   surrogate_map: |
     CSV targets use normalized rho_e vs sweep median and ROI beam charge vs median;
-    beam_screen_kw = beam_current_ma * beam_screen_kw_per_ma (defaults match legacy 8 MV story).
+    beam_screen_kw = beam_current_ma * beam_screen_kw_per_ma (~0.6 kW/mA at 600 kV: P_kW ≈ I_mA × V_kV / 1000).
   thrust_sled_load_cells: |
     **Where computed:** JSBSim ``arcjet_airbreather`` channel in ``tools/templates/orbitron-jsbsim.xml``
     (every FDM frame). Coefficients are emitted to ``/sim/model/orbitron/thrust-sled/*`` from this file
@@ -106,7 +106,7 @@ formal:
       not a real high-voltage feedthrough stack.
 
     Fields:
-    - E: radial analytic profile from V_cathode = -300 kV (Avalanche Series A milestone) between
+    - E: radial analytic profile from V_cathode = -600 kV (p-¹¹B design class) between
       concentric notional cylinders (log(r) potential). Implemented as Ex, Ez with a radial cutoff
       mask at r >= r_cathode.
     - B: uniform By = 2.0 T (applied field, not self-consistent superconductor).
@@ -126,11 +126,11 @@ formal:
     - Pipeline check: pywarpx → diags → yt animation / FG texture path.
 
   design_brief_gaps_fusion_arcjet: |
-    Fusion: no nuclear burn modules, no fusor grids in the plasma volume, no DEC as a PIC boundary.
-    Cathode scale follows Avalanche **−300 kV** milestone in picmi.electrostatic (not multi-MV grid tie).
+    Fusion: no nuclear burn modules, no fusor grids in the plasma volume.
+    Cathode scale **−600 kV** in picmi.electrostatic (p-¹¹B design; D₂ Orbitron ~300 kV not canon).
     Cathode-pulse maps to V ramp depth and electron-ring density boost in laminar_flow_2d_arcjet.py.
     Arcjet: no compressor inlet BC, no cold air mass flow, no neutral gas background,
-    no electron–neutral collisions, no Ohmic heating term tied to DEC current channel through the gas.
+    no electron–neutral collisions in the PIC slice yet.
     Next extension direction: laminar_flow_2d_arcjet.py (seed channel, optional heavy-ion tracer,
     expanded diagnostics) and PICMI docs for the installed WarpX version for collisions / MCC /
     field ionization.
@@ -207,7 +207,7 @@ picmi:
   electrostatic:
     r_anode_m: 0.05
     r_cathode_m: 0.005
-    V_cathode_v: -300000.0
+    V_cathode_v: -600000.0
     B_axial_tesla: 2.0
   species_geometry:
     electron_ring_inner_m: 0.01
@@ -248,8 +248,8 @@ surrogate_engineering:
   design_gross_fusion_power_mw: 3.5
   # Fraction of gross fusion-side power booked to *jet* kinetic gain in the airstream (rest = losses, compressor, walls).
   jet_propulsive_efficiency: 0.55
-  # beam_screen_kw = beam_current_ma * beam_screen_kw_per_ma (legacy 8.0 ≈ 8 MV story)
-  beam_screen_kw_per_ma: 8.0
+  # beam_screen_kw = beam_current_ma * beam_screen_kw_per_ma (0.6 kW/mA @ 600 kV: 1 mA → 0.6 kW)
+  beam_screen_kw_per_ma: 0.6
   beam_current_scale_ma: 5.0
   # Full throttle ≈ 5 mA — Avalanche public integration milestone is >1 mA ion beam.
   # Thrust / ṁ chosen with gross_power_mw_scale and jet_propulsive_efficiency so F² ≈ 2·η·P·ṁ at full power (see narrative).

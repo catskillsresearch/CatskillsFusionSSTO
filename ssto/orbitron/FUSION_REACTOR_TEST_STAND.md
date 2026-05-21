@@ -6,9 +6,9 @@
 
 ## What this rig is
 
-The **Orbitron fusion arcjet laboratory** is a pad-credible ground article: an **Avalanche-class Orbitron** magneto-electrostatic fusion core embedded in a **single-spool, fusion-heated Brayton** duct. Ambient **air** is the reaction mass—scooped at the bellmouth, compressed, heated in an annulus around the hot plasma hardware and in a downstream plenum mixer, expanded through a turbine that drives the same shaft as the compressor, and finally accelerated out a convergent–divergent nozzle to produce measurable thrust on a four-corner load-cell sled.
+The **Orbitron fusion arcjet laboratory** is a pad-credible ground article: a **p-¹¹B** Orbitron-class magneto-electrostatic core (topology inspired by Avalanche’s public **D₂** machine—they have not published p-¹¹B) embedded in a **single-spool, fusion-heated Brayton** duct. Ambient **air** is the reaction mass—scooped at the bellmouth, compressed, heated in an annulus around the hot plasma hardware and in a downstream plenum mixer, expanded through a turbine that drives the same shaft as the compressor, and finally accelerated out a convergent–divergent nozzle to produce measurable thrust on a four-corner load-cell sled.
 
-The lab burns **p-¹¹B** rather than deuterium: after dissociation in the discharge, the headline channel is **¹H + ¹¹B → 3 ⁴He**. **H₂** and **B₂H₆** feed tangential keV ion beam injectors; **⁴He ash** vents into the nozzle plenum. Optional **liquid CH₄** and a **DEC grid** exist for SSTO flight-article stories (wall thermal, ship power)—they are not required to understand core fusion fueling on the stand.
+After dissociation in the discharge, the headline channel is **¹H + ¹¹B → 3 ⁴He**. **H₂** and **B₂H₆** feed tangential keV ion beam injectors; **⁴He ash** vents into the nozzle plenum. Design cathode class **~−600 kV** (not Avalanche’s **~300 kV D₂** milestone). **Liquid CH₄** routes to the anode wall-thermal jacket (see [`UNOBTANIUM.md`](UNOBTANIUM.md)). No DEC grid, grid tie, or multi-MV arc in the intake duct.
 
 Propulsion axis runs **−X → +X** (intake to nozzle). The tank farm sits on **+Y**. Hero PNGs are generated headless from each assembly glTF (`make orbitron-lab-pngs` or `./stand.sh`) on a factory-gray backdrop with a three-quarter hero camera—one image per sub-assembly plus the full lab.
 
@@ -86,7 +86,7 @@ Pad-only hardware also anchors here: **pad startup cart**, **power cable**, and 
 
 The **reactor bay** is the moral center of the machine. Inside it:
 
-- **Fusion reactor (Avalanche-aligned):** gridless **anode** shell, on-axis **cathode** (100–300 kV class), **magnet** for weak axial **B**, tangential **NBI injectors** for keV **H⁺ / B⁺**, **insulators**, and **magnet service bosses** for CH₄ wall thermal, cryo jacket tap, and HV feedthrough. One anode channel in the lab mesh stands in for a thousand-channel flight article.
+- **Fusion reactor:** gridless **anode** shell, on-axis **cathode** (~600 kV design class), **magnet** for **2 T** axial **B**, tangential **NBI injectors** for keV **H⁺ / B⁺**, **insulators**, and **magnet service bosses** for CH₄ wall thermal, cryo jacket tap, and HV feedthrough. One anode channel in the lab mesh stands in for a thousand-channel flight article.
 - **Reactor inlet jacket:** **reactor bay inlet shroud**—compressor discharge washes the niobium pressure boundary in an annulus, then flows toward the hot duct.
 - **Reactor duct shielding:** a coarse **blast detuner** module (annulus sleeve, shock-conditioning insert, brackets/seals) that softens bypass-stream shocks—not acoustic silencing, and not the fusion exhaust path, which uses **fusion hot gas outlet** and **helium ash vent line** instead.
 
@@ -122,7 +122,7 @@ The three trains become one **air-breathing engine**: **turbofan intake** + **re
 
 Across the pad from the hot hardware, the **control panel stand** is the human interface: operator console, checklist plaque, **screen** for live telemetry, Space Shuttle–style **APU / starter / bleed** toggles (merged into `orbitron.ac` at build time), labels for beam and compressor axes, and the **big red button** for fusion ignite. A **high-voltage umbilical** runs schematically from the desk toward the cathode feed.
 
-The screen is not decoration—it is the 10 Hz face of `reactor_ui`: pad states, ion beam milliamps, cathode kilovolts, compressor command, gross power, DEC and Bremstrahlung proxies, thrust in lbf and kN, jet equivalent exhaust speed, airflow mdot, sled total load, and four corner cell readings. A sequence hint line reminds you: **1 APU → 2 START → 3 BLEED → SPACE IGNITE → W/S U/J**.
+The screen is not decoration—it is the 10 Hz face of `reactor_ui`: pad states, ion beam milliamps, cathode kilovolts, compressor command, gross power, wall-heat proxy, thrust in lbf and kN, jet equivalent exhaust speed, airflow mdot, sled total load, and four corner cell readings. A sequence hint line reminds you: **1 APU → 2 START → 3 BLEED → SPACE IGNITE → W/S U/J**.
 
 *Build narrative:* Set the desk, aim the screen toward the operator sightline, terminate HV and control harnesses, load the checklist plaque, and function-test picks before energizing the bay.
 
@@ -132,7 +132,7 @@ The screen is not decoration—it is the 10 Hz face of `reactor_ui`: pad states,
 
 ![Orbitron laboratory complete](../../Aircraft/Orbitron-TestStand/build/orbitron_lab.png)
 
-**Orbitron laboratory** is the full **`test_stand`** logical root: control panel, thrust sled with engine mounted, tank farm, pad startup services, optional SSTO add-ons (DEC, extra cryo ties), and the complete air-breathing engine. Scene export root for FlightGear is **`fusion_arcjet_engine`**, wrapping this stand for visualization and integration discipline—the end product is the physical pad, not the simulator, but the same YAML drives both.
+**Orbitron laboratory** is the full **`test_stand`** logical root: control panel, thrust sled with engine mounted, tank farm, pad startup services, methane wall-thermal services, and the complete air-breathing engine. Scene export root for FlightGear is **`fusion_arcjet_engine`**, wrapping this stand for visualization and integration discipline—the end product is the physical pad, not the simulator, but the same YAML drives both.
 
 At this stage the pad story is complete: rails under cells under engine under tanks beside console, orange starter cable from cart to motor, trunks from farm to injectors, ash path from core to plenum, HV from desk to cathode, and a nozzle pointed so thrust fights the sled instead of the hangar doors.
 

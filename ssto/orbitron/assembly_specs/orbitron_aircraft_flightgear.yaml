@@ -41,7 +41,7 @@ fg_set:
     ct: 55
     cc: 48
     ctc: 320
-  description: Orbitron SSTO test stand (Avalanche-class core + arcjet offload)
+  description: Orbitron SSTO test stand (p-¹¹B core + fusion-heated Brayton offload)
   author: Catskills Aerospace
   status: alpha
   minimum_fg_version: 2020.3.0

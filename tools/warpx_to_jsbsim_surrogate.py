@@ -8,7 +8,7 @@ Primary fit form (bilinear in throttle T and compressor C):
 CSV expected columns (minimum):
   throttle, compressor, thrust_lbf, mass_flow_kgps
 Optional CSV columns (WarpX beam / viewport model, see tools/build_surrogate_map.py):
-  beam_screen_kw, beam_current_ma  (fit uses beam_screen_kw; current = P/8 mA at 8 MV equivalent)
+  beam_screen_kw, beam_current_ma  (fit uses beam_screen_kw; I_mA ≈ P_kW / beam_screen_kw_per_ma @ 600 kV)
 
 Run from repo root (activate Poetry first; ``act`` is
 ``eval "$(poetry env activate)"``):
@@ -166,7 +166,7 @@ def main() -> int:
                 "model": "bilinear",
                 "note": "Replace with WarpX-reduced CSV fit; y=c0+c_t*T+c_c*C+c_tc*T*C",
                 "beam_model": (
-                    "beam_screen_kw bilinear(T,C); beam_current_ma = beam_screen_kw/8 (8 MV equiv.). "
+                    "beam_screen_kw bilinear(T,C); beam_current_ma = beam_screen_kw / k_kw (600 kV class). "
                     "WarpX path: rho_h_inject_beam + rho_b_inject_beam in screen ROI (build_surrogate_map)."
                 ),
             },

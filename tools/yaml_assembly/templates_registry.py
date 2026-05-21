@@ -205,24 +205,20 @@ def tpl_orbitron_anode(**_: Any) -> cq.Workplane:
     return a
 
 
-def tpl_orbitron_dec_grid(**_: Any) -> cq.Workplane:
+def tpl_orbitron_cathode(**_: Any) -> cq.Workplane:
     return _tube()[1]
 
 
-def tpl_orbitron_cathode(**_: Any) -> cq.Workplane:
+def tpl_orbitron_insulators(**_: Any) -> cq.Workplane:
     return _tube()[2]
 
 
-def tpl_orbitron_insulators(**_: Any) -> cq.Workplane:
+def tpl_orbitron_magnet(**_: Any) -> cq.Workplane:
     return _tube()[3]
 
 
-def tpl_orbitron_magnet(**_: Any) -> cq.Workplane:
-    return _tube()[4]
-
-
 def tpl_orbitron_nbi(**_: Any) -> cq.Workplane:
-    return _tube()[5]
+    return _tube()[4]
 
 
 def _infra() -> LabInfrastructure:
@@ -409,7 +405,6 @@ TEMPLATE_REGISTRY: dict[str, Callable[..., cq.Workplane]] = {
     "load_cell_puck": tpl_load_cell_puck,
     "engine_mount_frame": tpl_engine_mount_frame,
     "orbitron_anode": tpl_orbitron_anode,
-    "orbitron_dec_grid": tpl_orbitron_dec_grid,
     "orbitron_cathode": tpl_orbitron_cathode,
     "orbitron_insulators": tpl_orbitron_insulators,
     "orbitron_magnet": tpl_orbitron_magnet,

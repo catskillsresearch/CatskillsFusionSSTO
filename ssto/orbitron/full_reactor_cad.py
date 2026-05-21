@@ -211,7 +211,6 @@ class IntegratedOrbitronTube:
         r = 0.05
         h = 2.0
         anode = orbitron_anode_pressure_shell(r=r, h=h)
-        dec = cq.Workplane("XY").cylinder(h, r-0.005).faces(">Z").workplane().hole((r-0.005)*2 - 0.002)
         cathode = cq.Workplane("XY").cylinder(h + 0.6, 0.005)
         
         ins = cq.Workplane("XY").cylinder(0.3, 0.03)
@@ -226,7 +225,7 @@ class IntegratedOrbitronTube:
         nbi = cq.Workplane("XZ").cylinder(0.2, 0.04).translate((0, 0.1, 0))
         nbi_flange = cq.Workplane("XZ").cylinder(0.05, 0.06).translate((0, 0.2, 0))
         
-        return anode, dec, cathode, ins_top.union(ins_bot), mag, nbi.union(nbi_flange)
+        return anode, cathode, ins_top.union(ins_bot), mag, nbi.union(nbi_flange)
 
 class LabInfrastructure:
     """The Test Facility (Rigid Pipes + Decals)"""

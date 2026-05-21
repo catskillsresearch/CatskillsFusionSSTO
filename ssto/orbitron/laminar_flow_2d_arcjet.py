@@ -34,7 +34,7 @@ except ImportError as e:
 
 BASE_N_E = 5e15
 BASE_ARC_SEED = 1e14
-DEFAULT_V_CATHODE_V = -300000.0
+DEFAULT_V_CATHODE_V = -600000.0
 INCLUDE_NITROGEN_TRACER = False
 
 # PICMI/WarpX passes non-special ``particle_type`` strings to

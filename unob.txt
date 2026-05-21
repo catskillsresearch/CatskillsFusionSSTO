@@ -1,0 +1,975 @@
+Prototyping an Orbitron-inspired 3.5MW p-B11 fusion reactor depending on 4 kinds of Unobtainium using Gemini 3.1, CadQuery, WarpX, Blender, FlightGear
+Lars Warren Ericson
+Lars Warren Ericson
+AI-Assisted Modeling | Thinking about this and that
+
+
+May 7, 2026
+I am building a highly realistic, interactive FlightGear simulation of a p-B11 single-stage-to-orbit (SSTO) spaceplane. I am at the "Systems Integration" phase, where I am putting a single 3.5 MW fusion reactor tube on a virtual ground lab test stand in FlightGear to test the JSBSim physics, telemetry, and 3D UI before bolting it to the aircraft.
+
+This is part of a series of thought experiments which I am vibe coding using Google Gemini 3.1 Pro. Prior articles in the series are SSTO fusion spaceplane using Avalanche Energy p-B11 Orbitrons with Invictus SABRE engines and Cloning the FlightGear Space Shuttle model to start work on an Orbitron fusion-powered spaceplane. This article relates the goal of using FlightGear to simulate a hanger-installed test article for a fusion reactor inspired by the Avalanche Energy Orbitron and their excellent video on the topic.
+
+Reactor Design
+The 3.5 MW p-B11 Orbitron test article is a crossed-field electrostatic fusion reactor configured as a 2-meter-long, 10-cm-diameter cylindrical shell-and-tube architecture. At its core lies a 5-mm-radius Tungsten-Rhenium cathode wire biased to -600 kV to create a deep electrostatic well, enveloped by an external YBCO superconducting solenoid generating a 2.0 Tesla axial magnetic field for electron confinement. To suppress Diocotron "washing machine" instabilities and maintain plasma laminarity, a tangential Neutral Beam Injector (NBI) feeds a 5:1 ratio of Hydrogen and Diborane (B2 H6) precursor gas from adjacent high-pressure cylinders at up to 100 sccm. The resulting aneutronic fusion yields 8.7 MeV alpha particles that are decelerated by an internal Molybdenum mesh Direct Energy Conversion (DEC) grid biased to +4.0 MV, extracting 0.875 Amps to achieve a 3.5 MW electrical output and a theoretical Q-factor of 26.9. A 50 kWh Lithium-Titanate battery provides the initial 130 kW "black start" parasitic load, while a dedicated Cryo-Methane dewar supplies -160°C liquid (CH4) to a cooling jacket wrapped around the grounded Niobium C-103 anode wall, actively absorbing the 400 kW of Bremsstrahlung X-ray heat to keep telemetry readings safely below the 2,400°C structural melting point.
+
+Unobtainium components
+These are yet-to-be-discovered by materials scientists components that are required for this fusion reactor to work (with use of pB-11 fuel being the main constraint).
+
+Unobtainium 1: The Non-Arcing Cathode (-600 kV)
+The Problem: Standard Paschen curve physics dictates that applying 600,000 volts to a 5-millimeter wire inside a small vacuum chamber will cause violent field emission. Electrons will be ripped directly out of the metal, creating a massive arc of lightning that strikes the grounded wall and instantly shorts out the reactor. 
+
+The Unobtainium Fix: We assume a breakthrough in surface-level metamaterials—such as a perfectly smooth, defect-free Tungsten-Rhenium alloy coated in a specialized carbon-nanotube matrix. This material must perfectly suppress electron field-emission, allowing the wire to maintain a massive half-million-volt electrostatic well across a gap of just a few centimeters without ever arcing.
+
+Unobtainium 2: The Direct Energy Conversion (DEC) Grid (+4.0 MV)
+The Problem: To get electricity without a heavy, boiling-water steam turbine, you have to catch the 8.7 MeV alpha particles flying out of the fusion reaction. You do this by forcing them to fly "uphill" against a highly charged metal mesh. 
+
+The Unobtainium Fix: We assume a highly porous Molybdenum-alloy mesh capable of holding a staggering +4.0 Million Volt bias. Not only must this grid avoid arcing to the anode mere millimeters away, but it must also physically survive the constant, blistering kinetic bombardment of high-energy helium nuclei without melting, sputtering, or eroding away during flight.
+
+Unobtainium 3: The X-Ray Resilient Anode (Zero Displacement Damage)
+The Problem: While p-B11 fusion is beautifully aneutronic (no radioactive neutrons), the rapidly spinning electrons colliding with Boron ions create a blinding flashbulb of Bremsstrahlung X-rays. The reactor wall must absorb 400 kW of these X-rays. Over time, high-energy X-rays knock metal atoms out of their crystalline lattice (known as Displacements Per Atom, or dpa), turning aerospace-grade metal into brittle glass. 
+
+The Unobtainium Fix: The Niobium C-103 outer shell is assumed to be an advanced, self-healing radiation-hardened alloy. It must perfectly absorb the X-rays, conduct the extreme heat into the liquid methane cooling jacket, and suffer absolutely no lattice embrittlement, allowing the engine to fly thousands of SSTO sorties without the structural walls shattering under the 104 tons of rocket thrust.
+
+Unobtainium 4: The Methane-Cooled Superconductor (High-Temp YBCO)
+The Problem: The reactor requires a massive 2.0 Tesla axial magnetic field to trap the electrons. Today, 2-Tesla magnets (like those in MRI machines) require incredibly heavy copper coils or super-insulating vacuum thermos-jackets filled with liquid Helium (which is -269°C and boils away constantly). 
+
+The Unobtainium Fix: We assume an ultra-lightweight, high-temperature YBCO (Yttrium Barium Copper Oxide) superconducting tape that does not require liquid Helium. Instead, it is engineered to achieve its superconducting state at roughly -160°C, allowing it to be cooled directly by the spaceplane’s primary Liquid Methane propellant. This completely eliminates the need for a secondary, heavy cryogenic plant on the spaceplane, saving thousands of pounds of dead weight and making Single-Stage-To-Orbit mechanically possible.
+
+Computing and Software Stack
+Intel Core(TM) i9-9900K CPU @ 3.60GHz, CPU and RAM.
+Ubuntu 24.04 LTS, Linux operating system.
+Google Gemini 3.1 Pro Preview, AI chatbot for vibe coding that knows everything. All of the code shown below was written hands-free by Gemini from human language "vibe" prompts.
+Python 3.12, a high-level, easy-to-read programming language that is practically self-documenting.
+AMReX, for massively parallel, block-structured adaptive mesh refinement (AMR).
+WarpX 26.04, a Particle-In-Cell code suitable for simulating fusion reactors.
+yt, for analyzing and visualizing volumetric data.
+ffmpeg, to record, convert and stream audio and video.
+CadQuery 2.7.0, a Python library for building parametric 3D CAD models.
+Blender 5.1, a free, professional-grade, open-source 3D creation suite used for the entire "3D pipeline"—the process of taking a digital idea from a simple shape to a finished image or film.
+Blender AC3D PlugIn to import/export Inivis AC3D format files into and out of Blender.
+FlightGear 2024.1, a free, professional-grade, open-source 3D creation suite used for the entire "3D pipeline"—the process of taking a digital idea from a simple shape to a finished image or film.
+
+Vibe coding stage
+I tell Gemini what I want, giving specifics, and Gemini walks me through all the software installation steps, all the physics, finds all the best software packages, writes the code, and debugs the installation and code when given feedback on run results. The entire chat starts with
+
+Is there open source simulation code in GitHub for the Avalanche Energy Obitron? How about fusion reactors in general? In particular though for Obitron type. If not can you write a code?
+and goes on from there for hundreds of queries. My role is as a manager looking for a result, who has limited knowledge of physics, aeronautics and CAD, has a bright shiny object in mind, and is treating Gemini as a staff employee physicist and programmer with much wider and deeper background. That is, I am taking the trained Gemini LLM's grasp of physics, aeronautics and programming for granted. If Gemini is wrong, I will be wrong. It's fun anyway.
+
+The physics and telemtry (WarpX + 0D Model)
+We run a 2D Particle-in-Cell (PIC) simulation using AMReX/WarpX.
+
+The Architecture: A 2-meter-long, 10-cm-wide Orbitron crossed-field electrostatic reactor.
+Confinement: A Tungsten cathode wire biased to -600 kV, enveloped by a 2.0 Tesla axial magnetic field.
+Stability: We use a Neutral Beam Injector (NBI) feeding Hydrogen and Diborane (
+Output: 8.7 MeV alphas are decelerated by a Molybdenum DEC grid at +4.0 MV, generating 3.5 MW of electrical power (0.875 Amps).
+Thermal/BOP: The reaction dumps 400 kW of Bremsstrahlung X-ray heat into the grounded Niobium anode. We cool it by pumping Liquid Methane over the tube. Parasitic BOP drain is 130 kW. We use a 50 kWh battery for "black start" magnet spin-up. Breakeven Q-Factor is 26.9.
+
+This code simulates the reactor in 2D slices:
+
+import numpy as np
+from pywarpx import picmi
+
+print("==================================================")
+print("  ORBITRON LAMINAR FLOW (X-Z PLANE ROTATION FIX)  ")
+print("==================================================")
+
+# --- DEVICE GEOMETRY & FIELDS ---
+r_anode = 0.05
+r_cathode = 0.005
+V_cathode = -600e3
+B_axial = 2.0  # Will be applied to the Y-axis (out of the page)
+
+# WarpX 2D uses the X and Z axes. Y is ignored/invariant.
+grid = picmi.Cartesian2DGrid(
+    number_of_cells=[256, 256], 
+    lower_bound=[-r_anode, -r_anode],
+    upper_bound=[r_anode, r_anode],
+    lower_boundary_conditions=['dirichlet', 'dirichlet'],
+    upper_boundary_conditions=['dirichlet', 'dirichlet'],
+    lower_boundary_conditions_particles=['absorbing', 'absorbing'],
+    upper_boundary_conditions_particles=['absorbing', 'absorbing']
+)
+
+# --- CROSSED E and B FIELDS (Mapped to X-Z plane) ---
+E_field_expr = f"-({V_cathode}/log({r_anode}/{r_cathode}))"
+
+# Using x*x + z*z for AMReX C++ parser safety
+Ex_expr = f"({E_field_expr} * x / max(sqrt(x*x + z*z), {r_cathode})) * ( (x*x + z*z) >= {r_cathode*r_cathode} )"
+Ez_expr = f"({E_field_expr} * z / max(sqrt(x*x + z*z), {r_cathode})) * ( (x*x + z*z) >= {r_cathode*r_cathode} )"
+
+applied_E = picmi.AnalyticAppliedField(Ex_expression=Ex_expr, Ey_expression="0.0", Ez_expression=Ez_expr)
+
+# B-field points OUT OF THE PAGE (Y-axis) to create rotation in the X-Z plane
+applied_B = picmi.AnalyticAppliedField(Bx_expression="0.0", By_expression=str(B_axial), Bz_expression="0.0")
+
+# --- THE HOLLOW ELECTRON RING ---
+n_e = 5e15 
+electron_ring = picmi.AnalyticDistribution(
+    density_expression=f"{n_e} * (sqrt(x*x + z*z) > 0.01) * (sqrt(x*x + z*z) < 0.03)",
+    # E x B drift in X-Z plane with B in Y:
+    # vx = -Ez / By   |   vz = Ex / By
+    momentum_expressions=[
+        f"-({E_field_expr} * z / max(sqrt(x*x + z*z), 1e-4)) / {B_axial}",  # ux
+        "0.0",                                                             # uy
+        f"({E_field_expr} * x / max(sqrt(x*x + z*z), 1e-4)) / {B_axial}"    # uz
+    ]
+)
+
+electrons = picmi.Species(particle_type='electron', name='electrons', initial_distribution=electron_ring)
+
+# --- THE LAMINAR FIX: BEAM INJECTION ---
+beam_injector = picmi.ParticleListDistribution(
+    x=[0.04] * 100,  
+    y=[0.0] * 100, 
+    z=np.linspace(-0.01, 0.01, 100).tolist(), # Spread across the Z axis
+    ux=[-3e6] * 100, # Shoot inwards to create shear
+    uy=[0.0] * 100,
+    uz=[0.0] * 100,
+    weight=[1e10] * 100
+)
+
+stabilizing_beam = picmi.Species(particle_type='proton', name='stabilizing_beam', initial_distribution=beam_injector)
+
+# --- ASSEMBLE AND RUN ---
+sim = picmi.Simulation(solver=picmi.ElectromagneticSolver(grid=grid, cfl=0.9),
+                       max_steps=500, # Running 500 steps to quickly prove stability
+                       verbose=1, time_step_size=1e-12)
+
+sim.add_applied_field(applied_E)
+sim.add_applied_field(applied_B)
+
+sim.add_species(electrons, layout=picmi.GriddedLayout(n_macroparticle_per_cell=[4,4], grid=grid))
+sim.add_species(stabilizing_beam, layout=None) 
+
+diag = picmi.FieldDiagnostic(
+    name='density_diag',
+    grid=grid,
+    period=100,
+    data_list=['rho_electrons'],
+    write_dir='diags'
+)
+sim.add_diagnostic(diag)
+
+print("Running ExB Relaminarization physics...")
+sim.step(500)
+print("Simulation complete. Check 'diags' folder for Diocotron vortex data.")
+Make a movie of the physics with YT and FFMEG
+We produce separate video and audio files, and then stitch them together:
+
+orbitron_startup_sequence.mp4 (and .gif): An animated visual of the spinning WarpX plasma cross-section.
+reactor_audio_heavy.wav: Synthesized audio containing 120Hz transformer hum, a pneumatic valve clack, a 15Hz modulated plasma roar, and heavily gated 4MV corona discharge crackle.
+
+We use this code for the video:
+
+import yt
+import glob
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
+import matplotlib.gridspec as gridspec
+import numpy as np
+
+# Suppress YT logs
+yt.funcs.mylog.setLevel(50)
+
+print("Loading WarpX Plasma Frames into RAM...")
+plotfiles = sorted(glob.glob("diags/density_diag*"))
+if not plotfiles:
+    print("Error: No diags/ folder found! Run WarpX first.")
+    exit()
+
+# Pre-load the frames so the animation renders fast
+frames_data =[]
+for f in plotfiles:
+    ds = yt.load(f)
+    grid = ds.covering_grid(level=0, left_edge=ds.domain_left_edge, dims=ds.domain_dimensions)
+    rho = np.abs(grid[('boxlib', 'rho_electrons')].v.squeeze())
+    frames_data.append(rho)
+
+print(f"Loaded {len(frames_data)} plasma frames. Assembling Movie...")
+
+# --- SETUP THE MOVIE CANVAS ---
+fig = plt.figure(figsize=(12, 6))
+fig.patch.set_facecolor('black')
+gs = gridspec.GridSpec(1, 2, width_ratios=[1, 1])
+
+# Left: The Plasma Visual
+ax_plasma = plt.subplot(gs[0])
+ax_plasma.set_facecolor('black')
+ax_plasma.set_title("p-B11 Orbitron Core | 2D Cross-Section", color='white', pad=15)
+ax_plasma.axis('off')
+
+# Right: The Telemetry Dashboard
+ax_telemetry = plt.subplot(gs[1])
+ax_telemetry.set_facecolor('#111111')
+ax_telemetry.axis('off')
+
+# Initialize the Plasma Image
+im_plasma = ax_plasma.imshow(np.zeros_like(frames_data[0]), cmap='magma', origin='lower', extent=[-6, 6, -6, 6], vmin=0, vmax=np.max(frames_data[-1]))
+
+# --- DRAW THE HARDWARE & UNOBTAINIUM LABELS ---
+# 1. Cathode (-600kV)
+ax_plasma.add_patch(plt.Circle((0, 0), 0.5, color='cyan', fill=False, lw=2))
+ax_plasma.text(0.6, 0.6, "Cathode (-600kV)\n[UNOBTAINIUM 1]", color='cyan', fontsize=8)
+
+# 2. DEC Grid (+4MV)
+ax_plasma.add_patch(plt.Circle((0, 0), 4.5, color='orange', fill=False, lw=1, ls=':'))
+ax_plasma.text(-5.5, -4.5, "DEC Alpha Grid\n[UNOBTAINIUM 2]", color='orange', fontsize=8)
+
+# 3. Anode Wall (Niobium) & X-Ray Shield (Tungsten)
+ax_plasma.add_patch(plt.Circle((0, 0), 5.0, color='silver', fill=False, lw=3))
+ax_plasma.add_patch(plt.Circle((0, 0), 5.3, color='gray', fill=False, lw=5)) # X-Ray Shield
+ax_plasma.text(3.5, -5.5, "Niobium Wall +\nTungsten X-Ray Shield\n[UNOBTAINIUM 3]", color='silver', fontsize=8)
+
+# --- SETUP THE DIGITAL GAUGES ---
+txt_time = ax_telemetry.text(0.05, 0.9, "", color='white', fontsize=14, fontfamily='monospace')
+txt_status = ax_telemetry.text(0.05, 0.8, "", color='yellow', fontsize=16, fontweight='bold')
+
+txt_battery = ax_telemetry.text(0.05, 0.6, "", color='lime', fontsize=12, fontfamily='monospace')
+txt_injection = ax_telemetry.text(0.05, 0.5, "", color='lightblue', fontsize=12, fontfamily='monospace')
+
+txt_fusion_events = ax_telemetry.text(0.05, 0.35, "", color='magenta', fontsize=12, fontfamily='monospace')
+txt_heat = ax_telemetry.text(0.05, 0.25, "", color='red', fontsize=12, fontfamily='monospace')
+
+txt_power = ax_telemetry.text(0.05, 0.1, "", color='cyan', fontsize=18, fontweight='bold', fontfamily='monospace')
+
+# --- THE SYSTEMS ENGINEERING MATH MODEL ---
+TOTAL_FRAMES = 150 # 10 second movie at 15 fps
+FPS = 15
+
+def update(frame):
+    # Calculate virtual time (0 to 10 seconds)
+    t = frame / FPS
+    
+    # 1. Loop the WarpX plasma frames to keep it spinning
+    pic_idx = frame % len(frames_data)
+    
+    # --- PHASE LOGIC ---
+    status = "PHASE 1: MAGNET SPIN-UP"
+    status_col = "yellow"
+    battery_kwh = 50.0 - (t * 0.5) # Draining 0.5 kWh per sec to charge magnet
+    injection_sccm = 0.0
+    fusion_rate = 0.0
+    power_mw = 0.0
+    heat_kw = 0.0
+    q_factor = 0.0
+    plasma_brightness = 0.0
+    
+    if t > 2.0:
+        status = "PHASE 2: FUEL INJECTION & IGNITION"
+        status_col = "orange"
+        battery_kwh = 49.0 - ((t-2) * 0.1) # Draining 100kW for NBI
+        injection_sccm = min(100.0, (t-2) * 50) # Ramps up to 100 sccm
+        
+        # Plasma fades in as gas is injected
+        plasma_brightness = min(1.0, (t-2) / 2.0)
+        
+        # Fusion rate scales non-linearly with injection
+        fusion_rate = (injection_sccm / 100.0)**2 * 2.5e18 
+        power_mw = (fusion_rate * 8.7e6 * 1.602e-19) / 1e6 # 8.7 MeV per reaction to MW
+        heat_kw = (injection_sccm / 100.0) * 400.0
+        
+    if t > 4.0:
+        status = "PHASE 3: BREAKEVEN (Q > 1)"
+        status_col = "lime"
+        battery_kwh = 48.8 + ((t-4) * 0.05) # Battery is RECHARGING now!
+        injection_sccm = 100.0
+        plasma_brightness = 1.0
+        
+        fusion_rate = 2.51e18 # Steady state events per second
+        power_mw = 3.50        # Steady State 3.5 MW
+        heat_kw = 400.0        # Steady State X-ray heat
+        q_factor = 3.5 / 0.13  # 3.5 MW out / 130 kW parasitic BOP drain
+        
+    # --- UPDATE VISUALS ---
+    # Apply brightness mask to the plasma
+    im_plasma.set_array(frames_data[pic_idx] * plasma_brightness)
+    
+    # Update Texts
+    txt_time.set_text(f"VIRTUAL TIME : {t:.1f} s")
+    txt_status.set_text(status)
+    txt_status.set_color(status_col)
+    
+    txt_battery.set_text(f"BATTERY STATE: {battery_kwh:.2f} kWh (50 Max)")
+    txt_injection.set_text(f"NBI INJECTION: {injection_sccm:.1f} sccm p-B11")
+    
+    txt_fusion_events.set_text(f"FUSION EVENTS: {fusion_rate:.2e} / sec")
+    txt_heat.set_text(f"X-RAY WALL HEAT: {heat_kw:.1f} kW")
+    
+    if q_factor > 1:
+        txt_power.set_text(f"NET DEC OUTPUT: {power_mw:.2f} MW\nQ-FACTOR: {q_factor:.1f} (BREAKEVEN)")
+        txt_power.set_color('lime')
+    else:
+        txt_power.set_text(f"NET DEC OUTPUT: {power_mw:.2f} MW\nQ-FACTOR: < 1.0")
+        txt_power.set_color('cyan')
+
+    return[im_plasma, txt_time, txt_status, txt_battery, txt_injection, txt_fusion_events, txt_heat, txt_power]
+
+print("Rendering Movie (This will take a few seconds)...")
+ani = animation.FuncAnimation(fig, update, frames=TOTAL_FRAMES, blit=True)
+
+# Save as GIF
+output_file = "orbitron_startup_sequence.gif"
+ani.save(output_file, writer='pillow', fps=FPS)
+print(f"Movie saved successfully as '{output_file}'!")
+
+# OPTIONAL: If you have ffmpeg installed on your Linux machine, you can save as MP4 by uncommenting this:
+ani.save("orbitron_startup_sequence.mp4", writer='ffmpeg', fps=FPS, dpi=200)
+We use this code for the reactor sound audio and to stitch together audio and video:
+
+import numpy as np
+from scipy.io import wavfile
+import subprocess
+import os
+
+print("Synthesizing Heavy Industrial Orbitron Audio...")
+
+sample_rate = 44100
+duration = 10.0
+t = np.linspace(0, duration, int(sample_rate * duration), endpoint=False)
+
+# ---------------------------------------------------------
+# 1. THE TRANSFORMER HUM (0 - 10s)
+# ---------------------------------------------------------
+# Instead of a pure sine, we use multiple harmonics and overdrive them 
+# to create an aggressive, electrical "buzz".
+hum = (1.0 * np.sin(2 * np.pi * 60 * t) + 
+       0.5 * np.sin(2 * np.pi * 120 * t) + 
+       0.25 * np.sin(2 * np.pi * 240 * t))
+# Overdrive/Clip the hum to make it sound harsh
+hum = np.clip(hum * 2.0, -0.6, 0.6) 
+
+# ---------------------------------------------------------
+# 2. THE MAGNET SPIN-UP (0 - 2s)
+# ---------------------------------------------------------
+# A distinct, rising whine from 60Hz up to 800Hz.
+ramp_freq = np.interp(t, [0, 2], [60, 800])
+ramp_phase = np.cumsum(ramp_freq) / sample_rate * 2 * np.pi
+spin_up = np.sin(ramp_phase)
+# Fade it out exactly at 2.0 seconds
+spin_envelope = np.interp(t,[0, 1.8, 2.0, 2.1],[0.0, 0.8, 0.0, 0.0])
+spin_up = spin_up * spin_envelope
+
+# ---------------------------------------------------------
+# 3. THE PNEUMATIC CLACK (Exactly at 2.0s)
+# ---------------------------------------------------------
+# A violent, low-frequency thud with a millisecond decay.
+clack_env = np.where(t >= 2.0, np.exp(-50 * (t - 2.0)), 0)
+clack_tone = np.sin(2 * np.pi * 40 * t) # Deep 40Hz punch
+# Add high-frequency noise for the mechanical "snap"
+clack_snap = np.random.uniform(-1, 1, len(t)) * np.exp(-500 * np.maximum(0, t - 2.0))
+clack = (clack_tone + clack_snap) * clack_env * 3.0 # Boosted volume
+
+# ---------------------------------------------------------
+# 4. THE PLASMA ROAR (2.0 - 10s)
+# ---------------------------------------------------------
+# Raw white noise is "hiss". We use a moving average to create a low-pass 
+# filter, turning the hiss into a deep, rocket-like "Rumble".
+raw_noise = np.random.uniform(-1, 1, len(t))
+window = np.ones(40) / 40.0 # 40-sample moving average smooths out the highs
+rumble = np.convolve(raw_noise, window, mode='same')
+
+# Modulate the rumble with a low 15Hz wave so it "chugs" and vibrates
+chug = 1.0 + 0.5 * np.sin(2 * np.pi * 15 * t)
+roar = rumble * chug
+
+# Envelope: Fades in violently from 2s to 3s
+roar_envelope = np.clip((t - 2.0), 0, 1.0)
+roar = roar * roar_envelope * 4.0 # Boosted volume
+
+# ---------------------------------------------------------
+# 5. THE 4MV CORONA CRACKLE (4.0 - 10s)
+# ---------------------------------------------------------
+# Tearing electricity. We generate random spikes, but gate them so only 
+# the most violent peaks get through, simulating electrical arcs.
+arcing = np.random.uniform(-1, 1, len(t))
+arcing[np.abs(arcing) < 0.95] = 0 # Gate out the quiet noise
+
+# Give the arcs a 120Hz electrical stutter
+electric_stutter = np.sin(2 * np.pi * 120 * t)
+crackle = arcing * electric_stutter
+
+# Envelope: Snaps on exactly at 4.0 seconds (Breakeven)
+crackle_env = np.where(t >= 4.0, 1.0, 0.0)
+crackle = crackle * crackle_env * 2.5 # Boosted volume
+
+# ---------------------------------------------------------
+# MASTER MIXDOWN & COMPRESSION
+# ---------------------------------------------------------
+master_audio = hum + spin_up + clack + roar + crackle
+
+# SOFT-CLIPPING: This is the secret. Using the hyperbolic tangent (tanh)
+# squashes the massive peaks down smoothly. It makes the audio sound 
+# incredibly LOUD and aggressive without digital distortion.
+master_audio = np.tanh(master_audio * 1.5)
+
+# Convert to 16-bit PCM WAV
+audio_16bit = np.int16(master_audio * 32767)
+wav_filename = "reactor_audio_heavy.wav"
+wavfile.write(wav_filename, sample_rate, audio_16bit)
+
+# ---------------------------------------------------------
+# FFMPEG MUXING
+# ---------------------------------------------------------
+video_filename = "orbitron_startup_sequence.mp4"
+output_filename = "FINAL_ORBITRON_TEST.mp4"
+
+if os.path.exists(video_filename):
+    print("Muxing Heavy Audio to Video...")
+    cmd =[
+        "ffmpeg", "-y", 
+        "-i", video_filename, 
+        "-i", wav_filename, 
+        "-c:v", "copy", 
+        "-c:a", "aac", 
+        "-b:a", "192k",
+        "-strict", "experimental", 
+        output_filename
+    ]
+    subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    print("==================================================")
+    print(f"SUCCESS! Play '{output_filename}'. Warning: Turn your volume down slightly.")
+    print("==================================================")
+else:
+    print(f"Video {video_filename} not found. Audio saved as {wav_filename}.") 
+The video with reactor sounds is then:
+
+
+Play
+Orbitron physics simulation
+CAD model for the reactor and test stand
+We generate the test stand programmatically using CadQuery, export it as a glTF file, and import it into Blender. The hierarchy is clean and explicitly named for FlightGear animation targeting:
+
+Infrastructure: Optics_Table, Operator_Console, Big_Red_Button, Throttle_Slider, Screen (a flat monitor mesh on the console).
+Fuel Farm: Tank_Hydrogen, Tank_Diborane, Tank_Cryo_Methane (with 3D stenciled decals), and Rigid_Plumbing.
+Reactor Core: Anode, DEC_Grid, Cathode, Ceramic_Feedthroughs, YBCO_Magnet, NBI_Injector.
+
+glTF (Graphics Library Transmission Format) file is an open-standard, royalty-free format designed for the efficient delivery and loading of 3D scenes and models. This code produces the glTF file using CadQuery:
+
+import cadquery as cq
+
+class IntegratedOrbitronTube:
+    """The 3.5 MW p-B11 Reactor Core"""
+    def build(self):
+        r = 0.05
+        h = 2.0
+        anode = cq.Workplane("XY").cylinder(h, r).faces(">Z").workplane().hole(r*2 - 0.01)
+        dec = cq.Workplane("XY").cylinder(h, r-0.005).faces(">Z").workplane().hole((r-0.005)*2 - 0.002)
+        cathode = cq.Workplane("XY").cylinder(h + 0.6, 0.005)
+        
+        ins = cq.Workplane("XY").cylinder(0.3, 0.03)
+        for i in range(5):
+            ins = ins.union(cq.Workplane("XY").workplane(offset=-0.1 + i*0.05).cylinder(0.02, 0.045))
+        ins_top = ins.translate((0, 0, h/2 + 0.15))
+        ins_bot = ins.translate((0, 0, -h/2 - 0.15))
+        
+        mag = cq.Workplane("XY").cylinder(h-0.5, 0.15).faces(">Z").workplane().hole(r*2 + 0.01)
+        
+        # NBI sticks out of the side
+        nbi = cq.Workplane("XZ").cylinder(0.2, 0.04).translate((0, 0.1, 0))
+        nbi_flange = cq.Workplane("XZ").cylinder(0.05, 0.06).translate((0, 0.2, 0))
+        
+        return anode, dec, cathode, ins_top.union(ins_bot), mag, nbi.union(nbi_flange)
+
+class LabInfrastructure:
+    """The Test Facility (Rigid Pipes + Decals)"""
+    
+    def build_table(self):
+        legs = (cq.Workplane("XY").box(0.1, 0.1, 1.0).translate((0.6, 0.3, 0.5))
+                .union(cq.Workplane("XY").box(0.1, 0.1, 1.0).translate((-0.6, 0.3, 0.5)))
+                .union(cq.Workplane("XY").box(0.1, 0.1, 1.0).translate((0.6, -0.3, 0.5)))
+                .union(cq.Workplane("XY").box(0.1, 0.1, 1.0).translate((-0.6, -0.3, 0.5))))
+        top = cq.Workplane("XY").box(1.5, 0.8, 0.05).translate((0, 0, 1.0))
+        mounts = (cq.Workplane("XY").box(0.1, 0.2, 0.25).translate((0.5, 0, 1.125))
+                  .union(cq.Workplane("XY").box(0.1, 0.2, 0.25).translate((-0.5, 0, 1.125))))
+        
+        # 3D Placard Decal facing the operator (0.001 thick)
+        label = cq.Workplane("XZ").text("ORBITRON p-B11", 0.08, 0.001).translate((0, -0.401, 1.025))
+        return legs.union(top).union(mounts), label
+
+    def build_console(self):
+        # Console at Y = -2.5 (8 feet away from the reactor)
+        base = cq.Workplane("XY").box(0.8, 0.8, 1.2).translate((0, -2.5, 0.6))
+        panel = cq.Workplane("XY").box(0.8, 0.6, 0.05).rotate((1,0,0), (0,0,0), -30).translate((0, -2.6, 1.3))
+        screen = cq.Workplane("XY").box(0.7, 0.05, 0.5).translate((0, -2.2, 1.6))
+        brb = cq.Workplane("XY").cylinder(0.04, 0.05).rotate((1,0,0),(0,0,0),-30).translate((0.2, -2.65, 1.35))
+        batt = cq.Workplane("XY").box(0.7, 0.6, 0.4).translate((0, -2.5, 0.2))
+        return base.union(panel).union(screen).union(brb).union(batt)
+
+    def build_fuel_farm(self):
+        # Tanks at Y=1.2. 
+        h2 = cq.Workplane("XY").circle(0.15).extrude(1.2).edges(">Z").fillet(0.1).translate((0.6, 1.2, 0))
+        b2h6 = cq.Workplane("XY").circle(0.15).extrude(1.2).edges(">Z").fillet(0.1).translate((0.0, 1.2, 0))
+        dewar = cq.Workplane("XY").circle(0.25).extrude(0.9).edges(">Z").fillet(0.1).translate((-0.7, 1.2, 0))
+        
+        # ULTRA-THIN "PAINT" DECALS (0.001m thick, positioned just off the surface to prevent clipping)
+        txt_h2 = cq.Workplane("XZ").text("HYDROGEN", 0.05, 0.001).translate((0.6, 1.049, 0.8))
+        txt_b2 = cq.Workplane("XZ").text("DIBORANE", 0.05, 0.001).translate((0.0, 1.049, 0.8))
+        txt_ch4 = cq.Workplane("XZ").text("LIQUID METHANE", 0.05, 0.001).translate((-0.7, 0.949, 0.45))
+        
+        return h2, b2h6, dewar, txt_h2, txt_b2, txt_ch4
+
+    def build_rigid_plumbing(self):
+        """Builds rigid, 90-degree industrial piping to guarantee no flying splines"""
+        # 1. HV Cable (Console to Magnet)
+        hv1 = cq.Workplane("XY").cylinder(0.6, 0.02).translate((0, -2.5, 1.6))  # Up from console
+        hv2 = cq.Workplane("XZ").cylinder(2.5, 0.02).translate((0, -1.25, 1.9)) # Across the gap
+        hv3 = cq.Workplane("XY").cylinder(0.5, 0.02).translate((0, 0, 1.65))    # Down to magnet
+        
+        # 2. Hydrogen Gas Line
+        h2_1 = cq.Workplane("XY").cylinder(0.4, 0.015).translate((0.6, 1.2, 1.4))  # Up from tank
+        h2_2 = cq.Workplane("YZ").cylinder(0.5, 0.015).translate((0.35, 1.2, 1.6)) # Left to center
+        h2_3 = cq.Workplane("XZ").cylinder(1.1, 0.015).translate((0.1, 0.65, 1.6)) # Forward to NBI
+        h2_4 = cq.Workplane("XY").cylinder(0.3, 0.015).translate((0.1, 0.1, 1.45)) # Down to NBI
+        
+        # 3. Diborane Gas Line
+        b2_1 = cq.Workplane("XY").cylinder(0.3, 0.015).translate((0.0, 1.2, 1.35))
+        b2_2 = cq.Workplane("XZ").cylinder(1.1, 0.015).translate((0.0, 0.65, 1.5))
+        b2_3 = cq.Workplane("YZ").cylinder(0.1, 0.015).translate((-0.05, 0.1, 1.5))
+        b2_4 = cq.Workplane("XY").cylinder(0.2, 0.015).translate((-0.1, 0.1, 1.4))
+
+        # 4. Methane Cryo Coolant Line
+        ch4_1 = cq.Workplane("XY").cylinder(0.5, 0.025).translate((-0.7, 1.2, 1.15))
+        ch4_2 = cq.Workplane("XZ").cylinder(1.2, 0.025).translate((-0.7, 0.6, 1.4))
+        ch4_3 = cq.Workplane("YZ").cylinder(0.65, 0.025).translate((-0.375, 0.0, 1.4))
+        ch4_4 = cq.Workplane("XY").cylinder(0.15, 0.025).translate((-0.05, 0.0, 1.325))
+
+        hv = hv1.union(hv2).union(hv3)
+        gas = h2_1.union(h2_2).union(h2_3).union(h2_4).union(b2_1).union(b2_2).union(b2_3).union(b2_4)
+        meth = ch4_1.union(ch4_2).union(ch4_3).union(ch4_4)
+        
+        return hv, gas, meth
+
+# ==========================================
+# ASSEMBLE AND EXPORT
+# ==========================================
+if __name__ == "__main__":
+    print("Welding Industrial Plumbing and Finalizing 3D Layout...")
+    tube = IntegratedOrbitronTube()
+    infra = LabInfrastructure()
+    assy = cq.Assembly(name="Orbitron_Test_Facility")
+
+    # Colors
+    c_niobium = cq.Color(0.8, 0.8, 0.85)   
+    c_dec     = cq.Color(0.8, 0.6, 0.1)    
+    c_cath    = cq.Color(0.2, 0.8, 0.9)    
+    c_ceramic = cq.Color(0.9, 0.9, 0.9)    
+    c_magnet  = cq.Color(0.2, 0.2, 0.2)    
+    c_nbi     = cq.Color(0.3, 0.6, 0.4)    
+    c_table   = cq.Color(0.15, 0.15, 0.15)    
+    c_h2      = cq.Color(0.8, 0.1, 0.1)    
+    c_b2h6    = cq.Color(0.1, 0.6, 0.2)    
+    c_dewar   = cq.Color(0.7, 0.7, 0.8)    
+    c_hv      = cq.Color(0.9, 0.4, 0.0)    
+    
+    # Stencil Paint Colors
+    c_stencil_w = cq.Color(0.9, 0.9, 0.9)  # White Paint
+    c_stencil_b = cq.Color(0.1, 0.1, 0.1)  # Black Paint
+
+    # Add Lab Hardware
+    table_body, table_label = infra.build_table()
+    assy.add(table_body, name="Optics_Table", color=c_table)
+    assy.add(table_label, name="Decal_Table_Placard", color=c_stencil_w)
+    
+    assy.add(infra.build_console(), name="Operator_Console", color=c_table)
+    
+    # Add Tanks and Stencil Decals
+    h2, b2h6, dewar, t_h2, t_b2, t_ch4 = infra.build_fuel_farm()
+    assy.add(h2, name="Tank_Hydrogen", color=c_h2)
+    assy.add(b2h6, name="Tank_Diborane", color=c_b2h6)
+    assy.add(dewar, name="Tank_Cryo_Methane", color=c_dewar)
+    assy.add(t_h2, name="Decal_H2", color=c_stencil_w)
+    assy.add(t_b2, name="Decal_B2H6", color=c_stencil_w)
+    assy.add(t_ch4, name="Decal_CH4", color=c_stencil_b)
+    
+    # Add RIGID Plumbing
+    hv, gas, meth = infra.build_rigid_plumbing()
+    assy.add(hv, name="High_Voltage_Umbilical", color=c_hv)
+    assy.add(gas, name="Fuel_Gas_Lines", color=cq.Color(0.2, 0.2, 0.2))
+    assy.add(meth, name="Cryo_Methane_Piping", color=c_niobium)
+
+    # Reactor Sub-Assembly
+    anode, dec, cath, ins, mag, nbi = tube.build()
+    r_assy = cq.Assembly(name="Reactor_Core")
+    r_assy.add(anode, name="Anode", color=c_niobium)
+    r_assy.add(dec, name="DEC_Grid", color=c_dec)
+    r_assy.add(cath, name="Cathode", color=c_cath)
+    r_assy.add(ins, name="Insulators", color=c_ceramic)
+    r_assy.add(mag, name="Magnet", color=c_magnet)
+    r_assy.add(nbi, name="NBI_Injector", color=c_nbi)
+    
+    # Rotate local Z to align with global X. Placed exactly at Z=1.25
+    assy.add(r_assy, name="3_5MW_Tube", loc=cq.Location(cq.Vector(0, 0, 1.25), cq.Vector(0, 1, 0), 90))
+
+    output_file = "orbitron_lab_v5.gltf"
+    assy.save(output_file)
+    print(f"Success! CAD saved to {output_file}") 
+We import this file into Blender with the "Files > Import" dialog. It is not a blender-native file. I'm not sure why we chose it as a target, that's just the vibe! Blender has a variety of non-Blender formats that it can import, for example:
+
+Article content
+Non-Blender formats that Blender can import
+After reading our glTF file in, we see this parts list:
+
+Article content
+Orbitron test stand parts list
+Blender produces this visualization of the assembled parts:
+
+Article content
+Orbitron test stand Blender rendering
+Operating the Orbitron test stand in a hangar in FlightGear
+Here we give details on how to model our 3.5 MW p-B11 reactor test stand as a "flyable" ground unit in FlightGear.
+
+The Blender to AC3D Export Pipeline
+FlightGear uses the .ac format (AC3D). To get your model out of Blender:
+
+Ensure your hierarchy is preserved. The meshes must be named exactly as you specified (`Screen`, Big_Red_Button, Throttle_Slider).
+Set your Blender orientation before exporting: -X is Forward, +Y is Right, +Z is Up.
+Export as orbitron.ac.
+
+FlightGear’s Canvas system does not natively decode .mp4 video. To animate the WarpX PIC cross-section, you must render the MP4 to a .png sequence or sprite sheet. For this implementation, I will include a Canvas UI that renders dynamic 0D telemetry and loads a static image (which you can later expand into a Nasal frame-cycler).
+
+Directory Structure
+Create a new folder in your FlightGear Aircraft directory called Orbitron-TestStand.
+
+Orbitron-TestStand/
+├── Orbitron-set.xml               (Main configuration file)
+├── Models/
+│   ├── Orbitron.xml               (3D Model configuration)
+│   ├── orbitron.ac                (Your exported Blender model)
+│   └── warpx_frame.png            (A still from your PIC simulation)
+├── Systems/
+│   └── orbitron-jsbsim.xml        (The 0D physics and BOP math)
+├── Nasal/
+│   └── reactor_ui.nas             (Canvas 3D screen telemetry script)
+└── Sounds/
+    ├── sound.xml                  (Audio configuration)
+    └── reactor_audio_heavy.wav    (Synthesized reactor sound)
+JSBSim Physics Model (`Systems/orbitron-jsbsim.xml`)
+We are modeling our static test stand as an aircraft in FlightGear. It doesn't go anywhere, but from FlightGear's perspective, it is such. FlightGear uses JSBSim to handle any math or physics involved in modeling the aircraft. JSBSim is a multi-platform, general purpose object-oriented Flight Dynamics Model (FDM) written in C++. JSBSim needs an FDM, even for a static test stand. We will define an "empty" aerodynamic shell bound to the ground, and build a custom 0D Reactor system using JSBSim fcs_function blocks. This is contained in file orbitron-jsbsim.xml.
+
+<?xml version="1.0"?>
+<fdm_config name="Orbitron-TestStand" version="2.0" release="BETA"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="http://jsbsim.sourceforge.net/JSBSim.xsd">
+
+    <metrics>
+        <wingarea  unit="FT2"> 10.0 </wingarea>
+        <wingspan  unit="FT" >  5.0 </wingspan>
+        <wing_incid unit="DEG"> 0.0 </wing_incid>
+        <chord     unit="FT" >  2.0 </chord>
+        <htailarea unit="FT2">  0.0 </htailarea>
+        <htailarm  unit="FT" >  0.0 </htailarm>
+        <vtailarea unit="FT2">  0.0 </vtailarea>
+        <vtailarm  unit="FT" >  0.0 </vtailarm>
+        <location name="AERORP" unit="IN"> <x>0</x> <y>0</y> <z>0</z> </location>
+        <location name="CG"     unit="IN"> <x>0</x> <y>0</y> <z>0</z> </location>
+    </metrics>
+
+    <mass_balance>
+        <!-- Boosted inertia so it acts like a heavy, stationary object -->
+        <ixx unit="SLUG*FT2"> 10000 </ixx>
+        <iyy unit="SLUG*FT2"> 10000 </iyy>
+        <izz unit="SLUG*FT2"> 10000 </izz>
+        <emptywt unit="LBS" > 5000 </emptywt>
+        <location name="CG" unit="IN"> <x>0</x> <y>0</y> <z>0</z> </location>
+    </mass_balance>
+
+    <ground_reactions>
+        <!-- 4-Point Stance to prevent tipping -->
+        <contact type="BOGEY" name="Left_Front">
+            <location unit="IN"> <x>-50</x> <y>-50</y> <z>-20</z> </location>
+            <static_friction>  1.0 </static_friction>
+            <dynamic_friction> 1.0 </dynamic_friction>
+            <spring_coeff unit="LBS/FT"> 50000.0 </spring_coeff>
+            <damping_coeff unit="LBS/FT/SEC"> 10000.0 </damping_coeff>
+        </contact>
+        <contact type="BOGEY" name="Right_Front">
+            <location unit="IN"> <x>-50</x> <y>50</y> <z>-20</z> </location>
+            <static_friction>  1.0 </static_friction>
+            <dynamic_friction> 1.0 </dynamic_friction>
+            <spring_coeff unit="LBS/FT"> 50000.0 </spring_coeff>
+            <damping_coeff unit="LBS/FT/SEC"> 10000.0 </damping_coeff>
+        </contact>
+        <contact type="BOGEY" name="Left_Rear">
+            <location unit="IN"> <x>50</x> <y>-50</y> <z>-20</z> </location>
+            <static_friction>  1.0 </static_friction>
+            <dynamic_friction> 1.0 </dynamic_friction>
+            <spring_coeff unit="LBS/FT"> 50000.0 </spring_coeff>
+            <damping_coeff unit="LBS/FT/SEC"> 10000.0 </damping_coeff>
+        </contact>
+        <contact type="BOGEY" name="Right_Rear">
+            <location unit="IN"> <x>50</x> <y>50</y> <z>-20</z> </location>
+            <static_friction>  1.0 </static_friction>
+            <dynamic_friction> 1.0 </dynamic_friction>
+            <spring_coeff unit="LBS/FT"> 50000.0 </spring_coeff>
+            <damping_coeff unit="LBS/FT/SEC"> 10000.0 </damping_coeff>
+        </contact>
+    </ground_reactions>
+
+    <!-- REQUIRED BY JSBSIM PARSER EVEN IF EMPTY -->
+    <aerodynamics>
+    </aerodynamics>
+
+    <!-- REACTOR 0D MODEL -->
+    <system name="p-B11_Reactor">
+        <channel name="Reactor Input">
+            <fcs_function name="systems/reactor/nbi-sccm">
+                <function>
+                    <product>
+                        <!-- CHANGED: Reading FG hardware input directly -->
+                        <property>/controls/engines/engine[0]/throttle</property>
+                        <value> 100.0 </value> 
+                    </product>
+                </function>
+            </fcs_function>
+
+            <switch name="systems/reactor/active">
+                <default value="0.0"/>
+                <test value="1.0">
+                    /sim/model/reactor/startup-trigger == 1
+                </test>
+            </switch>
+        </channel>
+
+        <channel name="Reactor Output">
+            <fcs_function name="systems/reactor/gross-power-mw">
+                <function>
+                    <product>
+                        <property>systems/reactor/active</property>
+                        <property>/controls/engines/engine[0]/throttle</property>
+                        <value> 3.5 </value> 
+                    </product>
+                </function>
+            </fcs_function>
+
+            <fcs_function name="systems/reactor/heat-kw">
+                <function>
+                    <product>
+                        <property>systems/reactor/active</property>
+                        <property>/controls/engines/engine[0]/throttle</property>
+                        <value> 400.0 </value> 
+                    </product>
+                </function>
+            </fcs_function>
+
+            <fcs_function name="systems/reactor/current-amps">
+                <function>
+                    <quotient>
+                        <property>systems/reactor/gross-power-mw</property>
+                        <value> 4.0 </value> 
+                    </quotient>
+                </function>
+            </fcs_function>
+
+            <fcs_function name="systems/reactor/q-factor">
+                <function>
+                    <product>
+                        <property>systems/reactor/active</property>
+                        <value> 26.9 </value> 
+                    </product>
+                </function>
+            </fcs_function>
+        </channel>
+    </system>
+</fdm_config>
+FlightGear Integration
+File Orbitron-set.xml connects the FDM, model, sounds, and Nasal script.
+
+<?xml version="1.0"?>
+<PropertyList>
+    <sim>
+        <description>Orbitron p-B11 Test Stand</description>
+        <author>Senior Aerospace Systems Engineer</author>
+        <status>alpha</status>
+        
+        <flight-model>jsb</flight-model>
+        <aero>orbitron-jsbsim</aero>
+        <aero-dir>Systems</aero-dir>
+
+        <model>
+            <path>Aircraft/Orbitron-TestStand/Models/Orbitron.xml</path>
+        </model>
+
+        <sound>
+            <path>Aircraft/Orbitron-TestStand/Sounds/sound.xml</path>
+        </sound>
+
+        <!-- Initialize custom properties -->
+        <model>
+            <reactor>
+                <startup-trigger type="bool">false</startup-trigger>
+            </reactor>
+        </model>
+    </sim>
+
+    <!-- Load the Canvas Nasal Script -->
+    <nasal>
+        <reactor_ui>
+            <file>Aircraft/Orbitron-TestStand/Nasal/reactor_ui.nas</file>
+        </reactor_ui>
+    </nasal>
+</PropertyList>
+3D Model Configuration and Clickables
+File Orbitron.xml handles the 3D model. We add an <animation> to physically translate the Throttle based on your joystick, and a <pick> animation on the Red Button to set a boolean trigger for startup.
+
+<?xml version="1.0"?>
+<PropertyList>
+    <path>orbitron.ac</path>
+
+    <!-- CLICKABLE STARTUP TRIGGER -->
+    <!-- Temporarily mapped to the Operator_Console until the Button is exported -->
+    <animation>
+        <type>pick</type>
+        <object-name>Operator_Console</object-name>
+        <action>
+            <button>0</button>
+            <repeatable>false</repeatable>
+            <binding>
+                <command>property-assign</command>
+                <property>/sim/model/reactor/startup-trigger</property>
+                <value>1</value>
+            </binding>
+        </action>
+    </animation>
+
+    <!-- THROTTLE ANIMATION DISABLED 
+    <animation>
+        <type>translate</type>
+        <object-name>Throttle_Slider</object-name>
+        <property>/controls/engines/engine[0]/throttle</property>
+        <factor>0.2</factor> 
+        <axis>
+            <x>-1</x> 
+            <y>0</y>
+            <z>0</z>
+        </axis>
+    </animation>
+    -->
+</PropertyList>
+Audio Integration
+File sound.xml triggers our heavy wav file when we click the Red Button in 3D.
+
+<?xml version="1.0"?>
+<PropertyList>
+    <fx>
+        <reactor-start>
+            <name>Reactor Heavy Audio</name>
+            <!-- FG resolves sound paths relative to the aircraft ROOT folder -->
+            <path>Sounds/reactor_audio_heavy.wav</path>
+            <condition>
+                <property>/sim/model/reactor/startup-trigger</property>
+            </condition>
+            <volume>
+                <factor>1.0</factor>
+            </volume>
+        </reactor-start>
+    </fx>
+</PropertyList>
+The 3D UI Mesh Canvas System
+Nasal script reactor_ui.nas creates an off-screen HTML5-like <canvas>, paints text and our PIC WarpX frame onto it, binds it to the Screen object in your Blender model, and creates a timer to poll JSBSim's 0D telemetry continuously.
+
+var ReactorUI = {
+    new: func() {
+        var m = { parents: [ReactorUI] };
+        
+        # 1. Create a 1024x1024 Canvas texture
+        m.canvas = canvas.new({
+            "name": "Reactor_Telemetry",
+            "size": [1024, 1024],
+            "view": [1024, 1024],
+            "mipmapping": 1
+        });
+
+        # 2. Place this Canvas texture ON the 3D model object named "Screen"
+        m.canvas.addPlacement({"node": "Screen"});
+        
+        # 3. Create a drawing group
+        m.root = m.canvas.createGroup();
+        
+        # Background
+        m.bg = m.root.createChild("path")
+                     .rect(0, 0, 1024, 1024)
+                     .setColorFill(0.05, 0.05, 0.1);
+
+        # Title
+        m.root.createChild("text")
+              .setText("p-B11 ORBITRON TELEMETRY")
+              .setFontSize(50)
+              .setColor(1, 0.8, 0) # Gold
+              .setAlignment("center-center")
+              .setTranslation(512, 100);
+
+        # Telemetry Text Elements
+        m.txt_nbi   = m.create_text(200, "NBI Flow: 0.00 sccm");
+        m.txt_power = m.create_text(300, "Gross Power: 0.00 MW");
+        m.txt_amps  = m.create_text(400, "DEC Current: 0.000 A");
+        m.txt_heat  = m.create_text(500, "Brem. Heat: 0.00 kW");
+        m.txt_q     = m.create_text(600, "Q-Factor: 0.00");
+
+        # Render PIC Image dynamically based on actual folder location
+        var aircraft_dir = getprop("/sim/aircraft-dir");
+        m.pic_img = m.root.createChild("image")
+                          .setFile(aircraft_dir ~ "/Models/warpx_frame.png")
+                          .setTranslation(200, 650)
+                          .setSize(624, 350);
+
+        # 4. Start Telemetry Update Loop
+        m.timer = maketimer(0.1, m, ReactorUI.update);
+        m.timer.start();
+        
+        return m;
+    },
+    
+    create_text: func(y, initial_text) {
+        return me.root.createChild("text")
+                     .setText(initial_text)
+                     .setFont("LiberationFonts/LiberationMono-Bold.ttf")
+                     .setFontSize(40)
+                     .setColor(0, 1, 0) # Green text
+                     .setAlignment("center-center")
+                     .setTranslation(512, y);
+    },
+
+    update: func() {
+        # Fetch properties from JSBSim
+        var nbi   = getprop("/fdm/jsbsim/systems/reactor/nbi-sccm") or 0.0;
+        var power = getprop("/fdm/jsbsim/systems/reactor/gross-power-mw") or 0.0;
+        var amps  = getprop("/fdm/jsbsim/systems/reactor/current-amps") or 0.0;
+        var heat  = getprop("/fdm/jsbsim/systems/reactor/heat-kw") or 0.0;
+        var q     = getprop("/fdm/jsbsim/systems/reactor/q-factor") or 0.0;
+
+        # Update Canvas Text Elements
+        me.txt_nbi.setText(sprintf("NBI Flow: %.2f sccm", nbi));
+        me.txt_power.setText(sprintf("Gross Power: %.3f MW", power));
+        me.txt_amps.setText(sprintf("DEC Current: %.3f A", amps));
+        me.txt_heat.setText(sprintf("Brem. Heat: %.1f kW", heat));
+        me.txt_q.setText(sprintf("Q-Factor: %.2f", q));
+    }
+};
+
+# Initialize when Nasal loads
+var sys = ReactorUI.new();
+Operation
+1. Camera and View Controls
+Pan (Look Around): Press Right-Click once. Your mouse cursor will disappear (turning into a crosshair). Moving your physical mouse will now pan your head around.
+Zoom In: Press x
+Zoom Out (Move Back): Press Shift + X
+Cycle Cameras: Press v to cycle through different external/internal camera positions (Cockpit, Helicopter, Chase, etc.). Press Shift + V to cycle backwards through that same list.
+
+2. How to Start the Reactor
+Since we temporarily mapped the "Big Red Button" animation to the entire console earlier to bypass the Blender export bug, here is your startup sequence:
+
+Free the Cursor: If you are in "Pan" mode, press Right-Click again to get your standard mouse pointer back on the screen.
+Trigger Ignition: Move your mouse pointer over the Operator Console mesh (or the table) and Left-Click.
+Throttle Up: Push your physical joystick throttle forward.
+
+So here it is:
+
+Article content
+Jumbled up fusion reactor test stand left on the end of an active runway in late afternoon
+It's not in a hangar. It has issues:
+
+It pops up on the business end of a runway. I would rather find the hangar and put it there.
+If you click the control panel it plays the reactor sounds. It is supposed to project the movie onto the control panel but that's not happening. More satisfying would be to wire up a control panel with actual displays that get run through JSBSim. We aren't there yet.
+The parts are upside and sideways versus what is shown in Blender. There's a fix for that.
+
+So, lots more to do, but you get the flavor of it.

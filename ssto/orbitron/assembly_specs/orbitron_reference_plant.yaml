@@ -136,14 +136,14 @@ controls_mapping:
   reactor_active: /sim/model/reactor/startup-trigger
   operator_spec: orbitron_operator_console_spec.yaml
 
-ssto_optional_not_required_for_thrust:
-  - DEC_Grid
+ssto_optional_pad_mesh:
   - Tank_Cryo_Methane
   - Cryo_Methane_Piping
 
 explicitly_not_the_propulsion_mechanism:
-  - alphas_impinging_on_DEC_as_primary_thrust_coupling
-  - multi_MV_potential_on_inlet_air
+  - direct_energy_conversion_grid_as_primary_power_export
+  - multi_MV_electrical_grid_tie_or_stepdown_plant
+  - multi_MV_potential_on_inlet_air_as_main_heating_mode
   - cruise_limited_by_onboard_battery_driving_compressor
 
 surrogate_note: |

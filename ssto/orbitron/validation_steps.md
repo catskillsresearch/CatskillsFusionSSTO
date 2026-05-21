@@ -1,0 +1,403 @@
+# Orbitron validation steps — first-principles proof chain
+
+This document defines a **single forward chain** of simulations and exports. Each step consumes artifacts from the previous step under fixed paths in `build/orbitron/chain/`.
+
+**Related:**
+
+- **Proof Suite user guide (interactive GUI):** [`PROOF_SUITE.md`](PROOF_SUITE.md)
+- Fidelity ladder: [`simulator/SIMULATOR.md`](simulator/SIMULATOR.md)
+- Unobtanium specs: [`UNOBTANIUM.md`](UNOBTANIUM.md)
+- Core plasma: [`assembly_specs/orbitron_avalanche_core.yaml`](assembly_specs/orbitron_avalanche_core.yaml)
+
+---
+
+## Proof Suite GUI (recommended for iterative design)
+
+See **[`PROOF_SUITE.md`](PROOF_SUITE.md)** for launch, layout, per-step controls/visualizations, proof-mode rules, and why `design_validated` may be false in Tier 3.
+
+```bash
+poetry run python scripts/run_orbitron_proof_suite.py
+```
+
+---
+
+## Batch pipeline (CI / reproducible)
+
+From repo root (after `poetry install --with simulator`):
+
+```bash
+# Full chain (steps 00–08). Step 09 if you want inverse unobtanium solve:
+chmod +x tools/orbitron_proof_chain/*.sh
+tools/orbitron_proof_chain/run_all.sh
+
+# Optional: quantify minimum knobs after forward chain fails specs
+RUN_INVERSE=1 tools/orbitron_proof_chain/run_all.sh
+```
+
+**Without WarpX** (PIC skipped; unity ρ norms — Tier 2 not closed):
+
+```bash
+SKIP_PIC=1 tools/orbitron_proof_chain/run_all.sh
+```
+
+**With WarpX** (set interpreter that has `pywarpx`):
+
+```bash
+export WARPX_PYTHON=/path/to/warpx-python
+tools/orbitron_proof_chain/run_all.sh
+```
+
+**Pad levers** (override before `run_all.sh`):
+
+```bash
+export CHAIN_THROTTLE=0.85 CHAIN_COMPRESSOR=0.7 CHAIN_CATHODE_PULSE=0.75
+```
+
+---
+
+## Fixed artifact paths
+
+| Path | Step | Contents |
+|------|------|----------|
+| `build/orbitron/chain/chain_config.json` | 00 | Master config: geometry, pad, injectants, step paths |
+| `build/orbitron/generated/picmi_overrides.json` | 00 | PICMI numeric overrides from YAML |
+| `build/orbitron/chain/00_spec/picmi_overrides.json` | 00 | Copy used by step 01 |
+| `build/orbitron/chain/00_spec/step_ok.json` | 00 | Step complete marker |
+| `build/orbitron/chain/01_pic/diags/` | 01 | WarpX `density_diag*` plotfiles |
+| `build/orbitron/chain/02_pic_norms/pic_norms.json` | 02 | `rho_e_norm`, `rho_beam_norm` |
+| `build/orbitron/chain/03_fusion_channel/fusion_channel.json` | 03 | Clump index, laminar metrics, channel power |
+| `build/orbitron/chain/04_fueling/fueling.json` | 04 | `n_p`, `n_B`, `T_i`, ⟨σv⟩ |
+| `build/orbitron/chain/05_burn/burn.json` | 05 | `fusion_power_mw`, shortfall vs target |
+| `build/orbitron/chain/06_plant/plant.json` | 06 | Full steady state + U1–U4 violations |
+| `build/orbitron/chain/07_closure/closure.json` | 07 | Jet closure errors |
+| `build/orbitron/chain/08_export/design_validation.yaml` | 08 | Spec export (UNOBTANIUM / test stand) |
+| `build/orbitron/chain/09_solve/solve.json` | 09 | Inverse unobtanium (optional) |
+
+Every step also writes `step_ok.json` in its directory (see `chain_config.json` → `steps`).
+
+---
+
+## Proof-mode rules
+
+When `ORBITRON_PROOF_CHAIN=1` (set by `chain_config.sh` / `run_all.sh`):
+
+| Rule | Implementation |
+|------|----------------|
+| `fusion_reactivity_scale = 1.0` | `chain_config.json` + `base_inputs()` |
+| No surrogate blend for gross power | `plant_0d.py`: `physics_weight=1.0`, `calibration_factor=1.0` |
+| No fusion-channel blend into gross MW | `plant_0d.py` skips 55/45 channel merge in proof mode |
+| Export tagged | `design_validation.yaml` → `summary.proof_chain: true` |
+
+**Inverse solve (step 09)** clears proof mode so knobs can move — use **only** to document **required** unobtanium performance, not as first-principles proof.
+
+---
+
+## Forward chain overview
+
+```mermaid
+flowchart TD
+  S0[0 Spec compile] --> S1[1 PIC at pad point]
+  S1 --> S2[2 PIC reduce → rho norms]
+  S2 --> S3[3 Laminar s–r channel]
+  S3 --> S4[4 Fueling → n_p n_B]
+  S4 --> S5[5 p-11B burn no scale]
+  S5 --> S6[6 0D plant + thermal]
+  S6 --> S7[7 Jet closure]
+  S7 --> S8[8 Validation export]
+  S8 --> S9[9 Inverse solve optional]
+```
+
+| Label | Meaning |
+|--------|---------|
+| **Run today** | Implemented in `tools/orbitron_proof_chain/` |
+| **Tier 4** | Required for honest *first-principles proof*; partially future |
+
+---
+
+## Step-by-step (apps, dependencies, gates)
+
+### Step 0 — Freeze design SSOT
+
+| | |
+|--|--|
+| **Script** | `tools/orbitron_proof_chain/chain_00_spec.sh` |
+| **Also runs** | `tools/compile_physics_surrogate_spec.py` |
+| **Inputs** | `ssto/orbitron/assembly_specs/orbitron_physics_surrogate.yaml`, `orbitron_avalanche_core.yaml`, `orbitron_lab.yaml` |
+| **Outputs** | `chain_config.json`, `00_spec/picmi_overrides.json` |
+| **Depends on** | Nothing |
+| **Gate** | Overrides match intended geometry (600 kV, 2 T, bore radii, length) |
+
+```bash
+tools/orbitron_proof_chain/chain_00_spec.sh
+```
+
+---
+
+### Step 1 — Electrostatic / beam PIC at pad run point
+
+| | |
+|--|--|
+| **Script** | `tools/orbitron_proof_chain/chain_01_pic.sh` |
+| **App** | `ssto/orbitron/laminar_flow_2d_arcjet.py` (WarpX PICMI) |
+| **Inputs** | Step 0 `picmi_overrides.json` + pad levers from `chain_config.json` |
+| **Outputs** | `01_pic/diags/density_diag*` |
+| **Depends on** | Step 0 |
+| **Gate** | Run completes; finite ρ_e and beam fields on last frame |
+| **Proves today** | **Tier 2** — density/beam coupling, **not** fusion Q |
+
+```bash
+export WARPX_PYTHON="${WARPX_PYTHON:-python3}"   # must have pywarpx
+tools/orbitron_proof_chain/chain_01_pic.sh
+# or: SKIP_PIC=1 tools/orbitron_proof_chain/chain_01_pic.sh
+```
+
+---
+
+### Step 2 — Reduce PIC → coupling numbers
+
+| | |
+|--|--|
+| **Script** | `poetry run python tools/orbitron_proof_chain/chain_02_reduce.py` |
+| **App** | `tools/build_surrogate_map.py` reducers (`yt` on last plotfile) |
+| **Inputs** | Step 1 plotfiles |
+| **Outputs** | `02_pic_norms/pic_norms.json` → `rho_e_norm`, `rho_beam_norm` |
+| **Depends on** | Step 1 |
+| **Gate** | Norms in ~0.2–3.0 (plant clamps) |
+
+```bash
+poetry run python tools/orbitron_proof_chain/chain_02_reduce.py
+```
+
+---
+
+### Step 3 — Laminar / clump physics (longitudinal s–r)
+
+| | |
+|--|--|
+| **Script** | `poetry run python tools/orbitron_proof_chain/chain_03_fusion_channel.py` |
+| **App** | `ssto/orbitron/simulator/longitudinal/fusion_channel_sr.py` |
+| **GUI equivalent** | Simulator → **Longitudinal 2D** → **1 — Fusion channel s–r** |
+| **Inputs** | Step 0 geometry + pad; laminar ON/OFF from config |
+| **Outputs** | `03_fusion_channel/fusion_channel.json` (clump index, reduction ratio, P_int) |
+| **Depends on** | Steps 0, 2 |
+| **Gate** | Laminar ON: clump index ≤ ~2.8, reduction ≥ ~1.25× vs OFF (validation **LAMINAR** / **LAMINAR2**) |
+| **Proves today** | Relaminarization breaks clumps in validation channel |
+| **Tier 4** | Drive mixing from PIC moments, not heuristic gains only |
+
+Reference video intent: [Orbitron-style particle / clumping](https://youtu.be/_7Hfyz-JIDA?si=IBN4ZQmWwQKrITxY) — we use **longitudinal s–r**, not axial end-on.
+
+| Video view | Simulator |
+|------------|-----------|
+| Axial cross-section (r–θ) | Longitudinal **s–r** along bore |
+| Red off-center clump | High clump index, laminar OFF |
+| Smooth ring / scattered particles | Lower clump index, laminar ON |
+
+---
+
+### Step 4 — Fueling → reactant densities
+
+| | |
+|--|--|
+| **Script** | `poetry run python tools/orbitron_proof_chain/chain_04_fueling.py` |
+| **App** | `fusion_pb11.evaluate_fusion_pb11` (density path) |
+| **Inputs** | H₂/B₂H₆ sccm; step 2 `rho_e_norm` → confinement |
+| **Outputs** | `04_fueling/fueling.json` |
+| **Depends on** | Steps 2, 0 |
+| **Gate** | Documented n_p, n_B, T_i; τ and volume assumptions explicit in `fusion_pb11.py` |
+| **Tier 4** | n from PIC volume averages or 1D transport along s |
+
+---
+
+### Step 5 — p-¹¹B burn power (forward headline)
+
+| | |
+|--|--|
+| **Script** | `poetry run python tools/orbitron_proof_chain/chain_05_burn.py` |
+| **App** | `fusion_pb11` (proof: `fusion_reactivity_scale = 1`) |
+| **Inputs** | Step 4 |
+| **Outputs** | `05_burn/burn.json` — `fusion_power_mw`, `shortfall_mw` vs 3.5 MW |
+| **Depends on** | Step 4 |
+| **Gate** | Power is **computed**, not tuned; record shortfall |
+| **Tier 4** | ⟨σv⟩ from cross-section tables or PIC reaction rate |
+
+---
+
+### Step 6 — 0D plant + unobtanium constraints (U1–U4)
+
+| | |
+|--|--|
+| **Script** | `poetry run python tools/orbitron_proof_chain/chain_06_plant.py` |
+| **Apps** | `plant_0d.py`, `thermal_systems.py` |
+| **Inputs** | Steps 2, 5; proof env |
+| **Outputs** | `06_plant/plant.json` |
+| **Depends on** | Steps 2, 5 |
+| **Gate** | Which of U1–U4 pass at scale = 1 |
+
+| Check | Source | Unobtanium knob if fail |
+|--------|--------|------------------------|
+| U1 Cathode \|E\| | geometry V, gap | `field_emission_margin` |
+| U2 Wall / CH₄ | q_wall | `max_wall_heat_flux_W_m2`, `ch4_cooling_effectiveness` |
+| U3 HTS | B, length, bore | `hts_capability_scale` |
+| U4 Beam / density | beam norm, n | `beam_coupling_scale`, fueling / reactivity path |
+
+```bash
+ORBITRON_PROOF_CHAIN=1 poetry run python tools/orbitron_proof_chain/chain_06_plant.py
+```
+
+---
+
+### Step 7 — Propulsive / plant closure
+
+| | |
+|--|--|
+| **Script** | `poetry run python tools/orbitron_proof_chain/chain_07_closure.py` |
+| **Identity** | F² ≈ 2 η P_gross ṁ; P_from_thrust ≈ P_jet |
+| **Inputs** | Step 6 steady state |
+| **Outputs** | `07_closure/closure.json` |
+| **Depends on** | Step 6 |
+| **Gate** | `closure_rel_error` ≤ 0.12 |
+
+Optional cross-check: `python tools/surrogate_closure_check.py --throttle … --compressor …`
+
+---
+
+### Step 8 — Validation artifact (spec document)
+
+| | |
+|--|--|
+| **Script** | `poetry run python tools/orbitron_proof_chain/chain_08_export.py` |
+| **Apps** | `validation.validate_design`, `export_validation.export_validation_yaml` |
+| **Inputs** | Full chain |
+| **Outputs** | `08_export/design_validation.yaml` |
+| **Depends on** | Steps 3–7 |
+| **Gate** | `design_validated: true` only if all proof-mode checks pass; otherwise YAML records **gaps** |
+
+```bash
+ORBITRON_PROOF_CHAIN=1 poetry run python tools/orbitron_proof_chain/chain_08_export.py
+```
+
+GUI equivalent: simulator **Validate design** → **Export YAML**.
+
+---
+
+### Step 9 — Inverse pass (optional; not proof)
+
+| | |
+|--|--|
+| **Script** | `RUN_INVERSE=1` … `chain_09_solve.py` |
+| **App** | `solve.solve_unobtanium_requirements` |
+| **Inputs** | Step 8 failure list |
+| **Outputs** | `09_solve/solve.json` — required knobs |
+| **Interpretation** | **Minimum unobtanium** to hit target MW if forward model is taken seriously |
+
+```bash
+RUN_INVERSE=1 poetry run python tools/orbitron_proof_chain/chain_09_solve.py
+```
+
+---
+
+## Fidelity ladder (what each tier proves)
+
+| Tier | Mechanism | What it proves |
+|------|-----------|----------------|
+| **0** | `pad_startup.py` | Correct startup sequence and interlocks |
+| **1** | `plant_0d` + `validation.py` | U1–U4 inequalities, 3.5 MW target, jet closure |
+| **2** | WarpX → ρ/beam norms (steps 1–2) | Density/beam coupling at 600 kV — **not** fusion Q |
+| **3** | `fusion_pb11`, `fusion_channel_sr` | p-¹¹B ⟨σv⟩(T_i) × fueling × volume; longitudinal clump/laminar validation |
+| **3b** | Step 3 | Laminar relaminarization vs clump index (design validation viz) |
+| **4** | *Future* | Transport/PIC-integrated reactivity; no analytical ⟨σv⟩ fit or surrogate blend |
+
+**Critical honesty:** WarpX (`laminar_flow_2d_arcjet.py`) does **not** integrate p-¹¹B fusion yield. It informs how well plasma fills the bore and beams deposit charge — not whether thermonuclear Q exceeds unity from first principles.
+
+---
+
+## When you can claim “first-principles proof of fusion”
+
+All of the following in **one forward run** (steps 0→8, proof mode):
+
+1. ⟨σv⟩ from **published tables or PIC**, not `pb11_reactivity_m3_s` alone, with `fusion_reactivity_scale = 1`.
+2. n_p, n_B, T_i from **PIC/transport**, not sccm×τ alone.
+3. **No** surrogate blend or CSV calibration to hit MW.
+4. Export documents **Tier 4** and external cross-check (literature or test-stand diagnostics).
+5. (Hardware) measured power/products agree with steps 5–6 within uncertainty.
+
+Until then, this chain is **progressive design refinement** toward that claim; step 9 documents unobtanium **margins** if the physics-only forward model misses 3.5 MW.
+
+---
+
+## Mapping chain → unobtanium components
+
+| Step | Refines |
+|------|---------|
+| 0–1 | **U1** cathode gap / voltage / emission feasibility |
+| 2 | **U4** beam coupling (PIC deposit vs assumed mA) |
+| 3 | Laminar **design** (shear, pulse, injectant mix) |
+| 4–5 | **U4** fueling + reactivity path |
+| 6 | **U2** wall + CH₄, **U3** HTS, gross power headline |
+| 7 | Plant η, thrust, mdot consistency |
+| 8 | Spec-ready YAML for UNOBTANIUM / test stand |
+| 9 | Minimum U1–U4 knobs if forward chain misses target |
+
+---
+
+## Individual commands (manual sequence)
+
+```bash
+# Environment
+export CHAIN_THROTTLE=0.85 CHAIN_COMPRESSOR=0.7 CHAIN_CATHODE_PULSE=0.75
+export WARPX_PYTHON="${WARPX_PYTHON:-python3}"   # or SKIP_PIC=1
+
+tools/orbitron_proof_chain/chain_00_spec.sh
+tools/orbitron_proof_chain/chain_01_pic.sh
+poetry run python tools/orbitron_proof_chain/chain_02_reduce.py
+poetry run python tools/orbitron_proof_chain/chain_03_fusion_channel.py
+poetry run python tools/orbitron_proof_chain/chain_04_fueling.py
+poetry run python tools/orbitron_proof_chain/chain_05_burn.py
+poetry run python tools/orbitron_proof_chain/chain_06_plant.py
+poetry run python tools/orbitron_proof_chain/chain_07_closure.py
+poetry run python tools/orbitron_proof_chain/chain_08_export.py
+# optional:
+RUN_INVERSE=1 poetry run python tools/orbitron_proof_chain/chain_09_solve.py
+```
+
+---
+
+## Classic simulator mapping (optional)
+
+| Chain step | Classic simulator tab |
+|------------|------------------------|
+| 0 | Geometry / Injectants tabs |
+| 1–2 | **Run WarpX PIC** |
+| 3 | **Longitudinal 2D** → fusion channel |
+| 4–6 | **Run 0D** + pad startup |
+| 7–8 | **Validation** → **Export YAML** |
+| 9 | **Solve unobtanium → target MW** |
+
+Use **Proof Suite** when you want one panel per chain step with dedicated plots; use the **classic** app for combined exploration.
+
+---
+
+## Pipeline source files
+
+| File | Role |
+|------|------|
+| `tools/orbitron_proof_chain/chain_config.sh` | Fixed paths, env vars |
+| `tools/orbitron_proof_chain/chain_lib.py` | Config, `base_inputs()`, step I/O |
+| `tools/orbitron_proof_chain/run_all.sh` | Run steps 00–08 (+09 if `RUN_INVERSE=1`) |
+| `tools/orbitron_proof_chain/chain_00_spec.sh` … `chain_01_pic.sh` | Shell entry points |
+| `tools/orbitron_proof_chain/chain_02_reduce.py` … `chain_09_solve.py` | Python steps |
+
+---
+
+## Tier 4 roadmap (not in pipeline yet)
+
+- Replace analytical ⟨σv⟩ with reactivity from reduced transport or published tables per T_i  
+- Couple WarpX moments → fusion rate (or explicit burn module)  
+- Automated regression against `surrogate_sweep_results.csv` on CI  
+- PIC-driven `fusion_channel_sr` mixing (not heuristic-only)
+
+See [`simulator/SIMULATOR.md`](simulator/SIMULATOR.md) § Tier 4 roadmap.
+
+---
+
+*Catskills Fusion SSTO — Orbitron test stand proof chain.*
