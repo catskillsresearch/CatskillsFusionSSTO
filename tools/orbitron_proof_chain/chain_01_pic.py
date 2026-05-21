@@ -12,6 +12,8 @@ _CHAIN_DIR = Path(__file__).resolve().parent
 _REPO = _CHAIN_DIR.parents[1]
 sys.path.insert(0, str(_REPO))
 
+from ssto.orbitron.simulator.warpx_env import apply_warpx_env, ensure_warpx_env, warpx_python_executable  # noqa: E402
+
 from tools.orbitron_proof_chain.chain_lib import (  # noqa: E402
     load_config,
     repo_root,
@@ -41,7 +43,8 @@ def main() -> int:
         raise FileNotFoundError(f"Missing {overrides}; run chain_00_spec.sh")
 
     script = repo_root() / "ssto" / "orbitron" / "laminar_flow_2d_arcjet.py"
-    warpx_py = os.environ.get("WARPX_PYTHON", "python3")
+    ensure_warpx_env()
+    warpx_py = warpx_python_executable()
     diags.mkdir(parents=True, exist_ok=True)
     cmd = [
         warpx_py,
@@ -62,7 +65,7 @@ def main() -> int:
         str(cfg["pic"]["diag_period"]),
     ]
     print("Running:", " ".join(cmd))
-    proc = subprocess.run(cmd, cwd=str(script.parent), check=False)
+    proc = subprocess.run(cmd, cwd=str(script.parent), env=apply_warpx_env(), check=False)
     if proc.returncode != 0:
         save_step("01", {"ok": False, "returncode": proc.returncode})
         return proc.returncode

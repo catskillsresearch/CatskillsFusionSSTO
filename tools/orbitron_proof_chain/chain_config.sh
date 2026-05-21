@@ -15,8 +15,13 @@ export CHAIN_THROTTLE="${CHAIN_THROTTLE:-0.85}"
 export CHAIN_COMPRESSOR="${CHAIN_COMPRESSOR:-0.7}"
 export CHAIN_CATHODE_PULSE="${CHAIN_CATHODE_PULSE:-0.75}"
 
-# PIC
-export WARPX_PYTHON="${WARPX_PYTHON:-python3}"
+# PIC — same WarpX paths as ./stand.sh (Poetry python + pywarpx site-packages)
+if command -v poetry >/dev/null 2>&1; then
+  eval "$(poetry env activate)"
+fi
+# shellcheck source=../warpx_paths.sh
+source "${REPO_ROOT}/tools/warpx_paths.sh"
+export WARPX_PYTHON="${WARPX_PYTHON:-python}"
 export CHAIN_PIC_STEPS="${CHAIN_PIC_STEPS:-500}"
 export CHAIN_PIC_DIAG_PERIOD="${CHAIN_PIC_DIAG_PERIOD:-100}"
 export SKIP_PIC="${SKIP_PIC:-0}"

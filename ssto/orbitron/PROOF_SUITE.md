@@ -14,8 +14,10 @@ The **Proof Suite** is a step-by-step interactive application for the first-prin
 
 ```bash
 poetry install --with simulator
-poetry run python scripts/run_orbitron_proof_suite.py
+./scripts/run_orbitron_proof_suite.sh
 ```
+
+Uses the same Poetry + WarpX paths as [`stand.sh`](../stand.sh) (`tools/warpx_paths.sh`).
 
 **Python version:** use **3.12 or 3.13** (not 3.15+). The project pins `python = ">=3.12,<3.15"` because PySide6 does not support 3.15 yet. If `poetry lock` fails with a PySide6 / Python 3.15 conflict, run `poetry env use python3.12` then `poetry lock` and `poetry install --with simulator`.
 
@@ -113,7 +115,13 @@ SKIP_PIC=1 tools/orbitron_proof_chain/run_all.sh
 RUN_INVERSE=1 tools/orbitron_proof_chain/run_all.sh
 ```
 
-With WarpX: `export WARPX_PYTHON=/path/to/python-with-pywarpx` before `run_all.sh`.
+**WarpX / pywarpx:** Use the same env as `./stand.sh` (Poetry + `WarpX/build/lib` on `PYTHONPATH` / `LD_LIBRARY_PATH`):
+
+```bash
+./scripts/run_orbitron_proof_suite.sh
+```
+
+Or after `eval "$(poetry env activate)"` and sourcing `tools/warpx_paths.sh`. Optional: `WARPX_PYTHON`, `WARPX_PYTHONPATH`. Without WarpX, enable **Skip WarpX** on step 01.
 
 ---
 

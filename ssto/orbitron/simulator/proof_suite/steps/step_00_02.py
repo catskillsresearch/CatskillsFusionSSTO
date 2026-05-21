@@ -17,6 +17,7 @@ from PySide6.QtWidgets import (
     QSpinBox,
     QSplitter,
     QVBoxLayout,
+    QWidget,
 )
 
 from ssto.orbitron.simulator.gui.startup_panel import StartupPanel
@@ -24,7 +25,8 @@ from ssto.orbitron.simulator.proof_suite.workers import WarpXWorker
 from ssto.orbitron.simulator.types import PadStartupState
 
 from ssto.orbitron.simulator.proof_chain.runners import (
-    load_pic_slice_2d,
+    list_pic_plotfiles,
+    load_pic_slice_2d_with_error,
     run_step_00,
     run_step_02,
 )
@@ -176,12 +178,20 @@ class Step01PicPanel(ProofStepPanel):
         )
         self.log.setMaximumHeight(220)
 
+        self.pic_steps = QSpinBox()
+        self.pic_steps.setRange(50, 5000)
+        self.pic_steps.setValue(int(state.config["pic"]["steps"]))
+        self.chk_skip = QCheckBox("Skip WarpX (dev — unity ρ norms in step 2)")
+        self.chk_skip.setChecked(bool(state.config.get("gui", {}).get("skip_pic", False)))
+
         split = QSplitter()
         pad_scroll = QScrollArea()
         pad_scroll.setWidgetResizable(True)
         pad_w = QWidget()
         pad_lay = QVBoxLayout(pad_w)
+        self._pad_sync_enabled = False
         self.startup = StartupPanel(self._on_pad_changed)
+        self._pad_sync_enabled = True
         pad_lay.addWidget(self.startup)
         pad_lay.addStretch()
         pad_scroll.setWidget(pad_w)
@@ -192,11 +202,6 @@ class Step01PicPanel(ProofStepPanel):
         rlay = QVBoxLayout(right)
         pg = QGroupBox("WarpX PICMI")
         pf = QFormLayout(pg)
-        self.pic_steps = QSpinBox()
-        self.pic_steps.setRange(50, 5000)
-        self.pic_steps.setValue(int(state.config["pic"]["steps"]))
-        self.chk_skip = QCheckBox("Skip WarpX (dev — unity ρ norms in step 2)")
-        self.chk_skip.setChecked(bool(state.config.get("gui", {}).get("skip_pic", False)))
         pf.addRow("PIC steps", self.pic_steps)
         pf.addRow(self.chk_skip)
         rlay.addWidget(pg)
@@ -229,7 +234,10 @@ class Step01PicPanel(ProofStepPanel):
         self.startup.apply_pad_state(self._pad_from_config())
 
     def _on_pad_changed(self) -> None:
+        if not getattr(self, "_pad_sync_enabled", False):
+            return
         self._sync_config()
+        self.refresh_from_artifacts()
 
     def _sync_config(self) -> None:
         pad = self.startup.pad_state()
@@ -259,31 +267,102 @@ class Step01PicPanel(ProofStepPanel):
         self._worker = w
 
     def refresh_from_artifacts(self) -> None:
-        data = self._state.try_load_step("01")
+        import json
+        from pathlib import Path
+
+        from tools.orbitron_proof_chain.chain_lib import CHAIN_ROOT, load_config, step_completed
+
+        data = None
+        art = CHAIN_ROOT / load_config()["steps"]["01"]["artifact"]
+        if art.is_file():
+            try:
+                data = json.loads(art.read_text(encoding="utf-8"))
+            except Exception:
+                pass
+        elif step_completed("01"):
+            data = self._state.try_load_step("01")
         fig = self.canvas.figure
         fig.clear()
         ax = fig.add_subplot(111)
-        if data and not data.get("skipped"):
-            slice3d = load_pic_slice_2d()
+        if data and data.get("ok") is False:
+            rc = data.get("returncode", "?")
+            ax.text(
+                0.5,
+                0.5,
+                f"WarpX failed (exit {rc})\n\nSee log above — fix env / PIC, then Run again",
+                ha="center",
+                va="center",
+                color="#f7768e",
+                fontsize=12,
+            )
+            self.metrics.set_metrics(
+                [
+                    ("Status", "FAILED", f"exit {rc}", "#f7768e"),
+                    ("Diags", "empty", data.get("diags_dir", ""), "#e0af68"),
+                ]
+            )
+            self.gate.set_gate("Gate: WarpX did not finish — no plotfiles to preview.", ok=False)
+        elif data and not data.get("skipped"):
+            slice3d, err = load_pic_slice_2d_with_error()
             if slice3d:
                 x, z, rho = slice3d
                 im = ax.pcolormesh(x, z, rho, shading="auto", cmap="magma")
                 fig.colorbar(im, ax=ax, label="|ρ_e|")
-                ax.set_title("Last PIC frame — electrons", color="#c0caf5")
+                run_th = data.get("throttle")
+                run_co = data.get("compressor")
+                run_pu = data.get("cathode_pulse")
+                pad_now = self.startup.pad_state()
+                title = "Last PIC frame — |ρ_e| (x–z transverse cut)"
+                if run_th is not None:
+                    title += (
+                        f"\nfrom run: thr={run_th:.2f} comp={run_co:.2f} pulse={run_pu:.2f}"
+                        f"  ({data.get('n_steps', '?')} steps)"
+                    )
+                ax.set_title(title, color="#c0caf5", fontsize=10)
                 ax.set_xlabel("x [m]")
                 ax.set_ylabel("z [m]")
+                if run_th is not None and (
+                    abs(pad_now.throttle - float(run_th)) > 0.02
+                    or abs(pad_now.compressor - float(run_co)) > 0.02
+                    or abs(pad_now.cathode_pulse - float(run_pu)) > 0.02
+                ):
+                    ax.text(
+                        0.5,
+                        0.02,
+                        "Sliders changed — click Run this step to update PIC",
+                        transform=ax.transAxes,
+                        ha="center",
+                        va="bottom",
+                        color="#e0af68",
+                        fontsize=9,
+                    )
             else:
-                ax.text(0.5, 0.5, "Plotfile present\n(install yt to preview)", ha="center", va="center", color="#a9b1d6")
-            n_pf = len(data.get("plotfiles", []))
+                ax.text(
+                    0.5,
+                    0.5,
+                    err or "No preview",
+                    ha="center",
+                    va="center",
+                    color="#a9b1d6",
+                    fontsize=11,
+                    wrap=True,
+                )
+            diags = Path(data.get("diags_dir", ""))
+            n_pf = len(list_pic_plotfiles(diags)) if diags.is_dir() else len(data.get("plotfiles", []))
             self.metrics.set_metrics(
                 [
-                    ("Plotfiles", str(n_pf), data.get("diags_dir", ""), "#9ece6a"),
+                    ("Plotfiles", str(n_pf), str(diags) if diags else "", "#9ece6a" if n_pf else "#e0af68"),
                     ("Throttle", f"{data.get('throttle', 0):.2f}", "pad", "#7aa2f7"),
                     ("Compressor", f"{data.get('compressor', 0):.2f}", "pad", "#7aa2f7"),
                     ("Pulse", f"{data.get('cathode_pulse', 0):.2f}", "cathode", "#7aa2f7"),
                 ]
             )
-            self.gate.set_gate("Gate: PIC completed — run step 02 to reduce ρ norms.", ok=True)
+            if n_pf and slice3d:
+                self.gate.set_gate("Gate: PIC completed — run step 02 to reduce ρ norms.", ok=True)
+            elif n_pf:
+                self.gate.set_gate("Gate: plotfiles on disk but preview failed — see message.", ok=None)
+            else:
+                self.gate.set_gate("Gate: step marked done but no plotfiles — re-run WarpX.", ok=False)
         elif data and data.get("skipped"):
             ax.text(0.5, 0.5, "PIC skipped\n(SKIP_PIC)", ha="center", va="center", color="#e0af68", fontsize=14)
             self.gate.set_gate("Gate: skipped — step 2 will use unity norms (not Tier-2 closed).", ok=None)

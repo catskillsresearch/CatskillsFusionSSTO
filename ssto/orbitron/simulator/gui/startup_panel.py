@@ -74,6 +74,9 @@ class StartupPanel(QWidget):
         _row("Cathode pulse (I/K)", self.slider_pulse, self.lbl_pulse)
 
         self.chk_live = QCheckBox("Live steady-state + plasma animation (2 Hz)")
+        self.chk_live.setToolTip(
+            "Classic Orbitron simulator only. Proof Suite step 01: re-run WarpX after moving levers."
+        )
         run_form.addRow(self.chk_live)
 
         layout.addWidget(run)

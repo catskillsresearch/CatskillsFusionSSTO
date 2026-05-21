@@ -57,7 +57,15 @@ def step_completed(step: str) -> bool:
     except FileNotFoundError:
         return False
     ok = CHAIN_ROOT / cfg["steps"][step]["ok_marker"]
-    return ok.is_file()
+    if not ok.is_file():
+        return False
+    try:
+        data = load_step_json(step)
+        if data.get("ok") is False:
+            return False
+    except Exception:
+        pass
+    return True
 
 
 def step_artifact_path(step: str) -> Path:
@@ -66,7 +74,7 @@ def step_artifact_path(step: str) -> Path:
 
 
 def save_step(step: str, payload: dict[str, Any]) -> Path:
-    """Write step artifact JSON and step_ok marker."""
+    """Write step artifact JSON; step_ok marker only when the step succeeded."""
     cfg = load_config()
     rel = cfg["steps"][step]["artifact"]
     out = CHAIN_ROOT / rel
@@ -74,7 +82,11 @@ def save_step(step: str, payload: dict[str, Any]) -> Path:
     body = {"step": step, "generated_utc": utc_now(), **payload}
     out.write_text(json.dumps(body, indent=2), encoding="utf-8")
     ok_path = CHAIN_ROOT / cfg["steps"][step]["ok_marker"]
-    ok_path.write_text(json.dumps({"ok": True, "artifact": str(out)}, indent=2), encoding="utf-8")
+    succeeded = payload.get("ok", True) is not False
+    if succeeded:
+        ok_path.write_text(json.dumps({"ok": True, "artifact": str(out)}, indent=2), encoding="utf-8")
+    elif ok_path.is_file():
+        ok_path.unlink()
     return out
 
 

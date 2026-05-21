@@ -8,7 +8,13 @@ from pathlib import Path
 
 from PySide6.QtCore import QThread, Signal
 
-from ssto.orbitron.simulator.proof_chain.runners import build_warpx_command, load_config, save_step
+from ssto.orbitron.simulator.proof_chain.runners import (
+    build_warpx_command,
+    list_pic_plotfiles,
+    load_config,
+    save_step,
+)
+from ssto.orbitron.simulator.warpx_env import apply_warpx_env, ensure_warpx_env, warpx_env_summary
 
 
 class StepWorker(QThread):
@@ -47,9 +53,12 @@ class WarpXWorker(QThread):
             return
 
         try:
+            ensure_warpx_env()
             cfg = load_config()
             cmd, cwd, diags = build_warpx_command(cfg, n_steps=self._n_steps)
             pad = cfg["pad"]
+            env = apply_warpx_env()
+            self.log_line.emit(warpx_env_summary() + "\n\n")
             self.log_line.emit(f"Command: {' '.join(cmd)}\n")
             self.log_line.emit(f"Working directory: {cwd}\n")
             self.log_line.emit("— WarpX output —\n")
@@ -57,6 +66,7 @@ class WarpXWorker(QThread):
             proc = subprocess.Popen(
                 cmd,
                 cwd=str(cwd),
+                env=env,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 text=True,
@@ -72,7 +82,7 @@ class WarpXWorker(QThread):
                 save_step("01", {"ok": False, "returncode": rc})
                 self.finished.emit(None, f"WarpX exited with code {rc}")
                 return
-            plotfiles = [p.name for p in sorted(diags.glob("density_diag*"))]
+            plotfiles = [p.name for p in list_pic_plotfiles(diags)]
             self.log_line.emit(f"Plotfiles: {len(plotfiles)}\n")
             save_step(
                 "01",

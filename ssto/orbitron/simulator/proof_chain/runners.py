@@ -14,6 +14,12 @@ _REPO = Path(__file__).resolve().parents[4]
 if str(_REPO) not in sys.path:
     sys.path.insert(0, str(_REPO))
 
+from ssto.orbitron.simulator.warpx_env import (  # noqa: E402
+    apply_warpx_env,
+    ensure_warpx_env,
+    warpx_python_executable,
+)
+
 from tools.orbitron_proof_chain.chain_lib import (  # noqa: E402
     CHAIN_ROOT,
     GENERATED_ROOT,
@@ -73,7 +79,7 @@ def build_warpx_command(
     steps = n_steps if n_steps is not None else int(cfg["pic"]["steps"])
     diags.mkdir(parents=True, exist_ok=True)
     cmd = [
-        os.environ.get("WARPX_PYTHON", "python3"),
+        warpx_python_executable(),
         str(script),
         "--overrides",
         str(overrides),
@@ -99,8 +105,15 @@ def run_step_01(*, skip_pic: bool = False, n_steps: int | None = None) -> dict[s
     if skip_pic or os.environ.get("SKIP_PIC", "0") == "1":
         save_step("01", {"skipped": True, "reason": "SKIP_PIC"})
         return load_step_json("01")
+    ensure_warpx_env()
     cmd, cwd, diags = build_warpx_command(cfg, n_steps=n_steps)
-    proc = subprocess.run(cmd, cwd=str(cwd), capture_output=True, text=True)
+    proc = subprocess.run(
+        cmd,
+        cwd=str(cwd),
+        capture_output=True,
+        text=True,
+        env=apply_warpx_env(),
+    )
     if proc.returncode != 0:
         save_step("01", {"ok": False, "stderr": proc.stderr[-8000:]})
         raise RuntimeError(proc.stderr or proc.stdout or "WarpX failed")
@@ -108,7 +121,7 @@ def run_step_01(*, skip_pic: bool = False, n_steps: int | None = None) -> dict[s
         "01",
         {
             "diags_dir": str(diags),
-            "plotfiles": [p.name for p in sorted(diags.glob("density_diag*"))],
+            "plotfiles": [p.name for p in list_pic_plotfiles(diags)],
             "throttle": pad["throttle"],
             "compressor": pad["compressor"],
             "cathode_pulse": pad["cathode_pulse"],
@@ -438,26 +451,46 @@ def run_step_09() -> dict[str, Any]:
     return load_step_json("09")
 
 
+def list_pic_plotfiles(diags: Path) -> list[Path]:
+    """WarpX density_diag plotfiles (prefer final frames over *.old.* backups)."""
+    files = sorted(diags.glob("density_diag*"))
+    canon = [p for p in files if ".old." not in p.name]
+    return canon if canon else files
+
+
 def load_pic_slice_2d(chain_root: Path | None = None) -> tuple[Any, Any, Any] | None:
-    """Last WarpX |rho_e| slice for GUI (r, z, field)."""
+    """Last WarpX |rho_e| slice for GUI (x, z, field). None if missing data or load error."""
+    data, _err = load_pic_slice_2d_with_error(chain_root)
+    return data
+
+
+def load_pic_slice_2d_with_error(
+    chain_root: Path | None = None,
+) -> tuple[tuple[Any, Any, Any] | None, str | None]:
+    """Return (x, z, rho) or (None, user-facing reason)."""
     cfg = load_config()
     root = chain_root or Path(cfg["chain_root"])
     diags = root / "01_pic" / "diags"
-    plotfiles = sorted(diags.glob("density_diag*"))
+    if not diags.is_dir():
+        return None, f"No diags folder: {diags}"
+    plotfiles = list_pic_plotfiles(diags)
     if not plotfiles:
-        return None
+        return None, f"No density_diag plotfiles in {diags} (WarpX may have failed or not finished)"
     try:
         import numpy as np
         import yt
-    except ImportError:
-        return None
-    yt.funcs.mylog.setLevel(50)
-    ds = yt.load(str(plotfiles[-1]))
-    grid = ds.covering_grid(level=0, left_edge=ds.domain_left_edge, dims=ds.domain_dimensions)
-    rho = np.abs(grid[("boxlib", "rho_electrons")].v.squeeze())
-    le = np.asarray(ds.domain_left_edge.to_value(), dtype=float).ravel()
-    re = np.asarray(ds.domain_right_edge.to_value(), dtype=float).ravel()
-    nx, nz = rho.shape
-    x1d = np.linspace(le[0], re[0], nx)
-    z1d = np.linspace(le[1] if le.size > 1 else 0, re[1] if re.size > 1 else 1, nz)
-    return x1d, z1d, rho
+    except ImportError as exc:
+        return None, f"yt not importable in {sys.executable}: {exc}"
+    try:
+        yt.funcs.mylog.setLevel(50)
+        ds = yt.load(str(plotfiles[-1]))
+        grid = ds.covering_grid(level=0, left_edge=ds.domain_left_edge, dims=ds.domain_dimensions)
+        rho = np.abs(grid[("boxlib", "rho_electrons")].v.squeeze())
+        le = np.asarray(ds.domain_left_edge.to_value(), dtype=float).ravel()
+        re = np.asarray(ds.domain_right_edge.to_value(), dtype=float).ravel()
+        nx, nz = rho.shape
+        x1d = np.linspace(le[0], re[0], nx)
+        z1d = np.linspace(le[1] if le.size > 1 else 0, re[1] if re.size > 1 else 1, nz)
+        return (x1d, z1d, rho), None
+    except Exception as exc:
+        return None, f"yt could not load {plotfiles[-1].name}: {exc}"

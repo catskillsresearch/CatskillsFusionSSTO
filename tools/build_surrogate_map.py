@@ -53,7 +53,9 @@ def _median(xs: list[float]) -> float:
 
 def reduce_last_plotfile_mean_rho(diags_parent: Path) -> float:
     """Mean |rho_electrons| on last density_diag plotfile under diags_parent."""
-    plotfiles = sorted(diags_parent.glob("density_diag*"))
+    from ssto.orbitron.simulator.proof_chain.runners import list_pic_plotfiles
+
+    plotfiles = list_pic_plotfiles(diags_parent)
     if not plotfiles:
         return float("nan")
 
@@ -108,7 +110,9 @@ def reduce_last_plotfile_beam_screen_kw_proxy(
 
     Returns (rho_beam_screen_mean, rho_beam_domain_mean). nan if no beam field / no plotfile.
     """
-    plotfiles = sorted(diags_parent.glob("density_diag*"))
+    from ssto.orbitron.simulator.proof_chain.runners import list_pic_plotfiles
+
+    plotfiles = list_pic_plotfiles(diags_parent)
     if not plotfiles:
         return float("nan"), float("nan")
 

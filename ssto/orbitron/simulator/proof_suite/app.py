@@ -8,6 +8,9 @@ import sys
 
 def main() -> int:
     os.environ.setdefault("ORBITRON_PROOF_CHAIN", "1")
+    from ssto.orbitron.simulator.warpx_env import ensure_warpx_env
+
+    ensure_warpx_env()
     import matplotlib as mpl
 
     mpl.rcParams.update(

@@ -16,7 +16,7 @@ This document defines a **single forward chain** of simulations and exports. Eac
 See **[`PROOF_SUITE.md`](PROOF_SUITE.md)** for launch, layout, per-step controls/visualizations, proof-mode rules, and why `design_validated` may be false in Tier 3.
 
 ```bash
-poetry run python scripts/run_orbitron_proof_suite.py
+./scripts/run_orbitron_proof_suite.sh
 ```
 
 ---
