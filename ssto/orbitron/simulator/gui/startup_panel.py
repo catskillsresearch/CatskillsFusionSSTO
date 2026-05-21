@@ -126,6 +126,34 @@ class StartupPanel(QWidget):
         if pulse is not None:
             self.slider_pulse.setValue(int(round(max(0.0, min(1.0, pulse)) * 100)))
 
+    def apply_pad_state(self, pad: PadStartupState) -> None:
+        """Load sliders/switches from a PadStartupState (e.g. chain_config)."""
+        self.chk_apu.blockSignals(True)
+        self.chk_starter.blockSignals(True)
+        self.chk_bleed.blockSignals(True)
+        self.chk_ignite.blockSignals(True)
+        self.chk_live.blockSignals(True)
+        self.chk_apu.setChecked(pad.pad_apu_online)
+        self.chk_starter.setChecked(pad.starter_engage)
+        self.chk_bleed.setChecked(pad.bleed_air_open)
+        self.chk_ignite.setChecked(pad.startup_trigger)
+        self.chk_live.setChecked(pad.live_simulation)
+        self.slider_throttle.blockSignals(True)
+        self.slider_compressor.blockSignals(True)
+        self.slider_pulse.blockSignals(True)
+        self.slider_throttle.setValue(int(round(pad.throttle * 100)))
+        self.slider_compressor.setValue(int(round(pad.compressor * 100)))
+        self.slider_pulse.setValue(int(round(pad.cathode_pulse * 100)))
+        self.slider_throttle.blockSignals(False)
+        self.slider_compressor.blockSignals(False)
+        self.slider_pulse.blockSignals(False)
+        self.chk_apu.blockSignals(False)
+        self.chk_starter.blockSignals(False)
+        self.chk_bleed.blockSignals(False)
+        self.chk_ignite.blockSignals(False)
+        self.chk_live.blockSignals(False)
+        self._slider_changed()
+
     def pad_state(self) -> PadStartupState:
         return PadStartupState(
             pad_apu_online=self.chk_apu.isChecked(),

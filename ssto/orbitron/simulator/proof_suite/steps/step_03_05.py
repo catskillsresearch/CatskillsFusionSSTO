@@ -19,10 +19,15 @@ from PySide6.QtWidgets import (
 )
 
 from ssto.orbitron.simulator.fusion_pb11 import pb11_reactivity_m3_s
-from ssto.orbitron.simulator.proof_chain.runners import run_step_03, run_step_04, run_step_05
+from ssto.orbitron.simulator.proof_chain.runners import (
+    run_step_03,
+    run_step_03_compare_pair,
+    run_step_04,
+    run_step_05,
+)
 from ssto.orbitron.simulator.proof_suite.steps.base import ProofStepPanel
 from ssto.orbitron.simulator.proof_suite.state import ProofSuiteState
-from ssto.orbitron.simulator.proof_suite.widgets import MetricGrid, MplCanvas
+from ssto.orbitron.simulator.proof_suite.widgets import MetricGrid, MplCanvas, apply_dark_axes
 from ssto.orbitron.simulator.proof_suite.workers import StepWorker
 from ssto.orbitron.simulator.blender_layout import draw_blender_underlay, engine_axial_layout
 from ssto.orbitron.simulator.longitudinal.focus import LongitudinalFocus
@@ -43,17 +48,25 @@ class Step03FusionPanel(ProofStepPanel):
         ctrl = QHBoxLayout()
         self.chk_laminar = QCheckBox("Laminar relaminarization ON")
         self.chk_laminar.setChecked(state.config["pad"].get("laminar_relaminarization", True))
-        self.btn_compare = QPushButton("Run OFF vs ON compare")
+        self.btn_cache_pair = QPushButton("Cache laminar OFF+ON pair (for side-by-side)")
+        self.btn_cache_pair.setToolTip(
+            "Runs fusion channel twice (ON and OFF) and saves both NPZ files. "
+            "Side-by-side view then works without re-running."
+        )
+        self.view_combo = QComboBox()
+        self.view_combo.addItems(["Single panel", "Side-by-side OFF | ON"])
         self.field_combo = QComboBox()
         self.field_combo.addItems(["Fuel density n(s,r)", "Reaction rate R(s,r)"])
         ctrl.addWidget(self.chk_laminar)
-        ctrl.addWidget(self.btn_compare)
+        ctrl.addWidget(self.btn_cache_pair)
         ctrl.addStretch()
+        ctrl.addWidget(QLabel("View:"))
+        ctrl.addWidget(self.view_combo)
         ctrl.addWidget(QLabel("Field:"))
         ctrl.addWidget(self.field_combo)
         self._layout.addLayout(ctrl)
 
-        self.canvas = MplCanvas(8, 4.8)
+        self.canvas = MplCanvas(9, 4.5)
         self._layout.addWidget(self.canvas, stretch=1)
 
         scrub = QHBoxLayout()
@@ -78,10 +91,13 @@ class Step03FusionPanel(ProofStepPanel):
 
         self._fc = None
         self._npz: dict | None = None
+        self._npz_on: dict | None = None
+        self._npz_off: dict | None = None
         self.chk_laminar.toggled.connect(self._on_laminar_toggled)
+        self.view_combo.currentIndexChanged.connect(self._draw_frame)
         self.field_combo.currentIndexChanged.connect(self._draw_frame)
         self.toolbar.btn_run.clicked.connect(self._run)
-        self.btn_compare.clicked.connect(self._run_compare)
+        self.btn_cache_pair.clicked.connect(self._run_cache_pair)
         self.refresh_from_artifacts()
 
     def _on_laminar_toggled(self) -> None:
@@ -104,81 +120,146 @@ class Step03FusionPanel(ProofStepPanel):
         )
         self._state.save()
 
-    def _load_npz(self) -> bool:
-        data = self._state.try_load_step("03")
-        if not data or "fields_npz" not in data:
-            self._npz = None
-            return False
-        path = Path(data["fields_npz"])
-        if not path.is_file():
-            return False
+    def _load_npz_file(self, path: Path | None) -> dict | None:
+        if path is None or not path.is_file():
+            return None
         z = np.load(path)
-        self._npz = {k: z[k] for k in z.files}
-        return True
+        return {k: z[k] for k in z.files}
+
+    def _load_all_npz(self) -> bool:
+        data = self._state.try_load_step("03")
+        if not data:
+            self._npz = self._npz_on = self._npz_off = None
+            return False
+        self._npz = self._load_npz_file(Path(data["fields_npz"])) if data.get("fields_npz") else None
+        on_p = data.get("fields_laminar_on_npz")
+        off_p = data.get("fields_laminar_off_npz")
+        self._npz_on = self._load_npz_file(Path(on_p) if on_p else None)
+        self._npz_off = self._load_npz_file(Path(off_p) if off_p else None)
+        if self._npz_on is None and self._npz is not None:
+            self._npz_on = self._npz
+        return self._npz is not None or self._npz_on is not None
+
+    def _has_compare_pair(self) -> bool:
+        return self._npz_on is not None and self._npz_off is not None
 
     def _run(self) -> None:
         self._sync_config()
+        self.log.append_line("Running fusion channel (single laminar state)…")
         self.toolbar.btn_run.setEnabled(False)
+        self.btn_cache_pair.setEnabled(False)
         self.toolbar.progress.show()
-        w = StepWorker(run_step_03, laminar_on=self.chk_laminar.isChecked(), compare_hack=False)
+        w = StepWorker(
+            run_step_03,
+            laminar_on=self.chk_laminar.isChecked(),
+            compare_hack=True,
+        )
         w.finished.connect(self._on_run_done)
         w.start()
         self._worker = w
 
-    def _run_compare(self) -> None:
+    def _run_cache_pair(self) -> None:
         self._sync_config()
+        self.log.append_line("Caching laminar ON + OFF pair (two runs)…")
         self.toolbar.btn_run.setEnabled(False)
+        self.btn_cache_pair.setEnabled(False)
         self.toolbar.progress.show()
-        w = StepWorker(run_step_03, laminar_on=True, compare_hack=True)
-        w.finished.connect(self._on_run_done)
+        w = StepWorker(run_step_03_compare_pair)
+        w.finished.connect(self._on_cache_pair_done)
         w.start()
         self._worker = w
+
+    def on_step_finished(self, result, error) -> None:
+        self.btn_cache_pair.setEnabled(True)
+        super().on_step_finished(result, error)
 
     def _on_run_done(self, result, error) -> None:
         if result and "_fusion_channel" in result:
             self._fc = result.pop("_fusion_channel")
         self.on_step_finished(result, error)
+        if error is None:
+            self.view_combo.setCurrentIndex(0)
+
+    def _on_cache_pair_done(self, result, error) -> None:
+        if result and "_fusion_channel" in result:
+            self._fc = result.pop("_fusion_channel")
+        self.on_step_finished(result, error)
+        if error is None:
+            self.view_combo.setCurrentIndex(1)
+            self.log.append_line("Compare pair cached — use side-by-side view and scrub time.")
+
+    def _plot_heatmap(self, ax, npz: dict, idx: int, *, title: str, geo: DeviceGeometry) -> None:
+        use_r = self.field_combo.currentIndex() == 1
+        data = npz["reaction_rate"] if use_r else npz["density"]
+        s, r = npz["s_m"], npz["r_m"]
+        layout = engine_axial_layout(geo)
+        draw_blender_underlay(ax, layout, LongitudinalFocus.FUSION_CHANNEL_SR, symmetric=False)
+        im = ax.pcolormesh(s, r, data[idx], shading="auto", cmap="magma", alpha=0.75)
+        apply_dark_axes(ax)
+        ax.set_title(title, color="#c0caf5")
+        ax.set_xlabel("Axial s [m]")
+        ax.set_ylabel("Radius r [m]")
+        return im
 
     def _draw_frame(self) -> None:
-        if self._npz is None and not self._load_npz():
+        if not self._load_all_npz():
+            return
+        side_by_side = self.view_combo.currentIndex() == 1 and self._has_compare_pair()
+        ref = self._npz_on if side_by_side else (self._npz or self._npz_on)
+        if ref is None:
             return
         idx = self.time_slider.value()
-        nt = len(self._npz["time_s"])
+        nt = len(ref["time_s"])
         idx = max(0, min(idx, nt - 1))
-        use_r = self.field_combo.currentIndex() == 1
-        data = self._npz["reaction_rate"] if use_r else self._npz["density"]
-        s, r = self._npz["s_m"], self._npz["r_m"]
         g = self._state.config["geometry"]
         geo = DeviceGeometry(
             g["r_anode_m"], g["r_cathode_m"], g["length_m"], g["V_cathode_v"], g["B_axial_tesla"]
         )
         fig = self.canvas.figure
         fig.clear()
-        ax = fig.add_subplot(111)
-        layout = engine_axial_layout(geo)
-        draw_blender_underlay(ax, layout, LongitudinalFocus.FUSION_CHANNEL_SR, symmetric=False)
-        im = ax.pcolormesh(s, r, data[idx], shading="auto", cmap="magma", alpha=0.75)
-        fig.colorbar(im, ax=ax)
-        laminar = "ON" if self.chk_laminar.isChecked() else "OFF"
-        ax.set_title(f"Fusion channel s–r  |  laminar {laminar}", color="#c0caf5")
-        ax.set_xlabel("Axial s [m]")
-        ax.set_ylabel("Radius r [m]")
-        t = float(self._npz["time_s"][idx])
+        if side_by_side:
+            ax_off = fig.add_subplot(121)
+            ax_on = fig.add_subplot(122)
+            im0 = self._plot_heatmap(ax_off, self._npz_off, idx, title="Laminar OFF (clumping)", geo=geo)
+            im1 = self._plot_heatmap(ax_on, self._npz_on, idx, title="Laminar ON (smoothed)", geo=geo)
+            fig.colorbar(im1, ax=[ax_off, ax_on], fraction=0.046, pad=0.04)
+        else:
+            ax = fig.add_subplot(111)
+            laminar = "ON" if self.chk_laminar.isChecked() else "OFF"
+            im = self._plot_heatmap(ax, ref, idx, title=f"Fusion channel s–r  |  laminar {laminar}", geo=geo)
+            fig.colorbar(im, ax=ax, fraction=0.046)
+        t = float(ref["time_s"][idx])
         self.time_label.setText(f"t = {t:.3e} s  frame {idx + 1}/{nt}")
         fig.tight_layout()
         self.canvas.draw()
 
     def refresh_from_artifacts(self) -> None:
         data = self._state.try_load_step("03")
-        if self._load_npz():
-            nt = len(self._npz["time_s"])
+        has_pair = bool(data and data.get("has_compare_pair"))
+        self.view_combo.setItemText(1, "Side-by-side OFF | ON" + (" ✓" if has_pair else " (cache pair first)"))
+        if self._load_all_npz():
+
+            ref = self._npz or self._npz_on
+            nt = len(ref["time_s"])
             self.time_slider.setMaximum(max(0, nt - 1))
             self._draw_frame()
-            clump = self._npz["clump_index"]
             figc = self.canvas_clump.figure
             figc.clear()
             axc = figc.add_subplot(111)
-            axc.plot(self._npz["time_s"], clump, color="#7aa2f7")
+            if self._npz_on is not None:
+                axc.plot(
+                    self._npz_on["time_s"],
+                    self._npz_on["clump_index"],
+                    color="#9ece6a",
+                    label="ON",
+                )
+            if self._npz_off is not None:
+                axc.plot(
+                    self._npz_off["time_s"],
+                    self._npz_off["clump_index"],
+                    color="#f7768e",
+                    label="OFF",
+                )
             axc.axhline(2.8, color="#e0af68", ls="--", label="pass threshold")
             axc.set_xlabel("Time [s]")
             axc.set_ylabel("Clump index")
@@ -190,8 +271,9 @@ class Step03FusionPanel(ProofStepPanel):
             figr = self.canvas_radial.figure
             figr.clear()
             axr = figr.add_subplot(111)
-            last = self._npz["density"][-1]
-            axr.plot(r, np.mean(last, axis=0), color="#9ece6a")
+            last = ref["density"][-1]
+            r_axis = ref["r_m"]
+            axr.plot(r_axis, np.mean(last, axis=0), color="#9ece6a")
             axr.set_xlabel("r [m]")
             axr.set_ylabel("⟨n⟩_s")
             axr.set_title("Axial-averaged density (final)", color="#c0caf5")

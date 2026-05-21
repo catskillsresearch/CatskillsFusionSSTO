@@ -58,14 +58,16 @@ def run_step_00(*, throttle: float | None = None, compressor: float | None = Non
     return load_step_json("00")
 
 
-def run_step_01(*, skip_pic: bool = False, n_steps: int | None = None) -> dict[str, Any]:
-    cfg = load_config()
+def build_warpx_command(
+    cfg: dict[str, Any] | None = None,
+    *,
+    n_steps: int | None = None,
+) -> tuple[list[str], Path, Path]:
+    """Return (argv, cwd, diags_dir) for laminar_flow_2d_arcjet."""
+    cfg = cfg or load_config()
     chain_root = Path(cfg["chain_root"])
     diags = chain_root / "01_pic" / "diags"
     pad = cfg["pad"]
-    if skip_pic or os.environ.get("SKIP_PIC", "0") == "1":
-        save_step("01", {"skipped": True, "reason": "SKIP_PIC"})
-        return load_step_json("01")
     overrides = chain_root / "00_spec" / "picmi_overrides.json"
     script = repo_root() / "ssto" / "orbitron" / "laminar_flow_2d_arcjet.py"
     steps = n_steps if n_steps is not None else int(cfg["pic"]["steps"])
@@ -88,7 +90,17 @@ def run_step_01(*, skip_pic: bool = False, n_steps: int | None = None) -> dict[s
         "--diag-period",
         str(cfg["pic"]["diag_period"]),
     ]
-    proc = subprocess.run(cmd, cwd=str(script.parent), capture_output=True, text=True)
+    return cmd, script.parent, diags
+
+
+def run_step_01(*, skip_pic: bool = False, n_steps: int | None = None) -> dict[str, Any]:
+    cfg = load_config()
+    pad = cfg["pad"]
+    if skip_pic or os.environ.get("SKIP_PIC", "0") == "1":
+        save_step("01", {"skipped": True, "reason": "SKIP_PIC"})
+        return load_step_json("01")
+    cmd, cwd, diags = build_warpx_command(cfg, n_steps=n_steps)
+    proc = subprocess.run(cmd, cwd=str(cwd), capture_output=True, text=True)
     if proc.returncode != 0:
         save_step("01", {"ok": False, "stderr": proc.stderr[-8000:]})
         raise RuntimeError(proc.stderr or proc.stdout or "WarpX failed")
@@ -100,9 +112,25 @@ def run_step_01(*, skip_pic: bool = False, n_steps: int | None = None) -> dict[s
             "throttle": pad["throttle"],
             "compressor": pad["compressor"],
             "cathode_pulse": pad["cathode_pulse"],
+            "n_steps": n_steps or int(cfg["pic"]["steps"]),
         },
     )
     return load_step_json("01")
+
+
+def _save_fusion_npz(path: Path, fc: object) -> None:
+    import numpy as np
+
+    path.parent.mkdir(parents=True, exist_ok=True)
+    np.savez_compressed(
+        path,
+        s_m=fc.s_m,
+        r_m=fc.r_m,
+        time_s=fc.time_s,
+        density=fc.density,
+        reaction_rate=fc.reaction_rate,
+        clump_index=fc.clump_index,
+    )
 
 
 def run_step_02() -> dict[str, Any]:
@@ -164,30 +192,88 @@ def run_step_03(*, laminar_on: bool | None = None, compare_hack: bool = True) ->
     dom = focus_domain(LongitudinalFocus.FUSION_CHANNEL_SR, inp)
     laminar = laminar_hack_from_inputs(inp, force_off=not inp.pad.laminar_relaminarization)
     fc = run_fusion_channel_sr(dom, inp, laminar=laminar, compare_without_hack=compare_hack)
-    cache = CHAIN_ROOT / "03_fusion_channel" / "fields.npz"
-    cache.parent.mkdir(parents=True, exist_ok=True)
-    import numpy as np
+    cache_dir = CHAIN_ROOT / "03_fusion_channel"
+    cache_on = cache_dir / "fields_laminar_on.npz"
+    cache_off = cache_dir / "fields_laminar_off.npz"
+    cache_primary = cache_dir / "fields.npz"
 
-    np.savez_compressed(
-        cache,
-        s_m=fc.s_m,
-        r_m=fc.r_m,
-        time_s=fc.time_s,
-        density=fc.density,
-        reaction_rate=fc.reaction_rate,
-        clump_index=fc.clump_index,
-    )
+    _save_fusion_npz(cache_on if laminar.enabled else cache_off, fc)
+    _save_fusion_npz(cache_primary, fc)
+
+    clump_off_val = fc.clump_index_final
+    if compare_hack:
+        from dataclasses import replace
+
+        inp_off = replace(inp, pad=replace(inp.pad, laminar_relaminarization=False))
+        fc_off = run_fusion_channel_sr(
+            dom,
+            inp_off,
+            laminar=laminar_hack_from_inputs(inp_off, force_off=True),
+            compare_without_hack=False,
+        )
+        _save_fusion_npz(cache_off, fc_off)
+        clump_off_val = fc_off.clump_index_final
+
     payload = {
         "integrated_fusion_power_mw": fc.integrated_fusion_power_mw,
         "fusion_pb11_power_mw": fc.meta.get("fusion_pb11_power_mw"),
         "clump_index_final": fc.clump_index_final,
+        "clump_index_off": clump_off_val,
         "clump_reduction_ratio": fc.clump_reduction_ratio,
         "laminar_enabled": laminar.enabled,
         "channel_power_ratio": fc.meta.get("channel_power_ratio"),
-        "fields_npz": str(cache),
+        "fields_npz": str(cache_primary),
+        "fields_laminar_on_npz": str(cache_on),
+        "fields_laminar_off_npz": str(cache_off),
+        "has_compare_pair": cache_on.is_file() and cache_off.is_file(),
     }
     save_step("03", payload)
     return {**payload, "_fusion_channel": fc}
+
+
+def run_step_03_compare_pair() -> dict[str, Any]:
+    """Run laminar ON and OFF once; cache both NPZ for side-by-side UI (no re-run on scrub)."""
+    enable_proof_env()
+    from dataclasses import replace
+
+    inp, _ = base_inputs()
+    from ssto.orbitron.simulator.longitudinal.focus import LongitudinalFocus, focus_domain
+    from ssto.orbitron.simulator.longitudinal.fusion_channel_sr import (
+        laminar_hack_from_inputs,
+        run_fusion_channel_sr,
+    )
+
+    dom = focus_domain(LongitudinalFocus.FUSION_CHANNEL_SR, inp)
+    cache_dir = CHAIN_ROOT / "03_fusion_channel"
+    cache_on = cache_dir / "fields_laminar_on.npz"
+    cache_off = cache_dir / "fields_laminar_off.npz"
+
+    inp_on = replace(inp, pad=replace(inp.pad, laminar_relaminarization=True))
+    fc_on = run_fusion_channel_sr(
+        dom, inp_on, laminar=laminar_hack_from_inputs(inp_on), compare_without_hack=False
+    )
+    inp_off = replace(inp, pad=replace(inp.pad, laminar_relaminarization=False))
+    fc_off = run_fusion_channel_sr(
+        dom, inp_off, laminar=laminar_hack_from_inputs(inp_off, force_off=True), compare_without_hack=False
+    )
+    _save_fusion_npz(cache_on, fc_on)
+    _save_fusion_npz(cache_off, fc_off)
+    _save_fusion_npz(cache_dir / "fields.npz", fc_on)
+
+    reduction = float(fc_off.clump_index_final) / max(float(fc_on.clump_index_final), 1.0e-6)
+    payload = {
+        "integrated_fusion_power_mw": fc_on.integrated_fusion_power_mw,
+        "clump_index_final": fc_on.clump_index_final,
+        "clump_index_off": fc_off.clump_index_final,
+        "clump_reduction_ratio": reduction,
+        "fields_npz": str(cache_dir / "fields.npz"),
+        "fields_laminar_on_npz": str(cache_on),
+        "fields_laminar_off_npz": str(cache_off),
+        "has_compare_pair": True,
+        "compare_pair_cached": True,
+    }
+    save_step("03", payload)
+    return {**payload, "_fusion_channel": fc_on, "_fusion_channel_off": fc_off}
 
 
 def run_step_04() -> dict[str, Any]:

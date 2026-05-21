@@ -63,9 +63,9 @@ When the suite runs (and when `ORBITRON_PROOF_CHAIN=1`):
 | Step | What you control | What you visualize |
 |------|------------------|-------------------|
 | **00 — Design SSOT** | r_anode, r_cathode, length, cathode kV, B, H₂ / B₂H₆ sccm | Full engine **s–r** layout, core cross-section, PICMI override status |
-| **01 — WarpX PIC** | Throttle, compressor, cathode pulse, PIC step count, **Skip WarpX** | Last PIC **\|ρ_e\|** frame (needs `yt` + plotfiles) |
+| **01 — WarpX PIC** | **Pad startup console** (steps 1–4 + run levers), PIC step count, **Skip WarpX** | **Live WarpX log** + last PIC **\|ρ_e\|** frame |
 | **02 — PIC reduce** | Run after step 01 | ρ_e_norm / ρ_beam_norm bar chart and clamp band (0.2–3.0) |
-| **03 — Fusion channel** | **Laminar relaminarization** ON/OFF, field (density vs reaction rate), time scrubber, **OFF vs ON compare** | **s–r heatmap**, clump index vs time, axial-averaged radial profile |
+| **03 — Fusion channel** | Laminar ON/OFF, **Cache OFF+ON pair**, view **Side-by-side**, time scrubber | **s–r** single or **OFF \| ON** heatmaps (cached), clump ON/OFF curves |
 | **04 — Fueling** | Uses chain config + step 02 norms | n_p / n_B bars (log scale), ⟨σv⟩(T) curve with your T_i marked |
 | **05 — p-¹¹B burn** | Proof burn only | Target MW vs computed P_fusion (honest shortfall) |
 | **06 — 0D plant** | Proof plant | Steady-state output bars, U1–U4 stress chart, violations list |
@@ -74,6 +74,10 @@ When the suite runs (and when `ORBITRON_PROOF_CHAIN=1`):
 | **09 — Inverse solve** | Optional | Required unobtanium scale factors vs nominal = 1 |
 
 Step **03** is the closest match to [Orbitron-style clump / laminar video](https://youtu.be/_7Hfyz-JIDA?si=IBN4ZQmWwQKrITxY) intent, in a **longitudinal s–r** cut (along the bore), not the video’s axial end-on view.
+
+**Step 03 side-by-side:** click **Cache laminar OFF+ON pair** once (runs ON and OFF, saves `fields_laminar_on.npz` and `fields_laminar_off.npz`). Then choose **Side-by-side OFF | ON** and scrub time — both panels update from cache without re-running.
+
+**Step 01 live log:** WarpX stdout/stderr streams into the log pane while the PIC runs (subprocess line-by-line).
 
 ---
 
@@ -87,7 +91,9 @@ All steps read/write under `build/orbitron/chain/` (see [`validation_steps.md`](
 | `00_spec/picmi_overrides.json` | 00 |
 | `01_pic/diags/` | 01 — WarpX plotfiles |
 | `02_pic_norms/pic_norms.json` | 02 |
-| `03_fusion_channel/fields.npz` | 03 — timelapse arrays for GUI |
+| `03_fusion_channel/fields.npz` | 03 — primary timelapse cache |
+| `03_fusion_channel/fields_laminar_on.npz` | 03 — laminar ON (side-by-side) |
+| `03_fusion_channel/fields_laminar_off.npz` | 03 — laminar OFF (side-by-side) |
 | `08_export/design_validation.yaml` | 08 — spec export |
 
 ---

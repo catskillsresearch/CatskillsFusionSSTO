@@ -13,15 +13,19 @@ from PySide6.QtWidgets import (
     QGroupBox,
     QHBoxLayout,
     QLabel,
+    QScrollArea,
     QSpinBox,
     QSplitter,
     QVBoxLayout,
 )
 
+from ssto.orbitron.simulator.gui.startup_panel import StartupPanel
+from ssto.orbitron.simulator.proof_suite.workers import WarpXWorker
+from ssto.orbitron.simulator.types import PadStartupState
+
 from ssto.orbitron.simulator.proof_chain.runners import (
     load_pic_slice_2d,
     run_step_00,
-    run_step_01,
     run_step_02,
 )
 from ssto.orbitron.simulator.proof_suite.steps.base import ProofStepPanel
@@ -170,38 +174,70 @@ class Step01PicPanel(ProofStepPanel):
             state,
             parent,
         )
-        pad = state.config["pad"]
-        row = QHBoxLayout()
-        self.throttle = _spin(0, 1, pad["throttle"])
-        self.compressor = _spin(0, 1, pad["compressor"])
-        self.pulse = _spin(0, 1, pad["cathode_pulse"])
+        self.log.setMaximumHeight(220)
+
+        split = QSplitter()
+        pad_scroll = QScrollArea()
+        pad_scroll.setWidgetResizable(True)
+        pad_w = QWidget()
+        pad_lay = QVBoxLayout(pad_w)
+        self.startup = StartupPanel(self._on_pad_changed)
+        pad_lay.addWidget(self.startup)
+        pad_lay.addStretch()
+        pad_scroll.setWidget(pad_w)
+        pad_scroll.setMinimumWidth(340)
+        split.addWidget(pad_scroll)
+
+        right = QWidget()
+        rlay = QVBoxLayout(right)
+        pg = QGroupBox("WarpX PICMI")
+        pf = QFormLayout(pg)
         self.pic_steps = QSpinBox()
         self.pic_steps.setRange(50, 5000)
         self.pic_steps.setValue(int(state.config["pic"]["steps"]))
         self.chk_skip = QCheckBox("Skip WarpX (dev — unity ρ norms in step 2)")
         self.chk_skip.setChecked(bool(state.config.get("gui", {}).get("skip_pic", False)))
-        pg = QGroupBox("Pad run point & PIC")
-        pf = QFormLayout(pg)
-        pf.addRow("Throttle", self.throttle)
-        pf.addRow("Compressor", self.compressor)
-        pf.addRow("Cathode pulse", self.pulse)
         pf.addRow("PIC steps", self.pic_steps)
         pf.addRow(self.chk_skip)
-        self._layout.addWidget(pg)
+        rlay.addWidget(pg)
 
-        self.canvas = MplCanvas(7, 4.2)
-        self._layout.addWidget(self.canvas, stretch=1)
+        self.canvas = MplCanvas(7, 3.8)
+        rlay.addWidget(self.canvas, stretch=1)
         self.metrics = MetricGrid(4)
-        self._layout.addWidget(self.metrics)
+        rlay.addWidget(self.metrics)
+        split.addWidget(right)
+        self._layout.addWidget(split, stretch=1)
+
+        self._load_pad_from_config()
         self.toolbar.btn_run.clicked.connect(self._run)
         self.refresh_from_artifacts()
 
+    def _pad_from_config(self) -> PadStartupState:
+        p = self._state.config["pad"]
+        return PadStartupState(
+            pad_apu_online=True,
+            starter_engage=True,
+            bleed_air_open=True,
+            startup_trigger=True,
+            throttle=float(p["throttle"]),
+            compressor=float(p["compressor"]),
+            cathode_pulse=float(p["cathode_pulse"]),
+            laminar_relaminarization=bool(p.get("laminar_relaminarization", True)),
+        )
+
+    def _load_pad_from_config(self) -> None:
+        self.startup.apply_pad_state(self._pad_from_config())
+
+    def _on_pad_changed(self) -> None:
+        self._sync_config()
+
     def _sync_config(self) -> None:
+        pad = self.startup.pad_state()
         self._state.update_pad(
-            throttle=self.throttle.value(),
-            compressor=self.compressor.value(),
-            cathode_pulse=self.pulse.value(),
-            laminar=self._state.config["pad"].get("laminar_relaminarization", True),
+            throttle=pad.throttle,
+            compressor=pad.compressor,
+            cathode_pulse=pad.cathode_pulse,
+            laminar=pad.laminar_relaminarization,
         )
         self._state.update_pic_settings(steps=self.pic_steps.value(), skip_pic=self.chk_skip.isChecked())
         self._state.save()
@@ -212,9 +248,12 @@ class Step01PicPanel(ProofStepPanel):
 
     def _run(self) -> None:
         self._sync_config()
+        self.log.clear()
+        self.log.append_line("Starting WarpX…")
         self.toolbar.btn_run.setEnabled(False)
         self.toolbar.progress.show()
-        w = StepWorker(run_step_01, skip_pic=self.chk_skip.isChecked(), n_steps=self.pic_steps.value())
+        w = WarpXWorker(skip_pic=self.chk_skip.isChecked(), n_steps=self.pic_steps.value())
+        w.log_line.connect(self.log.append_line)
         w.finished.connect(self.on_step_finished)
         w.start()
         self._worker = w
