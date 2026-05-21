@@ -73,7 +73,8 @@ class ProofSuiteMainWindow(QMainWindow):
         title.setStyleSheet("color: #7aa2f7;")
         nav_lay.addWidget(title)
         sub = QLabel(
-            "Linger on each step. Run → tinker → refresh. "
+            "Run a step, then stay on it to change levers (no auto-advance). "
+            "Pad sliders: step 01. Geometry: step 00. "
             "Artifacts: build/orbitron/chain/"
         )
         sub.setWordWrap(True)
@@ -117,6 +118,8 @@ class ProofSuiteMainWindow(QMainWindow):
                 p.step_completed.connect(self._on_step_completed)
             if hasattr(p, "status_changed"):
                 p.status_changed.connect(self._refresh_nav)
+            if hasattr(p, "go_to_step"):
+                p.go_to_step.connect(self.go_to_step)
             self._panels.append(p)
             self.stack.addWidget(p)
         splitter.addWidget(self.stack)
@@ -142,9 +145,11 @@ class ProofSuiteMainWindow(QMainWindow):
 
     def _on_step_completed(self, step_id: str) -> None:
         self._refresh_nav()
+        # Stay on the step you just ran so pad/geometry controls remain visible.
+
+    def go_to_step(self, step_id: str) -> None:
         row = next(i for i, (s, _, _) in enumerate(self._state.STEPS) if s == step_id)
-        if row < len(self._panels) - 1:
-            self.step_list.setCurrentRow(row + 1)
+        self.step_list.setCurrentRow(row)
 
     def _open_chain(self) -> None:
         from tools.orbitron_proof_chain.chain_lib import CHAIN_ROOT

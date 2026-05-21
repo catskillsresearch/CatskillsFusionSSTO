@@ -7,7 +7,7 @@ from pathlib import Path
 
 import numpy as np
 from matplotlib.patches import Circle
-from PySide6.QtCore import Qt, QTimer
+from PySide6.QtCore import Qt, QTimer, Signal
 from PySide6.QtWidgets import (
     QCheckBox,
     QComboBox,
@@ -16,6 +16,7 @@ from PySide6.QtWidgets import (
     QGroupBox,
     QHBoxLayout,
     QLabel,
+    QPushButton,
     QScrollArea,
     QSlider,
     QSpinBox,
@@ -194,43 +195,60 @@ class Step01PicPanel(ProofStepPanel):
         self.pic_steps = QSpinBox()
         self.pic_steps.setRange(50, 5000)
         self.pic_steps.setValue(int(state.config["pic"]["steps"]))
+        self.pic_steps.setToolTip(
+            "WarpX time steps for laminar_flow_2d_arcjet.py.\n"
+            "Each step advances macroparticles + deposited ρ on the 2D grid; cathode E ramps over "
+            "~35% of this count.\n"
+            "Diagnostics every 100 steps → timelapse frames. Step 02 only uses the last plotfile.\n"
+            "50–100: quick sanity check (few frames, ramp may not finish).\n"
+            "500: default coupling snapshot; more steps = more timelapse, not new physics in step 02."
+        )
         self.chk_skip = QCheckBox("Skip WarpX (dev — unity ρ norms in step 2)")
         self.chk_skip.setChecked(bool(state.config.get("gui", {}).get("skip_pic", False)))
 
-        split = QSplitter()
-        pad_scroll = QScrollArea()
-        pad_scroll.setWidgetResizable(True)
-        pad_w = QWidget()
-        pad_lay = QVBoxLayout(pad_w)
+        # Inputs above Run — pad levers are not live-linked to WarpX.
+        inputs = QGroupBox("Run inputs (change these, then Run this step below)")
+        inputs_lay = QVBoxLayout(inputs)
+        dep = QLabel(
+            "Yes — you must re-run step 01 after moving pad levers or PIC steps. "
+            "Plots below only scrub the last WarpX output until you run again."
+        )
+        dep.setWordWrap(True)
+        dep.setStyleSheet("color: #e0af68; font-size: 11px; font-weight: bold;")
+        inputs_lay.addWidget(dep)
         self._pad_sync_enabled = False
         self.startup = StartupPanel(self._on_pad_changed, include_live_checkbox=False)
         self._pad_sync_enabled = True
-        pad_lay.addWidget(self.startup)
-        self.chk_live = QCheckBox("Auto-scrub WarpX frames (2 Hz)")
+        inputs_lay.addWidget(self.startup)
+        pic_row = QHBoxLayout()
+        pg = QGroupBox("WarpX PICMI")
+        pf = QFormLayout(pg)
+        pf.addRow("PIC steps", self.pic_steps)
+        pf.addRow(self.chk_skip)
+        pic_row.addWidget(pg)
+        self.chk_live = QCheckBox("Auto-scrub saved frames (2 Hz)")
         self.chk_live.setToolTip(
-            "Steps through saved density_diag plotfiles only. Does not re-run WarpX. "
-            "New pad levers require Run this step."
+            "Steps through cached density_diag plotfiles only. Does not re-run WarpX."
         )
-        pad_lay.addWidget(self.chk_live)
+        pic_row.addWidget(self.chk_live, stretch=1)
+        inputs_lay.addLayout(pic_row)
         warp_hint = QLabel(
-            "<b>Step 01 = WarpX electrons (Tier 2), not laminar fuel proof.</b><br>"
-            "Both WarpX panels use the same plotfiles: <b>x–z</b> (direct grid) on top; "
-            "<b>r–z histogram</b> below (r = √(x²+z²), can look wedge-like). "
-            "Neither proves laminar fuel — that is <b>step 03</b> (fusion channel s–r).<br><br>"
-            "<b>Two relaminarization levers (design):</b><br>"
-            "1) <b>Cathode pulse</b> (pad I/K) — PSP2/Jin time-varying cathode E / shear.<br>"
-            "2) <b>Rotational E×B shear</b> — needs step-00 <b>B</b> + pad <b>throttle</b> + pulse together.<br>"
-            "Electrostatic confinement: step-00 <b>−600 kV</b> (not the laminar toggle).<br>"
-            "Verify laminar: step 03 → Cache OFF+ON pair → side-by-side → clump index."
+            "<b>What N steps evolve:</b> electron ring + arc seed + inject beams; cathode V ramp; "
+            "|ρ_e| plotfiles every 100 steps. "
+            "<b>Not</b> laminar fuel proof (step 03). Geometry / kV / B: re-run step 00 first."
         )
         warp_hint.setWordWrap(True)
         warp_hint.setTextFormat(Qt.TextFormat.RichText)
         warp_hint.setStyleSheet("color: #a9b1d6; font-size: 11px;")
-        pad_lay.addWidget(warp_hint)
-        pad_lay.addStretch()
-        pad_scroll.setWidget(pad_w)
-        pad_scroll.setMinimumWidth(340)
-        split.addWidget(pad_scroll)
+        inputs_lay.addWidget(warp_hint)
+
+        self._layout.removeWidget(self.toolbar)
+        self._layout.removeWidget(self.gate)
+        self._layout.removeWidget(self.log)
+        self._layout.insertWidget(1, inputs)
+        self._layout.addWidget(self.toolbar)
+        self._layout.addWidget(self.gate)
+        self._layout.addWidget(self.log)
 
         right = QWidget()
         rlay = QVBoxLayout(right)
@@ -270,21 +288,15 @@ class Step01PicPanel(ProofStepPanel):
         lon_lay.addLayout(lon_scrub)
         rlay.addWidget(lon_grp, stretch=2)
 
-        pic_grp = QGroupBox("Transverse PIC — WarpX |ρ_e| (single station)")
+        pic_grp = QGroupBox("Transverse PIC — WarpX |ρ_e| (last run)")
         pic_lay = QVBoxLayout(pic_grp)
-        pg = QGroupBox("WarpX PICMI")
-        pf = QFormLayout(pg)
-        pf.addRow("PIC steps", self.pic_steps)
-        pf.addRow(self.chk_skip)
-        pic_lay.addWidget(pg)
         self.canvas = MplCanvas(6, 3.2)
         pic_lay.addWidget(self.canvas, stretch=1)
         rlay.addWidget(pic_grp, stretch=1)
 
         self.metrics = MetricGrid(4)
         rlay.addWidget(self.metrics)
-        split.addWidget(right)
-        self._layout.addWidget(split, stretch=1)
+        self._layout.addWidget(right, stretch=1)
 
         self._lon_xy = None
         self._lon_rz = None
@@ -572,15 +584,32 @@ class Step01PicPanel(ProofStepPanel):
 
 
 class Step02ReducePanel(ProofStepPanel):
+    go_to_step = Signal(str)
+
     def __init__(self, state: ProofSuiteState, parent=None) -> None:
         super().__init__(
             "02",
             "PIC reduce",
-            "Reduce last plotfile to ρ_e_norm and ρ_beam_norm — handoff to 0D plant and fusion channel.",
+            "Reduce last plotfile to ρ_e_norm and ρ_beam_norm — handoff to 0D plant and fusion channel. "
+            "No pad sliders here — use the links below to change inputs, then re-run step 01.",
             "0.2 ≤ ρ_norm ≤ 3.0 (plant clamp band).",
             state,
             parent,
         )
+        nav = QHBoxLayout()
+        self.lbl_levers = QLabel()
+        self.lbl_levers.setWordWrap(True)
+        self.lbl_levers.setStyleSheet("color: #a9b1d6; font-size: 11px;")
+        nav.addWidget(self.lbl_levers, stretch=1)
+        btn01 = QPushButton("Pad levers → step 01")
+        btn01.setToolTip("Throttle, compressor, cathode pulse, PIC step count")
+        btn01.clicked.connect(lambda: self.go_to_step.emit("01"))
+        btn00 = QPushButton("Geometry / kV → step 00")
+        btn00.clicked.connect(lambda: self.go_to_step.emit("00"))
+        nav.addWidget(btn00)
+        nav.addWidget(btn01)
+        self._layout.addLayout(nav)
+
         split = QSplitter()
         self.canvas_bars = MplCanvas(5, 3.5)
         self.canvas_gauge = MplCanvas(4, 3.5)
@@ -600,7 +629,31 @@ class Step02ReducePanel(ProofStepPanel):
         w.start()
         self._worker = w
 
+    def _refresh_lever_summary(self) -> None:
+        cfg = self._state.config
+        p = cfg["pad"]
+        g = cfg["geometry"]
+        pic = cfg["pic"]
+        s01 = self._state.try_load_step("01") or {}
+        lines = [
+            f"Pad: throttle={p['throttle']:.2f}  compressor={p['compressor']:.2f}  "
+            f"cathode_pulse={p['cathode_pulse']:.2f}  |  PIC steps={pic['steps']}",
+            f"Geometry: r_anode={g['r_anode_m']:.4f} m  r_cathode={g['r_cathode_m']:.4f} m  "
+            f"V={g['V_cathode_v']/1000:.0f} kV  B={g['B_axial_tesla']:.2f} T",
+        ]
+        if s01.get("skipped"):
+            lines.append("Step 01: SKIP_PIC — norms below are placeholders, not WarpX.")
+        elif s01.get("ok") is False:
+            lines.append(f"Step 01: WarpX failed (exit {s01.get('returncode', '?')}) — fix on step 01.")
+        elif s01:
+            lines.append(
+                f"Last WarpX run: {s01.get('n_steps', pic['steps'])} steps, "
+                f"{len(s01.get('plotfiles', []))} plotfiles"
+            )
+        self.lbl_levers.setText("\n".join(lines))
+
     def refresh_from_artifacts(self) -> None:
+        self._refresh_lever_summary()
         data = self._state.try_load_step("02")
         fig1 = self.canvas_bars.figure
         fig1.clear()
