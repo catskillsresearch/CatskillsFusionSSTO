@@ -30,9 +30,15 @@ def _slider(lo: int, hi: int, val: int) -> QSlider:
 class StartupPanel(QWidget):
     """Discrete pad steps 1–4 + run levers 5; mirrors ``orbitron_operator_console_spec.yaml``."""
 
-    def __init__(self, on_change: Callable[[], None]) -> None:
+    def __init__(
+        self,
+        on_change: Callable[[], None],
+        *,
+        include_live_checkbox: bool = True,
+    ) -> None:
         super().__init__()
         self._on_change = on_change
+        self._include_live_checkbox = include_live_checkbox
 
         layout = QVBoxLayout(self)
 
@@ -75,20 +81,26 @@ class StartupPanel(QWidget):
 
         self.chk_live = QCheckBox("Live steady-state + plasma animation (2 Hz)")
         self.chk_live.setToolTip(
-            "Classic Orbitron simulator only. Proof Suite step 01: re-run WarpX after moving levers."
+            "Classic Orbitron simulator: 0D plant + device view refresh at 2 Hz while bleed is open."
         )
-        run_form.addRow(self.chk_live)
+        if include_live_checkbox:
+            run_form.addRow(self.chk_live)
+        else:
+            self.chk_live.setChecked(False)
+            self.chk_live.hide()
 
         layout.addWidget(run)
         layout.addStretch()
 
-        for w in (
+        toggled_widgets = [
             self.chk_apu,
             self.chk_starter,
             self.chk_bleed,
             self.chk_ignite,
-            self.chk_live,
-        ):
+        ]
+        if include_live_checkbox:
+            toggled_widgets.append(self.chk_live)
+        for w in toggled_widgets:
             w.toggled.connect(self._changed)
         for slider in (self.slider_throttle, self.slider_compressor, self.slider_pulse):
             slider.valueChanged.connect(self._slider_changed)

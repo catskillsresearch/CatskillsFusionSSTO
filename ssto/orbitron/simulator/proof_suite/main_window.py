@@ -90,10 +90,8 @@ class ProofSuiteMainWindow(QMainWindow):
         btn_row = QVBoxLayout()
         self.btn_open_chain = QPushButton("Open chain folder")
         self.btn_doc = QPushButton("Open PROOF_SUITE.md")
-        self.btn_legacy = QPushButton("Open classic simulator…")
         btn_row.addWidget(self.btn_open_chain)
         btn_row.addWidget(self.btn_doc)
-        btn_row.addWidget(self.btn_legacy)
         nav_lay.addLayout(btn_row)
 
         splitter.addWidget(nav)
@@ -133,7 +131,6 @@ class ProofSuiteMainWindow(QMainWindow):
         self.step_list.setCurrentRow(0)
         self.btn_open_chain.clicked.connect(self._open_chain)
         self.btn_doc.clicked.connect(self._open_doc)
-        self.btn_legacy.clicked.connect(self._open_legacy)
         self._refresh_nav()
 
     def _refresh_nav(self) -> None:
@@ -161,7 +158,3 @@ class ProofSuiteMainWindow(QMainWindow):
                 subprocess.run(["xdg-open", str(doc)], check=False)
                 return
 
-    def _open_legacy(self) -> None:
-        repo = Path(__file__).resolve().parents[4]
-        script = repo / "scripts" / "run_orbitron_simulator.py"
-        subprocess.Popen([sys.executable, str(script)], cwd=str(repo))

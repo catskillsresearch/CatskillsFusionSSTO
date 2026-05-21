@@ -65,7 +65,7 @@ When the suite runs (and when `ORBITRON_PROOF_CHAIN=1`):
 | Step | What you control | What you visualize |
 |------|------------------|-------------------|
 | **00 — Design SSOT** | r_anode, r_cathode, length, cathode kV, B, H₂ / B₂H₆ sccm | Full engine **s–r** layout, core cross-section, PICMI override status |
-| **01 — WarpX PIC** | **Pad startup console** (steps 1–4 + run levers), PIC step count, **Skip WarpX** | **Live WarpX log** + last PIC **\|ρ_e\|** frame |
+| **01 — WarpX PIC** | Pad console, **Live longitudinal s–r** (2 Hz), laminar ON/OFF, view (full duct / fusion channel / PIC), PIC steps | **Longitudinal heatmap** (full engine cut) + **transverse WarpX donut** + live log |
 | **02 — PIC reduce** | Run after step 01 | ρ_e_norm / ρ_beam_norm bar chart and clamp band (0.2–3.0) |
 | **03 — Fusion channel** | Laminar ON/OFF, **Cache OFF+ON pair**, view **Side-by-side**, time scrubber | **s–r** single or **OFF \| ON** heatmaps (cached), clump ON/OFF curves |
 | **04 — Fueling** | Uses chain config + step 02 norms | n_p / n_B bars (log scale), ⟨σv⟩(T) curve with your T_i marked |

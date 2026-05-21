@@ -3,17 +3,21 @@ from __future__ import annotations
 
 import json
 import os
+from pathlib import Path
 
 import numpy as np
 from matplotlib.patches import Circle
+from PySide6.QtCore import Qt, QTimer
 from PySide6.QtWidgets import (
     QCheckBox,
+    QComboBox,
     QDoubleSpinBox,
     QFormLayout,
     QGroupBox,
     QHBoxLayout,
     QLabel,
     QScrollArea,
+    QSlider,
     QSpinBox,
     QSplitter,
     QVBoxLayout,
@@ -36,6 +40,15 @@ from ssto.orbitron.simulator.proof_suite.widgets import MetricGrid, MplCanvas
 from ssto.orbitron.simulator.proof_suite.workers import StepWorker
 from ssto.orbitron.simulator.types import DeviceGeometry
 from ssto.orbitron.simulator.longitudinal.focus import LongitudinalFocus
+from ssto.orbitron.simulator.proof_suite.inputs_builder import simulator_inputs_from_state
+from ssto.orbitron.simulator.proof_suite.longitudinal_viz import (
+    STEP01_MAP_EQUATION_HTML,
+    compute_longitudinal_preview,
+    data_source_caption,
+    draw_step01_placeholder,
+    draw_step01_warpx_rz_remap,
+    draw_step01_warpx_xz,
+)
 from ssto.orbitron.simulator.viz import render_device_cross_section
 
 
@@ -190,9 +203,30 @@ class Step01PicPanel(ProofStepPanel):
         pad_w = QWidget()
         pad_lay = QVBoxLayout(pad_w)
         self._pad_sync_enabled = False
-        self.startup = StartupPanel(self._on_pad_changed)
+        self.startup = StartupPanel(self._on_pad_changed, include_live_checkbox=False)
         self._pad_sync_enabled = True
         pad_lay.addWidget(self.startup)
+        self.chk_live = QCheckBox("Auto-scrub WarpX frames (2 Hz)")
+        self.chk_live.setToolTip(
+            "Steps through saved density_diag plotfiles only. Does not re-run WarpX. "
+            "New pad levers require Run this step."
+        )
+        pad_lay.addWidget(self.chk_live)
+        warp_hint = QLabel(
+            "<b>Step 01 = WarpX electrons (Tier 2), not laminar fuel proof.</b><br>"
+            "Both WarpX panels use the same plotfiles: <b>x–z</b> (direct grid) on top; "
+            "<b>r–z histogram</b> below (r = √(x²+z²), can look wedge-like). "
+            "Neither proves laminar fuel — that is <b>step 03</b> (fusion channel s–r).<br><br>"
+            "<b>Two relaminarization levers (design):</b><br>"
+            "1) <b>Cathode pulse</b> (pad I/K) — PSP2/Jin time-varying cathode E / shear.<br>"
+            "2) <b>Rotational E×B shear</b> — needs step-00 <b>B</b> + pad <b>throttle</b> + pulse together.<br>"
+            "Electrostatic confinement: step-00 <b>−600 kV</b> (not the laminar toggle).<br>"
+            "Verify laminar: step 03 → Cache OFF+ON pair → side-by-side → clump index."
+        )
+        warp_hint.setWordWrap(True)
+        warp_hint.setTextFormat(Qt.TextFormat.RichText)
+        warp_hint.setStyleSheet("color: #a9b1d6; font-size: 11px;")
+        pad_lay.addWidget(warp_hint)
         pad_lay.addStretch()
         pad_scroll.setWidget(pad_w)
         pad_scroll.setMinimumWidth(340)
@@ -200,18 +234,67 @@ class Step01PicPanel(ProofStepPanel):
 
         right = QWidget()
         rlay = QVBoxLayout(right)
+
+        lon_grp = QGroupBox("WarpX PIC timelapse (from plotfiles)")
+        lon_lay = QVBoxLayout(lon_grp)
+        lon_row = QHBoxLayout()
+        self.lon_field = QComboBox()
+        self.lon_field.addItems(["|ρ_e| electrons", "|ρ_beam| inject (if present)"])
+        self.lon_field.setToolTip("Applies to the lower r–z histogram panel when beam diagnostics exist.")
+        lon_row.addWidget(QLabel("Lower panel field"))
+        lon_row.addWidget(self.lon_field, stretch=1)
+        lon_lay.addLayout(lon_row)
+        self.lon_source = QLabel("Data: —")
+        self.lon_source.setStyleSheet("color: #9ece6a; font-size: 11px;")
+        self.lon_source.setWordWrap(True)
+        lon_lay.addWidget(self.lon_source)
+        lon_lay.addWidget(QLabel("Primary — x–z (WarpX cell grid)"))
+        self.canvas_xz = MplCanvas(7, 3.6)
+        lon_lay.addWidget(self.canvas_xz, stretch=3)
+        self.lon_map_eq = QLabel(STEP01_MAP_EQUATION_HTML)
+        self.lon_map_eq.setWordWrap(True)
+        self.lon_map_eq.setTextFormat(Qt.TextFormat.RichText)
+        self.lon_map_eq.setStyleSheet("color: #a9b1d6; font-size: 11px; padding: 4px 0;")
+        lon_lay.addWidget(self.lon_map_eq)
+        lon_lay.addWidget(QLabel("Advanced — r–z radius histogram (bin sum)"))
+        self.canvas_rz = MplCanvas(7, 2.5)
+        lon_lay.addWidget(self.canvas_rz, stretch=1)
+        lon_scrub = QHBoxLayout()
+        lon_scrub.addWidget(QLabel("Time"))
+        self.lon_time = QSlider()
+        self.lon_time.setOrientation(Qt.Orientation.Horizontal)
+        self.lon_time.setEnabled(False)
+        self.lon_time_label = QLabel("t = —")
+        lon_scrub.addWidget(self.lon_time, stretch=1)
+        lon_scrub.addWidget(self.lon_time_label)
+        lon_lay.addLayout(lon_scrub)
+        rlay.addWidget(lon_grp, stretch=2)
+
+        pic_grp = QGroupBox("Transverse PIC — WarpX |ρ_e| (single station)")
+        pic_lay = QVBoxLayout(pic_grp)
         pg = QGroupBox("WarpX PICMI")
         pf = QFormLayout(pg)
         pf.addRow("PIC steps", self.pic_steps)
         pf.addRow(self.chk_skip)
-        rlay.addWidget(pg)
+        pic_lay.addWidget(pg)
+        self.canvas = MplCanvas(6, 3.2)
+        pic_lay.addWidget(self.canvas, stretch=1)
+        rlay.addWidget(pic_grp, stretch=1)
 
-        self.canvas = MplCanvas(7, 3.8)
-        rlay.addWidget(self.canvas, stretch=1)
         self.metrics = MetricGrid(4)
         rlay.addWidget(self.metrics)
         split.addWidget(right)
         self._layout.addWidget(split, stretch=1)
+
+        self._lon_xy = None
+        self._lon_rz = None
+        self._live_timer = QTimer(self)
+        self._live_timer.setInterval(500)
+        self._live_timer.timeout.connect(self._on_live_tick)
+
+        self.chk_live.toggled.connect(self._update_live_timer)
+        self.lon_field.currentIndexChanged.connect(self._draw_longitudinal)
+        self.lon_time.valueChanged.connect(self._draw_longitudinal)
 
         self._load_pad_from_config()
         self.toolbar.btn_run.clicked.connect(self._run)
@@ -237,10 +320,22 @@ class Step01PicPanel(ProofStepPanel):
         if not getattr(self, "_pad_sync_enabled", False):
             return
         self._sync_config()
-        self.refresh_from_artifacts()
+        self._refresh_transverse_pic()
+        # Pad levers do not re-run WarpX; cached frames stay until Run this step.
 
     def _sync_config(self) -> None:
         pad = self.startup.pad_state()
+        pad = PadStartupState(
+            pad_apu_online=pad.pad_apu_online,
+            starter_engage=pad.starter_engage,
+            bleed_air_open=pad.bleed_air_open,
+            startup_trigger=pad.startup_trigger,
+            throttle=pad.throttle,
+            compressor=pad.compressor,
+            cathode_pulse=pad.cathode_pulse,
+            live_simulation=self.chk_live.isChecked(),
+            laminar_relaminarization=bool(self._state.config["pad"].get("laminar_relaminarization", True)),
+        )
         self._state.update_pad(
             throttle=pad.throttle,
             compressor=pad.compressor,
@@ -266,7 +361,116 @@ class Step01PicPanel(ProofStepPanel):
         w.start()
         self._worker = w
 
-    def refresh_from_artifacts(self) -> None:
+    def _pic_diags_dir(self) -> Path:
+        from tools.orbitron_proof_chain.chain_lib import load_config
+
+        return Path(load_config()["chain_root"]) / "01_pic" / "diags"
+
+    def _gather_inputs(self):
+        pad = self.startup.pad_state()
+        pad = PadStartupState(
+            pad_apu_online=pad.pad_apu_online,
+            starter_engage=pad.starter_engage,
+            bleed_air_open=pad.bleed_air_open,
+            startup_trigger=pad.startup_trigger,
+            throttle=pad.throttle,
+            compressor=pad.compressor,
+            cathode_pulse=pad.cathode_pulse,
+            live_simulation=self.chk_live.isChecked(),
+            laminar_relaminarization=bool(self._state.config["pad"].get("laminar_relaminarization", True)),
+        )
+        return simulator_inputs_from_state(self._state, pad)
+
+    def _rebuild_longitudinal(self) -> None:
+        diags = self._pic_diags_dir()
+        empty_msg = (
+            "No WarpX plotfiles yet.\n\nRun this step (WarpX PIC) — "
+            "heuristic / fusion-channel previews are on step 03 only."
+        )
+        if not list_pic_plotfiles(diags):
+            self._lon_xy = None
+            self._lon_rz = None
+            self.lon_time.setEnabled(False)
+            draw_step01_placeholder(self.canvas_xz.figure, empty_msg)
+            draw_step01_placeholder(self.canvas_rz.figure, empty_msg)
+            self.lon_source.setText("Data: none (not WarpX)")
+            self.canvas_xz.draw()
+            self.canvas_rz.draw()
+            return
+        try:
+            inputs = self._gather_inputs()
+            self._lon_xy = compute_longitudinal_preview(
+                inputs,
+                LongitudinalFocus.CORE_TUBE,
+                laminar_on=True,
+                pic_diags=diags,
+                use_heuristic_pic=False,
+                warpx_xy_direct=True,
+            )
+            self._lon_rz = compute_longitudinal_preview(
+                inputs,
+                LongitudinalFocus.CORE_TUBE,
+                laminar_on=True,
+                pic_diags=diags,
+                use_heuristic_pic=False,
+                warpx_xy_direct=False,
+            )
+            self.lon_source.setText(data_source_caption(self._lon_xy))
+            n = min(len(self._lon_xy.time_s), len(self._lon_rz.time_s))
+            self.lon_time.setEnabled(n > 1)
+            self.lon_time.setMaximum(max(0, n - 1))
+            if self.lon_time.value() > max(0, n - 1):
+                self.lon_time.setValue(0)
+            self._draw_longitudinal()
+        except Exception as exc:
+            draw_step01_placeholder(self.canvas_xz.figure, str(exc))
+            draw_step01_placeholder(self.canvas_rz.figure, str(exc))
+            self.lon_source.setText(f"Data: error — {exc}")
+            self.canvas_xz.draw()
+            self.canvas_rz.draw()
+            self._lon_xy = None
+            self._lon_rz = None
+            self.lon_time.setEnabled(False)
+
+    def _draw_longitudinal(self) -> None:
+        if self._lon_xy is None or self._lon_rz is None:
+            return
+        inputs = self._gather_inputs()
+        idx = self.lon_time.value()
+        draw_step01_warpx_xz(self.canvas_xz.figure, self._lon_xy, idx, inputs=inputs)
+        field_idx = 1 if self.lon_field.currentIndex() == 1 and self._lon_rz.secondary is not None else 0
+        draw_step01_warpx_rz_remap(
+            self.canvas_rz.figure,
+            self._lon_rz,
+            idx,
+            inputs=inputs,
+            field_index=field_idx,
+        )
+        t = self._lon_xy.time_s[idx]
+        n = min(len(self._lon_xy.time_s), len(self._lon_rz.time_s))
+        self.lon_time_label.setText(f"t = {t:.3e} s  ({idx + 1}/{n})")
+        self.canvas_xz.draw()
+        self.canvas_rz.draw()
+
+    def _update_live_timer(self) -> None:
+        pad = self.startup.pad_state()
+        if self.chk_live.isChecked() and pad.bleed_air_open:
+            self._live_timer.start()
+        else:
+            self._live_timer.stop()
+
+    def _on_live_tick(self) -> None:
+        if self._lon_xy is None or len(self._lon_xy.time_s) <= 1:
+            self._rebuild_longitudinal()
+            return
+        n = min(len(self._lon_xy.time_s), len(self._lon_rz.time_s) if self._lon_rz else 0)
+        nxt = (self.lon_time.value() + 1) % n
+        self.lon_time.blockSignals(True)
+        self.lon_time.setValue(nxt)
+        self.lon_time.blockSignals(False)
+        self._draw_longitudinal()
+
+    def _refresh_transverse_pic(self) -> None:
         import json
         from pathlib import Path
 
@@ -281,6 +485,7 @@ class Step01PicPanel(ProofStepPanel):
                 pass
         elif step_completed("01"):
             data = self._state.try_load_step("01")
+
         fig = self.canvas.figure
         fig.clear()
         ax = fig.add_subplot(111)
@@ -289,17 +494,11 @@ class Step01PicPanel(ProofStepPanel):
             ax.text(
                 0.5,
                 0.5,
-                f"WarpX failed (exit {rc})\n\nSee log above — fix env / PIC, then Run again",
+                f"WarpX failed (exit {rc})\n\nSee log — fix env, then Run this step",
                 ha="center",
                 va="center",
                 color="#f7768e",
-                fontsize=12,
-            )
-            self.metrics.set_metrics(
-                [
-                    ("Status", "FAILED", f"exit {rc}", "#f7768e"),
-                    ("Diags", "empty", data.get("diags_dir", ""), "#e0af68"),
-                ]
+                fontsize=11,
             )
             self.gate.set_gate("Gate: WarpX did not finish — no plotfiles to preview.", ok=False)
         elif data and not data.get("skipped"):
@@ -312,13 +511,10 @@ class Step01PicPanel(ProofStepPanel):
                 run_co = data.get("compressor")
                 run_pu = data.get("cathode_pulse")
                 pad_now = self.startup.pad_state()
-                title = "Last PIC frame — |ρ_e| (x–z transverse cut)"
+                title = "WarpX |ρ_e| — transverse (x–z) at one bore station"
                 if run_th is not None:
-                    title += (
-                        f"\nfrom run: thr={run_th:.2f} comp={run_co:.2f} pulse={run_pu:.2f}"
-                        f"  ({data.get('n_steps', '?')} steps)"
-                    )
-                ax.set_title(title, color="#c0caf5", fontsize=10)
+                    title += f"\nrun: thr={run_th:.2f} comp={run_co:.2f} pulse={run_pu:.2f}"
+                ax.set_title(title, color="#c0caf5", fontsize=9)
                 ax.set_xlabel("x [m]")
                 ax.set_ylabel("z [m]")
                 if run_th is not None and (
@@ -329,48 +525,50 @@ class Step01PicPanel(ProofStepPanel):
                     ax.text(
                         0.5,
                         0.02,
-                        "Sliders changed — click Run this step to update PIC",
+                        "Levers changed — Run this step to refresh WarpX",
                         transform=ax.transAxes,
                         ha="center",
                         va="bottom",
                         color="#e0af68",
-                        fontsize=9,
+                        fontsize=8,
                     )
             else:
-                ax.text(
-                    0.5,
-                    0.5,
-                    err or "No preview",
-                    ha="center",
-                    va="center",
-                    color="#a9b1d6",
-                    fontsize=11,
-                    wrap=True,
-                )
+                ax.text(0.5, 0.5, err or "No PIC preview", ha="center", va="center", color="#a9b1d6", fontsize=10)
             diags = Path(data.get("diags_dir", ""))
             n_pf = len(list_pic_plotfiles(diags)) if diags.is_dir() else len(data.get("plotfiles", []))
             self.metrics.set_metrics(
                 [
                     ("Plotfiles", str(n_pf), str(diags) if diags else "", "#9ece6a" if n_pf else "#e0af68"),
+                    ("WarpX frames", str(len(self._lon_xy.time_s)) if self._lon_xy else "0", "density_diag", "#7aa2f7"),
                     ("Throttle", f"{data.get('throttle', 0):.2f}", "pad", "#7aa2f7"),
-                    ("Compressor", f"{data.get('compressor', 0):.2f}", "pad", "#7aa2f7"),
                     ("Pulse", f"{data.get('cathode_pulse', 0):.2f}", "cathode", "#7aa2f7"),
                 ]
             )
             if n_pf and slice3d:
-                self.gate.set_gate("Gate: PIC completed — run step 02 to reduce ρ norms.", ok=True)
+                self.gate.set_gate("Gate: PIC + longitudinal preview — run step 02 to reduce ρ norms.", ok=True)
             elif n_pf:
-                self.gate.set_gate("Gate: plotfiles on disk but preview failed — see message.", ok=None)
+                self.gate.set_gate("Gate: plotfiles on disk but transverse preview failed.", ok=None)
             else:
-                self.gate.set_gate("Gate: step marked done but no plotfiles — re-run WarpX.", ok=False)
+                self.gate.set_gate("Gate: re-run WarpX for transverse plotfiles.", ok=False)
         elif data and data.get("skipped"):
             ax.text(0.5, 0.5, "PIC skipped\n(SKIP_PIC)", ha="center", va="center", color="#e0af68", fontsize=14)
             self.gate.set_gate("Gate: skipped — step 2 will use unity norms (not Tier-2 closed).", ok=None)
         else:
-            ax.text(0.5, 0.5, "Run WarpX PIC", ha="center", va="center", color="#565f89", fontsize=14)
-            self.gate.set_gate(self._gate_hint, ok=None)
+            ax.text(0.5, 0.5, "Run WarpX for transverse |ρ_e|", ha="center", va="center", color="#565f89", fontsize=12)
+            if self._lon_xy is not None:
+                self.gate.set_gate(
+                    "Gate: longitudinal preview active — Run WarpX for Tier-2 transverse PIC.",
+                    ok=None,
+                )
+            else:
+                self.gate.set_gate(self._gate_hint, ok=None)
         fig.tight_layout()
         self.canvas.draw()
+
+    def refresh_from_artifacts(self) -> None:
+        self._rebuild_longitudinal()
+        self._refresh_transverse_pic()
+        self._update_live_timer()
 
 
 class Step02ReducePanel(ProofStepPanel):
