@@ -25,6 +25,7 @@ from ssto.orbitron.simulator.proof_chain.runners import (
     run_step_04,
     run_step_05,
 )
+from ssto.orbitron.simulator.proof_suite.longitudinal_viz import _align_pcolormesh_grid
 from ssto.orbitron.simulator.proof_suite.steps.base import ProofStepPanel
 from ssto.orbitron.simulator.proof_suite.state import ProofSuiteState
 from ssto.orbitron.simulator.proof_suite.widgets import MetricGrid, MplCanvas, apply_dark_axes
@@ -194,7 +195,8 @@ class Step03FusionPanel(ProofStepPanel):
         s, r = npz["s_m"], npz["r_m"]
         layout = engine_axial_layout(geo)
         draw_blender_underlay(ax, layout, LongitudinalFocus.FUSION_CHANNEL_SR, symmetric=False)
-        im = ax.pcolormesh(s, r, data[idx], shading="auto", cmap="magma", alpha=0.75)
+        xh, yv, sl = _align_pcolormesh_grid(s, r, data[idx])
+        im = ax.pcolormesh(xh, yv, sl, shading="auto", cmap="magma", alpha=0.75)
         apply_dark_axes(ax)
         ax.set_title(title, color="#c0caf5")
         ax.set_xlabel("Axial s [m]")

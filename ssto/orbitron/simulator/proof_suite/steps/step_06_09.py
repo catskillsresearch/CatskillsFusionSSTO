@@ -13,6 +13,7 @@ from PySide6.QtWidgets import (
     QSplitter,
     QTextEdit,
     QVBoxLayout,
+    QWidget,
 )
 
 from ssto.orbitron.simulator.proof_chain.runners import run_step_06, run_step_07, run_step_08, run_step_09
@@ -262,6 +263,14 @@ class Step09SolvePanel(ProofStepPanel):
             state,
             parent,
         )
+        prereq = QWidget()
+        prereq_lay = QVBoxLayout(prereq)
+        self.lbl_prereq = QLabel()
+        self.lbl_prereq.setWordWrap(True)
+        self.lbl_prereq.setStyleSheet("color: #a9b1d6; font-size: 11px;")
+        prereq_lay.addWidget(self.lbl_prereq)
+        self.place_inputs_above_run(prereq)
+
         self.canvas = MplCanvas(7, 4)
         self._layout.addWidget(self.canvas, stretch=1)
         self.knobs = QTextEdit()
@@ -274,7 +283,31 @@ class Step09SolvePanel(ProofStepPanel):
         self.toolbar.btn_run.clicked.connect(self._run)
         self.refresh_from_artifacts()
 
+    def _refresh_prereq(self) -> None:
+        from tools.orbitron_proof_chain.chain_lib import step08_blocks_inverse
+
+        s8 = self._state.try_load_step("08")
+        allowed, msg = step08_blocks_inverse(s8)
+        if allowed:
+            self.lbl_prereq.setText(
+                "Prerequisite: step 08 export complete with no FAIL spec checks. "
+                "Inverse solve is optional gap documentation (not Tier-2 proof)."
+            )
+            self.lbl_prereq.setStyleSheet("color: #9ece6a; font-size: 11px;")
+            self.toolbar.btn_run.setEnabled(True)
+        else:
+            self.lbl_prereq.setText(msg)
+            self.lbl_prereq.setStyleSheet("color: #f7768e; font-size: 11px; font-weight: bold;")
+            self.toolbar.btn_run.setEnabled(False)
+
     def _run(self) -> None:
+        from tools.orbitron_proof_chain.chain_lib import step08_blocks_inverse
+
+        allowed, msg = step08_blocks_inverse(self._state.try_load_step("08"))
+        if not allowed:
+            self.log.append_line(f"BLOCKED: {msg}")
+            self.gate.set_gate(msg, ok=False)
+            return
         self.toolbar.btn_run.setEnabled(False)
         self.toolbar.progress.show()
         w = StepWorker(run_step_09)
@@ -283,6 +316,7 @@ class Step09SolvePanel(ProofStepPanel):
         self._worker = w
 
     def refresh_from_artifacts(self) -> None:
+        self._refresh_prereq()
         data = self._state.try_load_step("09")
         fig = self.canvas.figure
         fig.clear()

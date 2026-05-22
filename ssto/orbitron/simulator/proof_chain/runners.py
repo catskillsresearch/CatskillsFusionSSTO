@@ -161,29 +161,69 @@ def run_step_02() -> dict[str, Any]:
         sys.path.insert(0, str(_tools))
     from build_surrogate_map import (  # noqa: E402
         reduce_last_plotfile_beam_screen_kw_proxy,
-        reduce_last_plotfile_mean_rho,
+        reduce_last_plotfile_rho_e_annulus,
     )
+    from ssto.orbitron.laminar_flow_2d_arcjet import scaled_densities
 
     diags = chain_root / "01_pic" / "diags"
-    rho_e = reduce_last_plotfile_mean_rho(diags)
-    rho_screen, rho_dom = reduce_last_plotfile_beam_screen_kw_proxy(diags)
-    ref_e, ref_b = 1.0e15, 1.0e10
-    rho_e_norm = max(0.05, min(3.0, rho_e / ref_e)) if math.isfinite(rho_e) and rho_e > 0 else 1.0
-    rho_beam_norm = (
-        max(0.05, min(3.0, rho_screen / ref_b))
-        if math.isfinite(rho_screen) and rho_screen > 0
-        else (
-            max(0.05, min(3.0, rho_dom / ref_b))
-            if math.isfinite(rho_dom) and rho_dom > 0
-            else 1.0
-        )
+    g = cfg["geometry"]
+    pad = cfg["pad"]
+    rho_p95, rho_ring_mean, rho_dom_mean = reduce_last_plotfile_rho_e_annulus(
+        diags,
+        r_inner_m=float(g["r_cathode_m"]) * 0.9,
+        r_outer_m=float(g["r_anode_m"]) * 0.95,
     )
+    rho_screen, rho_beam_dom = reduce_last_plotfile_beam_screen_kw_proxy(diags)
+    rho_beam_p95 = rho_screen if math.isfinite(rho_screen) and rho_screen > 0 else rho_beam_dom
+
+    overrides_path = chain_root / "00_spec" / "picmi_overrides.json"
+    overrides: dict[str, Any] = {}
+    if overrides_path.is_file():
+        overrides = json.loads(overrides_path.read_text(encoding="utf-8"))
+
+    n_e, _ = scaled_densities(
+        float(pad["throttle"]),
+        float(pad["compressor"]),
+        float(pad.get("cathode_pulse", 0.35 + 0.65 * pad["throttle"])),
+        overrides,
+    )
+    e_charge = 1.602176634e-19
+    ref_e_phys = max(n_e * e_charge, 1e-30)
+    ref_e_design = 1.0e15
+    ref_b_design = 1.0e10
+
+    def _norm(rho_val: float, ref_phys: float, ref_design: float) -> tuple[float, str]:
+        if not (math.isfinite(rho_val) and rho_val > 0):
+            return 1.0, "default"
+        ratio = rho_val / ref_phys if ref_phys > 0 else float("inf")
+        if 1e-4 < ratio < 1e4:
+            ref = ref_phys
+            mode = "n_e*e"
+        elif rho_val > 0:
+            ref = rho_val
+            mode = "self_p95"
+        else:
+            ref = ref_design
+            mode = "design_1e15"
+        return max(0.05, min(3.0, rho_val / ref)), mode
+
+    rho_e_norm, norm_e_mode = _norm(rho_p95, ref_e_phys, ref_e_design)
+    rho_beam_norm, norm_b_mode = _norm(rho_beam_p95, ref_b_design * 1e-5, ref_b_design)
+
     payload = {
-        "rho_e_mean": rho_e,
+        "rho_e_mean": rho_dom_mean,
+        "rho_e_ring_mean": rho_ring_mean,
+        "rho_e_p95_annulus": rho_p95,
         "rho_beam_screen_mean": rho_screen,
-        "rho_beam_domain_mean": rho_dom,
+        "rho_beam_domain_mean": rho_beam_dom,
         "rho_e_norm": rho_e_norm,
         "rho_beam_norm": rho_beam_norm,
+        "norm_ref_e": ref_e_phys if norm_e_mode == "n_e*e" else rho_p95,
+        "norm_mode_e": norm_e_mode,
+        "norm_mode_beam": norm_b_mode,
+        "pad_throttle": pad["throttle"],
+        "pad_compressor": pad["compressor"],
+        "pad_cathode_pulse": pad.get("cathode_pulse"),
     }
     save_step("02", payload)
     return load_step_json("02")
@@ -425,6 +465,14 @@ def run_step_08() -> dict[str, Any]:
 
 
 def run_step_09() -> dict[str, Any]:
+    from tools.orbitron_proof_chain.chain_lib import step08_blocks_inverse
+
+    require_step("08")
+    s8 = load_step_json("08")
+    allowed, msg = step08_blocks_inverse(s8)
+    if not allowed:
+        raise RuntimeError(msg)
+
     inp, _ = base_inputs()
     os.environ.pop("ORBITRON_PROOF_CHAIN", None)
     from ssto.orbitron.simulator.solve import solve_unobtanium_requirements
@@ -434,7 +482,7 @@ def run_step_09() -> dict[str, Any]:
     save_step(
         "09",
         {
-            "success": report.success,
+            "success": bool(report.success),
             "message": report.message,
             "residual_mw": report.residual_mw,
             "unobtanium_required": {

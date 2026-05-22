@@ -79,8 +79,17 @@ class Step00SpecPanel(ProofStepPanel):
         g = cfg["geometry"]
         inj = cfg["injectants"]
 
-        form = QGroupBox("Geometry & fueling")
-        fl = QFormLayout(form)
+        inputs = QGroupBox("Run inputs (change these, then Run this step below)")
+        inputs_lay = QVBoxLayout(inputs)
+        dep = QLabel(
+            "Re-run step 00 after changing geometry or fueling. "
+            "Step 01 WarpX uses the PICMI overrides compiled here."
+        )
+        dep.setWordWrap(True)
+        dep.setStyleSheet("color: #e0af68; font-size: 11px; font-weight: bold;")
+        inputs_lay.addWidget(dep)
+        geom = QGroupBox("Geometry & fueling")
+        fl = QFormLayout(geom)
         self.r_anode = _spin(0.01, 0.2, g["r_anode_m"], suf=" m")
         self.r_cathode = _spin(0.002, 0.05, g["r_cathode_m"], suf=" m")
         self.length = _spin(0.2, 5.0, g["length_m"], suf=" m")
@@ -95,7 +104,8 @@ class Step00SpecPanel(ProofStepPanel):
         fl.addRow("Axial B", self.b_t)
         fl.addRow("H₂", self.h2)
         fl.addRow("B₂H₆", self.b2h6)
-        self._layout.addWidget(form)
+        inputs_lay.addWidget(geom)
+        self.place_inputs_above_run(inputs)
 
         split = QSplitter()
         self.canvas_layout = MplCanvas(6.5, 3.8)
@@ -210,8 +220,11 @@ class Step01PicPanel(ProofStepPanel):
         inputs = QGroupBox("Run inputs (change these, then Run this step below)")
         inputs_lay = QVBoxLayout(inputs)
         dep = QLabel(
-            "Yes — you must re-run step 01 after moving pad levers or PIC steps. "
-            "Plots below only scrub the last WarpX output until you run again."
+            "Yes — re-run step 01 after pad levers or PIC steps change. "
+            "Starting band that usually clears step 02 (ρ norm 0.2–3): "
+            "throttle 0.75–0.95, compressor 0.65–0.90, cathode_pulse 0.70–0.90 "
+            "(or leave pulse linked: 0.35 + 0.65×throttle). "
+            "Step 00: keep B ≤ 2.0 T for step 08 U3."
         )
         dep.setWordWrap(True)
         dep.setStyleSheet("color: #e0af68; font-size: 11px; font-weight: bold;")
@@ -242,13 +255,7 @@ class Step01PicPanel(ProofStepPanel):
         warp_hint.setStyleSheet("color: #a9b1d6; font-size: 11px;")
         inputs_lay.addWidget(warp_hint)
 
-        self._layout.removeWidget(self.toolbar)
-        self._layout.removeWidget(self.gate)
-        self._layout.removeWidget(self.log)
-        self._layout.insertWidget(1, inputs)
-        self._layout.addWidget(self.toolbar)
-        self._layout.addWidget(self.gate)
-        self._layout.addWidget(self.log)
+        self.place_inputs_above_run(inputs)
 
         right = QWidget()
         rlay = QVBoxLayout(right)
@@ -693,10 +700,16 @@ class Step02ReducePanel(ProofStepPanel):
                 ]
             )
             gate_ok = ok_e and ok_b
+            mode_e = data.get("norm_mode_e", "")
+            hint = ""
+            if not gate_ok and mode_e == "design_1e15":
+                hint = " (domain mean ≪ 1e15 ref — re-run step 02 after restart; ring p95 norm used now)"
+            elif not gate_ok and re <= 0.06:
+                hint = " (ρ at floor — try higher throttle/compressor or re-run step 02)"
             self.gate.set_gate(
                 "Gate: norms in band — feed fusion channel & plant."
                 if gate_ok
-                else "Gate: norms out of band — revisit PIC or geometry.",
+                else f"Gate: norms out of band — revisit step 01 levers or geometry.{hint}",
                 ok=gate_ok,
             )
         else:

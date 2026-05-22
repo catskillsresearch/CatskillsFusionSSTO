@@ -51,6 +51,51 @@ def _median(xs: list[float]) -> float:
     return 0.5 * (ys[mid - 1] + ys[mid])
 
 
+def reduce_last_plotfile_rho_e_annulus(
+    diags_parent: Path,
+    *,
+    r_inner_m: float = 0.008,
+    r_outer_m: float = 0.038,
+) -> tuple[float, float, float]:
+    """
+    Annulus statistics for |rho_electrons| on the last plotfile.
+
+    Returns (p95 in annulus, mean in annulus, domain mean). Falls back to domain
+    p95/mean if the annulus mask is empty.
+    """
+    from ssto.orbitron.simulator.proof_chain.runners import list_pic_plotfiles
+
+    plotfiles = list_pic_plotfiles(diags_parent)
+    if not plotfiles:
+        return float("nan"), float("nan"), float("nan")
+
+    try:
+        import numpy as np
+        import yt
+    except ImportError as e:
+        raise RuntimeError(
+            "yt (and numpy) required for reduction. Install in Poetry env: poetry add yt"
+        ) from e
+
+    yt.funcs.mylog.setLevel(50)
+    ds = yt.load(str(plotfiles[-1]))
+    grid = ds.covering_grid(level=0, left_edge=ds.domain_left_edge, dims=ds.domain_dimensions)
+    rho = np.abs(grid[("boxlib", "rho_electrons")].v.squeeze())
+    dom_mean = float(np.mean(rho))
+    nx, nz = int(rho.shape[0]), int(rho.shape[1])
+    le = np.asarray(ds.domain_left_edge.to_value(), dtype=float).ravel()
+    re = np.asarray(ds.domain_right_edge.to_value(), dtype=float).ravel()
+    x1d = np.linspace(float(le[0]), float(re[0]), nx)
+    z1d = np.linspace(float(le[1] if le.size > 1 else 0), float(re[1] if re.size > 1 else 1), nz)
+    xm, zm = np.meshgrid(x1d, z1d, indexing="ij")
+    r = np.sqrt(xm * xm + zm * zm)
+    mask = (r > r_inner_m) & (r < r_outer_m)
+    if np.any(mask):
+        ring = rho[mask]
+        return float(np.percentile(ring, 95)), float(np.mean(ring)), dom_mean
+    return float(np.percentile(rho, 95)), dom_mean, dom_mean
+
+
 def reduce_last_plotfile_mean_rho(diags_parent: Path) -> float:
     """Mean |rho_electrons| on last density_diag plotfile under diags_parent."""
     from ssto.orbitron.simulator.proof_chain.runners import list_pic_plotfiles

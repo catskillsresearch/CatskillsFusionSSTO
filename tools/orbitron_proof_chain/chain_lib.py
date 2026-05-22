@@ -11,6 +11,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+import numpy as np
+
 _REPO = Path(__file__).resolve().parents[2]
 if str(_REPO) not in sys.path:
     sys.path.insert(0, str(_REPO))
@@ -73,13 +75,30 @@ def step_artifact_path(step: str) -> Path:
     return CHAIN_ROOT / cfg["steps"][step]["artifact"]
 
 
+def _json_safe(value: Any) -> Any:
+    """Convert numpy/scalar types for ``json.dumps``."""
+    if isinstance(value, dict):
+        return {k: _json_safe(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_json_safe(v) for v in value]
+    if isinstance(value, (bool, np.bool_)):
+        return bool(value)
+    if isinstance(value, (np.integer,)):
+        return int(value)
+    if isinstance(value, (np.floating,)):
+        return float(value)
+    if isinstance(value, np.ndarray):
+        return value.tolist()
+    return value
+
+
 def save_step(step: str, payload: dict[str, Any]) -> Path:
     """Write step artifact JSON; step_ok marker only when the step succeeded."""
     cfg = load_config()
     rel = cfg["steps"][step]["artifact"]
     out = CHAIN_ROOT / rel
     out.parent.mkdir(parents=True, exist_ok=True)
-    body = {"step": step, "generated_utc": utc_now(), **payload}
+    body = {"step": step, "generated_utc": utc_now(), **_json_safe(payload)}
     out.write_text(json.dumps(body, indent=2), encoding="utf-8")
     ok_path = CHAIN_ROOT / cfg["steps"][step]["ok_marker"]
     succeeded = payload.get("ok", True) is not False
@@ -183,7 +202,27 @@ def base_inputs():
 
 
 def steady_to_dict(res) -> dict[str, Any]:
-    return {k: getattr(res, k) for k in res.__dataclass_fields__}
+    return _json_safe({k: getattr(res, k) for k in res.__dataclass_fields__})
+
+
+def step08_blocks_inverse(step08: dict[str, Any] | None) -> tuple[bool, str]:
+    """
+    Step 09 is gap-fill after a completed export, not a substitute for failed forward specs.
+    Returns (allowed, message).
+    """
+    if not step08:
+        return False, "Step 08 not complete — run validation export first."
+    fails = [
+        c["spec_id"]
+        for c in step08.get("spec_checks", [])
+        if str(c.get("status", "")).upper() == "FAIL"
+    ]
+    if fails:
+        return False, (
+            f"Step 08 has FAIL checks ({', '.join(fails)}) — fix the forward chain "
+            "(e.g. U3: B ≤ 2 T at HTS scale 1; FCH/U4: power & coupling) before inverse solve."
+        )
+    return True, "OK"
 
 
 def validation_checks_to_dict(report) -> list[dict[str, Any]]:

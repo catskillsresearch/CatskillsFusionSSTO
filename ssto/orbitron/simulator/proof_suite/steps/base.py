@@ -48,6 +48,16 @@ class ProofStepPanel(QWidget):
         self.toolbar.btn_refresh.clicked.connect(self.refresh_from_artifacts)
         self.gate.set_gate(f"Gate: {gate_hint}", ok=None)
 
+    def place_inputs_above_run(self, inputs: QWidget) -> None:
+        """Insert *inputs* between the step banner and Run / Refresh / gate / log."""
+        self._layout.removeWidget(self.toolbar)
+        self._layout.removeWidget(self.gate)
+        self._layout.removeWidget(self.log)
+        self._layout.insertWidget(1, inputs)
+        self._layout.addWidget(self.toolbar)
+        self._layout.addWidget(self.gate)
+        self._layout.addWidget(self.log)
+
     def _sync_config(self) -> None:
         """Override: push widget values into chain_config before run."""
 
