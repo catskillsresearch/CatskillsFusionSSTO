@@ -29,11 +29,8 @@ from ssto.orbitron.simulator.fusion_pb11 import (
     pb11_reactivity_m3_s,
 )
 from ssto.orbitron.simulator.longitudinal.focus import FocusDomain
-from ssto.orbitron.simulator.pad_startup import (
-    effective_operating_point,
-    evaluate_pad_status,
-    injectant_mixing_scale,
-)
+from ssto.orbitron.simulator.injectants import injectant_mixing_scale
+from ssto.orbitron.simulator.pad_startup import effective_operating_point, evaluate_pad_status
 from ssto.orbitron.simulator.types import SimulatorInputs
 
 
@@ -80,7 +77,7 @@ class FusionChannelResult:
 def laminar_hack_from_inputs(inputs: SimulatorInputs, *, force_off: bool = False) -> LaminarHackState:
     """Build laminar hack from pad + injectants + B field."""
     pad = evaluate_pad_status(inputs.pad)
-    mix = injectant_mixing_scale(inputs.operating.h2_sccm, inputs.operating.b2h6_sccm)
+    mix = injectant_mixing_scale(inputs.operating.h2_sccm, inputs.operating.laser_ablation_hz)
     pulse = pad.state.cathode_pulse if pad.reactor_armed else 0.0
     thr = pad.state.throttle if pad.reactor_armed else 0.0
     enabled = (not force_off) and pad.reactor_armed
@@ -188,7 +185,7 @@ def run_fusion_channel_sr(
         throttle=laminar.throttle,
         cathode_pulse=laminar.cathode_pulse,
         h2_sccm=op.h2_sccm,
-        b2h6_sccm=op.b2h6_sccm,
+        laser_ablation_hz=op.laser_ablation_hz,
         fusion_reactivity_scale=inputs.unobtanium.fusion_reactivity_scale,
         pic_rho_e_norm=inputs.pic_rho_e_norm,
     )

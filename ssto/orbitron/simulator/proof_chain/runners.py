@@ -364,7 +364,7 @@ def run_step_04() -> dict[str, Any]:
         throttle=op.throttle,
         cathode_pulse=op.cathode_pulse,
         h2_sccm=op.h2_sccm,
-        b2h6_sccm=op.b2h6_sccm,
+        laser_ablation_hz=op.laser_ablation_hz,
         fusion_reactivity_scale=inp.unobtanium.fusion_reactivity_scale,
         pic_rho_e_norm=inp.pic_rho_e_norm,
     )
@@ -397,7 +397,7 @@ def run_step_05() -> dict[str, Any]:
         throttle=op.throttle,
         cathode_pulse=op.cathode_pulse,
         h2_sccm=op.h2_sccm,
-        b2h6_sccm=op.b2h6_sccm,
+        laser_ablation_hz=op.laser_ablation_hz,
         fusion_reactivity_scale=inp.unobtanium.fusion_reactivity_scale,
         pic_rho_e_norm=inp.pic_rho_e_norm,
     )

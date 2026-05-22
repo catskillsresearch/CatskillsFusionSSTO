@@ -143,15 +143,15 @@ class MainWindow(QMainWindow):
         op_box = QGroupBox("Injectants (NBI fuel)")
         op_form = QFormLayout(op_box)
         self.h2_sccm = _spin(0.0, 200.0, 80.0, 1, 5.0, " sccm")
-        self.b2h6_sccm = _spin(0.0, 100.0, 20.0, 1, 2.0, " sccm")
-        op_form.addRow("H₂ flow", self.h2_sccm)
-        op_form.addRow("B₂H₆ flow", self.b2h6_sccm)
+        self.laser_hz = _spin(0.0, 50.0, 10.0, 1, 1.0, " Hz")
+        op_form.addRow("H₂ flow (proton)", self.h2_sccm)
+        op_form.addRow("¹¹B laser pulse rate", self.laser_hz)
         op_form.addRow(
             QLabel("Beam / compressor / pulse levers are on the Pad startup tab (same as FlightGear).")
         )
         tabs.addTab(op_box, "Injectants")
         self.h2_sccm.valueChanged.connect(self._on_pad_changed)
-        self.b2h6_sccm.valueChanged.connect(self._on_pad_changed)
+        self.laser_hz.valueChanged.connect(self._on_pad_changed)
 
         u_box = QGroupBox("Unobtanium parameters")
         u_form = QFormLayout(u_box)
@@ -281,7 +281,7 @@ class MainWindow(QMainWindow):
         )
         op = OperatingPoint(
             h2_sccm=self.h2_sccm.value(),
-            b2h6_sccm=self.b2h6_sccm.value(),
+            laser_ablation_hz=self.laser_hz.value(),
         )
         pad = self.startup.pad_state()
         if hasattr(self, "timelapse"):

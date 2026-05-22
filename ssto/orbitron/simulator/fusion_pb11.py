@@ -10,7 +10,7 @@ Model structure
 
 where:
   - ``T_i`` [keV] is an effective ion temperature from cathode potential and pulse.
-  - ``n_p``, ``n_B`` [m⁻³] from H₂ / B₂H₆ injectant flows into the confined bore volume.
+  - ``n_p``, ``n_B`` [m⁻³] from H₂ and solid **¹¹B** laser ablation into the bore volume.
   - ``<σv>`` uses a peaked analytical fit to published p-¹¹B reactivity (Nevins/Swain class).
   - ``η_conf`` combines geometry fill, axial length, and ``fusion_reactivity_scale`` (U4 knob).
 
@@ -24,7 +24,7 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass
 
-from ssto.orbitron.simulator.pad_startup import injectant_mixing_scale
+from ssto.orbitron.simulator.injectants import effective_b11_density_scale, injectant_mixing_scale
 
 # Net energy per p-¹¹B reaction [J]
 E_RXN_J = 8.68e6 * 1.602176634e-19  # 8.68 MeV → J
@@ -106,19 +106,19 @@ def evaluate_fusion_pb11(
     throttle: float,
     cathode_pulse: float,
     h2_sccm: float,
-    b2h6_sccm: float,
+    laser_ablation_hz: float,
     fusion_reactivity_scale: float = 1.0,
     pic_rho_e_norm: float = float("nan"),
     volume_fill: float = 0.35,
     tau_residence_s: float = 5.0e-4,
 ) -> FusionPhysicsResult:
     """Compute p-¹¹B fusion thermal power from fueling, geometry, and ion energy."""
-    mix = injectant_mixing_scale(h2_sccm, b2h6_sccm)
+    mix = injectant_mixing_scale(h2_sccm, laser_ablation_hz)
     V = plasma_volume_m3(r_anode_m, length_m, volume_fill)
 
     n_h = sccm_to_density_m3(h2_sccm * mix, V, residence_time_s=tau_residence_s)
-    # B₂H₆ → 2B atoms per molecule (dissociated injectant proxy)
-    n_b = sccm_to_density_m3(b2h6_sccm * mix * 2.0, V, residence_time_s=tau_residence_s)
+    b_scale = effective_b11_density_scale(laser_ablation_hz, mix, 1.0)
+    n_b = sccm_to_density_m3(max(b_scale, 0.05), V, residence_time_s=tau_residence_s)
     # Use min species for rate (reactant-limited)
     n_p = n_h
     n_b_eff = max(n_b, n_p * 0.05)

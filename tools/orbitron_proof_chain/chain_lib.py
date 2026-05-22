@@ -13,6 +13,15 @@ from typing import Any
 
 import numpy as np
 
+from ssto.orbitron.simulator.injectants import normalize_injectants_cfg
+from ssto.orbitron.simulator.types import (
+    DeviceGeometry,
+    OperatingPoint,
+    PadStartupState,
+    SimulatorInputs,
+    UnobtaniumParams,
+)
+
 _REPO = Path(__file__).resolve().parents[2]
 if str(_REPO) not in sys.path:
     sys.path.insert(0, str(_REPO))
@@ -122,15 +131,21 @@ def load_step_json(step: str) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def _operating_from_cfg(cfg: dict[str, Any]) -> OperatingPoint:
+    inj = normalize_injectants_cfg(cfg["injectants"])
+    pad_cfg = cfg["pad"]
+    return OperatingPoint(
+        throttle=float(pad_cfg.get("throttle", 0.85)),
+        compressor=float(pad_cfg.get("compressor", 0.7)),
+        cathode_pulse=float(pad_cfg.get("cathode_pulse", 0.75)),
+        h2_sccm=float(inj["h2_sccm"]),
+        laser_ablation_hz=float(inj["laser_ablation_hz"]),
+        b11_target_index=int(inj.get("b11_target_index", 0)),
+    )
+
+
 def base_inputs():
     """Build SimulatorInputs from chain config + completed prior steps."""
-    from ssto.orbitron.simulator.types import (
-        DeviceGeometry,
-        OperatingPoint,
-        PadStartupState,
-        SimulatorInputs,
-        UnobtaniumParams,
-    )
     from ssto.orbitron.simulator.physics_spec import load_plant_scales
 
     cfg = load_config()
@@ -173,10 +188,7 @@ def base_inputs():
             V_cathode_v=float(g["V_cathode_v"]),
             B_axial_tesla=float(g["B_axial_tesla"]),
         ),
-        operating=OperatingPoint(
-            h2_sccm=float(cfg["injectants"]["h2_sccm"]),
-            b2h6_sccm=float(cfg["injectants"]["b2h6_sccm"]),
-        ),
+        operating=_operating_from_cfg(cfg),
         pad=PadStartupState(
             pad_apu_online=True,
             starter_engage=True,
@@ -260,12 +272,23 @@ def write_chain_config_template() -> dict[str, Any]:
             "V_cathode_v": 600_000.0,
             "B_axial_tesla": 2.0,
         },
-        "injectants": {"h2_sccm": 80.0, "b2h6_sccm": 8.0},
+        "injectants": {
+            "h2_sccm": 80.0,
+            "laser_ablation_hz": 10.0,
+            "b11_target_index": 0,
+        },
         "pad": {
             "throttle": 0.85,
             "compressor": 0.7,
             "cathode_pulse": 0.75,
             "laminar_relaminarization": True,
+            "pad_apu_online": True,
+            "starter_engage": True,
+            "bleed_air_open": True,
+            "vacuum_interlock_ok": True,
+            "laser_armed": True,
+            "hv_enabled": True,
+            "startup_trigger": True,
         },
         "unobtanium": {
             "fusion_reactivity_scale": 1.0,

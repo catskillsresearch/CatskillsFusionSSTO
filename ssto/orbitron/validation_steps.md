@@ -200,7 +200,7 @@ Reference video intent: [Orbitron-style particle / clumping](https://youtu.be/_7
 |--|--|
 | **Script** | `poetry run python tools/orbitron_proof_chain/chain_04_fueling.py` |
 | **App** | `fusion_pb11.evaluate_fusion_pb11` (density path) |
-| **Inputs** | H₂/B₂H₆ sccm; step 2 `rho_e_norm` → confinement |
+| **Inputs** | H₂/B₁₀H₁₄ sccm; step 2 `rho_e_norm` → confinement |
 | **Outputs** | `04_fueling/fueling.json` |
 | **Depends on** | Steps 2, 0 |
 | **Gate** | Documented n_p, n_B, T_i; τ and volume assumptions explicit in `fusion_pb11.py` |

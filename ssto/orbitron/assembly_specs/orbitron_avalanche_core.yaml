@@ -1,9 +1,5 @@
 # p-¹¹B Orbitron core physics — topology inspired by Avalanche Energy’s public D₂ Orbitron only.
-# Avalanche has published work on deuterium fuel only; they have not published p-¹¹B on this machine.
-# Catskills assumes ~600 kV cathode class for p-¹¹B (vs ~300 kV adequate for their D₂ path).
-# SSTO layers (arcjet, thrust sled, CH₄ thermal) live in orbitron_lab.yaml.
-#
-# Reference (machine class only): Avalanche public materials; https://youtu.be/_7Hfyz-JIDA
+# Fuel: solid elemental ¹¹B + laser ablation (Reply 9, 19). See SOLID_B11_LASER_FUEL.md.
 
 schema_version: 1
 title: p-¹¹B Orbitron core physics (Catskills)
@@ -12,16 +8,13 @@ narrative: |
   **Machine class (topology only):** Magneto-electrostatic hybrid in the spirit of Avalanche’s public
   **Orbitron** — electrostatic **orbitrap** ions, **magnetron** electrons, **gridless** plasma volume,
   tangential keV injection, E×B space-charge neutralization, cathode-pulse shear vs **rotating mode**.
-  We **do not** import Avalanche’s D₂ fueling, voltage milestones, or unpublished p-¹¹B plans.
 
-  **Fuel (Catskills):** **p-¹¹B** after dissociation: ``¹H + ¹¹B → 3 ⁴He``. **H₂** supplies hydrogenic /
-  proton inventory; **B₂H₆** supplies gaseous boron to tangential ion beam injectors.
+  **Fuel (Catskills):** **p-¹¹B** — ``¹H + ¹¹B → 3 ⁴He``. **H₂** supplies protons; **solid elemental ¹¹B**
+  (99.9% enriched disks, Reply 9 suppliers) is introduced by **355 nm UV laser ablation** — not B₂H₆ or B₁₀H₁₄ gas.
 
-  **Excitation:** Design cathode **~−600 kV** operating band (**400–600 kV** lab surrogate). Public D₂
-  Orbitron development at **~300 kV** is **not** canon for this article.
+  **Excitation:** Design cathode **~−600 kV** (**400–600 kV** lab surrogate).
 
-  **Energy offload (test stand / SSTO):** Fusion enthalpy is vented through a **fusion-heated Brayton**
-  air path (hot walls + plenum mixer + turbine + nozzle), not electrical grid tie or in-duct multi-MV arcs.
+  **Energy offload:** Fusion-heated **Brayton** air path (Phase 2, Reply 19 §2.1–2.2).
 
 architecture:
   confinement_class: magneto_electrostatic_hybrid
@@ -46,11 +39,16 @@ ion_injection:
     - species: H2
       role: proton_inventory_stability_co_injectant
       mesh_trunk: Hydrogen_Trunk_Line
-    - species: B2H6
-      role: boron_carrier_dissociates_to_B11
-      mesh_trunk: Boron_Trunk_Line
+    - species: B11_solid
+      role: laser_ablation_elemental_boron11
+      mesh_parts:
+        - Solid_Boron_11_Target
+        - Solid_Boron_11_Target_2
+        - Solid_B11_Target_Holder
+        - Q_Switched_NdYAG_Laser
+        - UV_Fused_Silica_Viewport
   headline_channel: "¹H + ¹¹B → 3 ⁴He"
-  injectant_ratio_note: High H₂ to B₂H₆ ratio in the NBI mix (stability / laminarity narrative).
+  injectant_ratio_note: H₂ sccm vs laser_ablation_hz (~8 Hz per 80 sccm H₂ benchtop target).
 
 electron_space_charge:
   mechanism: co_rotating_electron_cloud
@@ -72,20 +70,24 @@ fusion_products:
   destination: Nozzle_Inlet_Plenum
 
 mesh_instance_mapping:
-  cathode: Cathode
-  anode: Anode
+  cathode: Central_Cathode_Wire
+  anode: Outer_Anode_Grid
   magnet: Magnet
   tangential_injectors: NBI_Injector
   hydrogen_supply: Tank_Hydrogen
   hydrogen_trunk: Hydrogen_Trunk_Line
-  boron_supply: Tank_Diborane
-  boron_trunk: Boron_Trunk_Line
+  boron_target: Solid_Boron_11_Target
+  boron_holder: Solid_B11_Target_Holder
+  laser: Q_Switched_NdYAG_Laser
+  uv_viewport: UV_Fused_Silica_Viewport
   helium_ash_vent: Helium_Ash_Vent_Line
   hv_feed: High_Voltage_Umbilical
   ssto_optional_ch4: Tank_Cryo_Methane
 
 reference_plant_spec: orbitron_reference_plant.yaml
 unobtainium_spec: ../UNOBTANIUM.md
+fuel_delivery_spec: ../SOLID_B11_LASER_FUEL.md
+operating_phases_spec: ../OPERATING_PHASES.md
 
 flightgear_controls:
   ion_beam_command: /controls/reactor/throttle

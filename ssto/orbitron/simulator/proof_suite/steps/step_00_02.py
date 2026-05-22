@@ -37,6 +37,7 @@ from ssto.orbitron.simulator.proof_suite.steps.base import ProofStepPanel
 from ssto.orbitron.simulator.proof_suite.state import ProofSuiteState
 from ssto.orbitron.simulator.proof_suite.widgets import MetricGrid, MplCanvas
 from ssto.orbitron.simulator.proof_suite.workers import StepWorker
+from ssto.orbitron.simulator.injectants import normalize_injectants_cfg
 from ssto.orbitron.simulator.types import DeviceGeometry
 from ssto.orbitron.simulator.longitudinal.focus import LongitudinalFocus
 from ssto.orbitron.simulator.proof_suite.inputs_builder import simulator_inputs_from_state
@@ -91,15 +92,18 @@ class Step00SpecPanel(ProofStepPanel):
         self.length = _spin(0.2, 5.0, g["length_m"], suf=" m")
         self.v_kv = _spin(50, 1200, g["V_cathode_v"] / 1000, dec=0, suf=" kV")
         self.b_t = _spin(0.1, 15, g["B_axial_tesla"], dec=2, suf=" T")
+        inj = normalize_injectants_cfg(inj)
         self.h2 = _spin(0, 500, inj["h2_sccm"], dec=1, suf=" sccm")
-        self.b2h6 = _spin(0, 100, inj["b2h6_sccm"], dec=1, suf=" sccm")
+        self.laser_hz = _spin(0, 50, inj["laser_ablation_hz"], dec=1, suf=" Hz")
+        self.b11_target = _spin(0, 1, inj.get("b11_target_index", 0), dec=0, suf="")
         fl.addRow("Anode radius", self.r_anode)
         fl.addRow("Cathode radius", self.r_cathode)
         fl.addRow("Active length", self.length)
         fl.addRow("Cathode bias", self.v_kv)
         fl.addRow("Axial B", self.b_t)
         fl.addRow("H₂", self.h2)
-        fl.addRow("B₂H₆", self.b2h6)
+        fl.addRow("UV laser (1.3)", self.laser_hz)
+        fl.addRow("¹¹B target #", self.b11_target)
         inputs_lay.addWidget(geom)
         self.place_inputs_above_run(inputs)
 
@@ -128,7 +132,11 @@ class Step00SpecPanel(ProofStepPanel):
             V_cathode_v=self.v_kv.value() * 1000,
             B_axial_tesla=self.b_t.value(),
         )
-        self._state.update_injectants(h2_sccm=self.h2.value(), b2h6_sccm=self.b2h6.value())
+        self._state.update_injectants(
+            h2_sccm=self.h2.value(),
+            laser_ablation_hz=self.laser_hz.value(),
+            b11_target_index=int(self.b11_target.value()),
+        )
         self._state.save()
 
     def _run(self) -> None:

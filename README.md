@@ -9,7 +9,7 @@ The **Orbitron fusion arcjet laboratory** is specified in
 
 **Purpose:** **SSTO** imagining of a **p-¹¹B** Orbitron-class core (topology inspired by Avalanche’s
 public **D₂** machine only—they have **not** published p-¹¹B). Design **~−600 kV** cathode class;
-**H₂ + B₂H₆** injectants; ``¹H + ¹¹B → 3 ⁴He``. Energy offload: **fusion-heated Brayton** on air
+**H₂ + B₁₀H₁₄** injectants; ``¹H + ¹¹B → 3 ⁴He``. Energy offload: **fusion-heated Brayton** on air
 (not DEC / grid tie / in-duct multi-MV arc). Core + unobtainium specs:
 [`orbitron_avalanche_core.yaml`](ssto/orbitron/assembly_specs/orbitron_avalanche_core.yaml),
 [`UNOBTANIUM.md`](ssto/orbitron/UNOBTANIUM.md).
@@ -26,7 +26,7 @@ through a **CD nozzle** for thrust. Canonical spec:
 | Supply | Role |
 |--------|------|
 | **H₂** | p-¹¹B core — proton / stability tangential keV injectant |
-| **B₂H₆** | p-¹¹B core — boron carrier to same injectors |
+| **B₁₀H₁₄** | p-¹¹B core — boron carrier to same injectors |
 | **⁴He** | Fusion ash → nozzle plenum (`Helium_Ash_Vent_Line`) |
 | **Air** | Arcjet / nozzle energy offload (SSTO layer) |
 | **CH₄** | Optional SSTO wall thermal only |

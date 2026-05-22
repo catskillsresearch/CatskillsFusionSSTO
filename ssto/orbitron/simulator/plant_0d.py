@@ -67,7 +67,7 @@ def evaluate_steady_state(inputs: SimulatorInputs) -> SteadyStateResult:
         throttle=t if armed else 0.0,
         cathode_pulse=p,
         h2_sccm=op.h2_sccm,
-        b2h6_sccm=op.b2h6_sccm,
+        laser_ablation_hz=op.laser_ablation_hz,
         fusion_reactivity_scale=u.fusion_reactivity_scale,
         pic_rho_e_norm=inputs.pic_rho_e_norm,
     )

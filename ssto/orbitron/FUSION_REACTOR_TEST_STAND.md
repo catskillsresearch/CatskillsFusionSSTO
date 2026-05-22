@@ -8,7 +8,7 @@
 
 The **Orbitron fusion arcjet laboratory** is a pad-credible ground article: a **p-¹¹B** Orbitron-class magneto-electrostatic core (topology inspired by Avalanche’s public **D₂** machine—they have not published p-¹¹B) embedded in a **single-spool, fusion-heated Brayton** duct. Ambient **air** is the reaction mass—scooped at the bellmouth, compressed, heated in an annulus around the hot plasma hardware and in a downstream plenum mixer, expanded through a turbine that drives the same shaft as the compressor, and finally accelerated out a convergent–divergent nozzle to produce measurable thrust on a four-corner load-cell sled.
 
-After dissociation in the discharge, the headline channel is **¹H + ¹¹B → 3 ⁴He**. **H₂** and **B₂H₆** feed tangential keV ion beam injectors; **⁴He ash** vents into the nozzle plenum. Design cathode class **~−600 kV** (not Avalanche’s **~300 kV D₂** milestone). **Liquid CH₄** routes to the anode wall-thermal jacket (see [`UNOBTANIUM.md`](UNOBTANIUM.md)). No DEC grid, grid tie, or multi-MV arc in the intake duct.
+After dissociation in the discharge, the headline channel is **¹H + ¹¹B → 3 ⁴He**. **H₂** and **solid ¹¹B** feed tangential keV ion beam injectors; **⁴He ash** vents into the nozzle plenum. Design cathode class **~−600 kV** (not Avalanche’s **~300 kV D₂** milestone). **Liquid CH₄** routes to the anode wall-thermal jacket (see [`UNOBTANIUM.md`](UNOBTANIUM.md)). No DEC grid, grid tie, or multi-MV arc in the intake duct.
 
 Propulsion axis runs **−X → +X** (intake to nozzle). The tank farm sits on **+Y**. Hero PNGs are generated headless from each assembly glTF (`make orbitron-lab-pngs` or `./stand.sh`) on a factory-gray backdrop with a three-quarter hero camera—one image per sub-assembly plus the full lab.
 
@@ -42,7 +42,7 @@ The **hydrogen tank assembly** is the first of three coherent fuel packages on t
 
 ![Boron tank assembly](../../Aircraft/Orbitron-TestStand/build/boron_tank_assy.png)
 
-**Boron (B₂H₆)** is the core fuel leg: a dedicated cylinder, **B₂H₆** marking, feed pipe, and **boron trunk** to the same tangential keV injectors that receive hydrogen. Diborane dissociates in the discharge; natural boron is ~80% **¹¹B** unless enriched. Same Orbitron class as a deuterium machine—only the species and ash handling change.
+**Boron (solid ¹¹B)** is the core fuel leg: a dedicated cylinder, **solid ¹¹B** marking, feed pipe, and **boron trunk** to the same tangential keV injectors that receive hydrogen. Decaborane dissociates in the discharge; natural boron is ~80% **¹¹B** unless enriched. Same Orbitron class as a deuterium machine—only the species and ash handling change.
 
 *Build narrative:* Mirror the hydrogen package on the shared **tank farm platform**—decal, boss, trunk—with segregated routing so boron and hydrogen services never share a confused manifold label.
 
@@ -62,7 +62,7 @@ The **methane tank assembly** is deliberately optional for the core p-¹¹B stor
 
 ![Tank farm assembly](../../Aircraft/Orbitron-TestStand/build/tank_assy.png)
 
-With the three packages placed, the **tank farm assembly** reads as a single pad-mounted cluster: shared **tank farm platform** spanning the cylinder footprints, **methane**, **boron**, and **hydrogen** children each carrying tank + decal + boss + trunk as exportable sub-glTF units. From the operator’s chair on **+Y**, the color coding tells the story—green hydrogen, marked diborane, pale methane for cryo services.
+With the three packages placed, the **tank farm assembly** reads as a single pad-mounted cluster: shared **tank farm platform** spanning the cylinder footprints, **methane**, **boron**, and **hydrogen** children each carrying tank + decal + boss + trunk as exportable sub-glTF units. From the operator’s chair on **+Y**, the color coding tells the story—green hydrogen, marked solid B-11, pale methane for cryo services.
 
 *Build narrative:* Align the platform, tie down all three vessels, verify trunk exit azimuths toward the reactor bay, and only then accept the farm as “fuel ready” for integrated leak checks.
 
@@ -92,7 +92,7 @@ The **reactor bay** is the moral center of the machine. Inside it:
 
 Fusion adds enthalpy by **wall convection** on hot metal and by **mixing** hot core exhaust and ash at the downstream plenum. It does not “push air through the plasma.”
 
-*Build narrative:* Lower the core into the shroud, torq the detuner flanges, connect H₂ and B₂H₆ trunks to the injector manifold, dress the HV umbilical from the console side, and verify the ash vent aims at the nozzle plenum route before the +X train is closed.
+*Build narrative:* Lower the core into the shroud, torq the detuner flanges, connect H₂ and solid ¹¹B trunks to the injector manifold, dress the HV umbilical from the console side, and verify the ash vent aims at the nozzle plenum route before the +X train is closed.
 
 ---
 
@@ -174,7 +174,7 @@ Increase throttle (**W**) to the desired beam current milestone band. Watch **th
 
 ### Step 7 — Steady pad run and shutdown discipline
 
-In steady run you are holding **H₂ / B₂H₆** injectants (not fully valve-interlocked in FG), cathode program, compressor schedule, and bleed state while the hot annulus and plenum mixer pour enthalpy into the air stream. **M** opens a debug telemetry window duplicating many **Screen** fields. Shutdown is the reverse consciousness: throttle down, disarm ignite, close bleed, drop compressor, starter off, APU off—mechanical fuel and HV isolation follow your real pad rules even when the sim is forgiving.
+In steady run you are holding **H₂ / solid ¹¹B** injectants (not fully valve-interlocked in FG), cathode program, compressor schedule, and bleed state while the hot annulus and plenum mixer pour enthalpy into the air stream. **M** opens a debug telemetry window duplicating many **Screen** fields. Shutdown is the reverse consciousness: throttle down, disarm ignite, close bleed, drop compressor, starter off, APU off—mechanical fuel and HV isolation follow your real pad rules even when the sim is forgiving.
 
 ---
 

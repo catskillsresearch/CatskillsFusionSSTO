@@ -23,7 +23,8 @@ class OperatingPoint:
     compressor: float = 1.0
     cathode_pulse: float = 0.6
     h2_sccm: float = 80.0
-    b2h6_sccm: float = 20.0
+    laser_ablation_hz: float = 10.0
+    b11_target_index: int = 0
 
 
 @dataclass
@@ -34,15 +35,10 @@ class UnobtaniumParams:
     These stand in for properties not available off-the-shelf (see UNOBTANIUM.md).
     """
 
-    # U1 — cathode: multiplier on literature-like field-emission limit (1 = nominal model limit)
     field_emission_margin: float = 1.0
-    # U2 — wall: max tolerable heat flux (W/m²) before CH₄ loop is insufficient
     max_wall_heat_flux_W_m2: float = 2.0e6
-    # U2 — CH₄ cooling effectiveness (1 = nominal; <1 under-sized loop)
     ch4_cooling_effectiveness: float = 1.0
-    # U3 — magnet: current-density capability scale for 2 T bore (1 = nominal HTS story)
     hts_capability_scale: float = 1.0
-    # U4 — fusion / beam: scales net fusion-heating proxy (reactivity × confinement)
     fusion_reactivity_scale: float = 1.0
     beam_coupling_scale: float = 1.0
 
@@ -62,11 +58,14 @@ class PlantScales:
 
 @dataclass
 class PadStartupState:
-    """Pad console switches / levers (see ``pad_startup.py``)."""
+    """Pad console switches / levers — Reply 15 + Phase 1 interlocks."""
 
     pad_apu_online: bool = False
     starter_engage: bool = False
     bleed_air_open: bool = False
+    vacuum_interlock_ok: bool = False
+    laser_armed: bool = False
+    hv_enabled: bool = False
     startup_trigger: bool = False
     throttle: float = 0.0
     compressor: float = 0.0
@@ -82,10 +81,8 @@ class SimulatorInputs:
     pad: PadStartupState = field(default_factory=PadStartupState)
     unobtanium: UnobtaniumParams = field(default_factory=UnobtaniumParams)
     scales: PlantScales = field(default_factory=PlantScales)
-    # Optional PIC proxy overrides (from last WarpX reduction); NaN = use heuristic
     pic_rho_e_norm: float = float("nan")
     pic_beam_rho_norm: float = float("nan")
-    # Last fusion-channel s–r run (optional coupling into 0D plant)
     fusion_channel_power_mw: float = float("nan")
 
 
@@ -107,7 +104,6 @@ class SteadyStateResult:
     wall_heat_flux_W_m2: float
     feasible: bool
     violations: list[str] = field(default_factory=list)
-    # p-¹¹B physics + thermal sizing (high-fidelity path)
     fusion_power_mw_physics: float = 0.0
     fusion_power_mw_surrogate: float = 0.0
     ion_temperature_kev: float = 0.0
@@ -120,3 +116,4 @@ class SteadyStateResult:
     clump_index: float = 1.0
     clump_reduction_ratio: float = 1.0
     laminar_hack_enabled: bool = True
+    b11_laser_delivery_scale: float = 0.0

@@ -75,7 +75,8 @@ def build_validation_document(
         },
         "injectants": {
             "h2_sccm": inputs.operating.h2_sccm,
-            "b2h6_sccm": inputs.operating.b2h6_sccm,
+            "laser_ablation_hz": inputs.operating.laser_ablation_hz,
+            "b11_target_index": inputs.operating.b11_target_index,
             "fueling_mix_scale": result.fueling_mix_scale,
         },
         "unobtanium_parameters": {

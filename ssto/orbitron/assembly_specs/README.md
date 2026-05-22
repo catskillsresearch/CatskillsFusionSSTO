@@ -116,7 +116,7 @@ Machine-readable: `orbitron_lab.yaml` (`connections`, `logical.groups`, instance
 | Fluid | Assembly / meshes | Notes |
 |-------|-------------------|--------|
 | **H₂** | `hydrogen_tank_assy` → `Hydrogen_Trunk_Line` → `NBI_Injector` | p-¹¹B core (D₂ Orbitron-class hardware) |
-| **B₂H₆** | `boron_tank_assy` → `Boron_Trunk_Line` → `NBI_Injector` | p-¹¹B core boron carrier |
+| **B₁₀H₁₄** | `boron_tank_assy` → `Boron_Trunk_Line` → `NBI_Injector` | p-¹¹B core boron carrier |
 | **⁴He ash** | `Helium_Ash_Vent_Line` → nozzle | p-¹¹B fusion product |
 | **CH₄** | `methane_tank_assy` (optional) | SSTO wall thermal only |
 

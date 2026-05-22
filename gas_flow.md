@@ -18,7 +18,7 @@
 4. **Turbine** (same shaft) extracts enough **shaft work** to keep the **compressor** spinning after startup.
 5. **Nozzle** expands what is left → **high exit velocity** → **thrust**.
 
-Fusion **does not** shove outside air into the plasma. **H₂ / B₂H₆** feed **NBI** only. **CH₄** cools the anode boundary (U2). Thrust energy leaves via the **air Brayton** path, not DEC or grid tie.
+Fusion **does not** shove outside air into the plasma. **H₂ / solid ¹¹B** feed **NBI** only. **CH₄** cools the anode boundary (U2). Thrust energy leaves via the **air Brayton** path, not DEC or grid tie.
 
 ---
 
@@ -59,7 +59,7 @@ Alphas and other wall loads **heat metal first**; air does not need a “courier
 | Fluid | Route | Core p-¹¹B? |
 |--------|--------|----------------|
 | **H₂** | `Tank_Hydrogen` → `Hydrogen_Trunk_Line` → `NBI_Injector` | **Yes** |
-| **B₂H₆** | `Tank_Diborane` → `Boron_Trunk_Line` → `NBI_Injector` | **Yes** |
+| **solid ¹¹B** | `Solid_Boron_11_Target` → `Boron_Trunk_Line` → `NBI_Injector` | **Yes** |
 | **⁴He ash** | `Fusion_Hot_Gas_Outlet` → `Helium_Ash_Vent_Line` → nozzle plenum | **Yes** (product) |
 | **Air** | Bellmouth → compressor → annulus → hot duct → turbine → nozzle | Propulsion |
 | **CH₄** | Cryo dewar → magnet service bosses | SSTO wall thermal only |
@@ -86,7 +86,7 @@ flowchart LR
     TURB[Turbine]
     NOZ[CD nozzle]
   end
-  CORE[Fusion core\nH2 B2H6 NBI]
+  CORE[Fusion core\nH2 solid B11 NBI]
   APU -.->|spin| COMP
   BM --> COMP --> HOT --> TURB --> NOZ
   CORE -->|heat walls + bleed| HOT

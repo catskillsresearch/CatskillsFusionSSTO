@@ -103,7 +103,7 @@ flowchart TD
 ```
 
 1. **Geometry** — anode/cathode radius, length, **600 kV**, **2 T**.
-2. **Injectants** — H₂ / B₂H₆ sccm (NBI fueling).
+2. **Injectants** — H₂ / B₁₀H₁₄ sccm (NBI fueling).
 3. **Pad startup** — APU → starter → bleed → **ignite**; raise compressor / throttle / pulse.
 4. **Validation** — read pass/fail for U1–U4, fusion model, CH₄, HTS, jet closure.
 5. **Solve** — if not validated, auto-tune unobtanium knobs and run levers toward **3.5 MW**.
@@ -220,7 +220,7 @@ P_fusion [W] = η_conf · V_plasma · n_p · n_B · ⟨σv⟩(T_i) · E_rxn
 | Quantity | Source |
 |----------|--------|
 | `T_i` [keV] | Cathode voltage, cathode pulse, throttle |
-| `n_p`, `n_B` [m⁻³] | H₂ / B₂H₆ sccm into bore volume + residence time |
+| `n_p`, `n_B` [m⁻³] | H₂ / B₁₀H₁₄ sccm into bore volume + residence time |
 | `⟨σv⟩` | Analytical peaked fit vs T_i (calibrated to ~3.5 MW at lab reference) |
 | `η_conf` | `fusion_reactivity_scale` × fueling mix × optional `pic_rho_e_norm` |
 | `V_plasma` | π r_anode² × length × fill factor |
@@ -308,7 +308,7 @@ export_validation_yaml(Path("build/orbitron/design_validation.yaml"), inputs, re
 | `summary` | `design_validated`, power target/achieved, jet closure error |
 | `geometry` | r_anode, r_cathode, length, kV, B |
 | `pad_startup` | All switches/levers + compressor_effective |
-| `injectants` | H₂, B₂H₆, mix scale |
+| `injectants` | H₂, B₁₀H₁₄, mix scale |
 | `unobtanium_parameters` | U1–U4 knobs |
 | `fusion_physics_pb11` | T_i, ⟨σv⟩, P_physics, densities, PIC norms |
 | `thermal_systems` | Wall heat, CH₄, HTS cryo |
@@ -326,7 +326,7 @@ Use this file in spec reviews, UNOBTANIUM traceability, and test-stand acceptanc
 |----------|------|
 | **Pad startup** | FG switches + run levers + optional live refresh |
 | **Geometry** | Anode/cathode, length, kV, B |
-| **Injectants** | H₂ / B₂H₆ sccm |
+| **Injectants** | H₂ / B₁₀H₁₄ sccm |
 | **Unobtanium** | U1–U4 knobs |
 | **Plant** | Target MW, jet η |
 

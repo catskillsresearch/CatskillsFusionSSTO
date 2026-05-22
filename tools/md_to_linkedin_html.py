@@ -1,0 +1,456 @@
+#!/usr/bin/env python3
+"""
+Convert Markdown (LaTeX math + tables) to HTML that pastes cleanly into LinkedIn Articles.
+
+LinkedIn's article editor does NOT preserve HTML <table> layout (cells get concatenated) and
+does NOT handle KaTeX/MathJax paste well (equations duplicate, e.g. "1H+11B1H+11B").
+
+This converter uses a LinkedIn-safe strategy:
+  • Tables → bullet lists with em-dash separators between columns
+  • Math → single Unicode / HTML <sup>/<sub> text (no KaTeX, no $ delimiters)
+
+Workflow:
+  1. python3 tools/md_to_linkedin_html.py proton_boron_rand.md
+  2. Open the .html file in Chrome or Firefox
+  3. Click "Select article for copy" → Ctrl+C → paste into LinkedIn
+
+Usage:
+  python3 tools/md_to_linkedin_html.py INPUT.md [-o OUTPUT.html]
+  python3 tools/md_to_linkedin_html.py INPUT.md --clipboard
+"""
+
+from __future__ import annotations
+
+import argparse
+import html
+import re
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+
+import markdown
+from bs4 import BeautifulSoup, NavigableString, Tag
+from pylatexenc.latex2text import LatexNodes2Text
+
+_LATEX2TEXT = LatexNodes2Text()
+
+_SUPERSCRIPT = str.maketrans(
+    "0123456789+-=()",
+    "⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻⁼⁽⁾",
+)
+_SUBSCRIPT = str.maketrans(
+    "0123456789+-=()",
+    "₀₁₂₃₄₅₆₇₈₉₊₋₌₍₎",
+)
+
+_LATEX_REPLACEMENTS = (
+    (r"\\rightarrow", "→"),
+    (r"\\leftarrow", "←"),
+    (r"\\approx", "≈"),
+    (r"\\times", "×"),
+    (r"\\cdot", "·"),
+    (r"\\pm", "±"),
+    (r"\\leq", "≤"),
+    (r"\\geq", "≥"),
+    (r"\\neq", "≠"),
+    (r"\\infty", "∞"),
+    (r"\\varepsilon", "ε"),
+    (r"\\circ", "°"),
+    (r"\\pi", "π"),
+    (r"\\sigma", "σ"),
+    (r"\\alpha", "α"),
+    (r"\\beta", "β"),
+    (r"\\gamma", "γ"),
+    (r"\\text\{([^}]*)\}", r"\1"),
+    (r"\\mathbf\{([^}]*)\}", r"\1"),
+    (r"\\mathrm\{([^}]*)\}", r"\1"),
+    (r"\\,", " "),
+    (r"\\;", " "),
+    (r"\\!", ""),
+    (r"\\quad", " "),
+    (r"\\qquad", "  "),
+    (r"\\left", ""),
+    (r"\\right", ""),
+    (r"\\xrightarrow\{[^}]*\}", "→"),
+)
+
+PAGE_STYLE = """
+body {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 17px;
+  line-height: 1.55;
+  color: #1a1a1a;
+  max-width: 740px;
+  margin: 2rem auto;
+  padding: 0 1.25rem;
+}
+h1 { font-size: 1.75rem; margin: 1.5rem 0 0.75rem; }
+h2 { font-size: 1.35rem; margin: 1.75rem 0 0.6rem; border-bottom: 1px solid #ddd; padding-bottom: 0.25rem; }
+h3 { font-size: 1.15rem; margin: 1.25rem 0 0.5rem; }
+h4 { font-size: 1.05rem; margin: 1rem 0 0.4rem; }
+p { margin: 0.65rem 0; }
+ul, ol { margin: 0.5rem 0 0.75rem; padding-left: 1.5rem; }
+li { margin: 0.35rem 0; }
+hr { border: none; border-top: 1px solid #ccc; margin: 1.5rem 0; }
+strong { font-weight: 700; }
+.math-block {
+  text-align: center;
+  margin: 1rem 0;
+  font-style: italic;
+}
+.instructions {
+  font-family: system-ui, sans-serif;
+  font-size: 14px;
+  background: #f7f9fc;
+  border: 1px solid #c5d4e8;
+  border-radius: 6px;
+  padding: 12px 14px;
+  margin-bottom: 2rem;
+}
+.instructions strong { display: block; margin-bottom: 6px; }
+@media print { .instructions { display: none; } }
+"""
+
+
+def _escape_excited_state_asterisks(text: str) -> str:
+    """Prevent markdown from treating nuclear C* / Be* markers as italics."""
+    return re.sub(
+        r"([A-Za-z0-9⁰¹²³⁴⁵⁶⁷⁸⁹]+)\*(\s*→)",
+        r"\1∗\2",
+        text,
+    )
+
+
+def _normalize_math_delimiters(text: str) -> str:
+    text = re.sub(
+        r"(?<!\$)\$\$(?!\$)([^\n]+?)(?<!\$)\$\$(?!\$)",
+        r"\n$$\1$$\n",
+        text,
+        flags=re.DOTALL,
+    )
+    return text
+
+
+def _unwrap_arithmatex_latex(raw: str) -> str:
+    text = raw.strip()
+    for open_d, close_d in (("\\[", "\\]"), ("\\(", "\\)"), ("$$", "$$"), ("$", "$")):
+        if text.startswith(open_d) and text.endswith(close_d):
+            return text[len(open_d) : -len(close_d)].strip()
+    return text
+
+
+def _carets_to_unicode(text: str) -> str:
+    def repl_braced(match: re.Match[str]) -> str:
+        inner = match.group(1)
+        if re.fullmatch(r"[0-9+\-=()]+", inner):
+            return inner.translate(_SUPERSCRIPT)
+        return f"^{inner}"
+
+    def repl_simple(match: re.Match[str]) -> str:
+        inner = match.group(1)
+        return inner.translate(_SUPERSCRIPT)
+
+    text = re.sub(r"\^\{([^}]+)\}", repl_braced, text)
+    text = re.sub(r"\^([0-9+\-=()]+)", repl_simple, text)
+    return text
+
+
+def _underscores_to_unicode(text: str) -> str:
+    def repl_braced(match: re.Match[str]) -> str:
+        inner = match.group(1)
+        if re.fullmatch(r"[A-Za-z0-9+\-=()]+", inner):
+            return inner.translate(_SUBSCRIPT)
+        return f"_{inner}"
+
+    def repl_simple(match: re.Match[str]) -> str:
+        inner = match.group(1)
+        if len(inner) == 1:
+            return inner.translate(_SUBSCRIPT)
+        return f"_{inner}"
+
+    text = re.sub(r"_\{([^}]+)\}", repl_braced, text)
+    text = re.sub(r"_([A-Za-z0-9])", repl_simple, text)
+    return text
+
+
+def _append_html_fragment(parent: Tag, fragment_html: str) -> None:
+    if not fragment_html or not fragment_html.strip():
+        return
+    parsed = BeautifulSoup(fragment_html, "html.parser")
+    for node in list(parsed.contents):
+        parent.append(node)
+
+
+def latex_to_plain(latex: str) -> str:
+    """Convert LaTeX to plain Unicode text (no duplicate sources for paste)."""
+    text = latex.strip()
+    for pattern, repl in _LATEX_REPLACEMENTS:
+        text = re.sub(pattern, repl, text)
+    text = re.sub(r"\\frac\{([^}]*)\}\{([^}]*)\}", r"\1/\2", text)
+    text = re.sub(r"\{\}", "", text)
+
+    try:
+        text = _LATEX2TEXT.latex_to_text(text)
+    except Exception:
+        pass
+
+    text = _carets_to_unicode(text)
+    text = _underscores_to_unicode(text)
+    text = text.replace("^", "")
+    text = re.sub(r"\s+", " ", text).strip()
+    return text
+
+
+def latex_to_html(latex: str) -> str:
+    """LaTeX → HTML with <sup>/<sub> where Unicode is insufficient."""
+    text = latex.strip()
+    for pattern, repl in _LATEX_REPLACEMENTS:
+        text = re.sub(pattern, repl, text)
+    text = re.sub(r"\\frac\{([^}]*)\}\{([^}]*)\}", r"(\1)/(\2)", text)
+    text = re.sub(r"\{\}", "", text)
+
+    try:
+        text = _LATEX2TEXT.latex_to_text(text)
+    except Exception:
+        pass
+
+    def sup_repl(m: re.Match[str]) -> str:
+        inner = m.group(1)
+        if re.fullmatch(r"[0-9+\-=()]+", inner):
+            return f"<sup>{inner.translate(_SUPERSCRIPT)}</sup>"
+        return f"<sup>{html.escape(inner)}</sup>"
+
+    def sub_repl(m: re.Match[str]) -> str:
+        inner = m.group(1)
+        if re.fullmatch(r"[A-Za-z0-9+\-=()]+", inner):
+            converted = inner.translate(_SUBSCRIPT)
+            if converted != inner:
+                return f"<sub>{converted}</sub>"
+        return f"<sub>{html.escape(inner)}</sub>"
+
+    text = re.sub(r"\^\{([^}]+)\}", sup_repl, text)
+    text = re.sub(r"\^([0-9+\-=()]+)", sup_repl, text)
+    text = re.sub(r"_\{([^}]+)\}", sub_repl, text)
+    text = re.sub(r"_([A-Za-z0-9])", sub_repl, text)
+    text = text.replace("^", "")
+    text = re.sub(r"\s+", " ", text).strip()
+    return text
+
+
+def _latex_to_soup_tag(latex: str, display: bool) -> Tag:
+    soup = BeautifulSoup("", "html.parser")
+    rendered = latex_to_html(latex)
+    if display:
+        tag = soup.new_tag("p", attrs={"class": "math-block"})
+        _append_html_fragment(tag, rendered)
+    else:
+        tag = soup.new_tag("span")
+        _append_html_fragment(tag, rendered)
+    return tag
+
+
+def _cell_inner_html(cell: Tag) -> str:
+    parts: list[str] = []
+    for child in cell.children:
+        if isinstance(child, NavigableString):
+            parts.append(str(child))
+        elif isinstance(child, Tag):
+            parts.append(str(child))
+    return "".join(parts).strip()
+
+
+def _table_to_list(table: Tag) -> Tag:
+    soup = BeautifulSoup("", "html.parser")
+    ul = soup.new_tag("ul")
+
+    headers: list[str] = []
+    thead = table.find("thead")
+    if thead:
+        row = thead.find("tr")
+        if row:
+            headers = [th.get_text(" ", strip=True) for th in row.find_all("th")]
+
+    body_rows = table.find("tbody")
+    rows = body_rows.find_all("tr") if body_rows else table.find_all("tr")
+
+    for tr in rows:
+        if thead and tr in thead.find_all("tr"):
+            continue
+        cells = tr.find_all(["td", "th"])
+        if not cells:
+            continue
+        if all(c.name == "th" for c in cells) and not headers:
+            headers = [c.get_text(" ", strip=True) for c in cells]
+            continue
+
+        values = [_cell_inner_html(c) for c in cells]
+        li = soup.new_tag("li")
+
+        if len(values) == 1:
+            _append_html_fragment(li, values[0])
+        elif len(values) == 2:
+            _append_html_fragment(li, values[0])
+            li.append(" — ")
+            _append_html_fragment(li, values[1])
+        elif headers and len(headers) == len(values):
+            _append_html_fragment(li, values[0])
+            for val in values[1:]:
+                li.append(" — ")
+                _append_html_fragment(li, val)
+        else:
+            for i, val in enumerate(values):
+                if i:
+                    li.append(" — ")
+                _append_html_fragment(li, val)
+
+        ul.append(li)
+
+    return ul
+
+
+def _replace_math(soup: BeautifulSoup) -> None:
+    for tag in list(
+        soup.find_all(["span", "div"], class_=lambda c: c and "arithmatex" in c)
+    ):
+        latex = _unwrap_arithmatex_latex(tag.get_text())
+        if not latex:
+            tag.decompose()
+            continue
+        replacement = _latex_to_soup_tag(latex, display=tag.name == "div")
+        tag.replace_with(replacement)
+
+    # Any leftover $...$ in text nodes (shouldn't happen, but guard)
+    for text_node in list(soup.find_all(string=re.compile(r"\$"))):
+        parent = text_node.parent
+        if not parent or parent.name in ("script", "style"):
+            continue
+        new_text = text_node
+        for match in re.finditer(r"\$\$([^$]+)\$\$|\$([^$]+)\$", str(text_node)):
+            latex = match.group(1) or match.group(2)
+            plain = latex_to_plain(latex)
+            new_text = new_text.replace(match.group(0), plain)
+        text_node.replace_with(new_text)
+
+
+def _replace_tables(soup: BeautifulSoup) -> None:
+    for table in list(soup.find_all("table")):
+        table.replace_with(_table_to_list(table))
+
+
+def markdown_to_body_html(md: str) -> str:
+    md = _escape_excited_state_asterisks(md)
+    md = _normalize_math_delimiters(md)
+    html_fragment = markdown.markdown(
+        md,
+        extensions=[
+            "markdown.extensions.tables",
+            "markdown.extensions.fenced_code",
+            "markdown.extensions.nl2br",
+            "markdown.extensions.sane_lists",
+            "pymdownx.arithmatex",
+        ],
+        extension_configs={
+            "pymdownx.arithmatex": {
+                "generic": True,
+                "block_tag": "div",
+                "inline_tag": "span",
+            }
+        },
+    )
+    soup = BeautifulSoup(html_fragment, "html.parser")
+    _replace_math(soup)
+    _replace_tables(soup)
+    return str(soup)
+
+
+def wrap_document(body_html: str, title: str) -> str:
+    safe_title = html.escape(title)
+    return f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{safe_title}</title>
+  <style>{PAGE_STYLE}</style>
+</head>
+<body>
+  <div class="instructions">
+    <strong>LinkedIn-safe paste</strong>
+    Tables are bullet lists; math is plain Unicode (no KaTeX). Open in Chrome/Firefox,
+    click <em>Select article for copy</em>, then Ctrl+C and paste into LinkedIn.
+    <p style="margin: 0.75rem 0 0;">
+      <button type="button" id="select-article"
+        style="font-size: 14px; padding: 6px 12px; cursor: pointer;">
+        Select article for copy
+      </button>
+    </p>
+  </div>
+  <article id="content">
+{body_html}
+  </article>
+  <script>
+    document.getElementById("select-article").addEventListener("click", function () {{
+      var article = document.getElementById("content");
+      var range = document.createRange();
+      range.selectNodeContents(article);
+      var sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+      article.scrollIntoView({{block: "start"}});
+    }});
+  </script>
+</body>
+</html>
+"""
+
+
+def copy_html_to_clipboard(html_path: Path) -> bool:
+    data = html_path.read_text(encoding="utf-8").encode("utf-8")
+    if shutil.which("wl-copy"):
+        return subprocess.run(
+            ["wl-copy", "--type", "text/html"], input=data, check=False
+        ).returncode == 0
+    if shutil.which("xclip"):
+        return subprocess.run(
+            ["xclip", "-selection", "clipboard", "-t", "text/html"],
+            input=data,
+            check=False,
+        ).returncode == 0
+    return False
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(
+        description="Markdown → LinkedIn-safe HTML (Unicode math, list tables)."
+    )
+    parser.add_argument("input", type=Path)
+    parser.add_argument("-o", "--output", type=Path)
+    parser.add_argument("--clipboard", action="store_true")
+    args = parser.parse_args()
+
+    if not args.input.is_file():
+        print(f"error: not found: {args.input}", file=sys.stderr)
+        return 1
+
+    md = args.input.read_text(encoding="utf-8")
+    body = markdown_to_body_html(md)
+    title = args.input.stem.replace("_", " ").title()
+    document = wrap_document(body, title)
+
+    out = args.output or args.input.with_suffix(".html")
+    out.write_text(document, encoding="utf-8")
+    print(f"Wrote {out} ({len(document):,} bytes)")
+    print("Open in browser → Select article for copy → paste into LinkedIn.")
+
+    if args.clipboard:
+        if copy_html_to_clipboard(out):
+            print("HTML copied to clipboard.")
+        else:
+            print("Install wl-copy or xclip for --clipboard.", file=sys.stderr)
+            return 2
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

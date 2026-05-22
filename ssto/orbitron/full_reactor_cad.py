@@ -251,7 +251,7 @@ class LabInfrastructure:
         return nbi_w.val().BoundingBox()
 
     def nbi_feed_connector_anchors(self) -> dict[str, tuple[float, float, float]]:
-        """H₂ / B₂H₆ bosses on the **NBI** feed flange (not the solenoid shell).
+        """H₂ / B₁₀H₁₄ vapor bosses on the **NBI** feed flange (not the solenoid shell).
 
         After the lab’s fusion-stack rotation, the injectors protrude in **+X** with the
         farm-facing **+Y** flange normal toward the tank row. Trunks must terminate here so
@@ -265,7 +265,7 @@ class LabInfrastructure:
         sep = 0.034
         return {
             "reactor_nbi_h2_in": (cx + sep * 0.5, cy, cz + 0.018),
-            "reactor_nbi_b2h6_in": (cx - sep * 0.5, cy, cz - 0.012),
+            "reactor_nbi_b11_laser_in": (cx - sep * 0.5, cy, cz - 0.012),
         }
 
     def magnet_shell_connector_anchors(self) -> dict[str, tuple[float, float, float]]:
@@ -426,27 +426,53 @@ class LabInfrastructure:
             self._panel_label_on_face("APU", -0.22, y_switch),
             self._panel_label_on_face("START", -0.08, y_switch),
             self._panel_label_on_face("BLEED", 0.06, y_switch),
+            self._panel_label_on_face("VAC", -0.22, 0.02),
+            self._panel_label_on_face("LASER", -0.08, 0.02),
+            self._panel_label_on_face("HV", 0.06, 0.02),
             self._panel_label_on_face("IGNITE", 0.20, 0.115),
             self._panel_label_on_face("BEAM", -0.10, y_knob),
             self._panel_label_on_face("COMP", 0.10, y_knob),
         )
 
     def build_fuel_farm(self):
+        """Integrated pad: **H₂** proton feed + **CH₄** thermal only — ¹¹B is solid targets in-vacuum (Reply 19 §1.2–1.3)."""
         h2 = cq.Workplane("XY").circle(0.15).extrude(1.2).edges(">Z").fillet(0.1).translate((0.6, 1.2, 0))
-        b2h6 = cq.Workplane("XY").circle(0.15).extrude(1.2).edges(">Z").fillet(0.1).translate((0.0, 1.2, 0))
         dewar = cq.Workplane("XY").circle(0.25).extrude(0.9).edges(">Z").fillet(0.1).translate((-0.7, 1.2, 0))
-        
+        placeholder = cq.Workplane("XY")  # legacy tuple slot (no boron gas cylinder)
         txt_h2 = cq.Workplane("XZ").text("HYDROGEN", 0.05, 0.001).translate((0.6, 1.049, 0.8))
-        txt_b2 = cq.Workplane("XZ").text("DIBORANE", 0.05, 0.001).translate((0.0, 1.049, 0.8))
+        txt_b11 = cq.Workplane("XZ").text("SOLID B-11", 0.045, 0.001).translate((0.0, 1.049, 0.42))
         txt_ch4 = cq.Workplane("XZ").text("LIQUID METHANE", 0.05, 0.001).translate((-0.7, 0.949, 0.45))
-        
-        return h2, b2h6, dewar, txt_h2, txt_b2, txt_ch4
+        return h2, placeholder, dewar, txt_h2, txt_b11, txt_ch4
+
+    def build_laser_ablation_head(self) -> cq.Workplane:
+        """COTS Q-switched Nd:YAG head (atmospheric) — beams through fused-silica viewport."""
+        body = cq.Workplane("XY").box(0.42, 0.18, 0.14).translate((0.72, 0.55, 0.38))
+        lens_barrel = cq.Workplane("XY").circle(0.035).extrude(0.12).translate((0.52, 0.55, 0.38))
+        return body.union(lens_barrel)
+
+    def build_uv_fused_silica_viewport(self) -> cq.Workplane:
+        """355 nm AR-coated window on the NBI manifold (laser entry into vacuum)."""
+        bb = self._nbi_world_bbox()
+        cx = (bb.xmin + bb.xmax) * 0.5
+        cy = bb.ymax + 0.006
+        cz = (bb.zmin + bb.zmax) * 0.5 + 0.04
+        disk = cq.Workplane("XY").circle(0.028).extrude(0.012)
+        return disk.translate((cx, cy, cz))
+
+    def build_b11_ablation_target(self) -> cq.Workplane:
+        """Enriched ¹¹B target puck inside the injector line-of-sight (laser focus)."""
+        bb = self._nbi_world_bbox()
+        cx = (bb.xmin + bb.xmax) * 0.5 - 0.02
+        cy = (bb.ymin + bb.ymax) * 0.5
+        cz = (bb.zmin + bb.zmax) * 0.5 - 0.018
+        puck = cq.Workplane("XY").circle(0.018).extrude(0.006)
+        return puck.translate((cx, cy, cz))
 
     def build_tank_farm_platform(self) -> cq.Workplane:
         """Skid deck + corner posts under the three ``build_fuel_farm()`` cylinders.
 
-        Footprint is derived from the same centres and radii: H₂ at (0.6, 1.2) r=0.15,
-        B₂H₆ at (0, 1.2) r=0.15, CH₄ dewar at (-0.7, 1.2) r=0.25. Deck top is z=0 so
+        Footprint is derived from the same centres: H₂ at (0.6, 1.2) r=0.15,
+        B₁₀H₁₄ reservoir at (0, 1.2), CH₄ dewar at (-0.7, 1.2) r=0.25. Deck top is z=0 so
         tank bases sit flush with the slab; legs extend downward for a pad-mounted read.
         """
         deck_t = 0.055
@@ -476,26 +502,23 @@ class LabInfrastructure:
     def fuel_line_connector_anchors(self) -> dict[str, tuple[float, float, float]]:
         """World-space points for fuel routing (tank tops + magnet-shell inlets).
 
-        Tank tops match ``build_fuel_farm()``. **H₂** and **B₂H₆** reactor ends use
+        Tank tops match ``build_fuel_farm()``. **H₂** and **B₁₀H₁₄** reactor ends use
         :meth:`nbi_feed_connector_anchors` (injector flange). **CH₄** still uses the magnet
         +Y process inlet (wall-thermal leg).
         """
         z_trim = 0.035
         h2_roof = 1.2 - z_trim
-        b2_roof = 1.2 - z_trim
         ch4_roof = 0.9 - z_trim
         h2_top = (0.6, 1.2, h2_roof + _LAB_TANK_VALVE_OUTLET_DZ)
-        b2_top = (0.0, 1.2, b2_roof + _LAB_TANK_VALVE_OUTLET_DZ)
         ch4_top = (-0.7, 1.2, ch4_roof + _LAB_TANK_VALVE_OUTLET_DZ)
 
         mag_ports = self.magnet_shell_connector_anchors()
         nbi_ports = self.nbi_feed_connector_anchors()
         return {
             "fuel_farm_h2_tank_top": h2_top,
-            "fuel_farm_b2h6_tank_top": b2_top,
             "fuel_farm_ch4_dewar_top": ch4_top,
             "reactor_fuel_h2_in": nbi_ports["reactor_nbi_h2_in"],
-            "reactor_fuel_b2h6_in": nbi_ports["reactor_nbi_b2h6_in"],
+            "reactor_fuel_b11_laser_in": nbi_ports["reactor_nbi_b11_laser_in"],
             "reactor_fuel_ch4_in": mag_ports["reactor_magnet_fuel_ch4_in"],
         }
 
@@ -678,17 +701,20 @@ def lab_helium_ash_vent_params() -> dict[str, Any]:
     }
 
 
-def lab_b2h6_injectant_trunk_params() -> dict[str, Any]:
-    """Single-service connector spec for B₂H₆ injectant (subset of former ``Fuel_Gas_Lines``)."""
+def lab_b10h14_injectant_trunk_params() -> dict[str, Any]:
+    """B₁₀H₁₄ vapor trunk: heated solid reservoir → NBI (laser ablation at core)."""
     return {
         "include_port_markers": False,
         "connectivity_spec": {
-            "physical_story": "Diborane gaseous boron carrier trunk from B₂H₆ cylinder to the NBI flange.",
+            "physical_story": (
+                "Decaborane sublimation + UV laser ablation: solid B₁₀H₁₄ reservoir to NBI flange; "
+                "355 nm pulses vaporize the charge at the ablation target inside the vacuum line."
+            ),
             "links": [
                 {
-                    "link_id": "b2h6_service",
-                    "service": "diborane_nbi_boron_carrier",
-                    "from_region": "fuel_farm_b2h6_tank",
+                    "link_id": "b10h14_service",
+                    "service": "decaborane_nbi_boron_carrier",
+                    "from_region": "fuel_farm_decaborane_reservoir",
                     "to_region": "reactor_nbi_manifold",
                     "routing_intent": "arc_over_deck_then_nbi_flange",
                 }
@@ -696,34 +722,39 @@ def lab_b2h6_injectant_trunk_params() -> dict[str, Any]:
         },
         "connector_ports": [
             {
-                "id": "tank_b2h6_out",
-                "anchor": "fuel_farm_b2h6_tank_top",
+                "id": "tank_b10h14_out",
+                "anchor": "fuel_farm_decaborane_reservoir_top",
                 "offset": [0.0, 0.0, 0.0],
-                "description": "Diborane cylinder top centre.",
+                "description": "Decaborane solid reservoir outlet (heated vapor leg).",
             },
             {
-                "id": "reactor_b2h6_in",
-                "anchor": "reactor_fuel_b2h6_in",
+                "id": "reactor_b10h14_in",
+                "anchor": "reactor_fuel_b10h14_in",
                 "offset": [0.0, 0.0, 0.0],
-                "description": "Second boss on the NBI feed flange (paired with H₂).",
+                "description": "Boron vapor boss on the NBI feed flange (paired with H₂).",
             },
         ],
         "connector_links": [
             {
-                "id": "b2h6_service",
-                "service": "diborane_nbi_boron_carrier",
-                "from_port": "tank_b2h6_out",
-                "to_port": "reactor_b2h6_in",
+                "id": "b10h14_service",
+                "service": "decaborane_nbi_boron_carrier",
+                "from_port": "tank_b10h14_out",
+                "to_port": "reactor_b10h14_in",
                 "radius": 0.02,
-                "description": "Diborane — gaseous boron carrier to NBI / injector manifold.",
+                "description": "B₁₀H₁₄ vapor — laser-ablated boron carrier to NBI / injector manifold.",
                 "waypoints": [
-                    [0.04, 0.82, 0.96],
+                    [0.04, 0.82, 0.62],
                     [0.22, 0.42, 0.55],
                     [0.50, 0.30, 0.34],
                 ],
             }
         ],
     }
+
+
+def lab_b2h6_injectant_trunk_params() -> dict[str, Any]:
+    """Legacy alias — use ``lab_b10h14_injectant_trunk_params``."""
+    return lab_b10h14_injectant_trunk_params()
 
 
 if __name__ == "__main__":

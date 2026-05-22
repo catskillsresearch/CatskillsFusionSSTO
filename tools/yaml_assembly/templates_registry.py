@@ -34,6 +34,7 @@ from full_reactor_cad import (
     LabInfrastructure,
     build_magnet_feedthrough_bosses,
     fusion_exhaust_outlet_ring,
+    lab_b10h14_injectant_trunk_params,
     lab_b2h6_injectant_trunk_params,
     lab_h2_injectant_trunk_params,
     lab_helium_ash_vent_params,
@@ -234,9 +235,13 @@ def tpl_lab_tank_deuterium(**_: Any) -> cq.Workplane:
     return tpl_lab_tank_hydrogen()
 
 
+def tpl_lab_tank_decaborane(**_: Any) -> cq.Workplane:
+    _, b10, *_ = _infra().build_fuel_farm()
+    return b10
+
+
 def tpl_lab_tank_diborane(**_: Any) -> cq.Workplane:
-    _, b2, *_ = _infra().build_fuel_farm()
-    return b2
+    return tpl_lab_tank_decaborane()
 
 
 def tpl_lab_tank_cryo_methane(**_: Any) -> cq.Workplane:
@@ -256,8 +261,12 @@ def tpl_lab_decal_d2(**_: Any) -> cq.Workplane:
     return tpl_lab_decal_h2()
 
 
-def tpl_lab_decal_b2h6(**_: Any) -> cq.Workplane:
+def tpl_lab_decal_b10h14(**_: Any) -> cq.Workplane:
     return _infra().build_fuel_farm()[4]
+
+
+def tpl_lab_decal_b2h6(**_: Any) -> cq.Workplane:
+    return tpl_lab_decal_b10h14()
 
 
 def tpl_lab_decal_ch4(**_: Any) -> cq.Workplane:
@@ -292,10 +301,36 @@ def tpl_lab_d2_injectant_trunk(**params: Any) -> cq.Workplane:
     return build_connector_routing(merged, anchors)
 
 
-def tpl_lab_b2h6_injectant_trunk(**params: Any) -> cq.Workplane:
+def tpl_lab_b10h14_injectant_trunk(**params: Any) -> cq.Workplane:
     anchors = LabInfrastructure().fuel_line_connector_anchors()
-    merged = {**lab_b2h6_injectant_trunk_params(), **params}
+    merged = {**lab_b10h14_injectant_trunk_params(), **params}
     return build_connector_routing(merged, anchors)
+
+
+def tpl_lab_b2h6_injectant_trunk(**params: Any) -> cq.Workplane:
+    return tpl_lab_b10h14_injectant_trunk(**params)
+
+
+def tpl_lab_laser_ablation_head(**_: Any) -> cq.Workplane:
+    return _infra().build_laser_ablation_head()
+
+
+def tpl_lab_uv_fused_silica_viewport(**_: Any) -> cq.Workplane:
+    return _infra().build_uv_fused_silica_viewport()
+
+
+def tpl_lab_b11_ablation_target(**_: Any) -> cq.Workplane:
+    return _infra().build_b11_ablation_target()
+
+
+def tpl_lab_decaborane_heater_mantle(**_: Any) -> cq.Workplane:
+    """Heating collar on the solid B₁₀H₁₄ reservoir (sublimation assist)."""
+    return (
+        cq.Workplane("XY")
+        .rect(0.34, 0.28)
+        .extrude(0.06)
+        .translate((0.0, 1.2, 0.54))
+    )
 
 
 def tpl_lab_helium_ash_vent(**params: Any) -> cq.Workplane:
@@ -366,14 +401,26 @@ def tpl_lab_panel_label_bleed(**_: Any) -> cq.Workplane:
 
 
 def tpl_lab_panel_label_ignite(**_: Any) -> cq.Workplane:
-    return _infra().build_panel_labels()[3]
+    return _infra().build_panel_labels()[6]
 
 
 def tpl_lab_panel_label_beam(**_: Any) -> cq.Workplane:
-    return _infra().build_panel_labels()[4]
+    return _infra().build_panel_labels()[7]
 
 
 def tpl_lab_panel_label_comp(**_: Any) -> cq.Workplane:
+    return _infra().build_panel_labels()[8]
+
+
+def tpl_lab_panel_label_vac(**_: Any) -> cq.Workplane:
+    return _infra().build_panel_labels()[3]
+
+
+def tpl_lab_panel_label_laser(**_: Any) -> cq.Workplane:
+    return _infra().build_panel_labels()[4]
+
+
+def tpl_lab_panel_label_hv(**_: Any) -> cq.Workplane:
     return _infra().build_panel_labels()[5]
 
 
@@ -412,18 +459,25 @@ TEMPLATE_REGISTRY: dict[str, Callable[..., cq.Workplane]] = {
     "orbitron_nbi": tpl_orbitron_nbi,
     "lab_tank_hydrogen": tpl_lab_tank_hydrogen,
     "lab_tank_deuterium": tpl_lab_tank_deuterium,
+    "lab_tank_decaborane": tpl_lab_tank_decaborane,
     "lab_tank_diborane": tpl_lab_tank_diborane,
     "lab_tank_cryo_methane": tpl_lab_tank_cryo_methane,
     "lab_tank_farm_platform": tpl_lab_tank_farm_platform,
     "lab_decal_h2": tpl_lab_decal_h2,
     "lab_decal_d2": tpl_lab_decal_d2,
+    "lab_decal_b10h14": tpl_lab_decal_b10h14,
     "lab_decal_b2h6": tpl_lab_decal_b2h6,
     "lab_decal_ch4": tpl_lab_decal_ch4,
     "lab_hv_umbilical": tpl_lab_hv_umbilical,
     "lab_fuel_gas_lines": tpl_lab_fuel_gas_lines,
     "lab_h2_injectant_trunk": tpl_lab_h2_injectant_trunk,
     "lab_d2_injectant_trunk": tpl_lab_d2_injectant_trunk,
+    "lab_b10h14_injectant_trunk": tpl_lab_b10h14_injectant_trunk,
     "lab_b2h6_injectant_trunk": tpl_lab_b2h6_injectant_trunk,
+    "lab_laser_ablation_head": tpl_lab_laser_ablation_head,
+    "lab_uv_fused_silica_viewport": tpl_lab_uv_fused_silica_viewport,
+    "lab_b11_ablation_target": tpl_lab_b11_ablation_target,
+    "lab_decaborane_heater_mantle": tpl_lab_decaborane_heater_mantle,
     "lab_helium_ash_vent": tpl_lab_helium_ash_vent,
     "lab_cryo_methane_piping": tpl_lab_cryo_methane_piping,
     "lab_operator_console_desk": tpl_lab_operator_console_desk,
@@ -441,7 +495,121 @@ TEMPLATE_REGISTRY: dict[str, Callable[..., cq.Workplane]] = {
     "lab_panel_label_ignite": tpl_lab_panel_label_ignite,
     "lab_panel_label_beam": tpl_lab_panel_label_beam,
     "lab_panel_label_comp": tpl_lab_panel_label_comp,
+    "lab_panel_label_vac": tpl_lab_panel_label_vac,
+    "lab_panel_label_laser": tpl_lab_panel_label_laser,
+    "lab_panel_label_hv": tpl_lab_panel_label_hv,
 }
+
+
+def _register_reply19_templates() -> None:
+    from reply19_parts_cad import (
+        part_aerodynamic_centerbody,
+        part_airflow_honeycomb_filter,
+        part_ballast_resistor,
+        part_charged_particle_detector,
+        part_compressor_assembly,
+        part_compressor_shaft_bearings,
+        part_containment_vessel_jacket,
+        part_data_acquisition_chassis,
+        part_exhaust_silencer_ducting,
+        part_faraday_cup,
+        part_full_range_vacuum_gauge,
+        part_heat_exchanger_channels,
+        part_high_temp_metallic_seals,
+        part_high_temp_thermocouples,
+        part_high_voltage_cable,
+        part_hv_bushing_feedthrough,
+        part_hv_vacuum_feedthrough,
+        part_industrial_blower,
+        part_infrared_pyrometer,
+        part_inlet_guide_vanes_igvs,
+        part_interlock_safety_controller,
+        part_kinematic_mirror_mounts,
+        part_laser_power_meter,
+        part_mass_flow_sensor,
+        part_multichannel_analyzer_mca,
+        part_optical_breadboard,
+        part_pitot_static_tubes,
+        part_pneumatic_air_starter,
+        part_precision_dc_hvps,
+        part_preamplifier,
+        part_q_switched_ndyag_laser,
+        part_roughing_pump,
+        part_s_duct_intake_simulation,
+        part_solid_b11_target_holder,
+        part_solid_boron_11_target,
+        part_spectroscopy_amplifier,
+        part_solid_state_marx_generator,
+        part_tank_cryo_methane,
+        part_tank_hydrogen,
+        part_turbine_assembly,
+        part_turbomolecular_pump,
+        part_uv_focusing_lens,
+        part_uv_fused_silica_viewport,
+        part_vacuum_chamber,
+        part_vacuum_turbo_pump_array,
+        part_central_cathode_wire,
+        part_outer_anode_grid,
+    )
+
+    pairs = [
+        ("reply19_vacuum_chamber", part_vacuum_chamber),
+        ("reply19_turbomolecular_pump", part_turbomolecular_pump),
+        ("reply19_roughing_pump", part_roughing_pump),
+        ("reply19_full_range_vacuum_gauge", part_full_range_vacuum_gauge),
+        ("reply19_uv_fused_silica_viewport", part_uv_fused_silica_viewport),
+        ("reply19_solid_b11_target_holder", part_solid_b11_target_holder),
+        ("reply19_central_cathode_wire", part_central_cathode_wire),
+        ("reply19_outer_anode_grid", part_outer_anode_grid),
+        ("reply19_hv_vacuum_feedthrough", part_hv_vacuum_feedthrough),
+        ("reply19_solid_boron_11_target", part_solid_boron_11_target),
+        ("reply19_q_switched_ndyag_laser", part_q_switched_ndyag_laser),
+        ("reply19_optical_breadboard", part_optical_breadboard),
+        ("reply19_uv_focusing_lens", part_uv_focusing_lens),
+        ("reply19_laser_power_meter", part_laser_power_meter),
+        ("reply19_kinematic_mirror_mounts", part_kinematic_mirror_mounts),
+        ("reply19_precision_dc_hvps", part_precision_dc_hvps),
+        ("reply19_high_voltage_cable", part_high_voltage_cable),
+        ("reply19_ballast_resistor", part_ballast_resistor),
+        ("reply19_interlock_safety_controller", part_interlock_safety_controller),
+        ("reply19_charged_particle_detector", part_charged_particle_detector),
+        ("reply19_preamplifier", part_preamplifier),
+        ("reply19_spectroscopy_amplifier", part_spectroscopy_amplifier),
+        ("reply19_multichannel_analyzer_mca", part_multichannel_analyzer_mca),
+        ("reply19_faraday_cup", part_faraday_cup),
+        ("reply19_containment_vessel_jacket", part_containment_vessel_jacket),
+        ("reply19_heat_exchanger_channels", part_heat_exchanger_channels),
+        ("reply19_aerodynamic_centerbody", part_aerodynamic_centerbody),
+        ("reply19_high_temp_metallic_seals", part_high_temp_metallic_seals),
+        ("reply19_compressor_assembly", part_compressor_assembly),
+        ("reply19_turbine_assembly", part_turbine_assembly),
+        ("reply19_compressor_shaft_bearings", part_compressor_shaft_bearings),
+        ("reply19_inlet_guide_vanes_igvs", part_inlet_guide_vanes_igvs),
+        ("reply19_industrial_blower", part_industrial_blower),
+        ("reply19_s_duct_intake_simulation", part_s_duct_intake_simulation),
+        ("reply19_exhaust_silencer_ducting", part_exhaust_silencer_ducting),
+        ("reply19_airflow_honeycomb_filter", part_airflow_honeycomb_filter),
+        ("reply19_pneumatic_air_starter", part_pneumatic_air_starter),
+        ("reply19_solid_state_marx_generator", part_solid_state_marx_generator),
+        ("reply19_hv_bushing_feedthrough", part_hv_bushing_feedthrough),
+        ("reply19_vacuum_turbo_pump_array", part_vacuum_turbo_pump_array),
+        ("reply19_high_temp_thermocouples", part_high_temp_thermocouples),
+        ("reply19_pitot_static_tubes", part_pitot_static_tubes),
+        ("reply19_mass_flow_sensor", part_mass_flow_sensor),
+        ("reply19_infrared_pyrometer", part_infrared_pyrometer),
+        ("reply19_data_acquisition_chassis", part_data_acquisition_chassis),
+        ("reply19_tank_hydrogen", part_tank_hydrogen),
+        ("reply19_tank_cryo_methane", part_tank_cryo_methane),
+    ]
+    for tid, fn in pairs:
+
+        def _wrap(f: Callable[..., cq.Workplane] = fn, **_kw: Any) -> cq.Workplane:
+            return f()
+
+        TEMPLATE_REGISTRY[tid] = _wrap
+
+
+_register_reply19_templates()
 
 
 def build_template(template_id: str, params: dict[str, Any] | None) -> cq.Workplane:

@@ -29,7 +29,11 @@ GROUND_TRUTH_LINEAR = {
     "Optics_Table": (0.02, 0.02, 0.02),
     "Operator_Console": (0.02, 0.02, 0.02),
     "Tank_Hydrogen": (0.604, 0.01, 0.01),
-    "Tank_Diborane": (0.01, 0.319, 0.033),
+    "Solid_Boron_11_Target": (0.55, 0.48, 0.35),
+    "Solid_Boron_11_Target_2": (0.55, 0.48, 0.35),
+    "Q_Switched_NdYAG_Laser": (0.15, 0.12, 0.18),
+    "UV_Fused_Silica_Viewport": (0.55, 0.75, 0.85),
+    "Vacuum_Chamber": (0.4, 0.42, 0.45),
     "Tank_Cryo_Methane": (0.448, 0.448, 0.604),
     "Tank_Farm_Platform": (0.12, 0.12, 0.13),
 }

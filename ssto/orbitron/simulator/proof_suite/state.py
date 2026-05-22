@@ -26,14 +26,14 @@ class ProofSuiteState:
     """Mutable view of the proof chain for the GUI."""
 
     STEPS = [
-        ("00", "Design SSOT", "Geometry, injectants, compile PICMI overrides"),
-        ("01", "WarpX PIC", "2D arcjet: ρ_e and beam coupling at pad point"),
-        ("02", "PIC scale factors", "Two multipliers from last WarpX snapshot"),
-        ("03", "Fusion channel", "Longitudinal s–r + laminar clump metrics"),
-        ("04", "Fueling", "n_p, n_B, T_i from injectants + PIC"),
-        ("05", "p-¹¹B burn", "Fusion power (proof: scale = 1)"),
-        ("06", "0D plant", "U1–U4, wall, CH₄, HTS"),
-        ("07", "Jet closure", "F² ≈ 2ηPṁ discipline"),
+        ("00", "Design SSOT", "Reply 19 BOM, geometry, PICMI overrides"),
+        ("01", "1.1 Vacuum", "Rough + turbo pump-down; gauge interlock"),
+        ("02", "1.3 Laser", "355 nm align, pulse meter, arm laser"),
+        ("03", "1.2+1.4 Core HV", "Orbitron grid, Spellman bias, interlocks"),
+        ("04", "1.5 Diagnostics", "PIPS / MCA 3-alpha check"),
+        ("05", "Fueling H₂+B11", "H₂ sccm + solid ¹¹B laser ablation rate"),
+        ("06", "0D plant", "U1–U4, wall, CH₄, HTS (Phase 2 jacket)"),
+        ("07", "2.2 Jet closure", "Brayton F² ≈ 2ηPṁ; compressor/turbine"),
         ("08", "Validation export", "Spec YAML + pass/fail table"),
         ("09", "Inverse solve", "Required unobtanium if forward chain fails"),
     ]
@@ -107,8 +107,20 @@ class ProofSuiteState:
             }
         )
 
-    def update_injectants(self, *, h2_sccm: float, b2h6_sccm: float) -> None:
-        self.config["injectants"].update({"h2_sccm": h2_sccm, "b2h6_sccm": b2h6_sccm})
+    def update_injectants(
+        self,
+        *,
+        h2_sccm: float,
+        laser_ablation_hz: float,
+        b11_target_index: int = 0,
+    ) -> None:
+        self.config["injectants"].update(
+            {
+                "h2_sccm": h2_sccm,
+                "laser_ablation_hz": laser_ablation_hz,
+                "b11_target_index": b11_target_index,
+            }
+        )
 
     def update_pad(
         self,
@@ -117,8 +129,12 @@ class ProofSuiteState:
         compressor: float,
         cathode_pulse: float,
         laminar: bool,
+        vacuum_interlock_ok: bool | None = None,
+        laser_armed: bool | None = None,
+        hv_enabled: bool | None = None,
     ) -> None:
-        self.config["pad"].update(
+        p = self.config["pad"]
+        p.update(
             {
                 "throttle": throttle,
                 "compressor": compressor,
@@ -126,6 +142,12 @@ class ProofSuiteState:
                 "laminar_relaminarization": laminar,
             }
         )
+        if vacuum_interlock_ok is not None:
+            p["vacuum_interlock_ok"] = vacuum_interlock_ok
+        if laser_armed is not None:
+            p["laser_armed"] = laser_armed
+        if hv_enabled is not None:
+            p["hv_enabled"] = hv_enabled
 
     def update_pic_settings(self, *, steps: int, diag_period: int, skip_pic: bool) -> None:
         self.config["pic"]["steps"] = steps

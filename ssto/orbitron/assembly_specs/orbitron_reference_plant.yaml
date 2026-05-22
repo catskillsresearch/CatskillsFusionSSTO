@@ -13,7 +13,7 @@ reference_for:
 
 narrative: |
   **Reaction mass:** ingested **air** (large ṁ). **Fusion** adds enthalpy to that stream; **core
-  injectants (H₂, B₂H₆)** feed the plasma only. **⁴He ash** and **hot core exhaust** add small mass
+  injectants (H₂, B₁₀H₁₄)** feed the plasma only. **⁴He ash** and **hot core exhaust** add small mass
   and large specific enthalpy at the **mixer / plenum** — they do not carry all fusion power as a
   separate “torch” through open air.
 
@@ -98,7 +98,7 @@ startup_sequence:
     action: ingests_air_through_bellmouth_annulus_path
   - step: reactor_ignite
     actor: fusion_reactor
-    action: plasma_on_injectants_H2_B2H6
+    action: plasma_on_injectants_H2_B10H14
   - step: heat_rise
     actor: hot_section
     action: walls_and_mixer_raise_gas_enthalpy

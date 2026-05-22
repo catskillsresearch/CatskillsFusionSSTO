@@ -107,7 +107,7 @@ Sequence hint line at top of screen:
 
 - Spool RPM, clutch, or automatic turbine takeover  
 - Automatic starter drop-out on light-off  
-- Fuel valve interlocks (H₂ / B₂H₆) beyond the 0D surrogate  
+- Fuel valve interlocks (H₂ / B₁₀H₁₄) beyond the 0D surrogate  
 
 Those steps are documented in the reference plant for design intent; FlightGear uses a
 **0D bilinear surrogate** gated by the switches above.
