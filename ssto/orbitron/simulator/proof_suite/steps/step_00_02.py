@@ -1,7 +1,6 @@
 """Proof suite steps 00–02: SSOT, PIC, reduce."""
 from __future__ import annotations
 
-import json
 import os
 from pathlib import Path
 
@@ -31,7 +30,6 @@ from ssto.orbitron.simulator.types import PadStartupState
 
 from ssto.orbitron.simulator.proof_chain.runners import (
     list_pic_plotfiles,
-    load_pic_slice_2d_with_error,
     run_step_00,
     run_step_02,
 )
@@ -43,11 +41,9 @@ from ssto.orbitron.simulator.types import DeviceGeometry
 from ssto.orbitron.simulator.longitudinal.focus import LongitudinalFocus
 from ssto.orbitron.simulator.proof_suite.inputs_builder import simulator_inputs_from_state
 from ssto.orbitron.simulator.proof_suite.longitudinal_viz import (
-    STEP01_MAP_EQUATION_HTML,
     compute_longitudinal_preview,
     data_source_caption,
     draw_step01_placeholder,
-    draw_step01_warpx_rz_remap,
     draw_step01_warpx_xz,
 )
 from ssto.orbitron.simulator.viz import render_device_cross_section
@@ -205,14 +201,25 @@ class Step01PicPanel(ProofStepPanel):
         self.pic_steps = QSpinBox()
         self.pic_steps.setRange(50, 5000)
         self.pic_steps.setValue(int(state.config["pic"]["steps"]))
-        self.pic_steps.setToolTip(
-            "WarpX time steps for laminar_flow_2d_arcjet.py.\n"
-            "Each step advances macroparticles + deposited ρ on the 2D grid; cathode E ramps over "
-            "~35% of this count.\n"
-            "Diagnostics every 100 steps → timelapse frames. Step 02 only uses the last plotfile.\n"
-            "50–100: quick sanity check (few frames, ramp may not finish).\n"
-            "500: default coupling snapshot; more steps = more timelapse, not new physics in step 02."
+        self.pic_diag_period = QSpinBox()
+        self.pic_diag_period.setRange(10, 500)
+        self.pic_diag_period.setValue(int(state.config["pic"].get("diag_period", 100)))
+        self.pic_diag_period.setToolTip(
+            "How often WarpX writes a density snapshot to disk (plotfile).\n"
+            "Example: 500 steps with period 100 → about 6 pictures, not 500.\n"
+            "Smaller period = smoother movie, slower run and bigger diags folder."
         )
+        self.pic_steps.setToolTip(
+            "WarpX time steps — the simulation clock ticks this many times.\n"
+            "Pictures on disk = snapshots every «Snapshot every N steps» (not one picture per step).\n"
+            "Step 02 only reads the last snapshot."
+        )
+        self.lbl_snapshot_count = QLabel()
+        self.lbl_snapshot_count.setWordWrap(True)
+        self.lbl_snapshot_count.setStyleSheet("color: #7aa2f7; font-size: 11px;")
+        self.pic_steps.valueChanged.connect(self._update_snapshot_count_hint)
+        self.pic_diag_period.valueChanged.connect(self._update_snapshot_count_hint)
+        self._update_snapshot_count_hint()
         self.chk_skip = QCheckBox("Skip WarpX (dev — unity ρ norms in step 2)")
         self.chk_skip.setChecked(bool(state.config.get("gui", {}).get("skip_pic", False)))
 
@@ -236,19 +243,25 @@ class Step01PicPanel(ProofStepPanel):
         pic_row = QHBoxLayout()
         pg = QGroupBox("WarpX PICMI")
         pf = QFormLayout(pg)
-        pf.addRow("PIC steps", self.pic_steps)
+        pf.addRow("PIC steps (simulation clock)", self.pic_steps)
+        pf.addRow("Snapshot every N steps", self.pic_diag_period)
         pf.addRow(self.chk_skip)
         pic_row.addWidget(pg)
-        self.chk_live = QCheckBox("Auto-scrub saved frames (2 Hz)")
+        pic_row.addWidget(self.lbl_snapshot_count, stretch=1)
+        self.chk_live = QCheckBox("Play snapshots")
         self.chk_live.setToolTip(
-            "Steps through cached density_diag plotfiles only. Does not re-run WarpX."
+            "Steps through saved plotfiles on disk after a WarpX run (about two pictures per second). "
+            "Does not re-run WarpX — use the Time slider under the top picture."
         )
         pic_row.addWidget(self.chk_live, stretch=1)
         inputs_lay.addLayout(pic_row)
         warp_hint = QLabel(
             "<b>What N steps evolve:</b> electron ring + arc seed + inject beams; cathode V ramp; "
             "|ρ_e| plotfiles every 100 steps. "
-            "<b>Not</b> laminar fuel proof (step 03). Geometry / kV / B: re-run step 00 first."
+            "<b>Not</b> laminar fuel proof (step 03). Geometry / kV / B: re-run step 00 first.<br>"
+            "<b>View:</b> 2D x–z slice only. A cylindrical r–z axial-uniformity panel is deferred until "
+            "3D / RZ WarpX (2D slice + projection collapses here; code kept in "
+            "<code>longitudinal/warpx_frames.py</code> for handoff)."
         )
         warp_hint.setWordWrap(True)
         warp_hint.setTextFormat(Qt.TextFormat.RichText)
@@ -260,30 +273,21 @@ class Step01PicPanel(ProofStepPanel):
         right = QWidget()
         rlay = QVBoxLayout(right)
 
-        lon_grp = QGroupBox("WarpX PIC timelapse (from plotfiles)")
+        lon_grp = QGroupBox("Movie panel — saved WarpX snapshots (drag Time slider)")
         lon_lay = QVBoxLayout(lon_grp)
-        lon_row = QHBoxLayout()
-        self.lon_field = QComboBox()
-        self.lon_field.addItems(["|ρ_e| electrons", "|ρ_beam| inject (if present)"])
-        self.lon_field.setToolTip("Applies to the lower r–z histogram panel when beam diagnostics exist.")
-        lon_row.addWidget(QLabel("Lower panel field"))
-        lon_row.addWidget(self.lon_field, stretch=1)
-        lon_lay.addLayout(lon_row)
+        self.lon_movie_hint = QLabel(
+            "500 PIC steps does not mean 500 pictures. WarpX saves |ρ_e| only every N steps "
+            "(see «Snapshot every N steps»). Drag Time or use Play snapshots."
+        )
+        self.lon_movie_hint.setWordWrap(True)
+        self.lon_movie_hint.setStyleSheet("color: #e0af68; font-size: 11px;")
+        lon_lay.addWidget(self.lon_movie_hint)
         self.lon_source = QLabel("Data: —")
         self.lon_source.setStyleSheet("color: #9ece6a; font-size: 11px;")
         self.lon_source.setWordWrap(True)
         lon_lay.addWidget(self.lon_source)
-        lon_lay.addWidget(QLabel("Primary — x–z (WarpX cell grid)"))
-        self.canvas_xz = MplCanvas(7, 3.6)
-        lon_lay.addWidget(self.canvas_xz, stretch=3)
-        self.lon_map_eq = QLabel(STEP01_MAP_EQUATION_HTML)
-        self.lon_map_eq.setWordWrap(True)
-        self.lon_map_eq.setTextFormat(Qt.TextFormat.RichText)
-        self.lon_map_eq.setStyleSheet("color: #a9b1d6; font-size: 11px; padding: 4px 0;")
-        lon_lay.addWidget(self.lon_map_eq)
-        lon_lay.addWidget(QLabel("Advanced — r–z radius histogram (bin sum)"))
-        self.canvas_rz = MplCanvas(7, 2.5)
-        lon_lay.addWidget(self.canvas_rz, stretch=1)
+        self.canvas_xz = MplCanvas(7, 4.2)
+        lon_lay.addWidget(self.canvas_xz, stretch=1)
         lon_scrub = QHBoxLayout()
         lon_scrub.addWidget(QLabel("Time"))
         self.lon_time = QSlider()
@@ -293,31 +297,32 @@ class Step01PicPanel(ProofStepPanel):
         lon_scrub.addWidget(self.lon_time, stretch=1)
         lon_scrub.addWidget(self.lon_time_label)
         lon_lay.addLayout(lon_scrub)
-        rlay.addWidget(lon_grp, stretch=2)
-
-        pic_grp = QGroupBox("Transverse PIC — WarpX |ρ_e| (last run)")
-        pic_lay = QVBoxLayout(pic_grp)
-        self.canvas = MplCanvas(6, 3.2)
-        pic_lay.addWidget(self.canvas, stretch=1)
-        rlay.addWidget(pic_grp, stretch=1)
+        rlay.addWidget(lon_grp, stretch=1)
 
         self.metrics = MetricGrid(4)
         rlay.addWidget(self.metrics)
         self._layout.addWidget(right, stretch=1)
 
         self._lon_xy = None
-        self._lon_rz = None
         self._live_timer = QTimer(self)
         self._live_timer.setInterval(500)
         self._live_timer.timeout.connect(self._on_live_tick)
 
         self.chk_live.toggled.connect(self._update_live_timer)
-        self.lon_field.currentIndexChanged.connect(self._draw_longitudinal)
         self.lon_time.valueChanged.connect(self._draw_longitudinal)
 
         self._load_pad_from_config()
         self.toolbar.btn_run.clicked.connect(self._run)
         self.refresh_from_artifacts()
+
+    def _update_snapshot_count_hint(self) -> None:
+        steps = int(self.pic_steps.value())
+        period = max(1, int(self.pic_diag_period.value()))
+        n_snaps = max(1, steps // period + 1)
+        self.lbl_snapshot_count.setText(
+            f"Expect ~{n_snaps} saved snapshots for {steps} PIC steps "
+            f"(one plotfile every {period} steps)."
+        )
 
     def _pad_from_config(self) -> PadStartupState:
         p = self._state.config["pad"]
@@ -339,8 +344,8 @@ class Step01PicPanel(ProofStepPanel):
         if not getattr(self, "_pad_sync_enabled", False):
             return
         self._sync_config()
-        self._refresh_transverse_pic()
-        # Pad levers do not re-run WarpX; cached frames stay until Run this step.
+        self._refresh_step01_status()
+        # Pad levers do not re-run WarpX; cached snapshots stay until Run this step.
 
     def _sync_config(self) -> None:
         pad = self.startup.pad_state()
@@ -361,7 +366,11 @@ class Step01PicPanel(ProofStepPanel):
             cathode_pulse=pad.cathode_pulse,
             laminar=pad.laminar_relaminarization,
         )
-        self._state.update_pic_settings(steps=self.pic_steps.value(), skip_pic=self.chk_skip.isChecked())
+        self._state.update_pic_settings(
+            steps=self.pic_steps.value(),
+            diag_period=self.pic_diag_period.value(),
+            skip_pic=self.chk_skip.isChecked(),
+        )
         self._state.save()
         if self.chk_skip.isChecked():
             os.environ["SKIP_PIC"] = "1"
@@ -408,13 +417,10 @@ class Step01PicPanel(ProofStepPanel):
         )
         if not list_pic_plotfiles(diags):
             self._lon_xy = None
-            self._lon_rz = None
             self.lon_time.setEnabled(False)
             draw_step01_placeholder(self.canvas_xz.figure, empty_msg)
-            draw_step01_placeholder(self.canvas_rz.figure, empty_msg)
             self.lon_source.setText("Data: none (not WarpX)")
             self.canvas_xz.draw()
-            self.canvas_rz.draw()
             return
         try:
             inputs = self._gather_inputs()
@@ -426,16 +432,8 @@ class Step01PicPanel(ProofStepPanel):
                 use_heuristic_pic=False,
                 warpx_xy_direct=True,
             )
-            self._lon_rz = compute_longitudinal_preview(
-                inputs,
-                LongitudinalFocus.CORE_TUBE,
-                laminar_on=True,
-                pic_diags=diags,
-                use_heuristic_pic=False,
-                warpx_xy_direct=False,
-            )
             self.lon_source.setText(data_source_caption(self._lon_xy))
-            n = min(len(self._lon_xy.time_s), len(self._lon_rz.time_s))
+            n = len(self._lon_xy.time_s)
             self.lon_time.setEnabled(n > 1)
             self.lon_time.setMaximum(max(0, n - 1))
             if self.lon_time.value() > max(0, n - 1):
@@ -443,37 +441,34 @@ class Step01PicPanel(ProofStepPanel):
             self._draw_longitudinal()
         except Exception as exc:
             draw_step01_placeholder(self.canvas_xz.figure, str(exc))
-            draw_step01_placeholder(self.canvas_rz.figure, str(exc))
             self.lon_source.setText(f"Data: error — {exc}")
             self.canvas_xz.draw()
-            self.canvas_rz.draw()
             self._lon_xy = None
-            self._lon_rz = None
             self.lon_time.setEnabled(False)
 
     def _draw_longitudinal(self) -> None:
-        if self._lon_xy is None or self._lon_rz is None:
+        if self._lon_xy is None:
             return
         inputs = self._gather_inputs()
         idx = self.lon_time.value()
         draw_step01_warpx_xz(self.canvas_xz.figure, self._lon_xy, idx, inputs=inputs)
-        field_idx = 1 if self.lon_field.currentIndex() == 1 and self._lon_rz.secondary is not None else 0
-        draw_step01_warpx_rz_remap(
-            self.canvas_rz.figure,
-            self._lon_rz,
-            idx,
-            inputs=inputs,
-            field_index=field_idx,
-        )
         t = self._lon_xy.time_s[idx]
-        n = min(len(self._lon_xy.time_s), len(self._lon_rz.time_s))
-        self.lon_time_label.setText(f"t = {t:.3e} s  ({idx + 1}/{n})")
+        n = len(self._lon_xy.time_s)
+        self.lon_time_label.setText(
+            f"Snapshot {idx + 1}/{n}  (t = {t:.3e} s) — not step {idx + 1} of {self.pic_steps.value()} PIC steps"
+        )
         self.canvas_xz.draw()
-        self.canvas_rz.draw()
+
+    def stop_snapshot_playback(self) -> None:
+        """Called when leaving step 01 so playback does not run in the background."""
+        self._live_timer.stop()
+        if self.chk_live.isChecked():
+            self.chk_live.blockSignals(True)
+            self.chk_live.setChecked(False)
+            self.chk_live.blockSignals(False)
 
     def _update_live_timer(self) -> None:
-        pad = self.startup.pad_state()
-        if self.chk_live.isChecked() and pad.bleed_air_open:
+        if self.chk_live.isChecked() and self._lon_xy is not None and len(self._lon_xy.time_s) > 1:
             self._live_timer.start()
         else:
             self._live_timer.stop()
@@ -482,111 +477,93 @@ class Step01PicPanel(ProofStepPanel):
         if self._lon_xy is None or len(self._lon_xy.time_s) <= 1:
             self._rebuild_longitudinal()
             return
-        n = min(len(self._lon_xy.time_s), len(self._lon_rz.time_s) if self._lon_rz else 0)
+        n = len(self._lon_xy.time_s)
         nxt = (self.lon_time.value() + 1) % n
         self.lon_time.blockSignals(True)
         self.lon_time.setValue(nxt)
         self.lon_time.blockSignals(False)
         self._draw_longitudinal()
 
-    def _refresh_transverse_pic(self) -> None:
-        import json
-        from pathlib import Path
+    def _refresh_step01_status(self) -> None:
+        data = self._state.try_load_step("01")
+        diags = self._pic_diags_dir()
+        n_pf = len(list_pic_plotfiles(diags)) if diags.is_dir() else 0
+        if data:
+            n_pf = max(n_pf, len(data.get("plotfiles", [])))
+        n_frames = len(self._lon_xy.time_s) if self._lon_xy else 0
+        pad_now = self.startup.pad_state()
 
-        from tools.orbitron_proof_chain.chain_lib import CHAIN_ROOT, load_config, step_completed
-
-        data = None
-        art = CHAIN_ROOT / load_config()["steps"]["01"]["artifact"]
-        if art.is_file():
-            try:
-                data = json.loads(art.read_text(encoding="utf-8"))
-            except Exception:
-                pass
-        elif step_completed("01"):
-            data = self._state.try_load_step("01")
-
-        fig = self.canvas.figure
-        fig.clear()
-        ax = fig.add_subplot(111)
         if data and data.get("ok") is False:
             rc = data.get("returncode", "?")
-            ax.text(
-                0.5,
-                0.5,
-                f"WarpX failed (exit {rc})\n\nSee log — fix env, then Run this step",
-                ha="center",
-                va="center",
-                color="#f7768e",
-                fontsize=11,
-            )
-            self.gate.set_gate("Gate: WarpX did not finish — no plotfiles to preview.", ok=False)
-        elif data and not data.get("skipped"):
-            slice3d, err = load_pic_slice_2d_with_error()
-            if slice3d:
-                x, z, rho = slice3d
-                im = ax.pcolormesh(x, z, rho, shading="auto", cmap="magma")
-                fig.colorbar(im, ax=ax, label="|ρ_e|")
-                run_th = data.get("throttle")
-                run_co = data.get("compressor")
-                run_pu = data.get("cathode_pulse")
-                pad_now = self.startup.pad_state()
-                title = "WarpX |ρ_e| — transverse (x–z) at one bore station"
-                if run_th is not None:
-                    title += f"\nrun: thr={run_th:.2f} comp={run_co:.2f} pulse={run_pu:.2f}"
-                ax.set_title(title, color="#c0caf5", fontsize=9)
-                ax.set_xlabel("x [m]")
-                ax.set_ylabel("z [m]")
-                if run_th is not None and (
-                    abs(pad_now.throttle - float(run_th)) > 0.02
-                    or abs(pad_now.compressor - float(run_co)) > 0.02
-                    or abs(pad_now.cathode_pulse - float(run_pu)) > 0.02
-                ):
-                    ax.text(
-                        0.5,
-                        0.02,
-                        "Levers changed — Run this step to refresh WarpX",
-                        transform=ax.transAxes,
-                        ha="center",
-                        va="bottom",
-                        color="#e0af68",
-                        fontsize=8,
-                    )
-            else:
-                ax.text(0.5, 0.5, err or "No PIC preview", ha="center", va="center", color="#a9b1d6", fontsize=10)
-            diags = Path(data.get("diags_dir", ""))
-            n_pf = len(list_pic_plotfiles(diags)) if diags.is_dir() else len(data.get("plotfiles", []))
             self.metrics.set_metrics(
                 [
-                    ("Plotfiles", str(n_pf), str(diags) if diags else "", "#9ece6a" if n_pf else "#e0af68"),
-                    ("WarpX frames", str(len(self._lon_xy.time_s)) if self._lon_xy else "0", "density_diag", "#7aa2f7"),
-                    ("Throttle", f"{data.get('throttle', 0):.2f}", "pad", "#7aa2f7"),
+                    ("WarpX", f"exit {rc}", "see log", "#f7768e"),
+                    ("Plotfiles", str(n_pf), "", "#e0af68"),
+                    ("Snapshots", str(n_frames), "loaded", "#565f89"),
+                    ("Status", "Failed", "", "#f7768e"),
+                ]
+            )
+            self.gate.set_gate("Gate: WarpX did not finish — fix env and Run this step.", ok=False)
+        elif data and data.get("skipped"):
+            self.metrics.set_metrics(
+                [
+                    ("WarpX", "SKIP_PIC", "dev", "#e0af68"),
+                    ("Plotfiles", "0", "", "#565f89"),
+                    ("Snapshots", "0", "", "#565f89"),
+                    ("Status", "Skipped", "", "#e0af68"),
+                ]
+            )
+            self.gate.set_gate(
+                "Gate: skipped — step 02 (scale factors) will use 1.0 placeholders, not WarpX.",
+                ok=None,
+            )
+        elif data:
+            run_th = data.get("throttle")
+            lever_note = "pad"
+            if run_th is not None and (
+                abs(pad_now.throttle - float(run_th)) > 0.02
+                or abs(pad_now.compressor - float(data.get("compressor", run_th))) > 0.02
+                or abs(pad_now.cathode_pulse - float(data.get("cathode_pulse", run_th))) > 0.02
+            ):
+                lever_note = "levers changed — re-run"
+            self.metrics.set_metrics(
+                [
+                    ("Plotfiles", str(n_pf), "on disk", "#9ece6a" if n_pf else "#e0af68"),
+                    ("Snapshots", str(n_frames), "scrub with Time", "#7aa2f7"),
+                    ("Throttle", f"{data.get('throttle', 0):.2f}", lever_note, "#7aa2f7"),
                     ("Pulse", f"{data.get('cathode_pulse', 0):.2f}", "cathode", "#7aa2f7"),
                 ]
             )
-            if n_pf and slice3d:
-                self.gate.set_gate("Gate: PIC + longitudinal preview — run step 02 to reduce ρ norms.", ok=True)
+            if n_pf and self._lon_xy is not None:
+                self.gate.set_gate("Gate: WarpX snapshots loaded — run step 02 for scale factors.", ok=True)
             elif n_pf:
-                self.gate.set_gate("Gate: plotfiles on disk but transverse preview failed.", ok=None)
+                self.gate.set_gate("Gate: plotfiles on disk but snapshot preview failed.", ok=None)
             else:
-                self.gate.set_gate("Gate: re-run WarpX for transverse plotfiles.", ok=False)
-        elif data and data.get("skipped"):
-            ax.text(0.5, 0.5, "PIC skipped\n(SKIP_PIC)", ha="center", va="center", color="#e0af68", fontsize=14)
-            self.gate.set_gate("Gate: skipped — step 2 will use unity norms (not Tier-2 closed).", ok=None)
+                self.gate.set_gate("Gate: re-run WarpX for density snapshots.", ok=False)
+        elif self._lon_xy is not None:
+            self.metrics.set_metrics(
+                [
+                    ("Plotfiles", str(n_pf), "on disk", "#9ece6a" if n_pf else "#e0af68"),
+                    ("Snapshots", str(n_frames), "scrub with Time", "#7aa2f7"),
+                    ("Throttle", f"{pad_now.throttle:.2f}", "pad", "#7aa2f7"),
+                    ("Pulse", f"{pad_now.cathode_pulse:.2f}", "cathode", "#7aa2f7"),
+                ]
+            )
+            self.gate.set_gate(self._gate_hint, ok=None)
         else:
-            ax.text(0.5, 0.5, "Run WarpX for transverse |ρ_e|", ha="center", va="center", color="#565f89", fontsize=12)
-            if self._lon_xy is not None:
-                self.gate.set_gate(
-                    "Gate: longitudinal preview active — Run WarpX for Tier-2 transverse PIC.",
-                    ok=None,
-                )
-            else:
-                self.gate.set_gate(self._gate_hint, ok=None)
-        fig.tight_layout()
-        self.canvas.draw()
+            self.metrics.set_metrics(
+                [
+                    ("Plotfiles", "0", "run WarpX", "#565f89"),
+                    ("Snapshots", "0", "", "#565f89"),
+                    ("Throttle", f"{pad_now.throttle:.2f}", "pad", "#565f89"),
+                    ("Pulse", f"{pad_now.cathode_pulse:.2f}", "cathode", "#565f89"),
+                ]
+            )
+            self.gate.set_gate(self._gate_hint, ok=None)
 
     def refresh_from_artifacts(self) -> None:
         self._rebuild_longitudinal()
-        self._refresh_transverse_pic()
+        self._refresh_step01_status()
         self._update_live_timer()
 
 
@@ -596,34 +573,50 @@ class Step02ReducePanel(ProofStepPanel):
     def __init__(self, state: ProofSuiteState, parent=None) -> None:
         super().__init__(
             "02",
-            "PIC reduce",
-            "Reduce last plotfile to ρ_e_norm and ρ_beam_norm — handoff to 0D plant and fusion channel. "
-            "No pad sliders here — use the links below to change inputs, then re-run step 01.",
-            "0.2 ≤ ρ_norm ≤ 3.0 (plant clamp band).",
+            "Two scale factors for later steps",
+            "No movie here — only two numbers from step 01’s <b>last</b> WarpX snapshot: "
+            "electron ring strength and ion-inject strength (often from throttle on this flat slice).",
+            "Both scale factors should be between 0.2 and 3.0.",
             state,
             parent,
         )
+        why = QWidget()
+        why_lay = QVBoxLayout(why)
+        lbl_why = QLabel(
+            "<b>Not a movie</b> — the chart is two bar heights (multipliers), not animation frames.<br>"
+            "<b>Why this step exists</b> — Step 01’s movie ends here. We read the <b>last</b> snapshot and ask: "
+            "<i>how much should later steps scale the electron ring and ion inject?</i> "
+            "Fuel along the full tube is <b>step 03–04</b>, not here."
+        )
+        lbl_why.setWordWrap(True)
+        lbl_why.setTextFormat(Qt.TextFormat.RichText)
+        lbl_why.setStyleSheet("color: #a9b1d6; font-size: 11px;")
+        why_lay.addWidget(lbl_why)
+        self.place_inputs_above_run(why)
+
         nav = QHBoxLayout()
         self.lbl_levers = QLabel()
         self.lbl_levers.setWordWrap(True)
         self.lbl_levers.setStyleSheet("color: #a9b1d6; font-size: 11px;")
         nav.addWidget(self.lbl_levers, stretch=1)
-        btn01 = QPushButton("Pad levers → step 01")
-        btn01.setToolTip("Throttle, compressor, cathode pulse, PIC step count")
+        btn01 = QPushButton("Change levers → step 01")
         btn01.clicked.connect(lambda: self.go_to_step.emit("01"))
-        btn00 = QPushButton("Geometry / kV → step 00")
+        btn00 = QPushButton("Geometry → step 00")
         btn00.clicked.connect(lambda: self.go_to_step.emit("00"))
         nav.addWidget(btn00)
         nav.addWidget(btn01)
         self._layout.addLayout(nav)
 
-        split = QSplitter()
-        self.canvas_bars = MplCanvas(5, 3.5)
-        self.canvas_gauge = MplCanvas(4, 3.5)
-        split.addWidget(self.canvas_bars)
-        split.addWidget(self.canvas_gauge)
-        self._layout.addWidget(split, stretch=1)
-        self.metrics = MetricGrid(4)
+        self.canvas_bars = MplCanvas(7, 4)
+        self._layout.addWidget(self.canvas_bars, stretch=1)
+        self.narrative = QLabel("Run this step after step 01.")
+        self.narrative.setWordWrap(True)
+        self.narrative.setTextFormat(Qt.TextFormat.RichText)
+        self.narrative.setStyleSheet(
+            "color: #c0caf5; font-size: 12px; padding: 8px; background: #1f2335; border-radius: 4px;"
+        )
+        self._layout.addWidget(self.narrative)
+        self.metrics = MetricGrid(3)
         self._layout.addWidget(self.metrics)
         self.toolbar.btn_run.clicked.connect(self._run)
         self.refresh_from_artifacts()
@@ -659,64 +652,116 @@ class Step02ReducePanel(ProofStepPanel):
             )
         self.lbl_levers.setText("\n".join(lines))
 
+    def _beam_source_plain(self, src: str) -> str:
+        return {
+            "inject_plane_2d": "Measured ion deposit at the +x inject plane (good for this flat slice).",
+            "viewport_screen": "Measured ion deposit at the test-stand viewport (−x side).",
+            "domain_mean": "Average ion deposit over the whole slice.",
+            "pad_throttle_fallback": (
+                "No ion deposit on the snapshot — ion × follows your <b>throttle</b> lever "
+                "(0.2–1.0 maps to ×0.2–3.0). Normal on a flat slice; fuel along the tube is step 03–04."
+            ),
+        }.get(src, src)
+
     def refresh_from_artifacts(self) -> None:
         self._refresh_lever_summary()
         data = self._state.try_load_step("02")
-        fig1 = self.canvas_bars.figure
-        fig1.clear()
-        ax1 = fig1.add_subplot(111)
-        if data:
-            labels = ["ρ_e norm", "ρ_beam norm"]
-            vals = [data.get("rho_e_norm", 1), data.get("rho_beam_norm", 1)]
-            colors = ["#7aa2f7" if 0.2 <= v <= 3 else "#f7768e" for v in vals]
-            ax1.bar(labels, vals, color=colors)
-            ax1.axhline(0.2, color="#565f89", ls="--", lw=0.8)
-            ax1.axhline(3.0, color="#565f89", ls="--", lw=0.8)
-            ax1.set_ylabel("Normalized ρ")
-            ax1.set_title("PIC coupling proxies", color="#c0caf5")
-            ax1.grid(True, alpha=0.25)
+        fig = self.canvas_bars.figure
+        fig.clear()
+        ax = fig.add_subplot(111)
+        if data and data.get("skipped"):
+            ax.text(
+                0.5,
+                0.5,
+                "PIC skipped (SKIP_PIC)\nBoth scale factors fixed at 1.0 — not from WarpX.",
+                ha="center",
+                va="center",
+                color="#e0af68",
+                fontsize=12,
+            )
+            self.narrative.setText(
+                "Step 01 was skipped, so there is no WarpX frame to read. "
+                "The chain uses neutral multipliers (1.0). Turn off SKIP_PIC on step 01 for a real ring scale factor."
+            )
+            self.metrics.set_metrics(
+                [
+                    ("Electron ring ×", "1.00", "placeholder", "#e0af68"),
+                    ("Ion inject ×", "1.00", "placeholder", "#e0af68"),
+                    ("Next", "Step 03", "still runs", "#7aa2f7"),
+                ]
+            )
+            self.gate.set_gate(
+                "PIC skipped — scale factors are placeholders, not measured from step 01.",
+                ok=None,
+            )
+        elif data:
+            re = float(data.get("rho_e_norm", 1))
+            rb = float(data.get("rho_beam_norm", 1))
+            vals = [re, rb]
+            labels = ["Electron ring ×\n(from last snapshot)", "Ion inject ×\n(H⁺/B⁺ proxy)"]
+            colors = ["#7aa2f7" if 0.2 <= re <= 3.0 else "#f7768e", "#7aa2f7" if 0.2 <= rb <= 3.0 else "#e0af68"]
+            ax.bar(labels, vals, color=colors, width=0.55)
+            ax.axhspan(0.2, 3.0, color="#9ece6a", alpha=0.12, label="OK band for later steps")
+            ax.axhline(1.0, color="#e0af68", ls="--", lw=1.0, label="Design point (1.0)")
+            ax.set_ylim(0, max(3.5, max(vals) * 1.15))
+            ax.set_ylabel("Strength multiplier handed to steps 03–06")
+            ax.set_title(
+                "Two scale factors (not a movie — two bar heights)\n"
+                "1.0 = nominal design; green band = allowed range",
+                color="#c0caf5",
+                fontsize=10,
+            )
+            ax.legend(fontsize=8, loc="upper right")
+            ax.grid(True, axis="y", alpha=0.25)
+            for bar, v in zip(ax.patches, vals):
+                ax.text(
+                    bar.get_x() + bar.get_width() / 2,
+                    bar.get_height() + 0.05,
+                    f"{v:.2f}",
+                    ha="center",
+                    color="#c0caf5",
+                    fontsize=11,
+                )
 
-            fig2 = self.canvas_gauge.figure
-            fig2.clear()
-            ax2 = fig2.add_subplot(111)
-            re, rb = vals[0], vals[1]
             ok_e = 0.2 <= re <= 3.0
             ok_b = 0.2 <= rb <= 3.0
-            ax2.barh(["ρ_e", "ρ_beam"], [re, rb], color=["#9ece6a" if ok_e else "#f7768e", "#9ece6a" if ok_b else "#f7768e"])
-            ax2.set_xlim(0, max(3.5, max(vals) * 1.2))
-            ax2.set_title("Clamp band", color="#c0caf5")
+            gate_ok = ok_e and ok_b
+            src = str(data.get("beam_metric_source", ""))
+            self.narrative.setText(
+                "<b>How to read this</b><br>"
+                f"• <b>Electron cloud ({re:.2f})</b> — Did step 01 show a real ring? "
+                f"{'Yes — in range.' if ok_e else 'Weak or strong — adjust step 01 levers or geometry.'}<br>"
+                f"• <b>Ion inject × ({rb:.2f})</b> — {self._beam_source_plain(src)}<br>"
+                "• <b>Why you should care</b> — Steps 03–06 multiply power, fuel, and beam estimates by "
+                "these numbers. Wrong ring → rest of chain is scaled wrong. Ion × matters less on this slice.<br>"
+                "• <b>Ignore</b> old “beam screen” stats — they were a −x viewport check and are usually 0 here."
+            )
 
             self.metrics.set_metrics(
                 [
-                    ("ρ_e mean", f"{data.get('rho_e_mean', 0):.2e}", f"norm {re:.3f}", None),
-                    ("ρ_beam screen", f"{data.get('rho_beam_screen_mean', 0):.2e}", f"norm {rb:.3f}", None),
-                    ("Refs", "1e15 / 1e10", "normalization", "#565f89"),
+                    ("Electron ring ×", f"{re:.2f}", "last WarpX snapshot", "#9ece6a" if ok_e else "#f7768e"),
+                    ("Ion inject ×", f"{rb:.2f}", src.replace("_", " ")[:28], "#9ece6a" if ok_b else "#e0af68"),
                     (
-                        "Tier 2",
-                        "Coupled" if not data.get("skipped") else "Skipped",
-                        "",
-                        "#9ece6a" if ok_e and ok_b else "#e0af68",
+                        "Next",
+                        "Step 03",
+                        "fuel along tube (s–r)",
+                        "#7aa2f7",
                     ),
                 ]
             )
-            gate_ok = ok_e and ok_b
-            mode_e = data.get("norm_mode_e", "")
-            hint = ""
-            if not gate_ok and mode_e == "design_1e15":
-                hint = " (domain mean ≪ 1e15 ref — re-run step 02 after restart; ring p95 norm used now)"
-            elif not gate_ok and re <= 0.06:
-                hint = " (ρ at floor — try higher throttle/compressor or re-run step 02)"
             self.gate.set_gate(
-                "Gate: norms in band — feed fusion channel & plant."
-                if gate_ok
-                else f"Gate: norms out of band — revisit step 01 levers or geometry.{hint}",
+                "Green light: electron ring scale OK — continue to step 03."
+                if gate_ok and ok_e
+                else (
+                    "Adjust step 01 (electron ring) or geometry — scale factors out of allowed band."
+                    if not gate_ok
+                    else "Electron ring weak/strong — check step 01 movie before trusting step 03."
+                ),
                 ok=gate_ok,
             )
         else:
-            ax1.text(0.5, 0.5, "Run PIC reduce", ha="center", color="#565f89")
+            ax.text(0.5, 0.5, "Run this step after step 01 finishes.", ha="center", color="#565f89")
+            self.narrative.setText("Run this step after step 01.")
             self.gate.set_gate(self._gate_hint, ok=None)
-        fig1.tight_layout()
+        fig.tight_layout()
         self.canvas_bars.draw()
-        if data:
-            fig2.tight_layout()
-            self.canvas_gauge.draw()

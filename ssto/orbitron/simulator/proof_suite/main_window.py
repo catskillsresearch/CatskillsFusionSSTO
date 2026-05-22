@@ -130,11 +130,20 @@ class ProofSuiteMainWindow(QMainWindow):
             item.setData(Qt.ItemDataRole.UserRole, sid)
             self.step_list.addItem(item)
 
-        self.step_list.currentRowChanged.connect(self.stack.setCurrentIndex)
+        self.step_list.currentRowChanged.connect(self._on_step_selected)
         self.step_list.setCurrentRow(0)
         self.btn_open_chain.clicked.connect(self._open_chain)
         self.btn_doc.clicked.connect(self._open_doc)
         self._refresh_nav()
+
+    def _on_step_selected(self, row: int) -> None:
+        """Switch panel and stop step-01 snapshot playback when leaving WarpX PIC."""
+        prev = self.stack.currentIndex()
+        self.stack.setCurrentIndex(row)
+        if prev == 1 and row != 1:
+            pic = self._panels[1]
+            if hasattr(pic, "stop_snapshot_playback"):
+                pic.stop_snapshot_playback()
 
     def _refresh_nav(self) -> None:
         self._state.reload()

@@ -160,6 +160,7 @@ def run_step_02() -> dict[str, Any]:
     if str(_tools) not in sys.path:
         sys.path.insert(0, str(_tools))
     from build_surrogate_map import (  # noqa: E402
+        reduce_last_plotfile_beam_inject_plane,
         reduce_last_plotfile_beam_screen_kw_proxy,
         reduce_last_plotfile_rho_e_annulus,
     )
@@ -174,7 +175,21 @@ def run_step_02() -> dict[str, Any]:
         r_outer_m=float(g["r_anode_m"]) * 0.95,
     )
     rho_screen, rho_beam_dom = reduce_last_plotfile_beam_screen_kw_proxy(diags)
-    rho_beam_p95 = rho_screen if math.isfinite(rho_screen) and rho_screen > 0 else rho_beam_dom
+    rho_inject = reduce_last_plotfile_beam_inject_plane(diags)
+    throttle = float(pad["throttle"])
+    if math.isfinite(rho_inject) and rho_inject > 0:
+        rho_beam_metric = rho_inject
+        beam_source = "inject_plane_2d"
+    elif math.isfinite(rho_screen) and rho_screen > 0:
+        rho_beam_metric = rho_screen
+        beam_source = "viewport_screen"
+    elif math.isfinite(rho_beam_dom) and rho_beam_dom > 0:
+        rho_beam_metric = rho_beam_dom
+        beam_source = "domain_mean"
+    else:
+        # 2D slice often has no deposited beam charge — use pad throttle as honest dial.
+        rho_beam_metric = 0.0
+        beam_source = "pad_throttle_fallback"
 
     overrides_path = chain_root / "00_spec" / "picmi_overrides.json"
     overrides: dict[str, Any] = {}
@@ -208,16 +223,22 @@ def run_step_02() -> dict[str, Any]:
         return max(0.05, min(3.0, rho_val / ref)), mode
 
     rho_e_norm, norm_e_mode = _norm(rho_p95, ref_e_phys, ref_e_design)
-    rho_beam_norm, norm_b_mode = _norm(rho_beam_p95, ref_b_design * 1e-5, ref_b_design)
+    if beam_source == "pad_throttle_fallback":
+        rho_beam_norm = max(0.2, min(3.0, 0.2 + 0.8 * throttle))
+        norm_b_mode = "pad_throttle_fallback"
+    else:
+        rho_beam_norm, norm_b_mode = _norm(rho_beam_metric, ref_b_design * 1e-5, ref_b_design)
 
     payload = {
         "rho_e_mean": rho_dom_mean,
         "rho_e_ring_mean": rho_ring_mean,
         "rho_e_p95_annulus": rho_p95,
         "rho_beam_screen_mean": rho_screen,
+        "rho_beam_inject_plane_mean": rho_inject,
         "rho_beam_domain_mean": rho_beam_dom,
         "rho_e_norm": rho_e_norm,
         "rho_beam_norm": rho_beam_norm,
+        "beam_metric_source": beam_source,
         "norm_ref_e": ref_e_phys if norm_e_mode == "n_e*e" else rho_p95,
         "norm_mode_e": norm_e_mode,
         "norm_mode_beam": norm_b_mode,

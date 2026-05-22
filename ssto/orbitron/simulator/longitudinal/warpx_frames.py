@@ -13,7 +13,7 @@ from ssto.orbitron.simulator.longitudinal.focus import FocusDomain
 
 @dataclass
 class PicFrameStack:
-    """Transverse (x, z) PIC fields remapped to polar r for display."""
+    """Transverse (x, z) PIC fields projected to cylindrical r–z with r = |x| (z = bore axis)."""
 
     time_s: np.ndarray
     r_m: np.ndarray
@@ -63,12 +63,16 @@ def load_warpx_density_frames(
             re = np.squeeze(re)
             rb = np.squeeze(rb)
         nz, nx = int(re.shape[0]), int(re.shape[1])
-        x = np.linspace(-r_max, r_max, nx)
-        z = np.linspace(-r_max, r_max, nz)
+        le = np.asarray(ds.domain_left_edge.to_value(), dtype=float).ravel()
+        re_edge = np.asarray(ds.domain_right_edge.to_value(), dtype=float).ravel()
+        x = np.linspace(float(le[0]), float(re_edge[0]), nx)
+        z_ax = 1 if le.size > 1 else 0
+        z = np.linspace(float(le[z_ax]), float(re_edge[z_ax]), nz)
         if z_ref is None:
             z_ref = z.copy()
-        X, Z = np.meshgrid(x, z, indexing="xy")
-        R = np.sqrt(X * X + Z * Z)
+        X, _Z = np.meshgrid(x, z, indexing="xy")
+        # Cylindrical 2D slice: z is axial (tube axis), r = |x| is radial — not sqrt(x²+z²).
+        R = np.abs(X)
         z_flat = np.broadcast_to(z[:, np.newaxis], (nz, nx)).ravel()
         hist_e, _, _ = np.histogram2d(
             R.ravel(),
@@ -93,5 +97,10 @@ def load_warpx_density_frames(
         z_m=z_ref if z_ref is not None else np.array([0.0]),
         rho_e=rho_e,
         rho_beam=rho_b,
-        meta={"n_frames": len(plotfiles), "source": str(diags_dir)},
+        meta={
+            "n_frames": len(plotfiles),
+            "source": str(diags_dir),
+            "projection": "cylindrical_r_abs_x",
+            "note": "r–z panel: r=|x|, z unchanged (axial uniformity view for cylinder bore)",
+        },
     )

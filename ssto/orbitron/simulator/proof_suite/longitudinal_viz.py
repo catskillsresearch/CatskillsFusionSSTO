@@ -44,13 +44,13 @@ def _align_pcolormesh_grid(
     return x, y, f
 
 
-# Step 01: stacked x–z (primary) + r–z histogram (advanced); see step 03 for fusion-channel s–r.
+# Step 01 GUI: x–z only. Cylindrical r–z (r = |x|) lives in warpx_frames.py for future 3D/RZ handoff.
 STEP01_MAP_EQUATION_HTML = (
-    "<b>Map from upper → lower:</b> upper cell at (<i>x</i>, <i>z</i>) shows "
-    "|ρ<sub>e</sub>|(<i>x</i>, <i>z</i>) on the WarpX grid.<br>"
-    "Lower cell at (<i>r</i>, <i>z</i>) sums all upper cells with "
-    "<i>r</i> = √(<i>x</i>² + <i>z</i>²) and the same <i>z</i> "
-    "(histogram remap; can look wedge-shaped)."
+    "<b>Map from upper → lower (cylindrical bore):</b> upper cell at (<i>x</i>, <i>z</i>) shows "
+    "|ρ<sub>e</sub>| on the WarpX transverse slice (<i>z</i> = tube axis).<br>"
+    "Lower cell at (<i>r</i>, <i>z</i>) sums upper cells with <i>r</i> = |<i>x</i>| and the same "
+    "<i>z</i> — a flat rectangular grid (vertical bands for a hollow ring), not a spherical "
+    "√(<i>x</i>²+<i>z</i>²) wedge."
 )
 
 LONGITUDINAL_FOCUS_LABELS: tuple[tuple[str, LongitudinalFocus], ...] = (
@@ -279,7 +279,7 @@ def draw_step01_warpx_xz(
     fig.text(
         0.5,
         0.02,
-        "Each cell: (x, z)  →  lower panel uses  r = √(x² + z²),  same z",
+        "WarpX transverse slice: (x, z) on the cell grid",
         ha="center",
         fontsize=8,
         color="#a9b1d6",
@@ -296,7 +296,7 @@ def draw_step01_warpx_rz_remap(
     inputs: SimulatorInputs,
     field_index: int = 0,
 ) -> None:
-    """Advanced step-01 view: r–z histogram of the same WarpX x–z slices."""
+    """Step-01 cylindrical r–z view: sum |ρ|(x,z) into bins with r=|x|, same z."""
     idx = max(0, min(frame_idx, len(run.time_s) - 1))
     use_secondary = field_index == 1 and run.secondary is not None
     data = run.secondary if use_secondary else run.primary
@@ -309,23 +309,23 @@ def draw_step01_warpx_rz_remap(
 
     xh, yv, sl = _align_pcolormesh_grid(run.axis_horizontal, run.axis_vertical, data[idx])
     im = ax.pcolormesh(xh, yv, sl, shading="auto", cmap="magma")
-    ax.add_patch(Circle((0, 0), d.r_cathode_m, fill=False, ec="#ca8a04", lw=1.5))
-    ax.add_patch(Circle((0, 0), d.r_anode_m, fill=False, ec="#e8c547", lw=2))
+    ax.axvline(d.r_cathode_m, color="#ca8a04", lw=1.5, ls="--", label="cathode r")
+    ax.axvline(d.r_anode_m, color="#e8c547", lw=2, ls="--", label="anode r")
     armed = "ARMED" if pad_status.reactor_armed else "spin-up"
     ax.set_title(
-        "Advanced: r–z radius histogram (bin sum; can look wedge-like)"
+        "Cylindrical r–z (r = |x|, z axial) — axial uniformity / end losses"
         f"  |  {label}  |  {armed}\n"
         f"{data_source_caption(run)}",
         color="#c0caf5",
         fontsize=9,
     )
     fig.colorbar(im, ax=ax, label=label, fraction=0.046)
-    ax.set_xlabel("r [m]  where  r = √(x² + z²)  (from upper x, z)", color="#a9b1d6")
-    ax.set_ylabel("z [m] (same axis as upper panel)", color="#a9b1d6")
+    ax.set_xlabel("r [m]  where  r = |x|  (radial; cylinder, not √(x²+z²))", color="#a9b1d6")
+    ax.set_ylabel("z [m] (tube axis — same as upper panel)", color="#a9b1d6")
     fig.text(
         0.5,
         0.02,
-        "|ρ|_hist(r, z) ≈ Σ |ρ|(x, z) over upper cells in each (r, z) bin",
+        "|ρ|(r,z) = Σ |ρ|(x,z) with r=|x|; hollow ring → vertical bands at r ≈ ring radius",
         ha="center",
         fontsize=8,
         color="#a9b1d6",

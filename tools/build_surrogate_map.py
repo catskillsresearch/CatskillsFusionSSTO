@@ -214,6 +214,61 @@ def reduce_last_plotfile_beam_screen_kw_proxy(
     return screen_mean, dom_mean
 
 
+def reduce_last_plotfile_beam_inject_plane(
+    diags_parent: Path,
+    *,
+    x_min_m: float = 0.025,
+) -> float:
+    """Mean |ρ_beam| near the +x inject plane (appropriate for 2D slice validation)."""
+    from ssto.orbitron.simulator.proof_chain.runners import list_pic_plotfiles
+
+    plotfiles = list_pic_plotfiles(diags_parent)
+    if not plotfiles:
+        return float("nan")
+
+    try:
+        import numpy as np
+        import yt
+    except ImportError as e:
+        raise RuntimeError(
+            "yt (and numpy) required for reduction. Install in Poetry env: poetry add yt"
+        ) from e
+
+    yt.funcs.mylog.setLevel(50)
+    ds = yt.load(str(plotfiles[-1]))
+    bfs = _beam_rho_fields(ds)
+    if not bfs:
+        return float("nan")
+
+    grid = ds.covering_grid(level=0, left_edge=ds.domain_left_edge, dims=ds.domain_dimensions)
+    rho_b = None
+    for ftype, fname in bfs:
+        chunk = np.abs(np.asarray(grid[(ftype, fname)].v))
+        chunk = np.squeeze(chunk)
+        if chunk.ndim != 2:
+            continue
+        rho_b = chunk if rho_b is None else rho_b + chunk
+    if rho_b is None:
+        return float("nan")
+
+    nx, nz = rho_b.shape
+    le = np.asarray(ds.domain_left_edge.to_value(), dtype=float).ravel()
+    re = np.asarray(ds.domain_right_edge.to_value(), dtype=float).ravel()
+    dd = np.asarray(ds.domain_dimensions, dtype=int).ravel()
+    if dd.size >= 3 and int(dd[1]) == 1:
+        x1d = np.linspace(le[0], re[0], nx, endpoint=False) + 0.5 * (re[0] - le[0]) / max(nx, 1)
+        zax = 2 if le.size > 2 else 1
+        z1d = np.linspace(le[zax], re[zax], nz, endpoint=False) + 0.5 * (re[zax] - le[zax]) / max(nz, 1)
+    else:
+        x1d = np.linspace(le[0], re[0], nx, endpoint=False) + 0.5 * (re[0] - le[0]) / max(nx, 1)
+        z1d = np.linspace(le[1], re[1], nz, endpoint=False) + 0.5 * (re[1] - le[1]) / max(nz, 1)
+    xm, _zm = np.meshgrid(x1d, z1d, indexing="ij")
+    mask = xm > x_min_m
+    if not np.any(mask):
+        return float("nan")
+    return float(np.mean(rho_b[mask]))
+
+
 def beam_screen_kw_from_rho(
     rho_screen: float,
     rho_dom: float,

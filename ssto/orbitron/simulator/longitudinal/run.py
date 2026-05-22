@@ -71,8 +71,8 @@ def _stack_to_longitudinal_run(
         axis_vertical=stack.z_m,
         primary_label="|ρ_e| (PIC)",
         secondary_label="|ρ_beam| (PIC)",
-        horizontal_label="Radius r [m]",
-        vertical_label="Cross-section z [m] (transverse plane at core)",
+        horizontal_label="r [m]  (|x| from WarpX slice; cylindrical bore)",
+        vertical_label="z [m] (axial / tube axis)",
         meta=meta,
     )
 

@@ -5,7 +5,8 @@ Physics note
 ------------
 Orbitron fusion physics (E×B, orbitrap) is naturally simulated in the **transverse**
 plane (radius × azimuth), with **B along the bore axis**. WarpX ``laminar_flow_2d_arcjet.py``
-uses an (x, z) slice with r = √(x²+z²) — that is the **core transverse** cut at one station.
+uses an (x, z) transverse slice (z along bore axis). The proof-suite lower panel projects
+r = |x| for **cylindrical** axial-uniformity views; √(x²+z²) is not used (that wedge is wrong for a cylinder).
 
 **Level 1 (fusion channel)** — **s–r** fusion fuel density + reaction rate with **laminar relaminarization**
 hack (breaks clumps; video-style validation). See ``fusion_channel_sr.py``.

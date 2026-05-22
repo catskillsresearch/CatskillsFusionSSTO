@@ -28,7 +28,7 @@ class ProofSuiteState:
     STEPS = [
         ("00", "Design SSOT", "Geometry, injectants, compile PICMI overrides"),
         ("01", "WarpX PIC", "2D arcjet: ρ_e and beam coupling at pad point"),
-        ("02", "PIC reduce", "Normalize ρ proxies for plant"),
+        ("02", "PIC scale factors", "Two multipliers from last WarpX snapshot"),
         ("03", "Fusion channel", "Longitudinal s–r + laminar clump metrics"),
         ("04", "Fueling", "n_p, n_B, T_i from injectants + PIC"),
         ("05", "p-¹¹B burn", "Fusion power (proof: scale = 1)"),
@@ -127,8 +127,9 @@ class ProofSuiteState:
             }
         )
 
-    def update_pic_settings(self, *, steps: int, skip_pic: bool) -> None:
+    def update_pic_settings(self, *, steps: int, diag_period: int, skip_pic: bool) -> None:
         self.config["pic"]["steps"] = steps
+        self.config["pic"]["diag_period"] = max(1, int(diag_period))
         self.config.setdefault("gui", {})["skip_pic"] = skip_pic
 
     def picmi_overrides_text(self) -> str:
