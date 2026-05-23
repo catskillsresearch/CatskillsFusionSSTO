@@ -55,6 +55,25 @@ export CHAIN_THROTTLE=0.85 CHAIN_CATHODE_PULSE=0.75
 export CHAIN_COMPRESSOR=0.7
 ```
 
+### Headless experiments (YAML → report)
+
+Run the full proof chain from an experiment YAML (all pad/interlock switches, geometry, inject, PIC, fusion channel). Writes a timestamped folder under `reports/<experiment-slug>/`:
+
+```bash
+./scripts/run_orbitron_experiment.sh experiments/orbitron_phase1_baseline.yaml
+
+# Fast check (no WarpX):
+./scripts/run_orbitron_experiment.sh experiments/orbitron_phase1_baseline.yaml --skip-pic
+
+# One PIC step smoke test (set run.pic_steps: 1 in YAML or export):
+# edit experiments/…yaml → run.pic_steps: 1
+
+# Include inverse step 09:
+./scripts/run_orbitron_experiment.sh experiments/orbitron_phase1_baseline.yaml --inverse
+```
+
+Each run produces `REPORT.md` (narrative + equations from this file, parameters, per-step JSON, PNG figures), `results/step_*.json`, `figures/*.png`, and `run.log`. Timelapse plots use the **final frame** of each series.
+
 ---
 
 ## Fixed artifact paths

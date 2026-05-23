@@ -22,6 +22,23 @@ def repo_root() -> Path:
     return Path(__file__).resolve().parents[3]
 
 
+def bootstrap_warpx_runtime(*, repo_root_path: Path | None = None) -> tuple[bool, str]:
+    """
+    Configure the current process for WarpX (mirrors ``tools/warpx_paths.sh``).
+
+    Sets ``WARPX_PYTHON`` to the active interpreter when unset or generic ``python``,
+    prepends repo ``WarpX/build/lib`` to ``PYTHONPATH`` / ``LD_LIBRARY_PATH``, and
+    probes ``pywarpx``.
+    """
+    root = repo_root_path or repo_root()
+    os.environ.setdefault("REPO_ROOT", str(root))
+    wx = os.environ.get("WARPX_PYTHON", "").strip()
+    if not wx or wx in ("python", "python3"):
+        os.environ["WARPX_PYTHON"] = sys.executable
+    ensure_warpx_env()
+    return probe_pywarpx()
+
+
 def _prepend(env: dict[str, str], key: str, path: str) -> None:
     if not path:
         return
@@ -53,7 +70,10 @@ def discover_warpx_paths(root: Path | None = None) -> tuple[Path | None, Path | 
 
 
 def warpx_python_executable() -> str:
-    return os.environ.get("WARPX_PYTHON", sys.executable)
+    wx = os.environ.get("WARPX_PYTHON", "").strip()
+    if wx and wx not in ("python", "python3"):
+        return wx
+    return sys.executable
 
 
 def apply_warpx_env(env: dict[str, str] | None = None) -> dict[str, str]:

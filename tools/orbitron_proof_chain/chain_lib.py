@@ -103,6 +103,37 @@ def pic_grid_cells(cfg: dict[str, Any]) -> int:
     return align_pic_grid_cells(raw)
 
 
+def stabilize_pic_settings(cfg: dict[str, Any]) -> list[str]:
+    """
+    Clamp PIC grid/steps for local AMReX 26.04 / pywarpx stability.
+
+    Default max grid 128² (stable through 400+ steps). Override with env
+    ``WARPX_MAX_PIC_GRID`` (e.g. 256 — steps are capped automatically).
+    """
+    notes: list[str] = []
+    pic = cfg.setdefault("pic", {})
+    max_cells = int(os.environ.get("WARPX_MAX_PIC_GRID", "128"))
+    requested = align_pic_grid_cells(int(pic.get("grid_cells", max_cells)))
+    if requested > max_cells:
+        capped = align_pic_grid_cells(max_cells)
+        notes.append(
+            f"PIC grid_cells {requested} → {capped} (AMReX 26.04 stability; "
+            f"export WARPX_MAX_PIC_GRID to allow larger grids)."
+        )
+        pic["grid_cells"] = capped
+    else:
+        pic["grid_cells"] = requested
+
+    ov_path = patch_geometry_into_picmi_overrides(cfg)
+    overrides = json.loads(ov_path.read_text(encoding="utf-8"))
+    steps = int(pic.get("steps", 400))
+    capped_steps = cap_pic_steps_for_stability(steps, overrides)
+    if capped_steps < steps:
+        notes.append(f"PIC steps {steps} → {capped_steps} for {pic['grid_cells']}² grid.")
+        pic["steps"] = capped_steps
+    return notes
+
+
 def cap_pic_steps_for_stability(n_steps: int, overrides: dict[str, Any]) -> int:
     """
     Avoid known AMReX 26.04 SIGSEGV on large 2D grids (local pywarpx).
@@ -157,17 +188,19 @@ def ensure_config() -> dict[str, Any]:
         cfg["injectants"] = normalize_injectants_cfg(inj)
         save_config(cfg)
     ensure_picmi_overrides()
-    patch_geometry_into_picmi_overrides(cfg)
     pic = cfg.setdefault("pic", {})
     migrated = False
     if "grid_cells" not in pic:
-        pic["grid_cells"] = 512
+        pic["grid_cells"] = 128
         migrated = True
-    if int(pic.get("steps", 400)) > 400:
-        pic["steps"] = 400
+    elif int(pic.get("grid_cells", 128)) > int(os.environ.get("WARPX_MAX_PIC_GRID", "128")):
+        migrated = True
+    if stabilize_pic_settings(cfg):
         migrated = True
     if migrated:
         save_config(cfg)
+    else:
+        patch_geometry_into_picmi_overrides(cfg)
     return cfg
 
 
@@ -431,7 +464,7 @@ def write_chain_config_template() -> dict[str, Any]:
             "hts_capability_scale": 1.0,
             "beam_coupling_scale": 1.0,
         },
-        "pic": {"steps": 400, "diag_period": 40, "grid_cells": 512, "skip_if_ok": True},
+        "pic": {"steps": 400, "diag_period": 40, "grid_cells": 128, "skip_if_ok": True},
         "fusion_channel": {
             "n_s": 160,
             "n_r": 72,
