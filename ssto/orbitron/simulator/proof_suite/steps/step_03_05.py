@@ -32,7 +32,7 @@ from ssto.orbitron.simulator.proof_chain.runners import (
     run_step_04,
     run_step_05,
 )
-from ssto.orbitron.simulator.proof_suite.longitudinal_viz import _align_pcolormesh_grid
+from ssto.orbitron.simulator.proof_suite.longitudinal_viz import _align_pcolormesh_grid, fusion_field_color_limits
 from ssto.orbitron.simulator.proof_suite.steps.base import ProofStepPanel
 from ssto.orbitron.simulator.proof_suite.state import ProofSuiteState
 from ssto.orbitron.simulator.proof_suite.widgets import MetricGrid, MplCanvas, apply_dark_axes
@@ -287,20 +287,37 @@ class Step03FusionPanel(ProofStepPanel):
             self.view_combo.setCurrentIndex(1)
             self.log.append_line("Compare pair cached — use side-by-side view and scrub time.")
 
-    def _plot_heatmap(self, ax, npz: dict, idx: int, *, title: str, geo: DeviceGeometry) -> None:
+    def _plot_heatmap(
+        self,
+        ax,
+        npz: dict,
+        idx: int,
+        *,
+        title: str,
+        geo: DeviceGeometry,
+        vmin: float | None = None,
+        vmax: float | None = None,
+    ) -> None:
         use_r = self.field_combo.currentIndex() == 1
         data = npz["reaction_rate"] if use_r else npz["density"]
         s, r = npz["s_m"], npz["r_m"]
         layout = engine_axial_layout(geo)
         draw_blender_underlay(ax, layout, LongitudinalFocus.FUSION_CHANNEL_SR, symmetric=False)
+        if use_r and vmax is not None and vmax <= 0.0:
+            ax.text(
+                0.5,
+                0.5,
+                "R(s,r) = 0 — enable IGNITE interlocks\nand re-run coupled chain",
+                ha="center",
+                va="center",
+                color="#f7768e",
+                fontsize=10,
+                transform=ax.transAxes,
+            )
+            apply_dark_axes(ax)
+            ax.set_title(title, color="#c0caf5")
+            return None
         xh, yv, sl = _align_pcolormesh_grid(s, r, data[idx])
-        flat = sl[np.isfinite(sl)]
-        if flat.size > 8:
-            vmin, vmax = float(np.percentile(flat, 5)), float(np.percentile(flat, 95))
-            if vmax <= vmin:
-                vmin, vmax = float(flat.min()), float(flat.max())
-        else:
-            vmin, vmax = None, None
         im = ax.pcolormesh(
             xh, yv, sl, shading="auto", cmap="magma", alpha=0.75, vmin=vmin, vmax=vmax
         )
@@ -326,19 +343,44 @@ class Step03FusionPanel(ProofStepPanel):
         )
         fig = self.canvas.figure
         fig.clear()
+        use_r = self.field_combo.currentIndex() == 1
+        field_key = "reaction_rate" if use_r else "density"
+        stacks = [ref[field_key]]
+        if side_by_side and self._npz_off is not None and self._npz_on is not None:
+            stacks = [self._npz_off[field_key], self._npz_on[field_key]]
+        vmin, vmax = fusion_field_color_limits(*stacks)
         if side_by_side:
             ax_off = fig.add_subplot(121)
             ax_on = fig.add_subplot(122)
-            im0 = self._plot_heatmap(ax_off, self._npz_off, idx, title="Laminar OFF (clumping)", geo=geo)
-            im1 = self._plot_heatmap(ax_on, self._npz_on, idx, title="Laminar ON (smoothed)", geo=geo)
-            fig.colorbar(im1, ax=[ax_off, ax_on], fraction=0.046, pad=0.04)
+            im0 = self._plot_heatmap(
+                ax_off, self._npz_off, idx, title="Laminar OFF (clumping)", geo=geo, vmin=vmin, vmax=vmax
+            )
+            im1 = self._plot_heatmap(
+                ax_on, self._npz_on, idx, title="Laminar ON (smoothed)", geo=geo, vmin=vmin, vmax=vmax
+            )
+            im = im1 or im0
+            if im is not None:
+                fig.colorbar(im, ax=[ax_off, ax_on], fraction=0.046, pad=0.04)
         else:
             ax = fig.add_subplot(111)
             laminar = "ON" if self.chk_laminar.isChecked() else "OFF"
-            im = self._plot_heatmap(ax, ref, idx, title=f"Fusion channel s–r  |  laminar {laminar}", geo=geo)
-            fig.colorbar(im, ax=ax, fraction=0.046)
+            im = self._plot_heatmap(
+                ax,
+                ref,
+                idx,
+                title=f"Fusion channel s–r  |  laminar {laminar}",
+                geo=geo,
+                vmin=vmin,
+                vmax=vmax,
+            )
+            if im is not None:
+                fig.colorbar(im, ax=ax, fraction=0.046)
         t = float(ref["time_s"][idx])
-        self.time_label.setText(f"t = {t:.3e} s  frame {idx + 1}/{nt}")
+        d0 = ref[field_key][0]
+        delta = float(np.max(np.abs(ref[field_key][idx] - d0)))
+        self.time_label.setText(
+            f"t = {t:.3e} s  frame {idx + 1}/{nt}  |Δ{field_key}|={delta:.2e}"
+        )
         fig.tight_layout()
         self.canvas.draw()
 

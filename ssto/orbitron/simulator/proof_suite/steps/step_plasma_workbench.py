@@ -41,6 +41,7 @@ from ssto.orbitron.simulator.proof_suite.longitudinal_viz import (
     compute_longitudinal_preview,
     draw_step01_placeholder,
     draw_step01_warpx_xz,
+    fusion_field_color_limits,
 )
 from ssto.orbitron.simulator.proof_suite.steps.base import ProofStepPanel
 from ssto.orbitron.simulator.proof_suite.state import ProofSuiteState
@@ -51,7 +52,7 @@ from ssto.orbitron.simulator.proof_chain.runners import list_pic_plotfiles
 from ssto.orbitron.simulator.types import DeviceGeometry, PadStartupState
 from ssto.orbitron.simulator.blender_layout import draw_blender_underlay, engine_axial_layout
 from ssto.orbitron.simulator.longitudinal.focus import LongitudinalFocus
-from tools.orbitron_proof_chain.chain_lib import align_pic_grid_cells, load_config
+from tools.orbitron_proof_chain.chain_lib import align_pic_grid_cells, load_config, pad_startup_from_cfg
 
 
 def _spin(lo: float, hi: float, val: float, *, dec: int = 2, suf: str = "") -> QDoubleSpinBox:
@@ -354,12 +355,20 @@ class PlasmaWorkbenchPanel(ProofStepPanel):
 
     def _update_stale_banner(self) -> None:
         stale = is_coupled_stale(self._state.config)
-        last = last_coupled_fingerprint(self._state.config)
         cur = coupled_run_fingerprint(self._state.config)
-        if stale or last is None:
+        pad_status = evaluate_pad_status(pad_startup_from_cfg(self._state.config["pad"]))
+        interlock_note = ""
+        if not pad_status.reactor_armed:
+            interlock_note = (
+                '<br><span style="color:#e0af68;">Reactor not armed — step 03 fuel and R(s,r) '
+                "need APU→starter→bleed→vacuum→laser→HV→IGNITE. "
+                f"{' '.join(pad_status.interlock_messages)}</span>"
+            )
+        if stale or last_coupled_fingerprint(self._state.config) is None:
             self.lbl_stale.setText(
                 '<span style="color:#f7768e; font-weight:bold;">STALE — plots may not match '
                 "current τ, p, or inject settings. Click <b>Run coupled chain</b>.</span>"
+                + interlock_note
             )
             self.lbl_stale.setStyleSheet(
                 "background:#3b2240; padding:8px; border-radius:4px; border:1px solid #f7768e;"
@@ -368,6 +377,7 @@ class PlasmaWorkbenchPanel(ProofStepPanel):
             self.lbl_stale.setText(
                 f'<span style="color:#9ece6a;">Coupled run matches controls '
                 f"(τ={cur['throttle']:.2f}, p={cur['cathode_pulse']:.2f}).</span>"
+                + interlock_note
             )
             self.lbl_stale.setStyleSheet(
                 "background:#1f2e24; padding:8px; border-radius:4px; border:1px solid #9ece6a;"
@@ -478,6 +488,9 @@ class PlasmaWorkbenchPanel(ProofStepPanel):
             return
         idx = self.fus_time.value()
         use_r = self.field_combo.currentIndex() == 1
+        field_key = "reaction_rate" if use_r else "density"
+        vmin, vmax = fusion_field_color_limits(self._npz_off[field_key], self._npz_on[field_key])
+        all_zero_r = use_r and vmax is not None and vmax <= 0.0
         g = self._state.config["geometry"]
         geo = DeviceGeometry(
             g["r_anode_m"],
@@ -490,20 +503,30 @@ class PlasmaWorkbenchPanel(ProofStepPanel):
         fig.clear()
         ax_off = fig.add_subplot(121)
         ax_on = fig.add_subplot(122)
+        im = None
         for ax, npz, title in (
             (ax_off, self._npz_off, "Laminar OFF"),
             (ax_on, self._npz_on, "Laminar ON"),
         ):
-            data = npz["reaction_rate"] if use_r else npz["density"]
+            data = npz[field_key]
             s, r = npz["s_m"], npz["r_m"]
             layout = engine_axial_layout(geo)
             draw_blender_underlay(ax, layout, LongitudinalFocus.FUSION_CHANNEL_SR, symmetric=False)
+            if all_zero_r:
+                ax.text(
+                    0.5,
+                    0.5,
+                    "R(s,r) = 0\nRe-run coupled chain with\nIGNITE interlocks satisfied",
+                    ha="center",
+                    va="center",
+                    color="#f7768e",
+                    fontsize=10,
+                    transform=ax.transAxes,
+                )
+                apply_dark_axes(ax)
+                ax.set_title(title, color="#c0caf5")
+                continue
             xh, yv, sl = _align_pcolormesh_grid(s, r, data[idx])
-            flat = sl[np.isfinite(sl)]
-            if flat.size > 8:
-                vmin, vmax = float(np.percentile(flat, 5)), float(np.percentile(flat, 95))
-            else:
-                vmin, vmax = None, None
             im = ax.pcolormesh(
                 xh, yv, sl, shading="auto", cmap="magma", alpha=0.75, vmin=vmin, vmax=vmax
             )
@@ -511,10 +534,16 @@ class PlasmaWorkbenchPanel(ProofStepPanel):
             ax.set_title(title, color="#c0caf5")
             ax.set_xlabel("s [m]")
             ax.set_ylabel("r [m]")
-        fig.colorbar(im, ax=[ax_off, ax_on], fraction=0.046, pad=0.04)
+        if im is not None:
+            fig.colorbar(im, ax=[ax_off, ax_on], fraction=0.046, pad=0.04)
         t = float(self._npz_on["time_s"][idx])
         nt = len(self._npz_on["time_s"])
-        self.fus_lbl.setText(f"Frame {idx + 1}/{nt}  t={t:.3e} s")
+        d0 = self._npz_on[field_key][0]
+        d_now = self._npz_on[field_key][idx]
+        delta = float(np.max(np.abs(d_now - d0)))
+        self.fus_lbl.setText(
+            f"Frame {idx + 1}/{nt}  t={t:.3e} s  |Δ{field_key}|={delta:.2e}"
+        )
         if stale:
             fig.text(0.5, 0.01, "STALE vs current controls", ha="center", color="#f7768e", fontsize=11)
         fig.tight_layout()
@@ -608,8 +637,7 @@ class PlasmaWorkbenchPanel(ProofStepPanel):
             if self._npz_on is not None:
                 nt = len(self._npz_on["time_s"])
                 self.fus_time.setMaximum(max(0, nt - 1))
-                mid = max(0, nt // 2)
-                self.fus_time.setValue(mid)
+                self.fus_time.setValue(min(self.fus_time.value(), max(0, nt - 1)))
         else:
             self._npz_on = self._npz_off = None
         self._draw_fusion()

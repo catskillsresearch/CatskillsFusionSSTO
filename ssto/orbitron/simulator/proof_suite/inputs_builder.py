@@ -11,6 +11,7 @@ from ssto.orbitron.simulator.types import (
     SimulatorInputs,
     UnobtaniumParams,
 )
+from tools.orbitron_proof_chain.chain_lib import pad_startup_from_cfg
 
 
 def simulator_inputs_from_state(
@@ -21,19 +22,7 @@ def simulator_inputs_from_state(
     g = cfg["geometry"]
     inj = normalize_injectants_cfg(cfg["injectants"])
     p = cfg["pad"]
-    pad_state = pad or PadStartupState(
-        pad_apu_online=bool(p.get("pad_apu_online", True)),
-        starter_engage=bool(p.get("starter_engage", True)),
-        bleed_air_open=bool(p.get("bleed_air_open", True)),
-        vacuum_interlock_ok=bool(p.get("vacuum_interlock_ok", False)),
-        laser_armed=bool(p.get("laser_armed", False)),
-        hv_enabled=bool(p.get("hv_enabled", False)),
-        startup_trigger=bool(p.get("startup_trigger", False)),
-        throttle=float(p.get("throttle", 0.0)),
-        compressor=float(p.get("compressor", 0.0)),
-        cathode_pulse=float(p.get("cathode_pulse", 0.75)),
-        laminar_relaminarization=bool(p.get("laminar_relaminarization", True)),
-    )
+    pad_state = pad or pad_startup_from_cfg(p)
     u = cfg.get("unobtanium", {})
     scales = cfg.get("plant_scales", {})
     return SimulatorInputs(

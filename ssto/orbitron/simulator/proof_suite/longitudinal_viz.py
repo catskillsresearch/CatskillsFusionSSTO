@@ -68,6 +68,38 @@ def _resample_rho_xz(
         return out
 
 
+def fusion_field_color_limits(
+    *field_stacks: np.ndarray,
+    lo_pct: float = 2.0,
+    hi_pct: float = 98.0,
+) -> tuple[float | None, float | None]:
+    """
+    Shared color scale for fusion-channel timelapse scrubbing.
+
+    Uses all frames in all provided stacks so per-frame percentile stretch does
+    not hide temporal evolution when the user moves the slider.
+    """
+    chunks: list[np.ndarray] = []
+    for stack in field_stacks:
+        arr = np.asarray(stack, dtype=float)
+        if arr.size == 0:
+            continue
+        chunks.append(arr.reshape(arr.shape[0], -1))
+    if not chunks:
+        return None, None
+    flat = np.concatenate(chunks, axis=1).ravel()
+    flat = flat[np.isfinite(flat)]
+    if flat.size < 8:
+        return None, None
+    vmin = float(np.percentile(flat, lo_pct))
+    vmax = float(np.percentile(flat, hi_pct))
+    if vmax <= vmin:
+        vmin, vmax = float(flat.min()), float(flat.max())
+    if vmax <= vmin:
+        return vmin, vmax + 1.0
+    return vmin, vmax
+
+
 def _align_pcolormesh_grid(
     x: np.ndarray,
     y: np.ndarray,

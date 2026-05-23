@@ -146,9 +146,22 @@ class CoupledPlasmaWorker(QThread):
         try:
             cfg = load_config()
             fp = coupled_run_fingerprint(cfg)
+            from ssto.orbitron.simulator.pad_startup import evaluate_pad_status
+            from tools.orbitron_proof_chain.chain_lib import pad_startup_from_cfg
+
+            pad_status = evaluate_pad_status(pad_startup_from_cfg(cfg["pad"]))
             self.log_line.emit("=== Coupled plasma chain 01 → 02 → 03 ===\n")
-            self.log_line.emit(f"Fingerprint: τ={fp['throttle']:.3f} p={fp['cathode_pulse']:.3f} "
-                               f"H₂={fp['h2_sccm']:.1f} laser={fp['laser_ablation_hz']:.1f}\n\n")
+            self.log_line.emit(
+                f"Fingerprint: τ={fp['throttle']:.3f} p={fp['cathode_pulse']:.3f} "
+                f"H₂={fp['h2_sccm']:.1f} laser={fp['laser_ablation_hz']:.1f}\n"
+            )
+            if pad_status.reactor_armed:
+                self.log_line.emit("Reactor: ARMED (fuel + R(s,r) active)\n\n")
+            else:
+                self.log_line.emit(
+                    "WARN: Reactor NOT armed — step 03 fuel injection and R(s,r) will be "
+                    f"zero until interlocks satisfied: {'; '.join(pad_status.interlock_messages) or 'enable IGNITE chain'}\n\n"
+                )
 
             if self._skip_pic or os.environ.get("SKIP_PIC", "0") == "1":
                 save_step("01", {"skipped": True, "reason": "SKIP_PIC"})

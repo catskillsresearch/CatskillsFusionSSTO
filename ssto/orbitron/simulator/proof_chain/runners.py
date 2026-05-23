@@ -309,6 +309,11 @@ def run_step_03(*, laminar_on: bool | None = None, compare_hack: bool = True) ->
         _save_fusion_npz(cache_off, fc_off)
         clump_off_val = fc_off.clump_index_final
 
+    from ssto.orbitron.simulator.pad_startup import evaluate_pad_status
+    from tools.orbitron_proof_chain.chain_lib import pad_startup_from_cfg
+
+    pad_status = evaluate_pad_status(pad_startup_from_cfg(cfg["pad"]))
+
     import numpy as np
 
     bore = fc.r_m <= dom.r_anode_m
@@ -337,6 +342,8 @@ def run_step_03(*, laminar_on: bool | None = None, compare_hack: bool = True) ->
         "fields_laminar_on_npz": str(cache_on),
         "fields_laminar_off_npz": str(cache_off),
         "has_compare_pair": cache_on.is_file() and cache_off.is_file(),
+        "reactor_armed": pad_status.reactor_armed,
+        "interlock_messages": pad_status.interlock_messages,
     }
     save_step("03", payload)
     return {**payload, "_fusion_channel": fc}
@@ -382,6 +389,10 @@ def run_step_03_compare_pair() -> dict[str, Any]:
     _save_fusion_npz(cache_dir / "fields.npz", fc_on)
 
     reduction = float(fc_off.clump_index_final) / max(float(fc_on.clump_index_final), 1.0e-6)
+    from ssto.orbitron.simulator.pad_startup import evaluate_pad_status
+    from tools.orbitron_proof_chain.chain_lib import pad_startup_from_cfg
+
+    pad_status = evaluate_pad_status(pad_startup_from_cfg(cfg["pad"]))
     payload = {
         "integrated_fusion_power_mw": fc_on.integrated_fusion_power_mw,
         "clump_index_final": fc_on.clump_index_final,
@@ -392,6 +403,8 @@ def run_step_03_compare_pair() -> dict[str, Any]:
         "fields_laminar_off_npz": str(cache_off),
         "has_compare_pair": True,
         "compare_pair_cached": True,
+        "reactor_armed": pad_status.reactor_armed,
+        "interlock_messages": pad_status.interlock_messages,
     }
     save_step("03", payload)
     return {**payload, "_fusion_channel": fc_on, "_fusion_channel_off": fc_off}

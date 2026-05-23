@@ -249,6 +249,28 @@ def load_step_json(step: str) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def pad_startup_from_cfg(pad_cfg: dict[str, Any]) -> PadStartupState:
+    """
+    Build ``PadStartupState`` from ``chain_config.json`` pad block.
+
+    Single source of truth for batch chain runners and Proof Suite GUI — every
+    interlock switch must be read here so step 03 fuel/R are not silently zeroed.
+    """
+    return PadStartupState(
+        pad_apu_online=bool(pad_cfg.get("pad_apu_online", False)),
+        starter_engage=bool(pad_cfg.get("starter_engage", False)),
+        bleed_air_open=bool(pad_cfg.get("bleed_air_open", False)),
+        vacuum_interlock_ok=bool(pad_cfg.get("vacuum_interlock_ok", False)),
+        laser_armed=bool(pad_cfg.get("laser_armed", False)),
+        hv_enabled=bool(pad_cfg.get("hv_enabled", False)),
+        startup_trigger=bool(pad_cfg.get("startup_trigger", False)),
+        throttle=float(pad_cfg.get("throttle", 0.0)),
+        compressor=float(pad_cfg.get("compressor", 0.0)),
+        cathode_pulse=float(pad_cfg.get("cathode_pulse", 0.75)),
+        laminar_relaminarization=bool(pad_cfg.get("laminar_relaminarization", True)),
+    )
+
+
 def _operating_from_cfg(cfg: dict[str, Any]) -> OperatingPoint:
     inj = normalize_injectants_cfg(cfg["injectants"])
     pad_cfg = cfg["pad"]
@@ -309,16 +331,7 @@ def base_inputs():
             B_axial_tesla=float(g["B_axial_tesla"]),
         ),
         operating=_operating_from_cfg(cfg),
-        pad=PadStartupState(
-            pad_apu_online=True,
-            starter_engage=True,
-            bleed_air_open=True,
-            startup_trigger=True,
-            throttle=float(pad_cfg["throttle"]),
-            compressor=float(pad_cfg["compressor"]),
-            cathode_pulse=float(pad_cfg["cathode_pulse"]),
-            laminar_relaminarization=laminar,
-        ),
+        pad=replace(pad_startup_from_cfg(pad_cfg), laminar_relaminarization=laminar),
         unobtanium=u,
         scales=load_plant_scales(),
         pic_rho_e_norm=pic_e,
