@@ -20,6 +20,54 @@ from ssto.orbitron.simulator.pad_startup import evaluate_pad_status
 from ssto.orbitron.simulator.proof_chain.runners import list_pic_plotfiles
 from ssto.orbitron.simulator.types import SimulatorInputs
 
+def _read_warpx_rho_xz(plotfile: Path) -> tuple[np.ndarray, np.ndarray, np.ndarray, float]:
+    """Load |rho_e| and cell-center axes from one WarpX density_diag plotfile."""
+    import yt
+
+    ds = yt.load(str(plotfile))
+    t = float(ds.current_time.to_value())
+    grid = ds.covering_grid(level=0, left_edge=ds.domain_left_edge, dims=ds.domain_dimensions)
+    rho = np.abs(grid[("boxlib", "rho_electrons")].v.squeeze())
+    if rho.ndim != 2:
+        rho = np.squeeze(rho)
+    nz, nx = int(rho.shape[0]), int(rho.shape[1])
+    le = np.asarray(ds.domain_left_edge.to_value(), dtype=float).ravel()
+    re = np.asarray(ds.domain_right_edge.to_value(), dtype=float).ravel()
+    x1d = np.linspace(float(le[0]), float(re[0]), nx)
+    z1d = np.linspace(float(le[1] if le.size > 1 else 0), float(re[1] if re.size > 1 else 1), nz)
+    return rho, x1d, z1d, t
+
+
+def _resample_rho_xz(
+    rho: np.ndarray,
+    x_src: np.ndarray,
+    z_src: np.ndarray,
+    x_tgt: np.ndarray,
+    z_tgt: np.ndarray,
+) -> np.ndarray:
+    """Resample rho[nz, nx] onto target x/z axes (mixed grid sizes in diags/)."""
+    try:
+        from scipy.interpolate import RegularGridInterpolator
+
+        itp = RegularGridInterpolator(
+            (z_src, x_src),
+            rho,
+            bounds_error=False,
+            fill_value=0.0,
+        )
+        zz, xx = np.meshgrid(z_tgt, x_tgt, indexing="ij")
+        pts = np.column_stack([zz.ravel(), xx.ravel()])
+        return itp(pts).reshape(len(z_tgt), len(x_tgt))
+    except ImportError:
+        tmp = np.zeros((len(z_src), len(x_tgt)), dtype=float)
+        for iz in range(len(z_src)):
+            tmp[iz, :] = np.interp(x_tgt, x_src, rho[iz, :], left=0.0, right=0.0)
+        out = np.zeros((len(z_tgt), len(x_tgt)), dtype=float)
+        for ix in range(len(x_tgt)):
+            out[:, ix] = np.interp(z_tgt, z_src, tmp[:, ix], left=0.0, right=0.0)
+        return out
+
+
 def _align_pcolormesh_grid(
     x: np.ndarray,
     y: np.ndarray,
@@ -90,28 +138,29 @@ def load_warpx_xy_stack(diags: Path, inputs: SimulatorInputs) -> LongitudinalRun
 
     yt.funcs.mylog.setLevel(50)
     domain = focus_domain(LongitudinalFocus.CORE_TUBE, inputs)
+    # Reference grid from the latest plotfile (most recent WarpX run).
+    _, x_ref, z_ref, _ = _read_warpx_rho_xz(plotfiles[-1])
+    ref_shape = (len(z_ref), len(x_ref))
+
     times: list[float] = []
     frames: list[np.ndarray] = []
-    x_ref: np.ndarray | None = None
-    z_ref: np.ndarray | None = None
+    resampled = 0
 
     for pf in plotfiles:
-        ds = yt.load(str(pf))
-        times.append(float(ds.current_time.to_value()))
-        grid = ds.covering_grid(level=0, left_edge=ds.domain_left_edge, dims=ds.domain_dimensions)
-        rho = np.abs(grid[("boxlib", "rho_electrons")].v.squeeze())
-        if rho.ndim != 2:
-            rho = np.squeeze(rho)
-        nz, nx = int(rho.shape[0]), int(rho.shape[1])
-        le = np.asarray(ds.domain_left_edge.to_value(), dtype=float).ravel()
-        re = np.asarray(ds.domain_right_edge.to_value(), dtype=float).ravel()
-        x1d = np.linspace(float(le[0]), float(re[0]), nx)
-        z1d = np.linspace(float(le[1] if le.size > 1 else 0), float(re[1] if re.size > 1 else 1), nz)
-        if x_ref is None:
-            x_ref, z_ref = x1d, z1d
+        rho, x1d, z1d, t = _read_warpx_rho_xz(pf)
+        if rho.shape != ref_shape or len(x1d) != len(x_ref) or len(z1d) != len(z_ref):
+            rho = _resample_rho_xz(rho, x1d, z1d, x_ref, z_ref)
+            resampled += 1
+        times.append(t)
         frames.append(rho)
 
+    if not frames:
+        raise ValueError(f"No usable plotfiles in {diags}")
+
     primary = np.stack(frames, axis=0)
+    # Shared scale across snapshots so the movie shows evolution, not per-frame autoscale.
+    vmax = float(np.percentile(primary, 99.5)) if primary.size else 1.0
+    vmin = 0.0
     return LongitudinalRun(
         focus=LongitudinalFocus.CORE_TUBE,
         domain=domain,
@@ -128,6 +177,11 @@ def load_warpx_xy_stack(diags: Path, inputs: SimulatorInputs) -> LongitudinalRun
             "model": "warpx_xy_slices",
             "source": str(diags),
             "note": "Direct WarpX density_diag — same physics as laminar_flow_2d_arcjet",
+            "rho_vmin": vmin,
+            "rho_vmax": vmax,
+            "grid_nx": int(len(x_ref)),
+            "grid_nz": int(len(z_ref)),
+            "resampled_frames": resampled,
         },
     )
 
@@ -249,6 +303,7 @@ def draw_step01_warpx_xz(
     frame_idx: int,
     *,
     inputs: SimulatorInputs,
+    delta_vs_first: bool = False,
 ) -> None:
     """Primary step-01 view: direct WarpX x–z cell grid."""
     idx = max(0, min(frame_idx, len(run.time_s) - 1))
@@ -259,16 +314,39 @@ def draw_step01_warpx_xz(
     duct_len = d.s_max_m - d.s_min_m if d.s_max_m > d.s_min_m else 3.2
     layout = engine_axial_layout(inputs.geometry, duct_length_m=duct_len)
 
-    xh, yv, sl = _align_pcolormesh_grid(run.axis_horizontal, run.axis_vertical, run.primary[idx])
-    im = ax.pcolormesh(xh, yv, sl, shading="auto", cmap="magma")
+    sl = np.asarray(run.primary[idx], dtype=float)
+    if delta_vs_first and len(run.primary) > 1:
+        ref0 = np.asarray(run.primary[0], dtype=float)
+        if ref0.shape != sl.shape:
+            raise ValueError(
+                f"Δρ snapshot shape {sl.shape} != reference {ref0.shape} — "
+                "Refresh from artifacts after a single-grid WarpX run."
+            )
+        sl = np.maximum(sl - ref0, 0.0)
+    xh, yv, sl = _align_pcolormesh_grid(run.axis_horizontal, run.axis_vertical, sl)
+    vmin = float(run.meta.get("rho_vmin", 0.0))
+    vmax = float(run.meta.get("rho_vmax", 1.0))
+    if delta_vs_first:
+        vmax = max(float(np.percentile(sl, 99.5)), vmax * 0.05, 1e-30)
+        vmin = 0.0
+    im = ax.pcolormesh(
+        xh,
+        yv,
+        sl,
+        shading="auto",
+        cmap="magma",
+        vmin=vmin,
+        vmax=vmax,
+    )
     ax.add_patch(Circle((0, 0), d.r_cathode_m, fill=False, ec="#ca8a04", lw=1.5))
     ax.add_patch(Circle((0, 0), d.r_anode_m, fill=False, ec="#e8c547", lw=2))
     inset = fig.add_axes([0.58, 0.10, 0.38, 0.30])
     draw_blender_underlay(inset, layout, run.focus)
     inset.set_title("CAD layout (s–r)", fontsize=8, color="#e2e8f0")
     armed = "ARMED" if pad_status.reactor_armed else "spin-up"
+    mode = "Δρ vs snapshot 1" if delta_vs_first else run.primary_label
     ax.set_title(
-        f"Primary: x–z (WarpX cell grid)  |  {run.primary_label}  |  {armed}\n"
+        f"Primary: x–z (WarpX cell grid)  |  {mode}  |  {armed}\n"
         f"{data_source_caption(run)}",
         color="#c0caf5",
         fontsize=9,

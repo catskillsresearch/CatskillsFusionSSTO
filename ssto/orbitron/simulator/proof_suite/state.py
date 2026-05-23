@@ -25,17 +25,16 @@ from tools.orbitron_proof_chain.chain_lib import (  # noqa: E402
 class ProofSuiteState:
     """Mutable view of the proof chain for the GUI."""
 
+    # Navigator labels match panel IDs in main_window (honest physics-chain order).
     STEPS = [
-        ("00", "Design SSOT", "Reply 19 BOM, geometry, PICMI overrides"),
-        ("01", "1.1 Vacuum", "Rough + turbo pump-down; gauge interlock"),
-        ("02", "1.3 Laser", "355 nm align, pulse meter, arm laser"),
-        ("03", "1.2+1.4 Core HV", "Orbitron grid, Spellman bias, interlocks"),
-        ("04", "1.5 Diagnostics", "PIPS / MCA 3-alpha check"),
-        ("05", "Fueling H₂+B11", "H₂ sccm + solid ¹¹B laser ablation rate"),
-        ("06", "0D plant", "U1–U4, wall, CH₄, HTS (Phase 2 jacket)"),
-        ("07", "2.2 Jet closure", "Brayton F² ≈ 2ηPṁ; compressor/turbine"),
-        ("08", "Validation export", "Spec YAML + pass/fail table"),
-        ("09", "Inverse solve", "Required unobtanium if forward chain fails"),
+        ("00", "Design SSOT", "600 kV p-¹¹B, solid ¹¹B + laser, PICMI"),
+        ("01", "Plasma workbench", "WarpX → ρ_e → s–r (coupled 01–03)"),
+        ("04", "Fueling", "H₂ + laser Hz → n_p, n_B"),
+        ("05", "p-¹¹B burn", "Forward ⟨σv⟩ power (no tuned Q)"),
+        ("06", "0D plant", "U1–U4, wall, CH₄, HTS"),
+        ("07", "Jet closure", "Brayton F² discipline"),
+        ("08", "Validation", "Spec YAML + gates"),
+        ("09", "Inverse solve", "Gap analysis only"),
     ]
 
     def __init__(self) -> None:
@@ -75,6 +74,17 @@ class ProofSuiteState:
             return "warn"
         if step == "05" and data.get("shortfall_mw", 0) > 0.5:
             return "warn"
+        if step == "01":
+            from ssto.orbitron.simulator.proof_suite.coupled_fingerprint import is_coupled_stale
+
+            if is_coupled_stale(self.config):
+                return "warn"
+            d3 = self.try_load_step("03")
+            if d3 and (
+                d3.get("clump_index_final", 99) > 2.8
+                or d3.get("clump_reduction_ratio", 0) < 1.25
+            ):
+                return "warn"
         if step == "03" and data.get("clump_index_final", 99) > 2.8:
             return "warn"
         return "ok"
@@ -149,9 +159,32 @@ class ProofSuiteState:
         if hv_enabled is not None:
             p["hv_enabled"] = hv_enabled
 
-    def update_pic_settings(self, *, steps: int, diag_period: int, skip_pic: bool) -> None:
+    def update_fusion_channel(
+        self,
+        *,
+        stochastic_seed: int,
+        noise_fraction_off: float,
+    ) -> None:
+        self.config.setdefault("fusion_channel", {}).update(
+            {
+                "stochastic_seed": int(stochastic_seed),
+                "noise_fraction_off": float(noise_fraction_off),
+            }
+        )
+
+    def update_pic_settings(
+        self,
+        *,
+        steps: int,
+        diag_period: int,
+        grid_cells: int,
+        skip_pic: bool,
+    ) -> None:
         self.config["pic"]["steps"] = steps
         self.config["pic"]["diag_period"] = max(1, int(diag_period))
+        from tools.orbitron_proof_chain.chain_lib import align_pic_grid_cells
+
+        self.config["pic"]["grid_cells"] = align_pic_grid_cells(grid_cells)
         self.config.setdefault("gui", {})["skip_pic"] = skip_pic
 
     def picmi_overrides_text(self) -> str:

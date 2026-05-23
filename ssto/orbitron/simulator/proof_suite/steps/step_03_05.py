@@ -9,14 +9,21 @@ from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QCheckBox,
     QComboBox,
+    QDoubleSpinBox,
+    QFormLayout,
     QGroupBox,
     QHBoxLayout,
     QLabel,
     QPushButton,
     QSlider,
+    QSpinBox,
     QSplitter,
     QVBoxLayout,
 )
+
+from ssto.orbitron.simulator.injectants import normalize_injectants_cfg
+from ssto.orbitron.simulator.pad_startup import evaluate_pad_status
+from ssto.orbitron.simulator.types import PadStartupState
 
 from ssto.orbitron.simulator.fusion_pb11 import pb11_reactivity_m3_s
 from ssto.orbitron.simulator.proof_chain.runners import (
@@ -35,17 +42,79 @@ from ssto.orbitron.simulator.longitudinal.focus import LongitudinalFocus
 from ssto.orbitron.simulator.types import DeviceGeometry
 
 
+def _spin(lo: float, hi: float, val: float, *, dec: int = 2, suf: str = "") -> QDoubleSpinBox:
+    s = QDoubleSpinBox()
+    s.setRange(lo, hi)
+    s.setDecimals(dec)
+    s.setValue(val)
+    if suf:
+        s.setSuffix(suf)
+    return s
+
+
 class Step03FusionPanel(ProofStepPanel):
     def __init__(self, state: ProofSuiteState, parent=None) -> None:
         super().__init__(
             "03",
             "Fusion channel (s–r)",
-            "Longitudinal fusion-relevant density and p-¹¹B reaction rate. Toggle laminar "
-            "relaminarization to break up clumps (Orbitron-video intent).",
-            "Laminar ON: clump index ≤ 2.8 and OFF/ON reduction ≥ 1.25×.",
+            "Longitudinal n(s,r) with fuel inject rates (H₂ sccm, laser Hz) and axial-stir proxy "
+            "c_eff (compressor×bleed×spool). Laminar OFF uses stochastic mid-bore clumps — "
+            "equations: validation_steps.md § State evolution → Step 3.",
+            "Laminar ON: clump index ≤ 2.8 and OFF/ON reduction ≥ 1.25× (validation channel).",
             state,
             parent,
         )
+        cfg = state.config
+        inj = normalize_injectants_cfg(cfg["injectants"])
+        pad = cfg["pad"]
+        fc_cfg = cfg.get("fusion_channel") or {}
+
+        inputs = QGroupBox("Run inputs — change rates, then Run or Cache OFF+ON pair")
+        inputs_lay = QVBoxLayout(inputs)
+        dep = QLabel(
+            "Injection amplitude scales with H₂ and √laser Hz. Compressor (U/J) is <b>not</b> fuel — "
+            "it sets c_eff for axial advection only (Brayton mdot is step 06). "
+            "Use <b>Cache laminar OFF+ON pair</b> and scrub Time past frame ~10 to see blobs on OFF."
+        )
+        dep.setWordWrap(True)
+        dep.setTextFormat(Qt.TextFormat.RichText)
+        dep.setStyleSheet("color: #e0af68; font-size: 11px; font-weight: bold;")
+        inputs_lay.addWidget(dep)
+
+        rates = QGroupBox("Fuel injection rates (step 03)")
+        rf = QFormLayout(rates)
+        self.h2 = _spin(0, 500, inj["h2_sccm"], dec=1, suf=" sccm")
+        self.laser_hz = _spin(0, 50, inj["laser_ablation_hz"], dec=1, suf=" Hz")
+        self.compressor = _spin(0, 1, pad["compressor"], dec=2)
+        self.compressor.setToolTip("Pad compressor command (U/J) — scales axial u_s via c_eff")
+        self.lbl_c_eff = QLabel("c_eff = —")
+        self.lbl_c_eff.setStyleSheet("color: #7aa2f7; font-size: 11px;")
+        self.lbl_rate_scale = QLabel("inject scale = —")
+        self.lbl_rate_scale.setStyleSheet("color: #9ece6a; font-size: 11px;")
+        rf.addRow("H₂ flow", self.h2)
+        rf.addRow("¹¹B laser ablation", self.laser_hz)
+        rf.addRow("Compressor cmd c", self.compressor)
+        rf.addRow("Axial stir", self.lbl_c_eff)
+        rf.addRow("Rate scale λ", self.lbl_rate_scale)
+        inputs_lay.addWidget(rates)
+
+        adv = QGroupBox("Clump physics (laminar OFF)")
+        af = QFormLayout(adv)
+        self.seed_spin = QSpinBox()
+        self.seed_spin.setRange(0, 999_999)
+        self.seed_spin.setValue(int(fc_cfg.get("stochastic_seed", 42)))
+        self.noise = _spin(0, 0.5, float(fc_cfg.get("noise_fraction_off", 0.14)), dec=3)
+        self.noise.setToolTip("Fractional Gaussian noise on n(s,r) each step when laminar OFF")
+        af.addRow("RNG seed", self.seed_spin)
+        af.addRow("Noise fraction", self.noise)
+        inputs_lay.addWidget(adv)
+        self.place_inputs_above_run(inputs)
+
+        for w in (self.h2, self.laser_hz, self.compressor, self.noise):
+            w.valueChanged.connect(self._on_rates_changed)
+        self.seed_spin.valueChanged.connect(self._on_rates_changed)
+        self._on_rates_changed()
+
         ctrl = QHBoxLayout()
         self.chk_laminar = QCheckBox("Laminar relaminarization ON")
         self.chk_laminar.setChecked(state.config["pad"].get("laminar_relaminarization", True))
@@ -101,25 +170,54 @@ class Step03FusionPanel(ProofStepPanel):
         self.btn_cache_pair.clicked.connect(self._run_cache_pair)
         self.refresh_from_artifacts()
 
-    def _on_laminar_toggled(self) -> None:
+    def _on_rates_changed(self) -> None:
+        import math
+
         p = self._state.config["pad"]
-        self._state.update_pad(
-            throttle=p["throttle"],
-            compressor=p["compressor"],
-            cathode_pulse=p["cathode_pulse"],
-            laminar=self.chk_laminar.isChecked(),
+        pad_st = PadStartupState(
+            pad_apu_online=bool(p.get("pad_apu_online", True)),
+            starter_engage=bool(p.get("starter_engage", True)),
+            bleed_air_open=bool(p.get("bleed_air_open", True)),
+            vacuum_interlock_ok=bool(p.get("vacuum_interlock_ok", True)),
+            laser_armed=bool(p.get("laser_armed", True)),
+            hv_enabled=bool(p.get("hv_enabled", True)),
+            startup_trigger=bool(p.get("startup_trigger", True)),
+            throttle=float(p["throttle"]),
+            compressor=float(self.compressor.value()),
+            cathode_pulse=float(p["cathode_pulse"]),
         )
-        self._state.save()
+        st = evaluate_pad_status(pad_st)
+        h2 = self.h2.value()
+        laser = self.laser_hz.value()
+        fc = self._state.config.get("fusion_channel") or {}
+        lam = math.sqrt(laser / max(float(fc.get("laser_ref_hz", 10)), 0.1))
+        rate = (h2 / max(float(fc.get("h2_ref_sccm", 80)), 1.0)) * lam
+        rate = max(0.05, min(4.0, rate))
+        self.lbl_c_eff.setText(f"c_eff = {st.compressor_effective:.2f}  (c × bleed × spool)")
+        self.lbl_rate_scale.setText(f"λ = {rate:.2f}  (H₂/80 × √(laser/10))")
+
+    def _on_laminar_toggled(self) -> None:
+        self._sync_config()
 
     def _sync_config(self) -> None:
         p = self._state.config["pad"]
+        self._state.update_injectants(
+            h2_sccm=self.h2.value(),
+            laser_ablation_hz=self.laser_hz.value(),
+            b11_target_index=int(p.get("b11_target_index", 0)),
+        )
         self._state.update_pad(
-            throttle=p["throttle"],
-            compressor=p["compressor"],
-            cathode_pulse=p["cathode_pulse"],
+            throttle=float(p["throttle"]),
+            compressor=float(self.compressor.value()),
+            cathode_pulse=float(p["cathode_pulse"]),
             laminar=self.chk_laminar.isChecked(),
         )
+        self._state.update_fusion_channel(
+            stochastic_seed=int(self.seed_spin.value()),
+            noise_fraction_off=float(self.noise.value()),
+        )
         self._state.save()
+        self._on_rates_changed()
 
     def _load_npz_file(self, path: Path | None) -> dict | None:
         if path is None or not path.is_file():
@@ -196,7 +294,16 @@ class Step03FusionPanel(ProofStepPanel):
         layout = engine_axial_layout(geo)
         draw_blender_underlay(ax, layout, LongitudinalFocus.FUSION_CHANNEL_SR, symmetric=False)
         xh, yv, sl = _align_pcolormesh_grid(s, r, data[idx])
-        im = ax.pcolormesh(xh, yv, sl, shading="auto", cmap="magma", alpha=0.75)
+        flat = sl[np.isfinite(sl)]
+        if flat.size > 8:
+            vmin, vmax = float(np.percentile(flat, 5)), float(np.percentile(flat, 95))
+            if vmax <= vmin:
+                vmin, vmax = float(flat.min()), float(flat.max())
+        else:
+            vmin, vmax = None, None
+        im = ax.pcolormesh(
+            xh, yv, sl, shading="auto", cmap="magma", alpha=0.75, vmin=vmin, vmax=vmax
+        )
         apply_dark_axes(ax)
         ax.set_title(title, color="#c0caf5")
         ax.set_xlabel("Axial s [m]")
@@ -236,6 +343,21 @@ class Step03FusionPanel(ProofStepPanel):
         self.canvas.draw()
 
     def refresh_from_artifacts(self) -> None:
+        inj = normalize_injectants_cfg(self._state.config["injectants"])
+        pad = self._state.config["pad"]
+        fc = self._state.config.get("fusion_channel") or {}
+        self.h2.blockSignals(True)
+        self.laser_hz.blockSignals(True)
+        self.compressor.blockSignals(True)
+        self.h2.setValue(inj["h2_sccm"])
+        self.laser_hz.setValue(inj["laser_ablation_hz"])
+        self.compressor.setValue(pad["compressor"])
+        self.seed_spin.setValue(int(fc.get("stochastic_seed", 42)))
+        self.noise.setValue(float(fc.get("noise_fraction_off", 0.14)))
+        self.h2.blockSignals(False)
+        self.laser_hz.blockSignals(False)
+        self.compressor.blockSignals(False)
+        self._on_rates_changed()
         data = self._state.try_load_step("03")
         has_pair = bool(data and data.get("has_compare_pair"))
         self.view_combo.setItemText(1, "Side-by-side OFF | ON" + (" ✓" if has_pair else " (cache pair first)"))
@@ -244,6 +366,10 @@ class Step03FusionPanel(ProofStepPanel):
             ref = self._npz or self._npz_on
             nt = len(ref["time_s"])
             self.time_slider.setMaximum(max(0, nt - 1))
+            mid = max(0, nt // 2)
+            self.time_slider.blockSignals(True)
+            self.time_slider.setValue(mid)
+            self.time_slider.blockSignals(False)
             self._draw_frame()
             figc = self.canvas_clump.figure
             figc.clear()
@@ -286,19 +412,40 @@ class Step03FusionPanel(ProofStepPanel):
             ci = data.get("clump_index_final", 0)
             red = data.get("clump_reduction_ratio", 1)
             p = data.get("integrated_fusion_power_mw", 0)
-            ok = ci <= 2.8 and red >= 1.25
+            fuel_x = data.get("fuel_coupling_norm")
+            ok_ci = ci <= 2.8
+            ok_red = red >= 1.25
+            ok = ok_ci and ok_red
+            fuel_s = f"{float(fuel_x):.2f}" if fuel_x is not None else "—"
+            lam_s = f"{float(data.get('inject_rate_scale', 0)):.2f}" if data.get("inject_rate_scale") else "—"
+            h2s = data.get("h2_sccm")
+            ci_off = data.get("clump_index_off")
             self.metrics.set_metrics(
                 [
-                    ("Clump index", f"{ci:.2f}", "≤ 2.8", "#9ece6a" if ci <= 2.8 else "#f7768e"),
-                    ("OFF/ON ratio", f"{red:.2f}×", "≥ 1.25×", "#9ece6a" if red >= 1.25 else "#f7768e"),
-                    ("P_int", f"{p:.4g} MW", "Tier-3 headline", "#7aa2f7"),
-                    ("Laminar", "ON" if data.get("laminar_enabled") else "OFF", "", None),
+                    ("Clump ON", f"{ci:.2f}", "≤ 2.8", "#9ece6a" if ok_ci else "#f7768e"),
+                    ("OFF/ON", f"{red:.2f}×", "≥ 1.25×", "#9ece6a" if ok_red else "#f7768e"),
+                    ("Clump OFF", f"{float(ci_off):.2f}" if ci_off else "—", "cache pair", "#a9b1d6"),
+                    ("λ inject", lam_s, f"H₂={h2s} sccm" if h2s else "run step", "#7aa2f7"),
                 ]
             )
-            self.gate.set_gate(
-                "Gate: laminar hack breaks up clumps." if ok else "Gate: clump metrics not met — tune pad/shear.",
-                ok=ok,
-            )
+            if ok:
+                gate = "Gate: laminar hack breaks up clumps."
+            elif not ok_ci and not ok_red:
+                gate = (
+                    "Gate: raise step 01 cathode pulse (shear) and noise fraction; "
+                    "re-cache OFF+ON pair."
+                )
+            elif not ok_ci:
+                gate = (
+                    f"Gate: laminar-ON clump {ci:.2f} > 2.8 — on step 01 raise "
+                    "Cathode pulse / shear (I/K), then re-cache OFF+ON."
+                )
+            else:
+                gate = (
+                    f"Gate: OFF/ON ratio {red:.2f}× < 1.25× — raise noise fraction or "
+                    "step 01 pulse; lower ON clump with higher shear."
+                )
+            self.gate.set_gate(gate, ok=ok)
         else:
             self.gate.set_gate(self._gate_hint, ok=None)
 
@@ -308,9 +455,9 @@ class Step04FuelingPanel(ProofStepPanel):
         super().__init__(
             "04",
             "Fueling → densities",
-            "Map H₂/B₂H₆ injectants and PIC ρ_e into n_p, n_B and effective T_i. "
-            "Forward only — no power tuning knob.",
-            "Finite n_p, n_B at ignited pad point; document τ and volume in fusion_pb11.",
+            "H₂ sccm (proton inventory) + laser ablation Hz (solid ¹¹B delivery) at ignited pad point; "
+            "PIC ρ_e_norm scales confinement. No borane gas path — see ``injectants.py``.",
+            "Finite n_p, n_B; T_i from 600 kV class; τ and bore volume explicit in fusion_pb11.",
             state,
             parent,
         )
@@ -384,9 +531,9 @@ class Step05BurnPanel(ProofStepPanel):
         super().__init__(
             "05",
             "p-¹¹B burn",
-            "Integrated fusion power at proof settings (reactivity scale = 1). "
-            "Shortfall vs 3.5 MW is expected until Tier 4 / improved confinement.",
-            "Power computed, not tuned; record shortfall honestly.",
+            "Volume-integrated ⟨σv⟩ power at proof settings (fusion_reactivity_scale = 1). "
+            "Shortfall vs 3.5 MW headline is expected in Tier-2/3 — record gap, do not tune knobs.",
+            "Honest P_fusion documented; shortfall_mw is a design margin signal, not failure to hide.",
             state,
             parent,
         )

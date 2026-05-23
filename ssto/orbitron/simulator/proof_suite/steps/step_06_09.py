@@ -26,9 +26,9 @@ class Step06PlantPanel(ProofStepPanel):
         super().__init__(
             "06",
             "0D plant & U1–U4",
-            "Steady-state plant at proof settings: cathode field, wall/CH₄, HTS, beam, density. "
-            "Lists violations that define unobtanium requirements.",
-            "Understand which gates fail at reactivity_scale=1 — do not mask with solve yet.",
+            "Steady-state plant at proof settings: E_cath (U1), wall/CH₄ (U2), HTS (U3), beam (U4), "
+            "log₁₀ n. Phase 2 jacket heat is booked; fusion does not shove air into the plasma bore.",
+            "Record violations at reactivity_scale=1 — defines unobtanium margins, not pass/fail theater.",
             state,
             parent,
         )

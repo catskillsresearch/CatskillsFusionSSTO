@@ -44,6 +44,7 @@ def load_warpx_density_frames(
     stacks_e: list[np.ndarray] = []
     stacks_b: list[np.ndarray] = []
     z_ref: np.ndarray | None = None
+    ref_hist_shape: tuple[int, int] | None = None
     times: list[float] = []
 
     beam_names = ("rho_h_inject_beam", "rho_b_inject_beam", "rho_stabilizing_beam")
@@ -86,8 +87,18 @@ def load_warpx_density_frames(
             bins=[r_edges, z],
             weights=rb.ravel(),
         )
-        stacks_e.append(hist_e.T)
-        stacks_b.append(hist_b.T)
+        frame_e = hist_e.T
+        frame_b = hist_b.T
+        if ref_hist_shape is None:
+            ref_hist_shape = frame_e.shape
+            z_ref = z.copy()
+        elif frame_e.shape != ref_hist_shape:
+            continue
+        stacks_e.append(frame_e)
+        stacks_b.append(frame_b)
+
+    if not stacks_e:
+        raise ValueError(f"No plotfiles with consistent shape under {diags_dir}")
 
     rho_e = np.stack(stacks_e, axis=0)
     rho_b = np.stack(stacks_b, axis=0)

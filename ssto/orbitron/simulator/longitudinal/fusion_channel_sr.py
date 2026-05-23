@@ -42,6 +42,11 @@ class FusionChannelConfig:
     total_time_s: float = 2.0e-3
     # Clump acceptable when laminar ON (lower = smoother, video-like ring)
     clump_index_pass_below: float = 2.8
+    h2_ref_sccm: float = 80.0
+    laser_ref_hz: float = 10.0
+    # Laminar OFF: fractional Gaussian noise on n each step (fixed seed → reproducible blobs)
+    stochastic_seed: int = 42
+    noise_fraction_off: float = 0.14
 
 
 @dataclass
@@ -172,12 +177,15 @@ def run_fusion_channel_sr(
     D_laminar = D_base * (1.0 + 12.0 * laminar.mixing_gain)
     D_eff = D_laminar if laminar.enabled else D_base * 0.08
 
-    u_s = 120.0 * pad.compressor_effective * (0.3 + 0.7 * laminar.throttle)
-    inject_amp = 1.0 * laminar.injectant_mix * (0.2 + 0.8 * laminar.throttle)
-    if not pad.reactor_armed:
-        inject_amp = 0.05 * pad.compressor_effective
-
     op, _ = effective_operating_point(inputs.operating, inputs.pad)
+    rate_scale = (op.h2_sccm / max(cfg.h2_ref_sccm, 1.0)) * math.sqrt(
+        op.laser_ablation_hz / max(cfg.laser_ref_hz, 0.1)
+    )
+    rate_scale = max(0.05, min(4.0, rate_scale))
+    u_s = 120.0 * pad.compressor_effective * (0.3 + 0.7 * laminar.throttle)
+    inject_amp = 1.0 * laminar.injectant_mix * (0.2 + 0.8 * laminar.throttle) * rate_scale
+    if not pad.reactor_armed:
+        inject_amp = 0.05 * pad.compressor_effective * rate_scale
     fus = evaluate_fusion_pb11(
         r_anode_m=g.r_anode_m,
         length_m=g.length_m,
@@ -197,8 +205,15 @@ def run_fusion_channel_sr(
     conf = fus.confinement_factor
 
     mask_2d = r[None, :] <= r_a
-    n_seed = max(n_tot * 0.25, 1.0e14)
+    n_seed = max(n_tot * 0.25 * rate_scale, 1.0e14)
     n = np.full((cfg.n_s, cfg.n_r), n_seed, dtype=np.float64)
+    rng = np.random.default_rng(cfg.stochastic_seed)
+    if not laminar.enabled:
+        S0, R0 = np.meshgrid(s, r, indexing="ij")
+        smid0 = 0.5 * (s0 + s1)
+        n *= 1.0 + 0.22 * np.sin(5.0 * np.arctan2(R0 - 0.12 * r_a, S0 - smid0 + 0.02))
+        n += 0.08 * n_seed * rng.standard_normal(n.shape)
+        n = np.clip(n, 1.0e9, None)
     R_ref = conf * (n_seed * h_frac) * (n_seed * b_frac) * sv
     P_ref_w = float(np.sum(R_ref * E_RXN_J * dV[None, :] * mask_2d))
     asym = 0.0 if laminar.enabled else 0.85
@@ -227,12 +242,19 @@ def run_fusion_channel_sr(
             s_sigma=0.1 * (s1 - s0),
             asymmetry=-asym * 0.7,
         )
-        # Clump seed mid-bore when hack OFF (diocotron-style blob)
-        if not laminar.enabled and it > nt // 4:
+        # Clump seed mid-bore when hack OFF (diocotron-style blob) — stronger at higher inject rate
+        if not laminar.enabled and it > nt // 8:
             S, R = np.meshgrid(s, r, indexing="ij")
             smid = 0.5 * (s0 + s1)
-            n += 2.2 * n_seed * pulse * np.exp(-0.5 * ((S - smid) / (0.12 * (s1 - s0))) ** 2)
-            n += 1.5 * n_seed * pulse * np.exp(-0.5 * ((R - 0.35 * r_a) / (0.18 * r_a)) ** 2)
+            blob_scale = 1.4 + 0.9 * rate_scale
+            n += blob_scale * n_seed * pulse * np.exp(
+                -0.5 * ((S - smid) / (0.10 * (s1 - s0))) ** 2
+            )
+            n += blob_scale * 0.85 * n_seed * pulse * np.exp(
+                -0.5 * ((R - 0.35 * r_a) / (0.16 * r_a)) ** 2
+            )
+            if cfg.noise_fraction_off > 0:
+                n += cfg.noise_fraction_off * n_seed * rng.standard_normal(n.shape)
 
         # Radial diffusion (laminar hack = strong)
         n_pad = np.pad(n, ((1, 1), (0, 0)), mode="edge")
@@ -302,6 +324,10 @@ def run_fusion_channel_sr(
             "channel_power_ratio": channel_ratio,
             "confinement_factor": conf,
             "laminar_enabled": laminar.enabled,
+            "inject_rate_scale": rate_scale,
+            "h2_sccm": op.h2_sccm,
+            "laser_ablation_hz": op.laser_ablation_hz,
+            "compressor_effective": pad.compressor_effective,
             "note": "Longitudinal s–r fusion channel; compare clump index with hack OFF in Validation.",
         },
     )

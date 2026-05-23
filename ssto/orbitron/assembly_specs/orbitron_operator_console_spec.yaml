@@ -35,16 +35,39 @@ startup_sequence:
     keyboard: "3"
     action: Intake path open; U/J raises compressor command (spin-up mdot before ignite).
   - step: 4
+    name: vacuum_interlock
+    label: "4. VACUUM OK"
+    property: /sim/model/orbitron/vacuum-interlock-ok
+    mesh_pick: Panel_Label_VAC
+    requires: [/sim/model/orbitron/bleed-air-open]
+    action: Turbomolecular pump-down complete; gauge in UHV band (~10⁻⁶ Torr class).
+  - step: 5
+    name: laser_armed
+    label: "5. LASER ARMED"
+    property: /sim/model/orbitron/laser-armed
+    mesh_pick: Panel_Label_LASER
+    requires: [/sim/model/orbitron/vacuum-interlock-ok]
+    action: 355 nm path aligned; solid ¹¹B ablation armed (not borane gas).
+  - step: 6
+    name: hv_enabled
+    label: "6. HV ENABLED"
+    property: /sim/model/orbitron/hv-enabled
+    mesh_pick: Panel_Label_HV
+    requires: [/sim/model/orbitron/laser-armed]
+    action: 600 kV class cathode bias live; electrostatic trap impels ablated B⁺.
+  - step: 7
     name: reactor_ignite
-    label: "4. IGNITE (BRB)"
+    label: "7. IGNITE (BRB)"
     property: /sim/model/reactor/startup-trigger
     mesh_pick: Big_Red_Button
     keyboard: SPACE
-    requires: [/sim/model/orbitron/bleed-air-open]
-    action: Fusion armed; thrust / power / wall-heat per surrogate.
-  - step: 5
+    requires:
+      - /sim/model/orbitron/hv-enabled
+      - /sim/model/orbitron/bleed-air-open
+    action: Fusion channel armed; H₂ + laser-gated inventory in 0D surrogate.
+  - step: 8
     name: run_controls
-    label: "5. RUN"
+    label: "8. RUN"
     properties:
       throttle: /controls/reactor/throttle
       compressor: /controls/orbitron/compressor
@@ -59,8 +82,15 @@ startup_sequence:
 
 interlocks:
   starter_requires_apu: true
+  bleed_requires_starter: true
+  vacuum_requires_bleed: true
+  laser_requires_vacuum: true
+  hv_requires_laser: true
+  ignite_requires_hv: true
   ignite_requires_bleed: true
   auto_clear_starter_on_ignite: false
+  fuel: solid_b11_laser_ablation
+  fuel_not: [B2H6, B10H14, decaborane]
 
 jsbsim_effective_paths:
   compressor_command: /controls/orbitron/compressor

@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Patch orbitron_lab.yaml logical tree + Reply 19 instances (run from repo root)."""
+"""ONE-TIME dev utility — canonical lab SSOT is already orbitron_lab.yaml in git.
+
+Normal builds use only:  ./stand.sh   (or  make all)
+
+Re-run this script only if you revert orbitron_lab.yaml and need to re-apply Reply 19 groups/instances.
+"""
 from __future__ import annotations
 
 import sys

@@ -174,6 +174,24 @@ def logical_node_id(group_key: str) -> str:
     return "log_" + s
 
 
+_BLENDER_DUP_SUFFIX = re.compile(r"^(?P<base>.+)\.\d{3}$")
+
+
+def _blender_duplicate_base(mesh_name: str) -> str | None:
+    """Blender renames duplicate imports as ``Name.001`` — alias to canonical AC name."""
+    m = _BLENDER_DUP_SUFFIX.match(mesh_name)
+    return m.group("base") if m else None
+
+
+def _meshes_covered_by_assemblies(mesh_names: set[str], part_to_group: dict[str, str]) -> set[str]:
+    covered = set(part_to_group)
+    for name in mesh_names:
+        base = _blender_duplicate_base(name)
+        if base is not None and base in part_to_group:
+            covered.add(name)
+    return covered
+
+
 def _is_fg_runtime_panel_mesh(name: str) -> bool:
     """Meshes merged into orbitron.ac by build_orbitron_shuttle_panel_ac.py (not CadQuery lab)."""
     return (
@@ -254,7 +272,8 @@ def validate_assemblies(mesh_names: set[str], data: dict[str, Any]) -> None:
     visit(root_key, set())
 
     runtime_panel = {n for n in mesh_names if _is_fg_runtime_panel_mesh(n)}
-    missing = sorted(mesh_names - set(part_to_group) - runtime_panel)
+    covered = _meshes_covered_by_assemblies(mesh_names, part_to_group)
+    missing = sorted(mesh_names - covered - runtime_panel)
     extra = sorted(set(part_to_group) - mesh_names)
     if missing:
         raise ValueError(

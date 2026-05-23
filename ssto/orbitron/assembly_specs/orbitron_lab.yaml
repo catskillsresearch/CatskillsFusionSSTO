@@ -135,11 +135,11 @@ logical:
     label: cryostat / fill circuit (schematic)
     kind: dotted
   - from: Cryo_Methane_Piping
-    to: Compressor_Can
+    to: Compressor_Assembly
     label: intercooling / heat rejection tie (concept)
     kind: dotted
   - from: High_Voltage_Umbilical
-    to: Cathode
+    to: Central_Cathode_Wire
     label: HV feed toward cathode stack (schematic)
     kind: dotted
   - from: Pad_Startup_Cart
@@ -151,22 +151,22 @@ logical:
     label: "starter power cable \u2192 intake motor pod"
     kind: dotted
   - from: Pad_Startup_Motor
-    to: Compressor_Can
+    to: Compressor_Assembly
     label: "pad electric starter \u2192 compressor spool (light-off only)"
     kind: dotted
   - from: Bellmouth_Inlet
-    to: Compressor_Can
+    to: Compressor_Assembly
     label: "inlet \u2192 compressor"
     kind: solid
-  - from: Compressor_Can
+  - from: Compressor_Assembly
     to: Reactor_Bay_Inlet_Shroud
     label: compressor discharge into reactor bay annulus jacket (outer shell)
     kind: solid
   - from: Reactor_Bay_Inlet_Shroud
-    to: Turbine_Can
+    to: Turbine_Assembly
     label: hot mixed gas toward turbine (fusion-heated Brayton spool)
     kind: solid
-  - from: Turbine_Can
+  - from: Turbine_Assembly
     to: Nozzle_Inlet_Plenum
     label: turbine discharge into nozzle plenum
     kind: solid
@@ -375,8 +375,6 @@ logical:
       title: Control panel and operator station
       detail: "Reply 15/18 startup: APU \u2192 starter \u2192 bleed \u2192 vacuum OK \u2192\
         \ laser \u2192 HV \u2192 ignite."
-      members:
-      - hv_umbilical
       parts:
       - Operator_Console
       - Operator_Checklist_Plaque
@@ -393,10 +391,6 @@ logical:
       - Panel_Label_IGNITE
       - Panel_Label_BEAM
       - Panel_Label_COMP
-    hv_umbilical:
-      title: HV umbilical
-      parts:
-      - High_Voltage_Umbilical
     thrust_sled:
       title: Thrust sled
       parts:

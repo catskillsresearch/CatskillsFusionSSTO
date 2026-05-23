@@ -97,7 +97,8 @@ formal:
     Solver and dimensionality:
     - PICMI ElectromagneticSolver on a Cartesian2DGrid (WarpX XY slice, not RZ).
     - Active plane X–Z, invariant Y; By is “out of page” for E×B circulation in X–Z.
-    - Time step 1e-12 s, CFL 0.9, max_steps 500 — short diagnostic run, not a converged
+    - Time step 1e-12 s, CFL 0.9, max_steps 400 — short diagnostic run (stable on local WarpX;
+      256×256 can SIGSEGV near step 440 on AMReX 26.04), not a converged
       steady-state reactor discharge.
 
     Geometry (analytic, not meshed CAD):
@@ -170,8 +171,11 @@ formal:
 warpx_sweep:
   arcjet_script: ssto/orbitron/laminar_flow_2d_arcjet.py
   work_dir: build/orbitron/warpx-runs
-  default_steps: 500
-  default_diag_period: 100
+  default_steps: 400
+  default_diag_period: 40
+  stability_note: |
+    Local pywarpx (AMReX 26.04): 256×256 cells reproducibly segfaults entering step 440.
+    Proof chain and surrogate sweeps use 128×128 + 400 steps unless WARPX_PIC_STEPS overrides.
 
 picmi:
   # Vetted template layer: preset IDs + numeric slots only (see formal.compiled_expressions_contract).
@@ -201,7 +205,8 @@ picmi:
     v_start_scale: 0.30
     v_end_scale: 0.88
   grid:
-    number_of_cells: [256, 256]
+    # 128²: stable through 400+ steps on AMReX 26.04; 256² hits SIGSEGV ~step 440 (Tier-2 proxy only).
+    number_of_cells: [128, 128]
   domain:
     half_extent_m: 0.05
   electrostatic:

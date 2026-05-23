@@ -337,7 +337,8 @@ def run_one_warpx(
     cmd = [
         warpx_python,
         str(arcjet_script),
-        "--throttle",
+        "--full-deck",
+        "--ring-density-scale",
         str(throttle),
         "--compressor",
         str(compressor),

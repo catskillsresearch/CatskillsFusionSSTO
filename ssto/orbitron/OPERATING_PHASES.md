@@ -22,15 +22,21 @@
 | P2-E | Ignite fusion; monitor **High_Temp_Thermocouples**, **Pitot_Static_Tubes**, **Data_Acquisition_Chassis** | 2.5 |
 | P2-F | **Turbine_Assembly** sustains compressor; exhaust via **Exhaust_Silencer_Ducting** | 2.2 |
 
-## Proof suite mapping
+## Proof Suite mapping (software steps 00–09)
 
-| Step | Phase |
+The interactive Proof Suite implements a **physics validation chain**, not a 1:1 wizard for each P1-* row. Use the pad console on **step 01** for interlocks P1-B through ignite; set fuel on **step 00**.
+
+| Proof step | Operator / physics role |
 | :--- | :--- |
-| 00 | Design SSOT (all subassemblies) |
-| 01 | P1-A, P1-B |
-| 02 | P1-C, P1-D |
-| 03 | P1-E (+ 1.2 core PIC) |
-| 04 | P1-F diagnostics |
-| 05 | Fueling H₂ + ¹¹B laser |
-| 06 | P2-D jacket / plant |
-| 07 | P2-F jet closure |
+| 00 | Design SSOT — geometry, H₂ sccm, **laser_ablation_hz**, PICMI |
+| 01 | WarpX PIC — set **APU → starter → bleed → VAC → LASER → HV → ignite**, then Run |
+| 02 | PIC norms — ρ_e and beam coupling |
+| 03 | Fusion channel — laminar vs clump (s–r) |
+| 04 | Fueling — n_p, n_B from H₂ + laser (solid ¹¹B) |
+| 05 | p-¹¹B burn — forward power, honest shortfall |
+| 06 | 0D plant — U1–U4, wall, CH₄, HTS |
+| 07 | Jet closure — Brayton F² discipline |
+| 08 | Validation export |
+| 09 | Inverse solve (gap analysis only) |
+
+Full narrative: [`PROOF_PROCESS.md`](PROOF_PROCESS.md).

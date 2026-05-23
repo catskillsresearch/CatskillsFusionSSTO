@@ -4,6 +4,11 @@ YAML files in this directory are the **single source of truth** for lab geometry
 shell, Nasal UI, physics/surrogate, and sound. Compilers under `tools/` emit artifacts into
 `Aircraft/<package_dir>/`.
 
+**Build (one command):** from repo root, `./stand.sh` compiles `orbitron_lab.yaml` → glTF → Blender
+→ FlightGear package. Clean rebuild: `make clean && ./stand.sh`. Do not run `tools/merge_reply19_into_lab.py`
+unless you reverted the lab YAML to an old tree. Proof suite (`scripts/run_orbitron_proof_suite.sh`) is
+separate; legacy `chain_config.json` borane keys migrate automatically on load.
+
 ## Spec index
 
 | File | Consumed by | Purpose |

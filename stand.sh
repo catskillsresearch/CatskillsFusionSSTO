@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 # Poetry env + repo-local WarpX (pywarpx) paths, then GNU make.
 #
-# Default build: unified assembly YAML → orbitron_lab.gltf + sub-assembly glTFs → Blender → orbitron.ac,
-# surrogate, sounds from orbitron_sound_assets.yaml, Mermaid graphs. See Makefile GLTF_LAB / GLTF_LAB_SUBASSEMBLIES.
-# Preview nested lab in Blender: ./bl.sh   (or ./bl.sh --collections)
+# Full test-stand build (one command):  ./stand.sh
+#   → make all (fg-ready): orbitron_lab.yaml → orbitron_lab.gltf → Blender → orbitron.ac, surrogate, sounds, …
+#   No extra merge/patch steps — Reply 19 geometry lives in ssto/orbitron/assembly_specs/orbitron_lab.yaml.
+#   Clean rebuild:  make clean && ./stand.sh
+# Preview lab mesh in Blender: ./bl.sh
 #
 # Usage (repo root):
 #   ./stand.sh

@@ -4,7 +4,10 @@ Shared helpers for the Orbitron first-principles proof chain (fixed paths under 
 from __future__ import annotations
 
 import json
+import math
 import os
+import shlex
+import subprocess
 import sys
 from dataclasses import asdict, replace
 from datetime import datetime, timezone
@@ -42,9 +45,101 @@ def utc_now() -> str:
 def load_config() -> dict[str, Any]:
     if not CONFIG_PATH.is_file():
         raise FileNotFoundError(
-            f"Missing {CONFIG_PATH}. Run tools/orbitron_proof_chain/chain_00_spec.sh first."
+            f"Missing {CONFIG_PATH}. Run Proof Suite step 00 or tools/orbitron_proof_chain/chain_00_spec.sh."
         )
     return json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
+
+
+def compile_picmi_overrides_json() -> Path:
+    """Build generated + chain copies of picmi_overrides.json from physics surrogate YAML."""
+    (CHAIN_ROOT / "00_spec").mkdir(parents=True, exist_ok=True)
+    GENERATED_ROOT.mkdir(parents=True, exist_ok=True)
+    out_json = GENERATED_ROOT / "picmi_overrides.json"
+    compile_script = repo_root() / "tools" / "compile_physics_surrogate_spec.py"
+    py = shlex.split(os.environ.get("CHAIN_PYTHON", "poetry run python"))
+    subprocess.run(
+        [*py, str(compile_script), "--out-json", str(out_json)],
+        check=True,
+        cwd=str(repo_root()),
+    )
+    chain_ov = CHAIN_ROOT / "00_spec" / "picmi_overrides.json"
+    chain_ov.write_bytes(out_json.read_bytes())
+    return chain_ov
+
+
+def ensure_picmi_overrides(*, compile_if_missing: bool = True) -> Path:
+    """Guarantee ``build/orbitron/chain/00_spec/picmi_overrides.json`` exists."""
+    chain_ov = CHAIN_ROOT / "00_spec" / "picmi_overrides.json"
+    if chain_ov.is_file():
+        return chain_ov
+    gen = GENERATED_ROOT / "picmi_overrides.json"
+    (CHAIN_ROOT / "00_spec").mkdir(parents=True, exist_ok=True)
+    if gen.is_file():
+        chain_ov.write_bytes(gen.read_bytes())
+        return chain_ov
+    if not compile_if_missing:
+        raise FileNotFoundError(
+            f"Missing {chain_ov}. Run Proof Suite step 00 first."
+        )
+    return compile_picmi_overrides_json()
+
+
+# AMReX 26.04 / WarpX default blocking_factor for Cartesian2D (must divide domain size).
+AMREX_BLOCKING_FACTOR = 8
+
+
+def align_pic_grid_cells(n: int, *, blocking_factor: int = AMREX_BLOCKING_FACTOR) -> int:
+    """Round up to the next cell count divisible by AMReX ``blocking_factor``."""
+    n = max(blocking_factor, int(n))
+    rem = n % blocking_factor
+    if rem == 0:
+        return n
+    return n + (blocking_factor - rem)
+
+
+def pic_grid_cells(cfg: dict[str, Any]) -> int:
+    """Square PIC grid resolution from chain_config (Proof Suite step 01)."""
+    raw = max(AMREX_BLOCKING_FACTOR, int(cfg.get("pic", {}).get("grid_cells", 512)))
+    return align_pic_grid_cells(raw)
+
+
+def cap_pic_steps_for_stability(n_steps: int, overrides: dict[str, Any]) -> int:
+    """
+    Avoid known AMReX 26.04 SIGSEGV on large 2D grids (local pywarpx).
+
+    128² is stable through 400+ steps; 256² can fail near step 440; 512² is untested
+    and capped more aggressively. Reduction uses the last plotfile only.
+    """
+    cells = overrides.get("number_of_cells") or [128, 128]
+    nx = int(cells[0]) if cells else 128
+    if nx >= 512:
+        return min(int(n_steps), 300)
+    if nx >= 256:
+        return min(int(n_steps), 400)
+    return int(n_steps)
+
+
+def patch_geometry_into_picmi_overrides(cfg: dict[str, Any]) -> Path:
+    """Merge chain_config geometry into the chain PICMI overrides file."""
+    path = ensure_picmi_overrides()
+    g = cfg.get("geometry", {})
+    overrides = json.loads(path.read_text(encoding="utf-8"))
+    cells = pic_grid_cells(cfg)
+    overrides.update(
+        {
+            "r_anode_m": float(g.get("r_anode_m", overrides.get("r_anode_m", 0.04))),
+            "r_cathode_m": float(g.get("r_cathode_m", overrides.get("r_cathode_m", 0.01))),
+            "V_cathode_v": float(g.get("V_cathode_v", overrides.get("V_cathode_v", -600_000))),
+            "B_axial_tesla": float(g.get("B_axial_tesla", overrides.get("B_axial_tesla", 2.0))),
+            "domain_half_extent_m": max(
+                float(g.get("r_anode_m", 0.04)),
+                float(overrides.get("domain_half_extent_m", 0.05)),
+            ),
+            "number_of_cells": [cells, cells],
+        }
+    )
+    path.write_text(json.dumps(overrides, indent=2), encoding="utf-8")
+    return path
 
 
 def ensure_config() -> dict[str, Any]:
@@ -53,7 +148,27 @@ def ensure_config() -> dict[str, Any]:
     if not CONFIG_PATH.is_file():
         cfg = write_chain_config_template()
         CONFIG_PATH.write_text(json.dumps(cfg, indent=2), encoding="utf-8")
-    return load_config()
+    else:
+        cfg = load_config()
+    inj = cfg.get("injectants", {})
+    if "laser_ablation_hz" not in inj and (
+        "b2h6_sccm" in inj or "b10h14_equiv_sccm" in inj
+    ):
+        cfg["injectants"] = normalize_injectants_cfg(inj)
+        save_config(cfg)
+    ensure_picmi_overrides()
+    patch_geometry_into_picmi_overrides(cfg)
+    pic = cfg.setdefault("pic", {})
+    migrated = False
+    if "grid_cells" not in pic:
+        pic["grid_cells"] = 512
+        migrated = True
+    if int(pic.get("steps", 400)) > 400:
+        pic["steps"] = 400
+        migrated = True
+    if migrated:
+        save_config(cfg)
+    return cfg
 
 
 def save_config(cfg: dict[str, Any]) -> None:
@@ -94,8 +209,11 @@ def _json_safe(value: Any) -> Any:
         return bool(value)
     if isinstance(value, (np.integer,)):
         return int(value)
-    if isinstance(value, (np.floating,)):
-        return float(value)
+    if isinstance(value, (np.floating, float)):
+        f = float(value)
+        if math.isnan(f) or math.isinf(f):
+            return None
+        return f
     if isinstance(value, np.ndarray):
         return value.tolist()
     return value
@@ -163,9 +281,11 @@ def base_inputs():
     if (CHAIN_ROOT / cfg["steps"]["02"]["ok_marker"]).is_file():
         p2 = load_step_json("02")
         pic_e = float(p2.get("rho_e_norm", float("nan")))
-        pic_b = float(p2.get("rho_beam_norm", float("nan")))
     if (CHAIN_ROOT / cfg["steps"]["03"]["ok_marker"]).is_file():
         p3 = load_step_json("03")
+        fc_norm = p3.get("fuel_coupling_norm")
+        if fc_norm is not None:
+            pic_b = float(fc_norm)
         fc_mw = float(p3.get("integrated_fusion_power_mw", float("nan")))
         clump_index = float(p3.get("clump_index_final", 1.0))
         clump_reduction = float(p3.get("clump_reduction_ratio", 1.0))
@@ -282,13 +402,13 @@ def write_chain_config_template() -> dict[str, Any]:
             "compressor": 0.7,
             "cathode_pulse": 0.75,
             "laminar_relaminarization": True,
-            "pad_apu_online": True,
-            "starter_engage": True,
-            "bleed_air_open": True,
-            "vacuum_interlock_ok": True,
-            "laser_armed": True,
-            "hv_enabled": True,
-            "startup_trigger": True,
+            "pad_apu_online": False,
+            "starter_engage": False,
+            "bleed_air_open": False,
+            "vacuum_interlock_ok": False,
+            "laser_armed": False,
+            "hv_enabled": False,
+            "startup_trigger": False,
         },
         "unobtanium": {
             "fusion_reactivity_scale": 1.0,
@@ -298,7 +418,17 @@ def write_chain_config_template() -> dict[str, Any]:
             "hts_capability_scale": 1.0,
             "beam_coupling_scale": 1.0,
         },
-        "pic": {"steps": 500, "diag_period": 100, "skip_if_ok": True},
+        "pic": {"steps": 400, "diag_period": 40, "grid_cells": 512, "skip_if_ok": True},
+        "fusion_channel": {
+            "n_s": 160,
+            "n_r": 72,
+            "n_frames": 72,
+            "total_time_s": 0.002,
+            "h2_ref_sccm": 80.0,
+            "laser_ref_hz": 10.0,
+            "stochastic_seed": 42,
+            "noise_fraction_off": 0.14,
+        },
         "paths": {
             "picmi_overrides_generated": "build/orbitron/generated/picmi_overrides.json",
             "picmi_overrides_chain": "build/orbitron/chain/00_spec/picmi_overrides.json",

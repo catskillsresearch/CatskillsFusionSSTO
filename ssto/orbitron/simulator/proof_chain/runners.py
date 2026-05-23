@@ -22,11 +22,17 @@ from ssto.orbitron.simulator.warpx_env import (  # noqa: E402
 
 from tools.orbitron_proof_chain.chain_lib import (  # noqa: E402
     CHAIN_ROOT,
+    CONFIG_PATH,
     GENERATED_ROOT,
     base_inputs,
+    cap_pic_steps_for_stability,
+    compile_picmi_overrides_json,
     enable_proof_env,
+    ensure_picmi_overrides,
     load_config,
     load_step_json,
+    patch_geometry_into_picmi_overrides,
+    pic_grid_cells,
     repo_root,
     save_config,
     save_step,
@@ -38,14 +44,11 @@ from tools.orbitron_proof_chain.chain_lib import (  # noqa: E402
 
 def run_step_00(*, throttle: float | None = None, compressor: float | None = None, cathode_pulse: float | None = None) -> dict[str, Any]:
     CHAIN_ROOT.mkdir(parents=True, exist_ok=True)
-    GENERATED_ROOT.mkdir(parents=True, exist_ok=True)
-    compile_script = repo_root() / "tools" / "compile_physics_surrogate_spec.py"
-    out_json = GENERATED_ROOT / "picmi_overrides.json"
-    py = shlex.split(os.environ.get("CHAIN_PYTHON", "poetry run python"))
-    subprocess.run([*py, str(compile_script), "--out-json", str(out_json)], check=True, cwd=str(repo_root()))
-    chain_ov = CHAIN_ROOT / "00_spec" / "picmi_overrides.json"
-    chain_ov.write_bytes(out_json.read_bytes())
-    cfg = write_chain_config_template()
+    chain_ov = compile_picmi_overrides_json()
+    if CONFIG_PATH.is_file():
+        cfg = load_config()
+    else:
+        cfg = write_chain_config_template()
     if throttle is not None:
         cfg["pad"]["throttle"] = throttle
     if compressor is not None:
@@ -53,6 +56,7 @@ def run_step_00(*, throttle: float | None = None, compressor: float | None = Non
     if cathode_pulse is not None:
         cfg["pad"]["cathode_pulse"] = cathode_pulse
     save_config(cfg)
+    patch_geometry_into_picmi_overrides(cfg)
     save_step(
         "00",
         {
@@ -64,29 +68,47 @@ def run_step_00(*, throttle: float | None = None, compressor: float | None = Non
     return load_step_json("00")
 
 
+def clear_pic_diags(diags: Path) -> int:
+    """Remove prior WarpX density_diag plotfiles (mixed grid sizes break the movie loader)."""
+    import shutil
+
+    if not diags.is_dir():
+        return 0
+    removed = 0
+    for p in list(diags.glob("density_diag*")):
+        if p.is_dir():
+            shutil.rmtree(p)
+        elif p.is_file():
+            p.unlink()
+        removed += 1
+    return removed
+
+
 def build_warpx_command(
     cfg: dict[str, Any] | None = None,
     *,
     n_steps: int | None = None,
-) -> tuple[list[str], Path, Path]:
-    """Return (argv, cwd, diags_dir) for laminar_flow_2d_arcjet."""
+) -> tuple[list[str], Path, Path, int]:
+    """Return (argv, cwd, diags_dir, n_cleared_plotfiles) for laminar_flow_2d_arcjet."""
     cfg = cfg or load_config()
     chain_root = Path(cfg["chain_root"])
     diags = chain_root / "01_pic" / "diags"
+    n_cleared = clear_pic_diags(diags)
     pad = cfg["pad"]
-    overrides = chain_root / "00_spec" / "picmi_overrides.json"
+    overrides_path = ensure_picmi_overrides()
+    patch_geometry_into_picmi_overrides(cfg)
+    ov = json.loads(overrides_path.read_text(encoding="utf-8"))
     script = repo_root() / "ssto" / "orbitron" / "laminar_flow_2d_arcjet.py"
     steps = n_steps if n_steps is not None else int(cfg["pic"]["steps"])
+    steps = cap_pic_steps_for_stability(steps, ov)
     diags.mkdir(parents=True, exist_ok=True)
     cmd = [
         warpx_python_executable(),
         str(script),
         "--overrides",
-        str(overrides),
-        "--throttle",
+        str(overrides_path),
+        "--ring-density-scale",
         str(pad["throttle"]),
-        "--compressor",
-        str(pad["compressor"]),
         "--cathode-pulse",
         str(pad["cathode_pulse"]),
         "--write-dir",
@@ -96,7 +118,7 @@ def build_warpx_command(
         "--diag-period",
         str(cfg["pic"]["diag_period"]),
     ]
-    return cmd, script.parent, diags
+    return cmd, script.parent, diags, n_cleared
 
 
 def run_step_01(*, skip_pic: bool = False, n_steps: int | None = None) -> dict[str, Any]:
@@ -106,7 +128,7 @@ def run_step_01(*, skip_pic: bool = False, n_steps: int | None = None) -> dict[s
         save_step("01", {"skipped": True, "reason": "SKIP_PIC"})
         return load_step_json("01")
     ensure_warpx_env()
-    cmd, cwd, diags = build_warpx_command(cfg, n_steps=n_steps)
+    cmd, cwd, diags, _n_cleared = build_warpx_command(cfg, n_steps=n_steps)
     proc = subprocess.run(
         cmd,
         cwd=str(cwd),
@@ -117,15 +139,18 @@ def run_step_01(*, skip_pic: bool = False, n_steps: int | None = None) -> dict[s
     if proc.returncode != 0:
         save_step("01", {"ok": False, "stderr": proc.stderr[-8000:]})
         raise RuntimeError(proc.stderr or proc.stdout or "WarpX failed")
+    n_cells = pic_grid_cells(cfg)
     save_step(
         "01",
         {
             "diags_dir": str(diags),
             "plotfiles": [p.name for p in list_pic_plotfiles(diags)],
-            "throttle": pad["throttle"],
-            "compressor": pad["compressor"],
+            "ring_density_scale": pad["throttle"],
             "cathode_pulse": pad["cathode_pulse"],
+            "electron_ring_only": True,
             "n_steps": n_steps or int(cfg["pic"]["steps"]),
+            "grid_cells": n_cells,
+            "number_of_cells": [n_cells, n_cells],
         },
     )
     return load_step_json("01")
@@ -153,18 +178,18 @@ def run_step_02() -> dict[str, Any]:
     if step01.get("skipped"):
         save_step(
             "02",
-            {"skipped": True, "rho_e_norm": 1.0, "rho_beam_norm": 1.0, "note": "SKIP_PIC"},
+            {
+                "skipped": True,
+                "rho_e_norm": 1.0,
+                "note": "SKIP_PIC — electron ring placeholder; fuel coupling is step 03",
+            },
         )
         return load_step_json("02")
     _tools = repo_root() / "tools"
     if str(_tools) not in sys.path:
         sys.path.insert(0, str(_tools))
-    from build_surrogate_map import (  # noqa: E402
-        reduce_last_plotfile_beam_inject_plane,
-        reduce_last_plotfile_beam_screen_kw_proxy,
-        reduce_last_plotfile_rho_e_annulus,
-    )
-    from ssto.orbitron.laminar_flow_2d_arcjet import scaled_densities
+    from build_surrogate_map import reduce_last_plotfile_rho_e_annulus  # noqa: E402
+    from ssto.orbitron.laminar_flow_2d_arcjet import ring_electron_density
 
     diags = chain_root / "01_pic" / "diags"
     g = cfg["geometry"]
@@ -174,39 +199,20 @@ def run_step_02() -> dict[str, Any]:
         r_inner_m=float(g["r_cathode_m"]) * 0.9,
         r_outer_m=float(g["r_anode_m"]) * 0.95,
     )
-    rho_screen, rho_beam_dom = reduce_last_plotfile_beam_screen_kw_proxy(diags)
-    rho_inject = reduce_last_plotfile_beam_inject_plane(diags)
-    throttle = float(pad["throttle"])
-    if math.isfinite(rho_inject) and rho_inject > 0:
-        rho_beam_metric = rho_inject
-        beam_source = "inject_plane_2d"
-    elif math.isfinite(rho_screen) and rho_screen > 0:
-        rho_beam_metric = rho_screen
-        beam_source = "viewport_screen"
-    elif math.isfinite(rho_beam_dom) and rho_beam_dom > 0:
-        rho_beam_metric = rho_beam_dom
-        beam_source = "domain_mean"
-    else:
-        # 2D slice often has no deposited beam charge — use pad throttle as honest dial.
-        rho_beam_metric = 0.0
-        beam_source = "pad_throttle_fallback"
 
     overrides_path = chain_root / "00_spec" / "picmi_overrides.json"
     overrides: dict[str, Any] = {}
     if overrides_path.is_file():
         overrides = json.loads(overrides_path.read_text(encoding="utf-8"))
 
-    n_e, _ = scaled_densities(
+    n_e = ring_electron_density(
         float(pad["throttle"]),
-        float(pad["compressor"]),
         float(pad.get("cathode_pulse", 0.35 + 0.65 * pad["throttle"])),
         overrides,
     )
     e_charge = 1.602176634e-19
     ref_e_phys = max(n_e * e_charge, 1e-30)
     ref_e_design = 1.0e15
-    ref_b_design = 1.0e10
-
     def _norm(rho_val: float, ref_phys: float, ref_design: float) -> tuple[float, str]:
         if not (math.isfinite(rho_val) and rho_val > 0):
             return 1.0, "default"
@@ -223,35 +229,44 @@ def run_step_02() -> dict[str, Any]:
         return max(0.05, min(3.0, rho_val / ref)), mode
 
     rho_e_norm, norm_e_mode = _norm(rho_p95, ref_e_phys, ref_e_design)
-    if beam_source == "pad_throttle_fallback":
-        rho_beam_norm = max(0.2, min(3.0, 0.2 + 0.8 * throttle))
-        norm_b_mode = "pad_throttle_fallback"
-    else:
-        rho_beam_norm, norm_b_mode = _norm(rho_beam_metric, ref_b_design * 1e-5, ref_b_design)
 
     payload = {
         "rho_e_mean": rho_dom_mean,
         "rho_e_ring_mean": rho_ring_mean,
         "rho_e_p95_annulus": rho_p95,
-        "rho_beam_screen_mean": rho_screen,
-        "rho_beam_inject_plane_mean": rho_inject,
-        "rho_beam_domain_mean": rho_beam_dom,
         "rho_e_norm": rho_e_norm,
-        "rho_beam_norm": rho_beam_norm,
-        "beam_metric_source": beam_source,
         "norm_ref_e": ref_e_phys if norm_e_mode == "n_e*e" else rho_p95,
         "norm_mode_e": norm_e_mode,
-        "norm_mode_beam": norm_b_mode,
-        "pad_throttle": pad["throttle"],
-        "pad_compressor": pad["compressor"],
+        "note": (
+            "Electron ring from last WarpX snapshot only. "
+            "Fuel / beam coupling multiplier is step 03 (s–r channel), not pad throttle."
+        ),
+        "pad_ring_density_scale": pad["throttle"],
         "pad_cathode_pulse": pad.get("cathode_pulse"),
     }
     save_step("02", payload)
     return load_step_json("02")
 
 
+def _fusion_channel_config(cfg: dict[str, Any] | None = None) -> object:
+    from ssto.orbitron.simulator.longitudinal.fusion_channel_sr import FusionChannelConfig
+
+    fc = (cfg or load_config()).get("fusion_channel") or {}
+    return FusionChannelConfig(
+        n_s=int(fc.get("n_s", 160)),
+        n_r=int(fc.get("n_r", 72)),
+        n_frames=int(fc.get("n_frames", 72)),
+        total_time_s=float(fc.get("total_time_s", 2.0e-3)),
+        h2_ref_sccm=float(fc.get("h2_ref_sccm", 80.0)),
+        laser_ref_hz=float(fc.get("laser_ref_hz", 10.0)),
+        stochastic_seed=int(fc.get("stochastic_seed", 42)),
+        noise_fraction_off=float(fc.get("noise_fraction_off", 0.14)),
+    )
+
+
 def run_step_03(*, laminar_on: bool | None = None, compare_hack: bool = True) -> dict[str, Any]:
     enable_proof_env()
+    cfg = load_config()
     inp, _ = base_inputs()
     if laminar_on is not None:
         from dataclasses import replace
@@ -265,7 +280,13 @@ def run_step_03(*, laminar_on: bool | None = None, compare_hack: bool = True) ->
 
     dom = focus_domain(LongitudinalFocus.FUSION_CHANNEL_SR, inp)
     laminar = laminar_hack_from_inputs(inp, force_off=not inp.pad.laminar_relaminarization)
-    fc = run_fusion_channel_sr(dom, inp, laminar=laminar, compare_without_hack=compare_hack)
+    fc = run_fusion_channel_sr(
+        dom,
+        inp,
+        _fusion_channel_config(cfg),
+        laminar=laminar,
+        compare_without_hack=compare_hack,
+    )
     cache_dir = CHAIN_ROOT / "03_fusion_channel"
     cache_on = cache_dir / "fields_laminar_on.npz"
     cache_off = cache_dir / "fields_laminar_off.npz"
@@ -288,7 +309,23 @@ def run_step_03(*, laminar_on: bool | None = None, compare_hack: bool = True) ->
         _save_fusion_npz(cache_off, fc_off)
         clump_off_val = fc_off.clump_index_final
 
+    import numpy as np
+
+    bore = fc.r_m <= dom.r_anode_m
+    n_final = fc.density[-1][:, bore]
+    n_initial = fc.density[0][:, bore]
+    peak_n = float(np.max(n_final)) if n_final.size else float(np.max(fc.density[-1]))
+    ref_n = float(np.mean(n_initial)) if n_initial.size else float(np.mean(fc.density[0]))
+    fuel_coupling_norm = max(0.2, min(3.0, peak_n / max(ref_n, 1.0e14)))
+
     payload = {
+        "inject_rate_scale": fc.meta.get("inject_rate_scale"),
+        "h2_sccm": fc.meta.get("h2_sccm"),
+        "laser_ablation_hz": fc.meta.get("laser_ablation_hz"),
+        "compressor_effective": fc.meta.get("compressor_effective"),
+        "fuel_coupling_norm": fuel_coupling_norm,
+        "fuel_peak_density_m3": peak_n,
+        "fuel_ref_density_m3": ref_n,
         "integrated_fusion_power_mw": fc.integrated_fusion_power_mw,
         "fusion_pb11_power_mw": fc.meta.get("fusion_pb11_power_mw"),
         "clump_index_final": fc.clump_index_final,
@@ -308,6 +345,7 @@ def run_step_03(*, laminar_on: bool | None = None, compare_hack: bool = True) ->
 def run_step_03_compare_pair() -> dict[str, Any]:
     """Run laminar ON and OFF once; cache both NPZ for side-by-side UI (no re-run on scrub)."""
     enable_proof_env()
+    cfg = load_config()
     from dataclasses import replace
 
     inp, _ = base_inputs()
@@ -322,13 +360,22 @@ def run_step_03_compare_pair() -> dict[str, Any]:
     cache_on = cache_dir / "fields_laminar_on.npz"
     cache_off = cache_dir / "fields_laminar_off.npz"
 
+    fcc = _fusion_channel_config(cfg)
     inp_on = replace(inp, pad=replace(inp.pad, laminar_relaminarization=True))
     fc_on = run_fusion_channel_sr(
-        dom, inp_on, laminar=laminar_hack_from_inputs(inp_on), compare_without_hack=False
+        dom,
+        inp_on,
+        fcc,
+        laminar=laminar_hack_from_inputs(inp_on),
+        compare_without_hack=False,
     )
     inp_off = replace(inp, pad=replace(inp.pad, laminar_relaminarization=False))
     fc_off = run_fusion_channel_sr(
-        dom, inp_off, laminar=laminar_hack_from_inputs(inp_off, force_off=True), compare_without_hack=False
+        dom,
+        inp_off,
+        fcc,
+        laminar=laminar_hack_from_inputs(inp_off, force_off=True),
+        compare_without_hack=False,
     )
     _save_fusion_npz(cache_on, fc_on)
     _save_fusion_npz(cache_off, fc_off)

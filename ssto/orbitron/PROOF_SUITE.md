@@ -4,8 +4,11 @@ The **Proof Suite** is a step-by-step interactive application for the first-prin
 
 **Companion docs:**
 
+- **Process SSOT (bench + proof map):** [`PROOF_PROCESS.md`](PROOF_PROCESS.md)
+- Operating phases (Reply 19): [`OPERATING_PHASES.md`](OPERATING_PHASES.md)
 - Full chain specification (paths, gates, Tier 4): [`validation_steps.md`](validation_steps.md)
 - Fidelity ladder & classic simulator: [`simulator/SIMULATOR.md`](simulator/SIMULATOR.md)
+- Fuel: [`SOLID_B11_LASER_FUEL.md`](SOLID_B11_LASER_FUEL.md)
 - Unobtanium specs: [`UNOBTANIUM.md`](UNOBTANIUM.md)
 
 ---
@@ -64,22 +67,24 @@ When the suite runs (and when `ORBITRON_PROOF_CHAIN=1`):
 
 | Step | What you control | What you visualize |
 |------|------------------|-------------------|
-| **00 — Design SSOT** | r_anode, r_cathode, length, cathode kV, B, H₂ / B₁₀H₁₄ sccm | Full engine **s–r** layout, core cross-section, PICMI override status |
-| **01 — WarpX PIC** | Pad console, **Live longitudinal s–r** (2 Hz), laminar ON/OFF, view (full duct / fusion channel / PIC), PIC steps | **Longitudinal heatmap** (full engine cut) + **transverse WarpX donut** + live log |
-| **02 — PIC reduce** | Run after step 01 | ρ_e_norm / ρ_beam_norm bar chart and clamp band (0.2–3.0) |
-| **03 — Fusion channel** | Laminar ON/OFF, **Cache OFF+ON pair**, view **Side-by-side**, time scrubber | **s–r** single or **OFF \| ON** heatmaps (cached), clump ON/OFF curves |
-| **04 — Fueling** | Uses chain config + step 02 norms | n_p / n_B bars (log scale), ⟨σv⟩(T) curve with your T_i marked |
-| **05 — p-¹¹B burn** | Proof burn only | Target MW vs computed P_fusion (honest shortfall) |
-| **06 — 0D plant** | Proof plant | Steady-state output bars, U1–U4 stress chart, violations list |
-| **07 — Jet closure** | Uses step 06 | P_jet vs P_from_thrust (F² discipline) |
-| **08 — Validation export** | Full `validate_design` + YAML | Spec check table, **Open YAML** / **Open chain folder** |
-| **09 — Inverse solve** | Optional | Required unobtanium scale factors vs nominal = 1 |
+| **00 — Design SSOT** | r_anode, r_cathode, length, cathode kV, B, **H₂ sccm**, **laser ablation Hz**, ¹¹B target # | Engine **s–r** layout, core cross-section, PICMI overrides |
+| **01 — Plasma workbench** | **τ, p** (pad/shear), interlocks, H₂/laser, PIC grid — **one coupled run** | WarpX **\|ρ_e\|**, **ρ_e_norm** bar, fusion **OFF\|ON** s–r (steps 01–03 stay in sync; STALE banner if levers change) |
+| **04 — Fueling** | Step 00 injectants + ρ_e_norm from coupled workbench | n_p / n_B from **H₂ + laser**; ⟨σv⟩(T_i) |
+| **05 — p-¹¹B burn** | Proof mode only (scale = 1) | Target vs computed P_fusion — **shortfall recorded honestly** |
+| **06 — 0D plant** | Proof plant | U1–U4 gates, wall/CH₄/HTS, violations |
+| **07 — Jet closure** | Step 06 outputs | F² ≈ 2ηPṁ aero discipline |
+| **08 — Validation export** | Full `validate_design` | Spec YAML + pass/fail table |
+| **09 — Inverse solve** | Gap analysis only | Minimum unobtanium if forward chain misses MW |
+
+**Benchtop P1-A…P1-F** are exercised through the **step 01 pad console** (VAC/LASER/HV), not separate wizard screens. See [`PROOF_PROCESS.md`](PROOF_PROCESS.md).
 
 Step **03** is the closest match to [Orbitron-style clump / laminar video](https://youtu.be/_7Hfyz-JIDA?si=IBN4ZQmWwQKrITxY) intent, in a **longitudinal s–r** cut (along the bore), not the video’s axial end-on view.
 
 **Step 03 side-by-side:** click **Cache laminar OFF+ON pair** once (runs ON and OFF, saves `fields_laminar_on.npz` and `fields_laminar_off.npz`). Then choose **Side-by-side OFF | ON** and scrub time — both panels update from cache without re-running.
 
 **Step 01 live log:** WarpX stdout/stderr streams into the log pane while the PIC runs (subprocess line-by-line).
+
+**WarpX stability (local AMReX 26.04):** The default PIC deck is **128×128 cells, 400 steps** (~4 s). A **256×256** grid reproducibly **segfaults entering step 440** (exit −11); that is a solver/grid limitation, not your pad settings. Re-run **step 00** after pulling YAML changes so `picmi_overrides.json` picks up the 128² grid. Step 02 only needs the **last** plotfile.
 
 ---
 

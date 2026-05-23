@@ -12,13 +12,17 @@ _CHAIN_DIR = Path(__file__).resolve().parent
 _REPO = _CHAIN_DIR.parents[1]
 sys.path.insert(0, str(_REPO))
 
-from ssto.orbitron.simulator.warpx_env import apply_warpx_env, ensure_warpx_env, warpx_python_executable  # noqa: E402
+from ssto.orbitron.simulator.warpx_env import (  # noqa: E402
+    apply_warpx_env,
+    ensure_warpx_env,
+    warpx_python_executable,
+)
+
+from ssto.orbitron.simulator.proof_chain.runners import build_warpx_command  # noqa: E402
 
 from tools.orbitron_proof_chain.chain_lib import (  # noqa: E402
     load_config,
-    repo_root,
     save_step,
-    utc_now,
 )
 
 
@@ -37,47 +41,25 @@ def main() -> int:
         print("PIC diags present; skipping rerun (delete 01_pic to force)")
         return 0
 
-    pad = cfg["pad"]
-    overrides = chain_root / "00_spec" / "picmi_overrides.json"
-    if not overrides.is_file():
-        raise FileNotFoundError(f"Missing {overrides}; run chain_00_spec.sh")
-
-    script = repo_root() / "ssto" / "orbitron" / "laminar_flow_2d_arcjet.py"
     ensure_warpx_env()
-    warpx_py = warpx_python_executable()
-    diags.mkdir(parents=True, exist_ok=True)
-    cmd = [
-        warpx_py,
-        str(script),
-        "--overrides",
-        str(overrides),
-        "--throttle",
-        str(pad["throttle"]),
-        "--compressor",
-        str(pad["compressor"]),
-        "--cathode-pulse",
-        str(pad["cathode_pulse"]),
-        "--write-dir",
-        str(diags),
-        "--steps",
-        str(cfg["pic"]["steps"]),
-        "--diag-period",
-        str(cfg["pic"]["diag_period"]),
-    ]
+    cmd, cwd, diags, n_cleared = build_warpx_command(cfg)
+    if n_cleared:
+        print(f"Cleared {n_cleared} old density_diag plotfile(s) under {diags}")
     print("Running:", " ".join(cmd))
-    proc = subprocess.run(cmd, cwd=str(script.parent), env=apply_warpx_env(), check=False)
+    proc = subprocess.run(cmd, cwd=str(cwd), env=apply_warpx_env(), check=False)
     if proc.returncode != 0:
         save_step("01", {"ok": False, "returncode": proc.returncode})
         return proc.returncode
 
+    pad = cfg["pad"]
     save_step(
         "01",
         {
-            "warpx_python": warpx_py,
+            "warpx_python": warpx_python_executable(),
             "diags_dir": str(diags),
-            "throttle": pad["throttle"],
-            "compressor": pad["compressor"],
+            "ring_density_scale": pad["throttle"],
             "cathode_pulse": pad["cathode_pulse"],
+            "electron_ring_only": True,
             "plotfiles": [p.name for p in sorted(diags.glob("density_diag*"))],
         },
     )

@@ -1,15 +1,20 @@
 """
-GOAL 2 — Arc-heating oriented extension of the 2D Orbitron PICMI case.
+GOAL 2 — 2D Orbitron electron-ring PICMI case (proof-chain step 01).
 
-Throttle / compressor / cathode-pulse map to PIC inputs:
-  * throttle  → electron ring density + inject beam weights (p-¹¹B ion beam proxy)
-  * compressor → arc_channel_seed density (air path / arc precursor proxy)
-  * cathode-pulse → cathode V ramp depth + post-ramp density (PSP2/Jin shear proxy)
+Default mode (**electron ring only** — proof chain step 01):
+  * ring_density_scale (τ)  → initial electron annulus density n_e
+  * cathode_pulse (p)       → n_e at t=0 and E-field time ramp α(t, p)
+  * No fuel, no compressor, no arc seed, no H⁺/B⁺ inject beams in the deck.
+
+Legacy **full deck** (surrogate sweeps only; ``--full-deck``):
+  * compressor → arc_channel_seed density (not used by proof chain step 01)
+  * inject beams → tangential H⁺/B⁺ proxies (not plotted in step 01 movie)
 
 CLI examples:
-  cd ssto/orbitron && python laminar_flow_2d_arcjet.py --write-dir diags --throttle 0.5 --compressor 1.0 --cathode-pulse 0.6
+  cd ssto/orbitron && python laminar_flow_2d_arcjet.py --write-dir diags \\
+      --ring-density-scale 0.85 --cathode-pulse 0.8
 
-Surrogate sweep driver: tools/build_surrogate_map.py (repo root).
+Surrogate sweep driver: tools/build_surrogate_map.py (passes ``--full-deck``).
 """
 from __future__ import annotations
 
@@ -86,26 +91,44 @@ def _wx(x: float) -> str:
     return s if s not in ("", "-0") else "0.0"
 
 
+def ring_electron_density(
+    ring_density_scale: float,
+    cathode_pulse: float,
+    o: dict[str, Any] | None = None,
+) -> float:
+    """Initial electron annulus density for species ``electrons`` (step 01 SSOT)."""
+    o = o or {}
+    tau = max(0.0, min(1.0, float(ring_density_scale)))
+    p = max(0.0, min(1.0, float(cathode_pulse)))
+    base_ne = float(o.get("base_n_e", BASE_N_E))
+    rs = o.get("ring_density_scale") or {"throttle_offset": 0.15, "throttle_gain": 0.85}
+    cp = o.get("cathode_pulse_density") or {"offset": 0.65, "gain": 0.35}
+    return base_ne * (float(rs["throttle_offset"]) + float(rs["throttle_gain"]) * tau) * (
+        float(cp["offset"]) + float(cp["gain"]) * p
+    )
+
+
+def arc_channel_seed_density(
+    compressor: float,
+    o: dict[str, Any] | None = None,
+) -> float:
+    """Legacy arc precursor seed — **not** used in proof-chain step 01."""
+    o = o or {}
+    c = max(0.0, min(1.0, float(compressor)))
+    base_arc = float(o.get("base_arc_seed", BASE_ARC_SEED))
+    acs = o.get("arc_seed_scale") or {"compressor_offset": 0.15, "compressor_gain": 0.85}
+    return base_arc * (float(acs["compressor_offset"]) + float(acs["compressor_gain"]) * c)
+
+
 def scaled_densities(
     throttle: float,
     compressor: float,
     cathode_pulse: float,
     o: dict[str, Any] | None = None,
 ) -> tuple[float, float]:
-    o = o or {}
-    t = max(0.0, min(1.0, float(throttle)))
-    c = max(0.0, min(1.0, float(compressor)))
-    p = max(0.0, min(1.0, float(cathode_pulse)))
-    base_ne = float(o.get("base_n_e", BASE_N_E))
-    base_arc = float(o.get("base_arc_seed", BASE_ARC_SEED))
-    rs = o.get("ring_density_scale") or {"throttle_offset": 0.15, "throttle_gain": 0.85}
-    acs = o.get("arc_seed_scale") or {"compressor_offset": 0.15, "compressor_gain": 0.85}
-    cp = o.get("cathode_pulse_density") or {"offset": 0.65, "gain": 0.35}
-    n_e = base_ne * (float(rs["throttle_offset"]) + float(rs["throttle_gain"]) * t)
-    n_e *= float(cp["offset"]) + float(cp["gain"]) * p
-    arc_seed_density = base_arc * (
-        float(acs["compressor_offset"]) + float(acs["compressor_gain"]) * c
-    )
+    """Full-deck helper (surrogate sweeps). Prefer ``ring_electron_density`` for step 01."""
+    n_e = ring_electron_density(throttle, cathode_pulse, o)
+    arc_seed_density = arc_channel_seed_density(compressor, o)
     return n_e, arc_seed_density
 
 
@@ -224,23 +247,29 @@ def _make_inject_species(
 
 def run_arcjet_picmi(
     *,
-    throttle: float,
-    compressor: float,
+    ring_density_scale: float,
     cathode_pulse: float,
     write_dir: str,
     n_steps: int,
     diag_period: int,
     picmi_overrides: dict[str, Any] | None = None,
+    full_deck: bool = False,
+    compressor: float = 0.0,
 ) -> None:
     o = picmi_overrides or {}
-    n_e, arc_seed_density = scaled_densities(throttle, compressor, cathode_pulse, o)
+    n_e = ring_electron_density(ring_density_scale, cathode_pulse, o)
+    arc_seed_density = arc_channel_seed_density(compressor, o) if full_deck else 0.0
 
     print("==================================================")
-    print("  ORBITRON 2D + ARC CHANNEL SEED (PICMI)         ")
+    print("  ORBITRON 2D ELECTRON RING (PICMI)             ")
     print(
-        f"  throttle={throttle:g} compressor={compressor:g} cathode_pulse={cathode_pulse:g}"
+        f"  ring_density_scale={ring_density_scale:g}  cathode_pulse={cathode_pulse:g}"
     )
-    print(f"  n_e={n_e:g} arc_seed={arc_seed_density:g}")
+    if full_deck:
+        print(f"  full_deck=1  compressor={compressor:g}  arc_seed={arc_seed_density:g}")
+    else:
+        print("  full_deck=0  (no arc seed, no inject beams)")
+    print(f"  n_e={n_e:g}")
     print(f"  write_dir={write_dir}")
     print("==================================================")
 
@@ -255,7 +284,13 @@ def run_arcjet_picmi(
     Bys = _wx(B_axial)
 
     n_cells = o.get("number_of_cells") or [256, 256]
-    nx, nz = int(n_cells[0]), int(n_cells[1])
+    _repo_root = Path(__file__).resolve().parents[2]
+    if str(_repo_root) not in sys.path:
+        sys.path.insert(0, str(_repo_root))
+    from tools.orbitron_proof_chain.chain_lib import align_pic_grid_cells
+
+    nx = align_pic_grid_cells(int(n_cells[0]))
+    nz = align_pic_grid_cells(int(n_cells[1]))
     grid = picmi.Cartesian2DGrid(
         number_of_cells=[nx, nz],
         lower_bound=[-r_anode, -r_anode],
@@ -269,9 +304,6 @@ def run_arcjet_picmi(
     n_es = _wx(n_e)
     r_ring_in = _wx(float(o.get("electron_ring_inner_m", 0.01)))
     r_ring_out = _wx(float(o.get("electron_ring_outer_m", 0.03)))
-    arc_s = _wx(arc_seed_density)
-    r_arc_in = _wx(float(o.get("arc_channel_inner_m", 0.035)))
-
     _repo = Path(__file__).resolve().parents[2]
     _tools = str(_repo / "tools")
     if _tools not in sys.path:
@@ -281,8 +313,6 @@ def run_arcjet_picmi(
     vb = validate_expression_bundle(o.get("expression_bundle"))
     r_floor_m = float(vb["electron_ring_momentum"]["slots"].get("r_floor_m", 1e-4))
     r_eps = _wx(r_floor_m)
-    r_os = float(vb["arc_channel_seed_density"]["slots"].get("r_outer_scale", 0.98))
-    r_arc_out_s = _wx(r_anode * r_os)
     ctx = PicmiEmitContext(
         E0s=E0s,
         r_ca=r_ca,
@@ -292,10 +322,28 @@ def run_arcjet_picmi(
         n_es=n_es,
         r_ring_in=r_ring_in,
         r_ring_out=r_ring_out,
-        arc_s=arc_s,
-        r_arc_in=r_arc_in,
-        r_arc_out=r_arc_out_s,
+        arc_s="0.0",
+        r_arc_in="0.0",
+        r_arc_out="0.0",
     )
+    if full_deck:
+        arc_s = _wx(arc_seed_density)
+        r_arc_in = _wx(float(o.get("arc_channel_inner_m", 0.035)))
+        r_os = float(vb["arc_channel_seed_density"]["slots"].get("r_outer_scale", 0.98))
+        r_arc_out_s = _wx(r_anode * r_os)
+        ctx = PicmiEmitContext(
+            E0s=E0s,
+            r_ca=r_ca,
+            r_ca2=r_ca2,
+            Bys=Bys,
+            r_eps=r_eps,
+            n_es=n_es,
+            r_ring_in=r_ring_in,
+            r_ring_out=r_ring_out,
+            arc_s=arc_s,
+            r_arc_in=r_arc_in,
+            r_arc_out=r_arc_out_s,
+        )
     xp = emit_picmi_expressions(vb, ctx)
 
     dt_s = float(o.get("time_step_size", 1e-12))
@@ -318,40 +366,42 @@ def run_arcjet_picmi(
         particle_type="electron", name="electrons", initial_distribution=electron_ring
     )
 
-    arc_seed = picmi.AnalyticDistribution(
-        density_expression=xp["arc_density_expression"],
-        momentum_expressions=["0.0", "0.0", "0.0"],
-    )
-    arc_channel_seed = picmi.Species(
-        particle_type="electron",
-        name="arc_channel_seed",
-        initial_distribution=arc_seed,
-    )
-
-    inject_cfgs = _inject_beam_configs(o)
-    beam_species: list[tuple[picmi.Species, picmi.ParticleLayout | None]] = []
-    beam_rho_names: list[str] = []
-    for key, cfg in inject_cfgs.items():
-        if key.startswith("h"):
-            sname = "h_inject_beam"
-        elif key.startswith("b"):
-            sname = "b_inject_beam"
-        else:
-            sname = f"{key}_inject_beam"
-        spec = _make_inject_species(
-            sname, cfg, throttle=throttle, cathode_pulse=cathode_pulse
-        )
-        beam_species.append((spec, None))
-        beam_rho_names.append(f"rho_{sname}")
-
     species_list: list[tuple[picmi.Species, picmi.ParticleLayout | None]] = [
         (electrons, picmi.GriddedLayout(n_macroparticle_per_cell=[4, 4], grid=grid)),
-        (
-            arc_channel_seed,
-            picmi.GriddedLayout(n_macroparticle_per_cell=[2, 2], grid=grid),
-        ),
-        *beam_species,
     ]
+    beam_rho_names: list[str] = []
+    if full_deck:
+        arc_seed = picmi.AnalyticDistribution(
+            density_expression=xp["arc_density_expression"],
+            momentum_expressions=["0.0", "0.0", "0.0"],
+        )
+        arc_channel_seed = picmi.Species(
+            particle_type="electron",
+            name="arc_channel_seed",
+            initial_distribution=arc_seed,
+        )
+        species_list.append(
+            (
+                arc_channel_seed,
+                picmi.GriddedLayout(n_macroparticle_per_cell=[2, 2], grid=grid),
+            )
+        )
+        inject_cfgs = _inject_beam_configs(o)
+        for key, cfg in inject_cfgs.items():
+            if key.startswith("h"):
+                sname = "h_inject_beam"
+            elif key.startswith("b"):
+                sname = "b_inject_beam"
+            else:
+                sname = f"{key}_inject_beam"
+            spec = _make_inject_species(
+                sname,
+                cfg,
+                throttle=ring_density_scale,
+                cathode_pulse=cathode_pulse,
+            )
+            species_list.append((spec, None))
+            beam_rho_names.append(f"rho_{sname}")
 
     if INCLUDE_NITROGEN_TRACER:
         n_ion = 1e13
@@ -388,7 +438,9 @@ def run_arcjet_picmi(
     for spec, layout in species_list:
         sim.add_species(spec, layout=layout)
 
-    data_list = ["rho_electrons", "rho_arc_channel_seed", *beam_rho_names]
+    data_list = ["rho_electrons"]
+    if full_deck:
+        data_list.extend(["rho_arc_channel_seed", *beam_rho_names])
     if INCLUDE_NITROGEN_TRACER:
         data_list.append("rho_n2_tracer")
 
@@ -401,25 +453,45 @@ def run_arcjet_picmi(
     )
     sim.add_diagnostic(diag)
 
-    print(
-        "Running p-¹¹B Orbitron slice: tangential H⁺/B⁺ inject, E×B ring, cathode V ramp..."
-    )
+    if full_deck:
+        print(
+            "Running full-deck Orbitron slice: arc seed + inject beams + E×B ring..."
+        )
+    else:
+        print("Running electron-ring PIC: prescribed E×B, cathode V ramp (no fuel species)...")
     sim.step(n_steps)
-    print("Complete. Post-process diags with tools/build_surrogate_map.py.")
+    print("Complete.")
 
 
 def main(argv: list[str] | None = None) -> int:
-    p = argparse.ArgumentParser(description="Orbitron 2D arcjet PICMI (WarpX)")
-    p.add_argument("--throttle", type=float, default=1.0, help="0..1 ion beam / ring scale")
-    p.add_argument("--compressor", type=float, default=1.0, help="0..1 arc seed density scale")
+    p = argparse.ArgumentParser(description="Orbitron 2D electron-ring PICMI (WarpX)")
+    p.add_argument(
+        "--ring-density-scale",
+        "--throttle",
+        dest="ring_density_scale",
+        type=float,
+        default=1.0,
+        help="0..1 initial electron annulus density scale (τ)",
+    )
     p.add_argument(
         "--cathode-pulse",
         type=float,
         default=None,
-        help="0..1 cathode pulse / shear (default: 0.35 + 0.65*throttle)",
+        help="0..1 cathode pulse / shear (default: 0.35 + 0.65×ring_density_scale)",
+    )
+    p.add_argument(
+        "--full-deck",
+        action="store_true",
+        help="Legacy surrogate mode: arc seed + H⁺/B⁺ inject beams (not proof-chain step 01)",
+    )
+    p.add_argument(
+        "--compressor",
+        type=float,
+        default=1.0,
+        help="0..1 arc seed scale (only with --full-deck)",
     )
     p.add_argument("--write-dir", type=str, default="diags", help="WarpX diagnostic output directory")
-    p.add_argument("--steps", type=int, default=500)
+    p.add_argument("--steps", type=int, default=400)
     p.add_argument("--diag-period", type=int, default=100)
     p.add_argument(
         "--overrides",
@@ -435,16 +507,17 @@ def main(argv: list[str] | None = None) -> int:
 
     cathode_pulse = args.cathode_pulse
     if cathode_pulse is None:
-        cathode_pulse = 0.35 + 0.65 * max(0.0, min(1.0, args.throttle))
+        cathode_pulse = 0.35 + 0.65 * max(0.0, min(1.0, args.ring_density_scale))
 
     run_arcjet_picmi(
-        throttle=args.throttle,
-        compressor=args.compressor,
+        ring_density_scale=args.ring_density_scale,
         cathode_pulse=cathode_pulse,
         write_dir=args.write_dir,
         n_steps=args.steps,
         diag_period=args.diag_period,
         picmi_overrides=picmi_overrides,
+        full_deck=args.full_deck,
+        compressor=args.compressor,
     )
     return 0
 

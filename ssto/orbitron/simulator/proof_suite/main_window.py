@@ -22,13 +22,9 @@ from PySide6.QtWidgets import (
 )
 
 from ssto.orbitron.simulator.proof_suite.state import ProofSuiteState
-from ssto.orbitron.simulator.proof_suite.steps.step_00_02 import (
-    Step00SpecPanel,
-    Step01PicPanel,
-    Step02ReducePanel,
-)
+from ssto.orbitron.simulator.proof_suite.steps.step_00_02 import Step00SpecPanel
+from ssto.orbitron.simulator.proof_suite.steps.step_plasma_workbench import PlasmaWorkbenchPanel
 from ssto.orbitron.simulator.proof_suite.steps.step_03_05 import (
-    Step03FusionPanel,
     Step04FuelingPanel,
     Step05BurnPanel,
 )
@@ -51,7 +47,7 @@ class ProofSuiteMainWindow(QMainWindow):
     def __init__(self) -> None:
         super().__init__()
         self.setWindowTitle("Orbitron Proof Suite — iterative design validation")
-        self.resize(1440, 920)
+        self.resize(1680, 1000)
         self._state = ProofSuiteState()
         try:
             self._state.ensure_initialized()
@@ -73,8 +69,8 @@ class ProofSuiteMainWindow(QMainWindow):
         title.setStyleSheet("color: #7aa2f7;")
         nav_lay.addWidget(title)
         sub = QLabel(
-            "Run a step, then stay on it to change levers (no auto-advance). "
-            "Pad sliders: step 01. Geometry: step 00. "
+            "Physics-chain validation (Tier 2–3). Step 00: geometry + H₂ + laser Hz. "
+            "Step 01: Phase 1 interlocks + WarpX. Process map: PROOF_PROCESS.md. "
             "Artifacts: build/orbitron/chain/"
         )
         sub.setWordWrap(True)
@@ -90,7 +86,7 @@ class ProofSuiteMainWindow(QMainWindow):
 
         btn_row = QVBoxLayout()
         self.btn_open_chain = QPushButton("Open chain folder")
-        self.btn_doc = QPushButton("Open PROOF_SUITE.md")
+        self.btn_doc = QPushButton("Open process docs")
         btn_row.addWidget(self.btn_open_chain)
         btn_row.addWidget(self.btn_doc)
         nav_lay.addLayout(btn_row)
@@ -102,9 +98,7 @@ class ProofSuiteMainWindow(QMainWindow):
         self._panels: list[QWidget] = []
         panel_classes = [
             Step00SpecPanel,
-            Step01PicPanel,
-            Step02ReducePanel,
-            Step03FusionPanel,
+            PlasmaWorkbenchPanel,
             Step04FuelingPanel,
             Step05BurnPanel,
             Step06PlantPanel,
@@ -141,9 +135,9 @@ class ProofSuiteMainWindow(QMainWindow):
         prev = self.stack.currentIndex()
         self.stack.setCurrentIndex(row)
         if prev == 1 and row != 1:
-            pic = self._panels[1]
-            if hasattr(pic, "stop_snapshot_playback"):
-                pic.stop_snapshot_playback()
+            wb = self._panels[1]
+            if hasattr(wb, "stop_snapshot_playback"):
+                wb.stop_snapshot_playback()
 
     def _refresh_nav(self) -> None:
         self._state.reload()
@@ -166,7 +160,7 @@ class ProofSuiteMainWindow(QMainWindow):
         subprocess.run(["xdg-open", str(CHAIN_ROOT)], check=False)
 
     def _open_doc(self) -> None:
-        for name in ("PROOF_SUITE.md", "validation_steps.md"):
+        for name in ("PROOF_PROCESS.md", "PROOF_SUITE.md", "OPERATING_PHASES.md"):
             doc = Path(__file__).resolve().parents[2] / name
             if doc.is_file():
                 subprocess.run(["xdg-open", str(doc)], check=False)

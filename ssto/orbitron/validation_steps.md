@@ -50,7 +50,9 @@ tools/orbitron_proof_chain/run_all.sh
 **Pad levers** (override before `run_all.sh`):
 
 ```bash
-export CHAIN_THROTTLE=0.85 CHAIN_COMPRESSOR=0.7 CHAIN_CATHODE_PULSE=0.75
+export CHAIN_THROTTLE=0.85 CHAIN_CATHODE_PULSE=0.75
+# CHAIN_COMPRESSOR affects step 06 plant only — not step 01 WarpX
+export CHAIN_COMPRESSOR=0.7
 ```
 
 ---
@@ -64,7 +66,7 @@ export CHAIN_THROTTLE=0.85 CHAIN_COMPRESSOR=0.7 CHAIN_CATHODE_PULSE=0.75
 | `build/orbitron/chain/00_spec/picmi_overrides.json` | 00 | Copy used by step 01 |
 | `build/orbitron/chain/00_spec/step_ok.json` | 00 | Step complete marker |
 | `build/orbitron/chain/01_pic/diags/` | 01 | WarpX `density_diag*` plotfiles |
-| `build/orbitron/chain/02_pic_norms/pic_norms.json` | 02 | `rho_e_norm`, `rho_beam_norm` |
+| `build/orbitron/chain/02_pic_norms/pic_norms.json` | 02 | `rho_e_norm` (electron ring; fuel × is step 03) |
 | `build/orbitron/chain/03_fusion_channel/fusion_channel.json` | 03 | Clump index, laminar metrics, channel power |
 | `build/orbitron/chain/04_fueling/fueling.json` | 04 | `n_p`, `n_B`, `T_i`, ⟨σv⟩ |
 | `build/orbitron/chain/05_burn/burn.json` | 05 | `fusion_power_mw`, shortfall vs target |
@@ -114,6 +116,304 @@ flowchart TD
 
 ---
 
+## State evolution (equations SSOT)
+
+Each step defines a **state vector** \(\mathbf{S}\), an **initial condition** \(\mathbf{S}(0)\), and a **discrete update** \(\mathbf{S}(t_{k+1}) = f_k(\mathbf{S}(t_k))\). Subscripts name the step; time index \(k\) is step-specific (PIC step, channel frame, or algebraic).
+
+Symbols are factored so **fuel** and **Brayton compressor** do not appear in step 01 WarpX.
+
+**Shared geometry (from step 00):** bore radii \(r_c, r_a\), length \(L\), cathode voltage \(V_c\), axial field \(B\).
+
+**Pad levers (naming):**
+
+| Symbol | UI (step 01) | Enters step 01 WarpX? | First step that uses it |
+|--------|----------------|------------------------|-------------------------|
+| \(\tau\) | Ring density scale (W/S) | Yes — initial \(n_e\) | 01 |
+| \(p\) | Cathode pulse / shear (I/K) | Yes — \(n_e\) at \(t=0\) and \(E(t)\) ramp | 01 |
+| \(c\) | Compressor (U/J) | **No** | 06 plant (mdot) |
+| H₂ sccm, laser Hz | Step 00 injectants | **No** | 03–04 fueling |
+
+`chain_config.json` stores \(\tau\) as `pad.throttle` for historical JSBSim naming; in step 01 documentation it is **ring density scale**, not beam fuel.
+
+---
+
+### Step 0 — Design compile
+
+**State** \(\mathbf{S}_0 = \{G, I, Y\}\):
+
+- \(G = (r_a, r_c, L, V_c, B)\) geometry
+- \(I = (\dot Q_{H_2}, f_{\mathrm{laser}})\) injectants (sccm, Hz)
+- \(Y\) = YAML spec bundle
+
+**Initial:** user edits in GUI or checked-in YAML.
+
+**Update (algebraic, one shot):**
+
+\[
+\mathbf{S}_1 = \mathrm{Compile}(Y, G, I) \rightarrow \{\texttt{chain\_config.json},\ \texttt{picmi\_overrides.json}\}
+\]
+
+No \(f(\mathbf{S}(t))\) — not a time integrator.
+
+**Display:** Engine s–r layout, core cross-section, PICMI table (Proof Suite step 00).
+
+---
+
+### Step 1 — Electron-ring WarpX (Tier 2)
+
+**State** at PIC index \(k\):
+
+\[
+\mathbf{S}_1(k) = \bigl(\{(\mathbf{x}_i, \mathbf{v}_i, w_i)\}_{i=1}^{N_p},\ t_k,\ \alpha_k\bigr)
+\]
+
+Species: **`electrons` only**. Prescribed fields (not from plasma Poisson):
+
+**Initial** \(\mathbf{S}_1(0)\) before first push:
+
+- Macroparticle set \(\{(x_i, v_i, w_i)\}\) for species **`electrons`** only.
+- Simulation time \(t_T = T\,\Delta t\).
+- Prescribed fields (not solved from plasma):
+  - \(E_0(x,z)\) = analytic cylindrical cathode–anode radial field from step 00 \(V_c, r_c, r_a\).
+  - \(B = (0, B, 0)\) constant from step 00.
+- Initial density scale (set once at \(t=0\), before first push):
+
+\[
+n_e = n_{e,\mathrm{base}}\,\bigl(0.15 + 0.85\,\tau\bigr)\,\bigl(0.65 + 0.35\,p\bigr)
+\]
+
+- Cathode ramp (every step, multiplies **E** only):
+
+\[
+\alpha(t;\,p) =
+\begin{cases}
+0.30 + \bigl(0.88 + 0.12\,p - 0.30\bigr)\,t/t_{\mathrm{end}} & t \le t_{\mathrm{end}} \\
+0.88 + 0.12\,p & t > t_{\mathrm{end}}
+\end{cases}
+\]
+
+with \(t_{\mathrm{end}} = 0.35\,N_{\mathrm{steps}}\,\Delta t\).
+
+**Not in state:** fuel species, compressor, arc seed, inject beams, Poisson solve.
+
+**Update** \(k \to k+1\) (\(f_1\)):
+
+\[
+E(x,z,t_T) = E_0(x,z)\,\alpha(t_T;\,p), \quad B = \mathrm{const}
+\]
+
+\[
+\mathbf{a}_i = \frac{q_e}{m_e}\,\bigl(\mathbf{E}(\mathbf{x}_i,t_T) + \mathbf{v}_i \times \mathbf{B}\bigr)
+\]
+
+\[
+\mathbf{v}_i^{T+1} = \mathbf{v}_i^T + \Delta t\,\mathbf{a}_i, \quad
+\mathbf{x}_i^{T+1} = \mathbf{x}_i^T + \Delta t\,\mathbf{v}_i^{T+1}
+\]
+
+\[
+\rho_e^{T+1}(x,z) = \mathrm{Deposit}\bigl(\{x_i^{T+1}, w_i\}\bigr)
+\]
+
+\(\tau\) and \(p\) affect \(n_e\) only at initialization; \(p\) also enters \(\alpha(t)\) each step. **\(c\) does not appear.**
+
+**(C) Display (Proof Suite step 01 movie):**
+
+| Plot | Field | Source |
+|------|-------|--------|
+| x–z heatmap | \(\|\rho_e\|\) | WarpX plotfile `rho_electrons` every `diag_period` steps |
+| Metrics | Ring τ, pulse p | Last successful run metadata |
+| **Not plotted** | arc seed, H⁺/B⁺ beams | Removed from default deck (`electron_ring_only`) |
+
+Implementation: `ssto/orbitron/laminar_flow_2d_arcjet.py` (`run_arcjet_picmi`, `full_deck=False`).
+
+---
+
+### Step 2 — PIC reduce
+
+**State:** \(\mathbf{S}_2 = (\rho_e^{\mathrm{plotfile}}, n_e^{\mathrm{design}})\) from step 01 artifact + levers.
+
+**Initial:** last `density_diag` on disk.
+
+**Update** (algebraic):
+
+\[
+\rho_{e,\mathrm{p95}} = \mathrm{P95}\bigl(\|\rho_e\|\ \text{in annulus}\ [0.9\,r_c,\ 0.95\,r_a]\bigr)
+\]
+
+\[
+\rho_{e,\mathrm{norm}} = \mathrm{clamp}_{[0.05,\,3]}\!\left(\frac{\rho_{e,\mathrm{p95}}}{n_e\,e}\right)
+\]
+
+**(C) Display:** Single bar **Electron ring ×** = \(\rho_{e,\mathrm{norm}}\). No fuel bar (fuel × is step 03).
+
+---
+
+### Step 3 — Fusion channel (s–r)
+
+**State** at frame \(k\):
+
+\[
+\mathbf{S}_3(k) = \bigl(n_k(s,r),\ C_k,\ t_k\bigr)
+\]
+
+- \(n_k\) = fusion-relevant density on \((s,r)\) grid inside bore \(r \le r_a\)
+- \(C_k\) = clump index = \(\mathrm{P95}(n) / \mathrm{median}(n)\) over active cells
+- Controls (held fixed per run): \(\dot Q_{H_2}\), \(f_{\mathrm{laser}}\), \(\rho_{e,\mathrm{norm}}\), laminar flag \(L\), pad \(c_{\mathrm{eff}}\)
+
+**Injection rate scale** (GUI **λ**):
+
+\[
+\lambda = \frac{\dot Q_{H_2}}{\dot Q_{H_2,\mathrm{ref}}} \sqrt{\frac{f_{\mathrm{laser}}}{f_{\mathrm{laser,ref}}}}
+\quad (\mathrm{ref} = 80\ \mathrm{sccm},\ 10\ \mathrm{Hz})
+\]
+
+**Axial stir** (not fuel mass — Brayton path proxy):
+
+\[
+c_{\mathrm{eff}} = c \cdot \mathbb{1}_{\mathrm{bleed}} \cdot s_{\mathrm{spool}}
+\]
+
+**Initial** \(\mathbf{S}_3(0)\):
+
+\[
+n_0(s,r) = n_{\mathrm{seed}} \cdot \lambda
+\]
+
+If laminar **OFF**: multiply by deterministic ripple + \(\mathcal{N}(0,1)\) noise (seed from `fusion_channel.stochastic_seed`).
+
+From 0D fueling: \(n_p, n_B, T_i, \langle\sigma v\rangle\) via `evaluate_fusion_pb11` (uses \(\rho_{e,\mathrm{norm}}\)).
+
+**Update** \(k \to k+1\) (\(f_3\)) — `fusion_channel_sr.py`:
+
+1. **End inject** (H⁺ / B⁺ blobs at \(s \approx\) ends):  
+   \(n \mathrel{+}= \Delta t \cdot A_{\mathrm{inj}}(\lambda, \mathrm{mix}, \tau, p) \cdot \mathrm{Gaussian}_{s,r}\)
+
+2. **Clump seed** (only if \(L=0\) and \(k > K/8\)): mid-bore Gaussian blobs \(\propto \lambda\)
+
+3. **Radial diffusion:**  
+   \(n \mathrel{+}= \Delta t \cdot D_{\mathrm{eff}}(L, p, \tau, B, \mathrm{mix}) \cdot \partial^2 n / \partial r^2\)
+
+4. **Axial advection:**  
+   \(n \mathrel{-}= \Delta t \cdot u_s(c_{\mathrm{eff}}, \tau) \cdot \partial n / \partial s\)
+
+5. **Stochastic noise** (only if \(L=0\)):  
+   \(n \mathrel{+}= \sigma_{\mathrm{noise}} \cdot n_{\mathrm{seed}} \cdot \mathcal{N}(0,1)\)
+
+6. **Clip** \(n \ge 10^9\); store \(C_k\), reaction proxy \(R \propto n_p n_B \langle\sigma v\rangle\).
+
+**Post-run scalars:**
+
+\[
+\mathrm{fuel\_coupling\_norm} = \mathrm{clamp}_{[0.2,3]}\!\left(\frac{\max_{s,r} n_K}{\mathrm{mean}_{s,r}\, n_0}\right)
+\]
+
+**Display (Proof Suite step 03):**
+
+| Plot | Quantity | Source |
+|------|----------|--------|
+| Heatmaps OFF \| ON | \(n(s,r)\) or \(R(s,r)\) | `fields_laminar_off/on.npz` |
+| Clump vs time | \(C_k\) | same NPZ `clump_index` |
+| Radial profile | \(\langle n \rangle_s(r)\) at final \(K\) | mean over \(s\) |
+| Metrics | λ, fuel ×, clump gate | `03_fusion_channel/fusion_channel.json` |
+
+**Controls on screen:** H₂ sccm, laser Hz, compressor \(c\), RNG seed, noise fraction — **re-run** after changing.
+
+---
+
+### Step 4 — Fueling densities
+
+**State:** \(\mathbf{S}_4 = (G, I, \rho_{e,\mathrm{norm}}, \tau, p, \eta_{\mathrm{react}})\).
+
+**Initial:** step 00 injectants + step 02 \(\rho_{e,\mathrm{norm}}\).
+
+**Update** (algebraic \(f_4\)):
+
+\[
+V = \pi r_a^2 L f_{\mathrm{fill}}, \quad
+n_p = \mathrm{sccm\_to\_}n(\dot Q_{H_2} \cdot \mathrm{mix}, V, \tau_{\mathrm{res}}), \quad
+n_B = \mathrm{sccm\_to\_}n(f_{\mathrm{laser}} \cdot \mathrm{scale}_B, V, \tau_{\mathrm{res}})
+\]
+
+\[
+T_i = T_i(V_c, p, \tau), \quad \langle\sigma v\rangle = f_{\mathrm{pb11}}(T_i)
+\]
+
+\[
+\eta_{\mathrm{conf}} = \eta_{\mathrm{react}} \cdot g(\tau, \mathrm{mix}) \cdot \mathrm{clamp}(\rho_{e,\mathrm{norm}})
+\]
+
+**Display:** \(n_p\), \(n_B\), \(T_i\), ⟨σv⟩ cards (step 04).
+
+---
+
+### Step 5 — p-¹¹B burn power
+
+**State:** \(\mathbf{S}_5 = (n_p, n_B, T_i, \langle\sigma v\rangle, \eta_{\mathrm{conf}}, V)\).
+
+**Initial:** step 04 output; proof mode \(\eta_{\mathrm{react}} = 1\).
+
+**Update** (algebraic \(f_5\)):
+
+\[
+R = n_p n_B \langle\sigma v\rangle, \quad
+P_{\mathrm{fusion}} = \eta_{\mathrm{conf}} \cdot V \cdot R \cdot E_{\mathrm{rxn}}
+\]
+
+\[
+\mathrm{shortfall} = P_{\mathrm{target}} - P_{\mathrm{fusion}}
+\]
+
+**Display:** Target vs \(P_{\mathrm{fusion}}\) bar; shortfall MW (step 05).
+
+---
+
+### Step 6 — 0D plant
+
+**State:** \(\mathbf{S}_6 = (P_{\mathrm{fusion}}, G, U, \mathrm{pad}, \mathrm{fuel\_coupling})\) with unobtanium \(U\).
+
+**Initial:** steps 03–05 + pad (including **compressor \(c\)**).
+
+**Update** (algebraic steady solve \(f_6\)):
+
+\[
+\dot m = \dot m_0 \cdot c_{\mathrm{eff}} \cdot h(\tau, \rho_{e,\mathrm{norm}}, \mathrm{fuel\_coupling}), \quad
+P_{\mathrm{gross}} = f_{\mathrm{plant}}(P_{\mathrm{fusion}}, \dot m, U)
+\]
+
+U1–U4 inequality checks (cathode \(|E|\), wall, HTS, density).
+
+**Display:** Gross MW, thrust, mdot, violation list. **First step where \(c\) drives Brayton mdot.**
+
+---
+
+### Step 7 — Jet closure
+
+**State:** \(\mathbf{S}_7 = (F, \dot m, P_{\mathrm{jet}}, P_{\mathrm{gross}}, \eta)\) from step 06.
+
+**Update** (algebraic \(f_7\)):
+
+\[
+P_{\mathrm{from\_}F} = \frac{F^2}{2\dot m}, \quad
+\varepsilon_{\mathrm{closure}} = \frac{|P_{\mathrm{from\_}F} - P_{\mathrm{jet}}|}{P_{\mathrm{jet}}}
+\]
+
+Gate: \(\varepsilon_{\mathrm{closure}} \le 0.12\).
+
+**Display:** Closure error metrics (step 07).
+
+---
+
+### Step 8 — Validation export
+
+**State:** full chain artifacts \(\mathbf{S}_8 = \{\mathbf{S}_0 \ldots \mathbf{S}_7\}\).
+
+**Update:** \(f_8 = \mathrm{validate\_design} \rightarrow\) `design_validation.yaml` + pass/fail table.
+
+**Display:** Spec checks, `design_validated` flag (step 08).
+
+---
+
 ## Step-by-step (apps, dependencies, gates)
 
 ### Step 0 — Freeze design SSOT
@@ -133,17 +433,18 @@ tools/orbitron_proof_chain/chain_00_spec.sh
 
 ---
 
-### Step 1 — Electrostatic / beam PIC at pad run point
+### Step 1 — Electron-ring WarpX (prescribed E×B)
 
 | | |
 |--|--|
 | **Script** | `tools/orbitron_proof_chain/chain_01_pic.sh` |
-| **App** | `ssto/orbitron/laminar_flow_2d_arcjet.py` (WarpX PICMI) |
-| **Inputs** | Step 0 `picmi_overrides.json` + pad levers from `chain_config.json` |
-| **Outputs** | `01_pic/diags/density_diag*` |
+| **App** | `ssto/orbitron/laminar_flow_2d_arcjet.py` (WarpX PICMI, `electron_ring_only`) |
+| **Inputs** | Step 0 `picmi_overrides.json` + pad levers \(\tau\), \(p\) only |
+| **Outputs** | `01_pic/diags/density_diag*` (`rho_electrons` only) |
 | **Depends on** | Step 0 |
-| **Gate** | Run completes; finite ρ_e and beam fields on last frame |
-| **Proves today** | **Tier 2** — density/beam coupling, **not** fusion Q |
+| **Gate** | Run completes; finite `rho_electrons` on last frame |
+| **Proves today** | **Tier 2** — E×B electron ring coupling, **not** fuel or fusion Q |
+| **Equations** | See § State evolution → Step 1 |
 
 ```bash
 export WARPX_PYTHON="${WARPX_PYTHON:-python3}"   # must have pywarpx
@@ -151,18 +452,21 @@ tools/orbitron_proof_chain/chain_01_pic.sh
 # or: SKIP_PIC=1 tools/orbitron_proof_chain/chain_01_pic.sh
 ```
 
+**Not in this step:** H₂, laser ¹¹B, compressor \(c\), arc seed, H⁺/B⁺ inject beams (legacy `--full-deck` for surrogate sweeps only).
+
 ---
 
-### Step 2 — Reduce PIC → coupling numbers
+### Step 2 — Reduce PIC → electron ring norm
 
 | | |
 |--|--|
 | **Script** | `poetry run python tools/orbitron_proof_chain/chain_02_reduce.py` |
 | **App** | `tools/build_surrogate_map.py` reducers (`yt` on last plotfile) |
-| **Inputs** | Step 1 plotfiles |
-| **Outputs** | `02_pic_norms/pic_norms.json` → `rho_e_norm`, `rho_beam_norm` |
+| **Inputs** | Step 1 plotfiles (`rho_electrons` only) |
+| **Outputs** | `02_pic_norms/pic_norms.json` → `rho_e_norm` |
 | **Depends on** | Step 1 |
-| **Gate** | Norms in ~0.2–3.0 (plant clamps) |
+| **Gate** | `rho_e_norm` in ~0.2–3.0 (plant clamps) |
+| **Equations** | See § State evolution → Step 2 |
 
 ```bash
 poetry run python tools/orbitron_proof_chain/chain_02_reduce.py
@@ -200,7 +504,7 @@ Reference video intent: [Orbitron-style particle / clumping](https://youtu.be/_7
 |--|--|
 | **Script** | `poetry run python tools/orbitron_proof_chain/chain_04_fueling.py` |
 | **App** | `fusion_pb11.evaluate_fusion_pb11` (density path) |
-| **Inputs** | H₂/B₁₀H₁₄ sccm; step 2 `rho_e_norm` → confinement |
+| **Inputs** | H₂ sccm + **laser_ablation_hz** (solid ¹¹B); step 2 `rho_e_norm` → confinement; pad interlocks |
 | **Outputs** | `04_fueling/fueling.json` |
 | **Depends on** | Steps 2, 0 |
 | **Gate** | Documented n_p, n_B, T_i; τ and volume assumptions explicit in `fusion_pb11.py` |
@@ -307,7 +611,7 @@ RUN_INVERSE=1 poetry run python tools/orbitron_proof_chain/chain_09_solve.py
 | **3b** | Step 3 | Laminar relaminarization vs clump index (design validation viz) |
 | **4** | *Future* | Transport/PIC-integrated reactivity; no analytical ⟨σv⟩ fit or surrogate blend |
 
-**Critical honesty:** WarpX (`laminar_flow_2d_arcjet.py`) does **not** integrate p-¹¹B fusion yield. It informs how well plasma fills the bore and beams deposit charge — not whether thermonuclear Q exceeds unity from first principles.
+**Critical honesty:** WarpX step 01 (`laminar_flow_2d_arcjet.py`, default `electron_ring_only`) integrates **electrons in prescribed E×B fields only**. It does not include fuel, compressor, or p-¹¹B fusion yield. Fuel and Brayton compressor enter steps 03–06.
 
 ---
 

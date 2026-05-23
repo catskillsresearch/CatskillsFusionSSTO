@@ -14,12 +14,17 @@ BUILD := $(REPO_ROOT)/build/orbitron
 # Lab glTF: unified assembly YAML (schema v2) → nested CadQuery export → Blender → .ac.
 GLTF_LAB := $(STAND)/build/orbitron_lab.gltf
 # Per-logical-group slices (``--subassembly``); built with ``make`` / fg-ready / ``orbitron-lab-gltf``.
-GLTF_LAB_TANK_SUB_NAMES := methane_tank_assy boron_tank_assy hydrogen_tank_assy tank_assy
-GLTF_LAB_TANK_SUBS := $(foreach n,$(GLTF_LAB_TANK_SUB_NAMES),$(STAND)/build/$(n).gltf)
-GLTF_LAB_EXTRA_SUB_NAMES := \
-	propulsive_nozzle reactor_bay turbofan_intake air_breathing_engine control_panel_stand thrust_sled
-GLTF_LAB_EXTRA_SUBS := $(foreach n,$(GLTF_LAB_EXTRA_SUB_NAMES),$(STAND)/build/$(n).gltf)
-GLTF_LAB_SUBASSEMBLIES := $(GLTF_LAB_TANK_SUBS) $(GLTF_LAB_EXTRA_SUBS)
+# Reply 19 logical.groups keys (see orbitron_lab.yaml after Reply 19 SSOT).
+GLTF_LAB_SUB_NAMES := \
+	phase_1_benchtop \
+	phase_2_wind_tunnel \
+	integrated_pad_services \
+	subassembly_1_2_electrostatic_orbitron_core \
+	subassembly_1_3_laser_ablation_system \
+	air_breathing_nozzle_train \
+	control_panel_stand \
+	thrust_sled
+GLTF_LAB_SUBASSEMBLIES := $(foreach n,$(GLTF_LAB_SUB_NAMES),$(STAND)/build/$(n).gltf)
 GLTF_LAB_ALL_GLTF := $(GLTF_LAB) $(GLTF_LAB_SUBASSEMBLIES)
 GLTF_LAB_PNGS := $(GLTF_LAB_ALL_GLTF:.gltf=.png)
 BUILD_BLENDER_RENDER_GLTF := $(REPO_ROOT)/tools/blender_render_orbitron_gltf.py
@@ -90,7 +95,8 @@ YAML_LAB_COMPILER_DEPS := \
 	$(REPO_ROOT)/tools/yaml_assembly/transform_ops.py \
 	$(REPO_ROOT)/tools/yaml_assembly/templates_registry.py \
 	$(ORBITRON)/arcjet_test_stand_cad.py \
-	$(ORBITRON)/full_reactor_cad.py
+	$(ORBITRON)/full_reactor_cad.py \
+	$(ORBITRON)/reply19_parts_cad.py
 
 # Inputs that define the build graph (edit Makefile subgraph block when topology changes).
 GRAPH_INPUTS := Makefile $(ORBITRON_LAB_YAMLS) $(YAML_LAB_COMPILER_DEPS) \
@@ -137,7 +143,7 @@ help:
 	@echo "  make orbitron-lab-gltf  Build $(GLTF_LAB) + all sub-assembly glTFs under build/ (tanks, air path, panel, sled)"
 	@echo "  make orbitron-lab-pngs  EEVEE PNGs ($(STAND)/build/*.png, #ECECEC) from each lab glTF"
 	@echo "  make orbitron-lab-sub-gltfs  Sub-assembly glTFs only (same set as orbitron-lab-gltf minus the full lab file)"
-	@echo "  make orbitron-lab-tank-sub-gltfs  The four tank-farm glTFs only (methane/boron/helium/tank_assy)"
+	@echo "  make orbitron-lab-sub-gltfs  Phase 1/2 + pad slices (see GLTF_LAB_SUB_NAMES in Makefile)"
 	@echo "  make surrogate-closure  0D η·P_gross vs F²/(2ṁ) check (YAML scales); add JSON via ORBITRON_CLOSURE_JSON="
 	@echo "  ./bl.sh             Blender + nested lab glTF; ./bl.sh --collections for VIEW__* isolate collections"
 	@echo "  ORBITRON_LAB_GLTF=... ./bl.sh   Override glTF path (default: $(GLTF_LAB))"
@@ -226,7 +232,7 @@ orbitron-lab-pngs: $(GLTF_LAB_PNGS)
 
 orbitron-lab-sub-gltfs: $(GLTF_LAB_SUBASSEMBLIES)
 
-orbitron-lab-tank-sub-gltfs: $(GLTF_LAB_TANK_SUBS)
+orbitron-lab-tank-sub-gltfs: orbitron-lab-sub-gltfs
 
 # 0D jet closure: η·P_gross vs F²/(2ṁ). Optional: ORBITRON_CLOSURE_JSON=$(STAND)/engine_surrogate.json
 surrogate-closure:
