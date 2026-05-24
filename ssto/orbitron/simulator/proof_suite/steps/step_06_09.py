@@ -84,15 +84,20 @@ class Step06PlantPanel(ProofStepPanel):
         figu.clear()
         axu = figu.add_subplot(111)
         checks = [
-            ("U1 E_cath", s["cathode_surface_field_V_m"] / 3e9, 1.0),
-            ("U2 q_wall", s["wall_heat_flux_W_m2"] / 2e6, 1.0),
-            ("U3 cryo", s["hts_cryo_kw"], 0.5),
-            ("U4 beam", s["beam_current_ma"], 1.0),
-            ("log10 n", s["log10_density"] / 11.0, 1.0),
+            ("U1 E_cath", s["cathode_surface_field_V_m"] / 3e9, "max", 1.0),
+            ("U2 q_wall", s["wall_heat_flux_W_m2"] / 2e6, "max", 1.0),
+            ("U3 cryo", s["hts_cryo_kw"] / 0.5, "max", 1.0),
+            ("U4 beam", float(s["beam_current_ma"]) / 1.0, "min", 1.0),
+            ("U4 log₁₀ n", s["log10_density"] / 11.0, "min", 1.0),
         ]
         names = [c[0] for c in checks]
         ratios = [min(c[1], 2.5) for c in checks]
-        colors = ["#9ece6a" if r <= 1 else "#f7768e" for r in ratios]
+        colors = []
+        for _name, rv, kind, lim in checks:
+            if kind == "min":
+                colors.append("#9ece6a" if rv >= lim else "#f7768e")
+            else:
+                colors.append("#9ece6a" if rv <= lim else "#f7768e")
         axu.barh(names, ratios, color=colors)
         axu.axvline(1.0, color="#e0af68", ls="--")
         axu.set_xlabel("Ratio to limit / target")

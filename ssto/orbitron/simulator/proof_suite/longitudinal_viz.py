@@ -121,12 +121,14 @@ def draw_fusion_channel_heatmap(
     vmin: float | None = None,
     vmax: float | None = None,
     cmap: str = "magma",
-    radial_stretch: float = 14.0,
+    fill_axes: bool = True,
+    radial_stretch: float = 6.0,
 ):
     """
     s–r heatmap zoomed to the fusion-channel domain (no full-duct CAD underlay).
 
-    ``radial_stretch`` exaggerates r vs s so the bore is readable (physical s–r is very wide).
+    With ``fill_axes=True`` (default), the heatmap stretches to the axes box (wide bore view).
+    Set ``fill_axes=False`` for physical s–r proportion with ``radial_stretch`` on r.
     """
     xh, yv, sl = _align_pcolormesh_grid(s_m, r_m, field_2d)
     s_lo, s_hi = fusion_channel_s_limits(s_m)
@@ -137,12 +139,29 @@ def draw_fusion_channel_heatmap(
     ax.axhline(r_anode_m, color="#e0af68", ls="--", lw=0.9, alpha=0.85, label="r_anode")
     ax.set_xlabel("s [m]")
     ax.set_ylabel("r [m]")
-    ax.set_title(title, color="#c0caf5")
+    ax.set_title(title, color="#c0caf5", fontsize=10)
     s_span = s_hi - s_lo
-    if s_span > 0 and r_hi > 0:
+    if fill_axes:
+        ax.set_aspect("auto")
+    elif s_span > 0 and r_hi > 0:
         ax.set_aspect((s_span / r_hi) / radial_stretch, adjustable="box")
     ax.set_facecolor("#1a1b26")
     return im
+
+
+def fusion_channel_colorbar(fig, ax, mappable, *, label: str = "") -> None:
+    """Compact colorbar sized to the heatmap axes (not full figure height)."""
+    cbar = fig.colorbar(
+        mappable,
+        ax=ax,
+        fraction=0.028,
+        pad=0.015,
+        shrink=0.55,
+        aspect=28,
+        label=label,
+    )
+    cbar.ax.tick_params(labelsize=7, length=2)
+    cbar.ax.yaxis.label.set_size(8)
 
 
 def fusion_off_on_log_ratio(off_2d: np.ndarray, on_2d: np.ndarray, *, floor: float = 1e-30) -> np.ndarray:

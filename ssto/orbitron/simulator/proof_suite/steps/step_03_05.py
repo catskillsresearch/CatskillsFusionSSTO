@@ -32,13 +32,16 @@ from ssto.orbitron.simulator.proof_chain.runners import (
     run_step_04,
     run_step_05,
 )
-from ssto.orbitron.simulator.proof_suite.longitudinal_viz import _align_pcolormesh_grid, fusion_field_color_limits
+from ssto.orbitron.simulator.proof_suite.longitudinal_viz import (
+    draw_fusion_channel_heatmap,
+    fusion_channel_colorbar,
+    fusion_field_color_limits,
+    fusion_off_on_log_ratio,
+)
 from ssto.orbitron.simulator.proof_suite.steps.base import ProofStepPanel
 from ssto.orbitron.simulator.proof_suite.state import ProofSuiteState
 from ssto.orbitron.simulator.proof_suite.widgets import MetricGrid, MplCanvas, apply_dark_axes
 from ssto.orbitron.simulator.proof_suite.workers import StepWorker
-from ssto.orbitron.simulator.blender_layout import draw_blender_underlay, engine_axial_layout
-from ssto.orbitron.simulator.longitudinal.focus import LongitudinalFocus
 from ssto.orbitron.simulator.types import DeviceGeometry
 
 
@@ -136,7 +139,7 @@ class Step03FusionPanel(ProofStepPanel):
         ctrl.addWidget(self.field_combo)
         self._layout.addLayout(ctrl)
 
-        self.canvas = MplCanvas(9, 4.5)
+        self.canvas = MplCanvas(14, 3.8)
         self._layout.addWidget(self.canvas, stretch=1)
 
         scrub = QHBoxLayout()
@@ -300,9 +303,6 @@ class Step03FusionPanel(ProofStepPanel):
     ) -> None:
         use_r = self.field_combo.currentIndex() == 1
         data = npz["reaction_rate"] if use_r else npz["density"]
-        s, r = npz["s_m"], npz["r_m"]
-        layout = engine_axial_layout(geo)
-        draw_blender_underlay(ax, layout, LongitudinalFocus.FUSION_CHANNEL_SR, symmetric=False)
         if use_r and vmax is not None and vmax <= 0.0:
             ax.text(
                 0.5,
@@ -317,14 +317,17 @@ class Step03FusionPanel(ProofStepPanel):
             apply_dark_axes(ax)
             ax.set_title(title, color="#c0caf5")
             return None
-        xh, yv, sl = _align_pcolormesh_grid(s, r, data[idx])
-        im = ax.pcolormesh(
-            xh, yv, sl, shading="auto", cmap="magma", alpha=0.75, vmin=vmin, vmax=vmax
+        im = draw_fusion_channel_heatmap(
+            ax,
+            npz["s_m"],
+            npz["r_m"],
+            data[idx],
+            r_anode_m=geo.r_anode_m,
+            title=title,
+            vmin=vmin,
+            vmax=vmax,
         )
         apply_dark_axes(ax)
-        ax.set_title(title, color="#c0caf5")
-        ax.set_xlabel("Axial s [m]")
-        ax.set_ylabel("Radius r [m]")
         return im
 
     def _draw_frame(self) -> None:
@@ -349,18 +352,52 @@ class Step03FusionPanel(ProofStepPanel):
         if side_by_side and self._npz_off is not None and self._npz_on is not None:
             stacks = [self._npz_off[field_key], self._npz_on[field_key]]
         vmin, vmax = fusion_field_color_limits(*stacks)
-        if side_by_side:
-            ax_off = fig.add_subplot(121)
-            ax_on = fig.add_subplot(122)
+        if side_by_side and self._npz_off is not None and self._npz_on is not None:
+            vmin_off, vmax_off = fusion_field_color_limits(self._npz_off[field_key])
+            vmin_on, vmax_on = fusion_field_color_limits(self._npz_on[field_key])
+            ax_off = fig.add_subplot(131)
+            ax_on = fig.add_subplot(132)
+            ax_ratio = fig.add_subplot(133)
             im0 = self._plot_heatmap(
-                ax_off, self._npz_off, idx, title="Laminar OFF (clumping)", geo=geo, vmin=vmin, vmax=vmax
+                ax_off,
+                self._npz_off,
+                idx,
+                title="Laminar OFF (clumping)",
+                geo=geo,
+                vmin=vmin_off,
+                vmax=vmax_off,
             )
             im1 = self._plot_heatmap(
-                ax_on, self._npz_on, idx, title="Laminar ON (smoothed)", geo=geo, vmin=vmin, vmax=vmax
+                ax_on,
+                self._npz_on,
+                idx,
+                title="Laminar ON (smoothed)",
+                geo=geo,
+                vmin=vmin_on,
+                vmax=vmax_on,
             )
-            im = im1 or im0
-            if im is not None:
-                fig.colorbar(im, ax=[ax_off, ax_on], fraction=0.046, pad=0.04)
+            ratio = fusion_off_on_log_ratio(
+                self._npz_off[field_key][idx], self._npz_on[field_key][idx]
+            )
+            r_vmin, r_vmax = fusion_field_color_limits(ratio[np.newaxis, ...])
+            im2 = draw_fusion_channel_heatmap(
+                ax_ratio,
+                self._npz_on["s_m"],
+                self._npz_on["r_m"],
+                ratio,
+                r_anode_m=geo.r_anode_m,
+                title="log10(OFF/ON)",
+                vmin=r_vmin,
+                vmax=r_vmax,
+                cmap="RdBu_r",
+            )
+            if im0 is not None:
+                fusion_channel_colorbar(fig, ax_off, im0)
+            if im1 is not None:
+                fusion_channel_colorbar(fig, ax_on, im1)
+            if im2 is not None:
+                fusion_channel_colorbar(fig, ax_ratio, im2)
+            fig.subplots_adjust(left=0.05, right=0.94, top=0.92, bottom=0.12, wspace=0.38)
         else:
             ax = fig.add_subplot(111)
             laminar = "ON" if self.chk_laminar.isChecked() else "OFF"
@@ -374,7 +411,7 @@ class Step03FusionPanel(ProofStepPanel):
                 vmax=vmax,
             )
             if im is not None:
-                fig.colorbar(im, ax=ax, fraction=0.046)
+                fusion_channel_colorbar(fig, ax, im)
         t = float(ref["time_s"][idx])
         d0 = ref[field_key][0]
         delta = float(np.max(np.abs(ref[field_key][idx] - d0)))

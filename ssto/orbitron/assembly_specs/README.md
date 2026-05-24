@@ -133,4 +133,5 @@ Assembly hero PNGs (solid `#ECECEC` background, perspective 3/4 hero camera + su
 lights, factory-startup empty scene): `make orbitron-lab-pngs` or `./stand.sh` — one
 `build/<assembly>.png` per lab and sub-assembly glTF (headless Blender via
 `tools/blender_render_orbitron_gltf.py`). Camera distance is solved from lens FOV + image aspect
-so the whole bounding sphere fits with `FRAME_MARGIN` padding (currently 1.25×).
+so the whole bounding sphere fits with `FRAME_MARGIN` padding (default 1.04×; post-render
+``tools/trim_assembly_png.py`` crops EEVEE gray margins).

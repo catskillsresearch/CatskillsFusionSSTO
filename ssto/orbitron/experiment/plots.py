@@ -10,14 +10,16 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
 
-from ssto.orbitron.simulator.blender_layout import draw_blender_underlay, engine_axial_layout
 from ssto.orbitron.simulator.longitudinal.focus import LongitudinalFocus
 from ssto.orbitron.simulator.proof_chain.runners import base_inputs, list_pic_plotfiles
 from ssto.orbitron.simulator.proof_suite.longitudinal_viz import (
     _align_pcolormesh_grid,
     compute_longitudinal_preview,
+    draw_fusion_channel_heatmap,
+    fusion_channel_colorbar,
     draw_step01_warpx_xz,
     fusion_field_color_limits,
+    fusion_off_on_log_ratio,
 )
 from ssto.orbitron.simulator.types import DeviceGeometry
 from ssto.orbitron.simulator.viz import render_device_cross_section
@@ -98,7 +100,21 @@ def plot_step02_rho_norm(figures_dir: Path) -> Path | None:
     _dark_style()
     fig, ax = plt.subplots(figsize=(4, 3.5))
     if data.get("skipped"):
-        ax.text(0.5, 0.5, "SKIP_PIC", ha="center", va="center", color="#565f89")
+        re = float(data.get("rho_e_norm", 1.0))
+        ax.bar(["ρ_e_norm"], [re], color="#565f89", width=0.4, alpha=0.6)
+        ax.axhspan(0.2, 3.0, color="#9ece6a", alpha=0.12)
+        ax.set_ylim(0, max(3.5, re * 1.15))
+        ax.set_ylabel("Electron ring ×")
+        ax.set_title("PIC skipped — unity placeholder (not measured)", color="#e0af68", fontsize=9)
+        ax.text(
+            0.5,
+            0.92,
+            "run.skip_pic or --skip-pic",
+            transform=ax.transAxes,
+            ha="center",
+            fontsize=8,
+            color="#565f89",
+        )
     else:
         re = float(data.get("rho_e_norm", 1))
         color = "#7aa2f7" if 0.2 <= re <= 3.0 else "#f7768e"
@@ -144,20 +160,53 @@ def _plot_fusion_pair(
         return None
     z_off = np.load(off_p)
     z_on = np.load(on_p)
-    stacks = [z_off[field_key], z_on[field_key]]
-    vmin, vmax = fusion_field_color_limits(*stacks)
     idx = len(z_on["time_s"]) - 1
+    sl_off = z_off[field_key][idx]
+    sl_on = z_on[field_key][idx]
+    vmin_off, vmax_off = fusion_field_color_limits(z_off[field_key])
+    vmin_on, vmax_on = fusion_field_color_limits(z_on[field_key])
     geo = _geometry_from_cfg(cfg)
     r_a = geo.r_anode_m
-    layout = engine_axial_layout(geo)
     field_label = "Fuel density n(s,r)" if field_key == "density" else "Reaction rate R(s,r)"
     _dark_style()
-    # Taller figure + bore-only r zoom so the 4 cm radius is readable.
-    fig, (ax_off, ax_on) = plt.subplots(1, 2, figsize=(12, 6))
-    im = None
-    for ax, z, title in ((ax_off, z_off, "Laminar OFF"), (ax_on, z_on, "Laminar ON")):
-        draw_blender_underlay(ax, layout, LongitudinalFocus.FUSION_CHANNEL_SR, symmetric=False)
-        if field_key == "reaction_rate" and vmax is not None and vmax <= 0:
+    fig, (ax_off, ax_on, ax_ratio) = plt.subplots(
+        1, 3, figsize=(17, 2.75), gridspec_kw={"wspace": 0.38}
+    )
+    im_off = draw_fusion_channel_heatmap(
+        ax_off,
+        z_off["s_m"],
+        z_off["r_m"],
+        sl_off,
+        r_anode_m=r_a,
+        title="Laminar OFF (clumpy)",
+        vmin=vmin_off,
+        vmax=vmax_off,
+    )
+    im_on = draw_fusion_channel_heatmap(
+        ax_on,
+        z_on["s_m"],
+        z_on["r_m"],
+        sl_on,
+        r_anode_m=r_a,
+        title="Laminar ON (smoothed)",
+        vmin=vmin_on,
+        vmax=vmax_on,
+    )
+    ratio = fusion_off_on_log_ratio(sl_off, sl_on)
+    r_vmin, r_vmax = fusion_field_color_limits(ratio[np.newaxis, ...])
+    im_ratio = draw_fusion_channel_heatmap(
+        ax_ratio,
+        z_on["s_m"],
+        z_on["r_m"],
+        ratio,
+        r_anode_m=r_a,
+        title="log10(OFF/ON) — warm = hack reduced",
+        vmin=r_vmin,
+        vmax=r_vmax,
+        cmap="RdBu_r",
+    )
+    if field_key == "reaction_rate" and (vmax_off or 0) <= 0:
+        for ax in (ax_off, ax_on, ax_ratio):
             ax.text(
                 0.5,
                 0.5,
@@ -167,21 +216,16 @@ def _plot_fusion_pair(
                 transform=ax.transAxes,
                 color="#f7768e",
             )
-            continue
-        xh, yv, sl = _align_pcolormesh_grid(z["s_m"], z["r_m"], z[field_key][idx])
-        im = ax.pcolormesh(xh, yv, sl, shading="auto", cmap="magma", vmin=vmin, vmax=vmax, alpha=0.85)
-        ax.set_ylim(0.0, r_a * 1.12)
-        ax.axhline(r_a, color="#e0af68", ls="--", lw=0.9, alpha=0.85)
-        ax.set_title(title, color="#c0caf5")
-        ax.set_xlabel("s [m]")
-        ax.set_ylabel("r [m]")
-    if im is not None:
-        fig.colorbar(im, ax=[ax_off, ax_on], fraction=0.046, pad=0.04)
+    fusion_channel_colorbar(fig, ax_off, im_off, label=field_label)
+    fusion_channel_colorbar(fig, ax_on, im_on, label=field_label)
+    fusion_channel_colorbar(fig, ax_ratio, im_ratio, label="log10 ratio")
     fig.suptitle(
-        f"Step 03 — {field_label} (final frame, r ≤ r_anode dashed)",
+        f"Step 03 — {field_label} (final frame; per-panel scale; zoomed bore)",
         color="#c0caf5",
-        y=0.98,
+        y=1.02,
+        fontsize=11,
     )
+    fig.subplots_adjust(left=0.04, right=0.93, top=0.82, bottom=0.18, wspace=0.42)
     out = figures_dir / basename
     _save_fig(fig, out)
     return out
@@ -362,7 +406,7 @@ def plot_step06_plant(figures_dir: Path, *, file_tag: str = "step06") -> tuple[P
         ("U2 q_wall", s["wall_heat_flux_W_m2"] / 2e6, "max", 1.0),
         ("U3 cryo", s["hts_cryo_kw"] / 0.5, "max", 1.0),
         ("U4 beam", float(s["beam_current_ma"]) / 1.0, "min", 1.0),
-        ("log10 n", s["log10_density"] / 11.0, "max", 1.0),
+        ("U4 log₁₀ n", s["log10_density"] / 11.0, "min", 1.0),
     ]
     names = [row[0] for row in stress]
     ratios: list[float] = []
@@ -379,7 +423,7 @@ def plot_step06_plant(figures_dir: Path, *, file_tag: str = "step06") -> tuple[P
     axu.barh(names, ratios, color=colors)
     axu.axvline(1.0, color="#e0af68", ls="--", label="limit / spec (1.0×)")
     axu.set_xlim(0, max(2.6, max(ratios) * 1.15 if ratios else 2.6))
-    axu.set_xlabel("Ratio to limit (U4 = mA / 1 mA floor)")
+    axu.set_xlabel("Ratio to limit / floor (1.0× = at spec)")
     axu.set_title(
         "U1–U4 stress (green = pass)" + (" — gap-closed" if file_tag != "step06" else ""),
         color="#c0caf5",

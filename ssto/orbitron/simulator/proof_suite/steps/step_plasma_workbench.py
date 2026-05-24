@@ -37,11 +37,13 @@ from ssto.orbitron.simulator.proof_suite.coupled_fingerprint import (
     last_coupled_fingerprint,
 )
 from ssto.orbitron.simulator.proof_suite.longitudinal_viz import (
-    _align_pcolormesh_grid,
     compute_longitudinal_preview,
+    draw_fusion_channel_heatmap,
     draw_step01_placeholder,
     draw_step01_warpx_xz,
+    fusion_channel_colorbar,
     fusion_field_color_limits,
+    fusion_off_on_log_ratio,
 )
 from ssto.orbitron.simulator.proof_suite.steps.base import ProofStepPanel
 from ssto.orbitron.simulator.proof_suite.state import ProofSuiteState
@@ -50,7 +52,6 @@ from ssto.orbitron.simulator.proof_suite.workers import CoupledPlasmaWorker
 from ssto.orbitron.simulator.proof_suite.inputs_builder import simulator_inputs_from_state
 from ssto.orbitron.simulator.proof_chain.runners import list_pic_plotfiles
 from ssto.orbitron.simulator.types import DeviceGeometry, PadStartupState
-from ssto.orbitron.simulator.blender_layout import draw_blender_underlay, engine_axial_layout
 from ssto.orbitron.simulator.longitudinal.focus import LongitudinalFocus
 from tools.orbitron_proof_chain.chain_lib import align_pic_grid_cells, load_config, pad_startup_from_cfg
 
@@ -211,7 +212,7 @@ class PlasmaWorkbenchPanel(ProofStepPanel):
         self.field_combo = QComboBox()
         self.field_combo.addItems(["Fuel density n(s,r)", "Reaction rate R(s,r)"])
         fus_lay.addWidget(self.field_combo)
-        self.canvas_fus = MplCanvas(12, 4.5)
+        self.canvas_fus = MplCanvas(14, 3.8)
         fus_lay.addWidget(self.canvas_fus, stretch=1)
         fus_bottom = QSplitter(Qt.Orientation.Horizontal)
         self.canvas_clump = MplCanvas(5, 2.5)
@@ -489,8 +490,9 @@ class PlasmaWorkbenchPanel(ProofStepPanel):
         idx = self.fus_time.value()
         use_r = self.field_combo.currentIndex() == 1
         field_key = "reaction_rate" if use_r else "density"
-        vmin, vmax = fusion_field_color_limits(self._npz_off[field_key], self._npz_on[field_key])
-        all_zero_r = use_r and vmax is not None and vmax <= 0.0
+        vmin_off, vmax_off = fusion_field_color_limits(self._npz_off[field_key])
+        vmin_on, vmax_on = fusion_field_color_limits(self._npz_on[field_key])
+        all_zero_r = use_r and (vmax_off or 0) <= 0.0 and (vmax_on or 0) <= 0.0
         g = self._state.config["geometry"]
         geo = DeviceGeometry(
             g["r_anode_m"],
@@ -501,22 +503,21 @@ class PlasmaWorkbenchPanel(ProofStepPanel):
         )
         fig = self.canvas_fus.figure
         fig.clear()
-        ax_off = fig.add_subplot(121)
-        ax_on = fig.add_subplot(122)
-        im = None
-        for ax, npz, title in (
-            (ax_off, self._npz_off, "Laminar OFF"),
-            (ax_on, self._npz_on, "Laminar ON"),
-        ):
-            data = npz[field_key]
-            s, r = npz["s_m"], npz["r_m"]
-            layout = engine_axial_layout(geo)
-            draw_blender_underlay(ax, layout, LongitudinalFocus.FUSION_CHANNEL_SR, symmetric=False)
-            if all_zero_r:
+        ax_off = fig.add_subplot(131)
+        ax_on = fig.add_subplot(132)
+        ax_ratio = fig.add_subplot(133)
+        im_off = im_on = im_ratio = None
+        zero_msg = "R(s,r) = 0\nRe-run coupled chain with\nIGNITE interlocks satisfied"
+        if all_zero_r:
+            for ax, title in (
+                (ax_off, "Laminar OFF (clumpy)"),
+                (ax_on, "Laminar ON (smoothed)"),
+                (ax_ratio, "log10(OFF/ON)"),
+            ):
                 ax.text(
                     0.5,
                     0.5,
-                    "R(s,r) = 0\nRe-run coupled chain with\nIGNITE interlocks satisfied",
+                    zero_msg,
                     ha="center",
                     va="center",
                     color="#f7768e",
@@ -525,17 +526,53 @@ class PlasmaWorkbenchPanel(ProofStepPanel):
                 )
                 apply_dark_axes(ax)
                 ax.set_title(title, color="#c0caf5")
-                continue
-            xh, yv, sl = _align_pcolormesh_grid(s, r, data[idx])
-            im = ax.pcolormesh(
-                xh, yv, sl, shading="auto", cmap="magma", alpha=0.75, vmin=vmin, vmax=vmax
+        else:
+            im_off = draw_fusion_channel_heatmap(
+                ax_off,
+                self._npz_off["s_m"],
+                self._npz_off["r_m"],
+                self._npz_off[field_key][idx],
+                r_anode_m=geo.r_anode_m,
+                title="Laminar OFF (clumpy)",
+                vmin=vmin_off,
+                vmax=vmax_off,
             )
-            apply_dark_axes(ax)
-            ax.set_title(title, color="#c0caf5")
-            ax.set_xlabel("s [m]")
-            ax.set_ylabel("r [m]")
-        if im is not None:
-            fig.colorbar(im, ax=[ax_off, ax_on], fraction=0.046, pad=0.04)
+            im_on = draw_fusion_channel_heatmap(
+                ax_on,
+                self._npz_on["s_m"],
+                self._npz_on["r_m"],
+                self._npz_on[field_key][idx],
+                r_anode_m=geo.r_anode_m,
+                title="Laminar ON (smoothed)",
+                vmin=vmin_on,
+                vmax=vmax_on,
+            )
+            ratio = fusion_off_on_log_ratio(
+                self._npz_off[field_key][idx], self._npz_on[field_key][idx]
+            )
+            r_vmin, r_vmax = fusion_field_color_limits(ratio[np.newaxis, ...])
+            im_ratio = draw_fusion_channel_heatmap(
+                ax_ratio,
+                self._npz_on["s_m"],
+                self._npz_on["r_m"],
+                ratio,
+                r_anode_m=geo.r_anode_m,
+                title="log10(OFF/ON) — warm = hack reduced",
+                vmin=r_vmin,
+                vmax=r_vmax,
+                cmap="RdBu_r",
+            )
+            apply_dark_axes(ax_off)
+            apply_dark_axes(ax_on)
+            apply_dark_axes(ax_ratio)
+        if im_off is not None:
+            fusion_channel_colorbar(fig, ax_off, im_off)
+        if im_on is not None:
+            fusion_channel_colorbar(fig, ax_on, im_on)
+        if im_ratio is not None:
+            fusion_channel_colorbar(fig, ax_ratio, im_ratio)
+        if im_off is not None or im_on is not None:
+            fig.subplots_adjust(left=0.05, right=0.94, top=0.92, bottom=0.12, wspace=0.38)
         t = float(self._npz_on["time_s"][idx])
         nt = len(self._npz_on["time_s"])
         d0 = self._npz_on[field_key][0]

@@ -51,7 +51,7 @@ def main() -> int:
     parser.add_argument(
         "--no-gap-agent",
         action="store_true",
-        help="Skip Cursor-agent UNOBTANIUM_GAP.md (template still written unless --no-inverse)",
+        help="Skip Cursor AI agent; template gap table still written after step 09",
     )
     parser.add_argument(
         "--inverse",

@@ -227,6 +227,7 @@ orbitron-lab-gltf: $(GLTF_LAB) $(GLTF_LAB_SUBASSEMBLIES)
 $(GLTF_LAB_PNGS): $(STAND)/build/%.png: $(STAND)/build/%.gltf $(BUILD_BLENDER_RENDER_GLTF) $(BLENDER_RUN) | $(STAND)/.dirs
 	$(BLENDER_RUN) --background --factory-startup \
 		--python '$(BUILD_BLENDER_RENDER_GLTF)' -- '$<' '$@'
+	@cd '$(REPO_ROOT)' && $(POETRY) run python tools/trim_assembly_png.py '$@' --padding 12 || true
 
 orbitron-lab-pngs: $(GLTF_LAB_PNGS)
 

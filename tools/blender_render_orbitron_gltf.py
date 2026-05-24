@@ -29,7 +29,25 @@ CAM_LENS_MM = 50.0
 CAM_SENSOR_WIDTH_MM = 36.0
 # Multiplier on bounding-sphere radius before fitting; >1 leaves padding so the
 # whole part sits comfortably inside the frame at any aspect ratio.
-FRAME_MARGIN = float(os.environ.get("ORBITRON_FRAME_MARGIN", "1.08"))
+FRAME_MARGIN = float(os.environ.get("ORBITRON_FRAME_MARGIN", "1.04"))
+# Percentile window for camera framing (ignores checklist ink / label text outliers).
+FRAME_PERCENTILE_LO = float(os.environ.get("ORBITRON_FRAME_PCT_LO", "3"))
+FRAME_PERCENTILE_HI = float(os.environ.get("ORBITRON_FRAME_PCT_HI", "97"))
+# Mesh names containing these substrings are omitted from camera bounds only.
+_BOUNDS_EXCLUDE_SUBSTR = tuple(
+    s.strip()
+    for s in os.environ.get(
+        "ORBITRON_FRAME_EXCLUDE",
+        "Operator_Checklist_Ink,Panel_Label_,Decal_",
+    ).split(",")
+    if s.strip()
+)
+# Drop pad peripherals far from the engine cluster (blower cart, long ducts, …).
+_BOUNDS_EXCLUDE_SUBSTR += tuple(
+    s.strip()
+    for s in os.environ.get("ORBITRON_FRAME_EXCLUDE_EXTRA", "").split(",")
+    if s.strip()
+)
 
 
 def _argv_paths() -> tuple[Path, Path]:
@@ -63,25 +81,72 @@ def _view_layer_unexclude_all(layer_coll) -> None:
         _view_layer_unexclude_all(child)
 
 
-def _mesh_world_bounds():
-    import bpy
-    from mathutils import Vector
+def _bounds_exclude(name: str) -> bool:
+    return any(sub in name for sub in _BOUNDS_EXCLUDE_SUBSTR)
 
-    mins = [math.inf, math.inf, math.inf]
-    maxs = [-math.inf, -math.inf, -math.inf]
-    found = False
+
+def _mesh_world_bounds():
+    """Robust world AABB: vertex percentiles, optional cluster radius from mesh centroids."""
+    import bpy
+
+    import numpy as np
+
+    verts: list[tuple[float, float, float]] = []
+    centroids: list[np.ndarray] = []
     for obj in bpy.context.scene.objects:
-        if obj.type != "MESH":
+        if obj.type != "MESH" or _bounds_exclude(obj.name):
             continue
-        found = True
-        for corner in obj.bound_box:
-            w = obj.matrix_world @ Vector(corner)
-            for i in range(3):
-                mins[i] = min(mins[i], w[i])
-                maxs[i] = max(maxs[i], w[i])
-    if not found:
+        mesh = obj.data
+        if not mesh.vertices:
+            continue
+        mw = obj.matrix_world
+        obj_verts: list[tuple[float, float, float]] = []
+        for v in mesh.vertices:
+            w = mw @ v.co
+            obj_verts.append((w.x, w.y, w.z))
+        verts.extend(obj_verts)
+        arr_o = np.asarray(obj_verts, dtype=np.float64)
+        centroids.append(arr_o.mean(axis=0))
+    if not verts:
         return (0.0, 0.0, 0.0), (1.0, 1.0, 1.0)
-    return tuple(mins), tuple(maxs)
+    arr = np.asarray(verts, dtype=np.float64)
+    cluster_m = float(os.environ.get("ORBITRON_FRAME_CLUSTER_M", "0"))
+    if cluster_m > 0 and centroids:
+        med = np.median(np.stack(centroids), axis=0)
+        keep = [
+            obj
+            for obj in bpy.context.scene.objects
+            if obj.type == "MESH" and not _bounds_exclude(obj.name) and obj.data.vertices
+        ]
+        near_verts: list[tuple[float, float, float]] = []
+        for obj in keep:
+            mw = obj.matrix_world
+            c = np.mean([mw @ v.co for v in obj.data.vertices], axis=0)
+            if float(np.linalg.norm(c - med)) > cluster_m:
+                continue
+            for v in obj.data.vertices:
+                w = mw @ v.co
+                near_verts.append((w.x, w.y, w.z))
+        if near_verts:
+            arr = np.asarray(near_verts, dtype=np.float64)
+    lo = float(FRAME_PERCENTILE_LO)
+    hi = float(FRAME_PERCENTILE_HI)
+    mins = tuple(float(np.percentile(arr[:, i], lo)) for i in range(3))
+    maxs = tuple(float(np.percentile(arr[:, i], hi)) for i in range(3))
+    return mins, maxs
+
+
+def _trim_output_png(out_path: Path) -> None:
+    """Post-render crop; best-effort (Pillow may be absent in bare Blender env)."""
+    try:
+        repo = Path(__file__).resolve().parents[1]
+        if str(repo) not in sys.path:
+            sys.path.insert(0, str(repo))
+        from tools.trim_assembly_png import trim_png
+
+        trim_png(out_path, padding_px=12)
+    except BaseException:
+        pass
 
 
 def _setup_world(bg_rgb: tuple[float, float, float]) -> None:
@@ -240,12 +305,28 @@ def main() -> None:
 
     bg = DEFAULT_BG_HEX
     size = DEFAULT_SIZE
+    if os.environ.get("ORBITRON_HERO_SQUARE", "").lower() in ("1", "true", "yes"):
+        size = (1280, 1280)
     if "--" in sys.argv:
         rest = sys.argv[sys.argv.index("--") + 1 :]
         if len(rest) >= 3:
             bg = rest[2]
         if len(rest) >= 5:
             size = (int(rest[3]), int(rest[4]))
+    stem = gltf_path.stem
+    if stem == "orbitron_lab":
+        # Full test_stand export — frame entire pad (no cluster crop).
+        os.environ.setdefault("ORBITRON_FRAME_CLUSTER_M", "0")
+        os.environ.setdefault("ORBITRON_FRAME_MARGIN", "1.05")
+        os.environ.setdefault("ORBITRON_FRAME_PCT_LO", "2")
+        os.environ.setdefault("ORBITRON_FRAME_PCT_HI", "98")
+        size = (1600, 900)
+    elif stem == "phase_2_wind_tunnel":
+        os.environ.setdefault("ORBITRON_FRAME_CLUSTER_M", "1.9")
+        os.environ.setdefault(
+            "ORBITRON_FRAME_EXCLUDE_EXTRA",
+            "Industrial_Blower,Pad_Startup,S_Duct,Exhaust_Silencer,Pneumatic_Air",
+        )
 
     _import_and_clean(gltf_path)
     mins, maxs = _mesh_world_bounds()
@@ -254,6 +335,7 @@ def main() -> None:
     _setup_lights(mins, maxs)
     _frame_perspective_camera(mins, maxs, size)
     bpy.ops.render.render(write_still=True)
+    _trim_output_png(out_path)
     print(f"Wrote {out_path}")
 
 

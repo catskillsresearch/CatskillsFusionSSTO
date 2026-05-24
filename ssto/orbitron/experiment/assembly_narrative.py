@@ -7,8 +7,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-import yaml
-
 _REPO = Path(__file__).resolve().parents[3]
 
 
@@ -34,9 +32,10 @@ ASSEMBLY_WALKTHROUGH: tuple[AssemblyWalkthrough, ...] = (
         png_basenames=("orbitron_lab",),
         yaml_group="test_stand",
         narrative=(
-            "Complete **test_stand** logical root from `orbitron_lab.yaml`: pad, sled, tank farm, "
-            "air-breathing engine, and operator console. Scene export root for FlightGear is "
-            "`fusion_arcjet_engine`. Propulsion axis **−X → +X** (bellmouth to nozzle); tank farm on **+Y**."
+            "Complete **test_stand** logical root from `orbitron_lab.yaml`: Phase 1 benchtop, Phase 2 "
+            "wind-tunnel engine, **CTRL-01** operator console, **TS-01** thrust sled, and **INJ-H2-01** / "
+            "**U2-CH4-01** tank farm. Propulsion axis **−X → +X** (bellmouth to nozzle); tank farm on **+Y**. "
+            "FlightGear scene root: `fusion_arcjet_engine`. Subsections below zoom individual assemblies."
         ),
         physics_refs=(),
         mesh_anchors=("fusion_arcjet_engine",),
@@ -218,6 +217,40 @@ def stand_build_dir(repo: Path | None = None) -> Path:
     return repo / "Aircraft" / aircraft_package_dir(repo) / "build"
 
 
+def compose_lab01_hero(source_build: Path) -> Path | None:
+    """
+    Report overview: engine train + thrust sled side-by-side (readable, not scattered Phase 2 parts).
+    """
+    engine_p = source_build / "air_breathing_nozzle_train.png"
+    sled_p = source_build / "thrust_sled.png"
+    if not engine_p.is_file() or not sled_p.is_file():
+        return None
+    try:
+        from PIL import Image
+    except ImportError:
+        return None
+    out = source_build / "lab01_hero.png"
+    target_h = 720
+    gap = 16
+    bg = (236, 236, 236)
+    panels: list[Image.Image] = []
+    for path in (engine_p, sled_p):
+        im = Image.open(path).convert("RGB")
+        scale = target_h / im.height
+        panels.append(
+            im.resize((max(1, int(im.width * scale)), target_h), Image.Resampling.LANCZOS)
+        )
+    w = sum(p.width for p in panels) + gap * (len(panels) - 1)
+    canvas = Image.new("RGB", (w, target_h), bg)
+    x = 0
+    for p in panels:
+        canvas.paste(p, (x, 0))
+        x += p.width + gap
+    canvas.save(out)
+    _trim_assembly_png(out)
+    return out
+
+
 def _trim_assembly_png(path: Path) -> None:
     """Best-effort crop of factory-gray margins after copy."""
     try:
@@ -227,7 +260,7 @@ def _trim_assembly_png(path: Path) -> None:
             sys.path.insert(0, str(_REPO))
         from tools.trim_assembly_png import trim_png
 
-        trim_png(path)
+        trim_png(path, tolerance=20, padding_px=12, lum_delta=40)
     except Exception:
         pass
 
@@ -282,45 +315,6 @@ def designator_table_md() -> str:
     return "\n".join(lines) + "\n"
 
 
-def parameters_with_designators_md(parameters: dict[str, Any]) -> str:
-    """YAML snapshot with inline designator comments where mapped."""
-    lines: list[str] = []
-
-    def emit_block(title: str, block: dict[str, Any] | None) -> None:
-        if not block:
-            return
-        lines.append(f"{title}:")
-        for key, val in block.items():
-            path = f"{title.lower().replace(' ', '_')}.{key}"
-            # fix paths for nested keys
-            if title == "Geometry":
-                path = f"geometry.{key}"
-            elif title == "Injectants":
-                path = f"injectants.{key}"
-            elif title == "Pad":
-                path = f"pad.{key}"
-            elif title == "Unobtanium":
-                path = f"unobtanium.{key}"
-            elif title == "Plant scales":
-                path = f"plant_scales.{key}"
-            elif title == "PIC":
-                path = f"pic.{key}"
-            elif title == "Fusion channel":
-                path = f"fusion_channel.{key}"
-            tag = PHYSICS_DESIGNATORS.get(path)
-            suffix = f"  # {tag[0]} {tag[1]}" if tag else ""
-            lines.append(f"  {key}: {yaml.safe_dump(val, default_flow_style=True).strip()}{suffix}")
-
-    emit_block("Geometry", parameters.get("geometry"))
-    emit_block("Injectants", parameters.get("injectants"))
-    emit_block("Pad", parameters.get("pad"))
-    emit_block("PIC", parameters.get("pic"))
-    emit_block("Fusion channel", parameters.get("fusion_channel"))
-    emit_block("Unobtanium", parameters.get("unobtanium"))
-    emit_block("Plant scales", parameters.get("plant_scales"))
-    return "```yaml\n" + "\n".join(lines) + "\n```\n"
-
-
 def render_assembly_section_md(
     *,
     staged: dict[str, str | None],
@@ -367,12 +361,9 @@ def render_assembly_section_md(
     lines.append("### Designator reference (used in later sections)\n\n")
     lines.append(
         "When this report cites geometry, fueling, pad, or unobtanium values, use these designators "
-        "to locate the physical component in CAD.\n\n"
+        "to locate the physical component in CAD. Numeric values are in **Parameter settings**.\n\n"
     )
     lines.append(designator_table_md())
-    lines.append("\n")
-    lines.append("### Parameter snapshot (with designators)\n\n")
-    lines.append(parameters_with_designators_md(parameters))
     lines.append("\n")
     return "".join(lines)
 

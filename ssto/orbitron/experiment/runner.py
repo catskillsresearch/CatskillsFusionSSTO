@@ -213,9 +213,21 @@ def run_experiment(
                     step09=step09,
                     step08_proof=out.step_results.get("08"),
                 )
-                out.gap_analysis_path = gap_path
-                out.gap_analysis_mode = gap_mode
-                emit(f"  UNOBTANIUM_GAP.md ({gap_mode}): {gap_path}\n")
+            else:
+                emit("\n--- Unobtanium gap (template only; agent disabled) ---\n")
+                from ssto.orbitron.experiment.gap_analyst import write_template_gap_analysis
+
+                gap_path, gap_mode = write_template_gap_analysis(
+                    report_dir=report_dir,
+                    experiment_name=exp.experiment_name,
+                    parameters=out.parameters,
+                    step09=step09,
+                    step08_proof=out.step_results.get("08"),
+                    reason="run_gap_agent=false (use Cursor agent by omitting --no-gap-agent)",
+                )
+            out.gap_analysis_path = gap_path
+            out.gap_analysis_mode = gap_mode
+            emit(f"  UNOBTANIUM_GAP.md ({gap_mode}): {gap_path}\n")
 
         emit("\n--- Forward unobtanium scenarios (design σv performance) ---\n")
         from tools.orbitron_proof_chain.chain_lib import base_inputs

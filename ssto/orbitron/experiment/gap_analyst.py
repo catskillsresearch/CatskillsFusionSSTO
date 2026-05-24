@@ -146,6 +146,27 @@ def _template_fallback(
     return "".join(lines)
 
 
+def write_template_gap_analysis(
+    *,
+    report_dir: Path,
+    experiment_name: str,
+    parameters: dict[str, Any],
+    step09: dict[str, Any],
+    step08_proof: dict[str, Any] | None,
+    reason: str,
+) -> tuple[str, str]:
+    """Write UNOBTANIUM_GAP.md from the deterministic template (no Cursor call)."""
+    out_path = report_dir / "UNOBTANIUM_GAP.md"
+    body = _template_fallback(
+        experiment_name=experiment_name,
+        step09=step09,
+        step08_proof=step08_proof,
+        reason=reason,
+    )
+    out_path.write_text(body, encoding="utf-8")
+    return str(out_path), "template"
+
+
 def run_gap_agent_analysis(
     *,
     report_dir: Path,
