@@ -71,8 +71,8 @@ Run the full proof chain from an experiment YAML (all pad/interlock switches, ge
 # Include inverse step 09 + gap-closed analytics (default; use --no-inverse to skip):
 ./scripts/run_orbitron_experiment.sh experiments/orbitron_phase1_baseline.yaml --skip-pic
 
-# Optional Cursor-agent R&D narrative (needs CURSOR_API_KEY + pip install cursor-sdk):
-export CURSOR_API_KEY=...
+# Optional Cursor-agent R&D narrative (reads key from ~/Desktop/tokens_ssto.yaml or CURSOR_API_KEY):
+pip install cursor-sdk
 ./scripts/run_orbitron_experiment.sh experiments/orbitron_phase1_baseline.yaml --skip-pic
 
 # Proof-forward only (no inverse / gap-closed / agent):

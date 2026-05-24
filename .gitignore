@@ -215,7 +215,10 @@ marimo/_lsp/
 __marimo__/
 
 # Streamlit
-.streamlit/secrets.toml
+# Local API tokens (keep outside repo; default path documented in cursor_credentials.py)
+tokens_ssto.yaml
+**/tokens_ssto.yaml
+
 WarpX
 # Orbitron repo-root CAD exports / diagnostics (outputs belong under Aircraft/…/build)
 ssto/orbitron/*.gltf

@@ -131,8 +131,9 @@ def write_experiment_report(
         "- **Proof-forward (steps 00–08):** `ORBITRON_PROOF_CHAIN=1` — fusion reactivity scale fixed at 1.0.\n"
         "- **Step 09 + gap-closed (default):** inverse unobtanium solve, then steps 05–08 re-run with "
         "solved knobs (`proof_mode` off). Opt out with `run.run_inverse: false` or `--no-inverse`.\n"
-        "- **Gap agent (default):** writes `UNOBTANIUM_GAP.md` via Cursor SDK if `CURSOR_API_KEY` is set; "
-        "otherwise a template. Opt out with `run.run_gap_agent: false` or `--no-gap-agent`.\n"
+        "- **Gap agent (default):** writes `UNOBTANIUM_GAP.md` via Cursor SDK; API key from "
+        "`CURSOR_API_KEY` or `~/Desktop/tokens_ssto.yaml` (`ORBITRON_TOKENS_YAML` to override). "
+        "Use `--no-gap-agent` to skip.\n"
         "- WarpX step 01 uses the electron-ring-only deck (τ ring density, p cathode pulse).\n\n"
     )
 

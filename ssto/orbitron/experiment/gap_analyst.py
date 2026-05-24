@@ -5,6 +5,7 @@ import os
 from pathlib import Path
 from typing import Any
 
+from ssto.orbitron.experiment.cursor_credentials import apply_cursor_api_key_to_env, tokens_yaml_path
 from ssto.orbitron.experiment.gap_pipeline import gap_factors
 
 _REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -133,8 +134,9 @@ def _template_fallback(
 
     lines.append(
         "\n## Enable AI analysis\n\n"
-        "Install the Cursor SDK and set `CURSOR_API_KEY` (Cursor dashboard → Integrations):\n\n"
-        "```bash\npip install cursor-sdk\nexport CURSOR_API_KEY=...\n"
+        "Install `cursor-sdk`, then either export `CURSOR_API_KEY` or place it in "
+        f"`{tokens_yaml_path()}` (outside repo; override path with `ORBITRON_TOKENS_YAML`).\n\n"
+        "```bash\npip install cursor-sdk\n"
         "./scripts/run_orbitron_experiment.sh experiments/your.yaml\n```\n\n"
         "See `ssto/orbitron/UNOBTANIUM.md` for knob definitions.\n"
     )
@@ -161,13 +163,14 @@ def run_gap_agent_analysis(
     )
     (report_dir / "gap_agent_prompt.txt").write_text(prompt, encoding="utf-8")
 
-    api_key = os.environ.get("CURSOR_API_KEY", "").strip()
+    api_key = apply_cursor_api_key_to_env()
     if not api_key:
+        tok = tokens_yaml_path()
         body = _template_fallback(
             experiment_name=experiment_name,
             step09=step09,
             step08_proof=step08_proof,
-            reason="CURSOR_API_KEY not set",
+            reason=f"no Cursor API key (set CURSOR_API_KEY or {tok})",
         )
         out_path.write_text(body, encoding="utf-8")
         return str(out_path), "template"
