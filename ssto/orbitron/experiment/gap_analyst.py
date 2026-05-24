@@ -187,7 +187,8 @@ def run_gap_agent_analysis(
         out_path.write_text(body, encoding="utf-8")
         return str(out_path), "template"
 
-    model = os.environ.get("ORBITRON_GAP_AGENT_MODEL", "composer-2.5")
+    # Local SDK bridge accepts listed models but often errors on named IDs; "default" works.
+    model = os.environ.get("ORBITRON_GAP_AGENT_MODEL", "default")
     try:
         result = Agent.prompt(
             prompt,
