@@ -317,10 +317,40 @@ def _operating_from_cfg(cfg: dict[str, Any]) -> OperatingPoint:
     )
 
 
+def plant_scales_from_cfg(cfg: dict[str, Any]) -> "PlantScales":
+    """Merge ``chain_config.json`` ``plant_scales`` over assembly-spec defaults."""
+    from ssto.orbitron.simulator.physics_spec import load_plant_scales
+    from ssto.orbitron.simulator.types import PlantScales
+
+    base = load_plant_scales()
+    overrides = cfg.get("plant_scales") or {}
+    if not overrides:
+        return base
+    return PlantScales(
+        target_gross_power_mw=float(
+            overrides.get("target_gross_power_mw", base.target_gross_power_mw)
+        ),
+        jet_propulsive_efficiency=float(
+            overrides.get("jet_propulsive_efficiency", base.jet_propulsive_efficiency)
+        ),
+        heat_kw_at_full=float(overrides.get("heat_kw_at_full", base.heat_kw_at_full)),
+        beam_screen_kw_per_ma=float(
+            overrides.get("beam_screen_kw_per_ma", base.beam_screen_kw_per_ma)
+        ),
+        thrust_lbf_at_full=float(
+            overrides.get("thrust_lbf_at_full", base.thrust_lbf_at_full)
+        ),
+        mass_flow_kgps_at_full=float(
+            overrides.get("mass_flow_kgps_at_full", base.mass_flow_kgps_at_full)
+        ),
+        density_log10_at_full=float(
+            overrides.get("density_log10_at_full", base.density_log10_at_full)
+        ),
+    )
+
+
 def base_inputs():
     """Build SimulatorInputs from chain config + completed prior steps."""
-    from ssto.orbitron.simulator.physics_spec import load_plant_scales
-
     cfg = load_config()
     g = cfg["geometry"]
     pad_cfg = cfg["pad"]
@@ -366,7 +396,7 @@ def base_inputs():
         operating=_operating_from_cfg(cfg),
         pad=replace(pad_startup_from_cfg(pad_cfg), laminar_relaminarization=laminar),
         unobtanium=u,
-        scales=load_plant_scales(),
+        scales=plant_scales_from_cfg(cfg),
         pic_rho_e_norm=pic_e,
         pic_beam_rho_norm=pic_b,
         fusion_channel_power_mw=fc_mw if proof else fc_mw,

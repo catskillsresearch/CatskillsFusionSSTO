@@ -1,0 +1,74 @@
+# Orbitron proof-chain experiment configuration
+# Run: python3 scripts/run_orbitron_experiment.py experiments/orbitron_phase1_baseline.yaml
+
+experiment_name: "Orbitron Phase-1 Baseline"
+
+description: >
+  Benchtop p-11B proof point with full Phase-1 interlocks armed, nominal H2/laser
+  inject, electron-ring WarpX, laminar OFF|ON fusion channel compare, and forward
+  plant through validation export.
+
+run:
+  skip_pic: false
+  run_inverse: false
+  # Override PIC step count (e.g. 1 for a smoke test before full 400-step run)
+  pic_steps: null
+
+geometry:
+  r_anode_m: 0.04
+  r_cathode_m: 0.01
+  length_m: 1.2
+  V_cathode_v: 600000.0
+  B_axial_tesla: 2.0
+
+injectants:
+  h2_sccm: 80.0
+  laser_ablation_hz: 10.0
+  b11_target_index: 0
+
+pad:
+  throttle: 0.85
+  compressor: 0.72
+  cathode_pulse: 0.80
+  laminar_relaminarization: true
+  pad_apu_online: true
+  starter_engage: true
+  bleed_air_open: true
+  vacuum_interlock_ok: true
+  laser_armed: true
+  hv_enabled: true
+  startup_trigger: true
+
+pic:
+  steps: 400
+  diag_period: 40
+  # 128² is stable on AMReX 26.04; 256²+ can SIGSEGV (see PROOF_SUITE.md)
+  grid_cells: 128
+  skip_if_ok: false
+
+fusion_channel:
+  n_s: 160
+  n_r: 72
+  n_frames: 72
+  total_time_s: 0.002
+  h2_ref_sccm: 80.0
+  laser_ref_hz: 10.0
+  stochastic_seed: 42
+  noise_fraction_off: 0.14
+
+unobtanium:
+  fusion_reactivity_scale: 1.0
+  field_emission_margin: 1.0
+  max_wall_heat_flux_W_m2: 2000000.0
+  ch4_cooling_effectiveness: 1.0
+  hts_capability_scale: 1.0
+  beam_coupling_scale: 1.0
+
+plant_scales:
+  target_gross_power_mw: 3.5
+  jet_propulsive_efficiency: 0.55
+  heat_kw_at_full: 400.0
+  beam_screen_kw_per_ma: 0.6
+  thrust_lbf_at_full: 4040.0
+  mass_flow_kgps_at_full: 84.0
+  density_log10_at_full: 11.0

@@ -31,16 +31,16 @@ STEP_FIGURES: dict[int, list[tuple[str, str]]] = {
     1: [("step01", "WarpX |ρ_e| — final snapshot")],
     2: [("step02", "Electron ring normalization")],
     3: [
-        ("step03_density", "Fuel density n(s,r) — final frame, laminar OFF | ON"),
-        ("step03_reaction", "Reaction rate R(s,r) — final frame, laminar OFF | ON"),
-        ("step03_clump", "Clump index vs time"),
-        ("step03_radial", "Radial mean density at final frame (ON)"),
+        ("step03_density", "Fuel density n(s,r) — final frame, laminar OFF | ON (r zoom, r_anode dashed)"),
+        ("step03_reaction", "Reaction rate R(s,r) — final frame, laminar OFF | ON (r zoom)"),
+        ("step03_clump", "Clump index C_k vs time (OFF/ON ratio in title)"),
+        ("step03_radial", "⟨n⟩_s(r) at final frame — drop at dashed line is bore wall r_anode"),
     ],
     4: [("step04", "Proton and boron densities")],
-    5: [("step05", "Fusion power vs target")],
+    5: [("step05", "P_fusion vs 3.5 MW target (values labeled; log scale when shortfall large)")],
     6: [
-        ("step06_outputs", "Steady-state plant outputs"),
-        ("step06_u", "U1–U4 stress ratios"),
+        ("step06_outputs", "Plant outputs in separate unit panels (MW, mA, kN, kg/s)"),
+        ("step06_u", "U1–U4 stress ratios (U4 = mA / 1 mA minimum spec)"),
     ],
     7: [("step07", "Jet power closure")],
 }

@@ -1,0 +1,74 @@
+# Orbitron Phase-1 — tuned to close U4c (3.5 MW ± 0.2) in honest proof mode.
+# Run: ./scripts/run_orbitron_experiment.sh experiments/orbitron_phase1_power_target.yaml
+#
+# vs baseline: higher fuel at 8:1 H₂:laser, pad τ/p at max. Model estimate ~3.57 MW.
+
+experiment_name: "Orbitron Phase-1 Power Target"
+
+description: >
+  Phase-1 interlocks armed; fuel scaled to land near 3.5 MW gross fusion-thermal
+  (h2/laser 8:1, throttle and cathode pulse at 1.0). Same geometry and PIC grid as
+  baseline; expect design_validated true if wall/U gates still pass.
+
+run:
+  skip_pic: false
+  run_inverse: false
+  pic_steps: null
+
+geometry:
+  r_anode_m: 0.04
+  r_cathode_m: 0.01
+  length_m: 1.2
+  V_cathode_v: 600000.0
+  B_axial_tesla: 2.0
+
+injectants:
+  h2_sccm: 135.0
+  laser_ablation_hz: 16.875   # 135 / 8 — keeps injectant_mixing_scale at peak
+  b11_target_index: 0
+
+pad:
+  throttle: 1.0               # ring density τ (step 01 PIC + fusion T_i)
+  compressor: 0.72
+  cathode_pulse: 1.0
+  laminar_relaminarization: true
+  pad_apu_online: true
+  starter_engage: true
+  bleed_air_open: true
+  vacuum_interlock_ok: true
+  laser_armed: true
+  hv_enabled: true
+  startup_trigger: true
+
+pic:
+  steps: 400
+  diag_period: 40
+  grid_cells: 128
+  skip_if_ok: false
+
+fusion_channel:
+  n_s: 160
+  n_r: 72
+  n_frames: 72
+  total_time_s: 0.002
+  h2_ref_sccm: 135.0          # match injectants for step 03 rate scaling
+  laser_ref_hz: 16.875
+  stochastic_seed: 42
+  noise_fraction_off: 0.14
+
+unobtanium:
+  fusion_reactivity_scale: 1.0
+  field_emission_margin: 1.0
+  max_wall_heat_flux_W_m2: 2000000.0
+  ch4_cooling_effectiveness: 1.0
+  hts_capability_scale: 1.0
+  beam_coupling_scale: 1.0
+
+plant_scales:
+  target_gross_power_mw: 3.5
+  jet_propulsive_efficiency: 0.55
+  heat_kw_at_full: 400.0
+  beam_screen_kw_per_ma: 0.6
+  thrust_lbf_at_full: 4040.0
+  mass_flow_kgps_at_full: 84.0
+  density_log10_at_full: 11.0
