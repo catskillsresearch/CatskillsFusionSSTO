@@ -7,7 +7,7 @@ from pathlib import Path
 from ssto.orbitron.experiment.paths import VALIDATION_STEPS_MD
 
 _STEP_HEADING = re.compile(r"^### Step (\d+)\s*[—–-]", re.MULTILINE)
-_DISPLAY_MATH = re.compile(r"\\\[(.*?)\]", re.DOTALL)
+_DISPLAY_MATH = re.compile(r"\\\[(.*?)\\\]", re.DOTALL)
 _INLINE_MATH = re.compile(r"\\\((.*?)\\\)", re.DOTALL)
 
 
