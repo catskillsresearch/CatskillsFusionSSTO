@@ -10,8 +10,9 @@ description: >
 
 run:
   skip_pic: false
-  run_inverse: false
-  # Override PIC step count (e.g. 1 for a smoke test before full 400-step run)
+  # Inverse unobtanium + gap-closed analytics on by default (use --no-inverse to skip)
+  run_inverse: true
+  run_gap_agent: true
   pic_steps: null
 
 geometry:

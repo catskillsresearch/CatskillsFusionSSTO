@@ -265,7 +265,7 @@ def plot_step04_fueling(figures_dir: Path) -> Path | None:
     return out
 
 
-def plot_step05_burn(figures_dir: Path) -> Path | None:
+def plot_step05_burn(figures_dir: Path, *, file_tag: str = "step05") -> Path | None:
     try:
         data = load_step_json("05")
     except Exception:
@@ -280,7 +280,7 @@ def plot_step05_burn(figures_dir: Path) -> Path | None:
     bars = ax.bar(
         labels,
         values,
-        color=["#565f89", "#9ece6a" if short < 0.5 else "#f7768e"],
+        color=["#565f89", "#9ece6a" if abs(short) < 0.5 else "#f7768e"],
         width=0.45,
     )
     _annotate_bar_values(ax, bars, fmt="{:.3f}")
@@ -290,17 +290,18 @@ def plot_step05_burn(figures_dir: Path) -> Path | None:
         ax.set_ylim(max(p_fus * 0.5, 0.05), target * 1.5)
     else:
         ax.set_ylim(0, max(target * 1.08, p_fus * 1.15))
+    title_suffix = " (gap-closed knobs)" if file_tag != "step05" else ""
     ax.set_title(
-        f"P_fusion = {p_fus:.4f} MW  |  shortfall {short:.3f} MW vs {target:.1f} MW target",
+        f"P_fusion = {p_fus:.4f} MW  |  shortfall {short:.3f} MW vs {target:.1f} MW target{title_suffix}",
         color="#c0caf5",
         fontsize=10,
     )
-    out = figures_dir / "step05_burn_power.png"
+    out = figures_dir / f"{file_tag}_burn_power.png"
     _save_fig(fig, out)
     return out
 
 
-def plot_step06_plant(figures_dir: Path) -> tuple[Path | None, Path | None]:
+def plot_step06_plant(figures_dir: Path, *, file_tag: str = "step06") -> tuple[Path | None, Path | None]:
     try:
         data = load_step_json("06")
     except Exception:
@@ -344,9 +345,14 @@ def plot_step06_plant(figures_dir: Path) -> tuple[Path | None, Path | None]:
     ax_m.set_ylabel("kg/s")
     ax_m.set_title("Brayton mass flow (compressor path)", color="#c0caf5")
 
-    figb.suptitle("Steady-state plant — separate units per panel", color="#c0caf5", y=1.01)
+    figb.suptitle(
+        "Steady-state plant — separate units per panel"
+        + (" (gap-closed knobs)" if file_tag != "step06" else ""),
+        color="#c0caf5",
+        y=1.01,
+    )
     figb.tight_layout()
-    p1 = figures_dir / "step06_plant_outputs.png"
+    p1 = figures_dir / f"{file_tag}_plant_outputs.png"
     _save_fig(figb, p1)
 
     figu, axu = plt.subplots(figsize=(7, 4))
@@ -374,14 +380,17 @@ def plot_step06_plant(figures_dir: Path) -> tuple[Path | None, Path | None]:
     axu.axvline(1.0, color="#e0af68", ls="--", label="limit / spec (1.0×)")
     axu.set_xlim(0, max(2.6, max(ratios) * 1.15 if ratios else 2.6))
     axu.set_xlabel("Ratio to limit (U4 = mA / 1 mA floor)")
-    axu.set_title("U1–U4 stress (green = pass)", color="#c0caf5")
+    axu.set_title(
+        "U1–U4 stress (green = pass)" + (" — gap-closed" if file_tag != "step06" else ""),
+        color="#c0caf5",
+    )
     axu.legend(fontsize=8, loc="lower right")
-    p2 = figures_dir / "step06_u_stress.png"
+    p2 = figures_dir / f"{file_tag}_u_stress.png"
     _save_fig(figu, p2)
     return p1, p2
 
 
-def plot_step07_closure(figures_dir: Path) -> Path | None:
+def plot_step07_closure(figures_dir: Path, *, file_tag: str = "step07") -> Path | None:
     try:
         data = load_step_json("07")
     except Exception:
@@ -394,10 +403,28 @@ def plot_step07_closure(figures_dir: Path) -> Path | None:
     p_thrust = (thrust_n**2) / (2 * mdot) if mdot > 1e-9 else 0
     ax.bar(["P_jet", "P from F²/2ṁ"], [p_jet / 1e6, p_thrust / 1e6], color=["#7aa2f7", "#9ece6a"])
     ax.set_ylabel("MW equivalent")
-    ax.set_title(f"Closure rel error {data['closure_rel_error']:.2%}")
-    out = figures_dir / "step07_jet_closure.png"
+    ax.set_title(
+        f"Closure rel error {data['closure_rel_error']:.2%}"
+        + (" (gap-closed)" if file_tag != "step07" else "")
+    )
+    out = figures_dir / f"{file_tag}_jet_closure.png"
     _save_fig(fig, out)
     return out
+
+
+def generate_gap_figures(figures_dir: Path) -> dict[str, str | None]:
+    """After gap-closed re-run of steps 05–08 (chain JSON already updated)."""
+    rel: dict[str, str | None] = {}
+
+    def put(key: str, path: Path | None) -> None:
+        rel[key] = path.name if path else None
+
+    put("step05_gap", plot_step05_burn(figures_dir, file_tag="step05_gap"))
+    p6a, p6b = plot_step06_plant(figures_dir, file_tag="step06_gap")
+    put("step06_gap_outputs", p6a)
+    put("step06_gap_u", p6b)
+    put("step07_gap", plot_step07_closure(figures_dir, file_tag="step07_gap"))
+    return rel
 
 
 def generate_all_figures(figures_dir: Path, cfg: dict[str, Any]) -> dict[str, str | None]:

@@ -41,7 +41,11 @@ class ExperimentConfig:
 
     @property
     def run_inverse(self) -> bool:
-        return bool(self.run.get("run_inverse", False))
+        return bool(self.run.get("run_inverse", True))
+
+    @property
+    def run_gap_agent(self) -> bool:
+        return bool(self.run.get("run_gap_agent", True))
 
     @property
     def pic_steps_override(self) -> int | None:
@@ -56,10 +60,14 @@ def load_experiment_yaml(path: Path) -> ExperimentConfig:
     name = data.get("experiment_name")
     if not name or not str(name).strip():
         raise ValueError("experiment_name is required in experiment YAML")
+    run = dict(data.get("run") or {})
+    # Headless reports: inverse + gap analytics on unless opted out.
+    run.setdefault("run_inverse", True)
+    run.setdefault("run_gap_agent", True)
     return ExperimentConfig(
         experiment_name=str(name).strip(),
         description=str(data.get("description", "") or "").strip(),
-        run=dict(data.get("run") or {}),
+        run=run,
         geometry=dict(data.get("geometry") or {}),
         injectants=dict(data.get("injectants") or {}),
         pad=dict(data.get("pad") or {}),

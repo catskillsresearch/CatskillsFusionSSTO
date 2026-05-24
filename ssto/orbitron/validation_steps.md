@@ -68,11 +68,18 @@ Run the full proof chain from an experiment YAML (all pad/interlock switches, ge
 # One PIC step smoke test (set run.pic_steps: 1 in YAML or export):
 # edit experiments/…yaml → run.pic_steps: 1
 
-# Include inverse step 09:
-./scripts/run_orbitron_experiment.sh experiments/orbitron_phase1_baseline.yaml --inverse
+# Include inverse step 09 + gap-closed analytics (default; use --no-inverse to skip):
+./scripts/run_orbitron_experiment.sh experiments/orbitron_phase1_baseline.yaml --skip-pic
+
+# Optional Cursor-agent R&D narrative (needs CURSOR_API_KEY + pip install cursor-sdk):
+export CURSOR_API_KEY=...
+./scripts/run_orbitron_experiment.sh experiments/orbitron_phase1_baseline.yaml --skip-pic
+
+# Proof-forward only (no inverse / gap-closed / agent):
+./scripts/run_orbitron_experiment.sh experiments/orbitron_phase1_baseline.yaml --no-inverse
 ```
 
-Each run produces `REPORT.md` (narrative + equations from this file, parameters, per-step JSON, PNG figures), `results/step_*.json`, `figures/*.png`, and `run.log`. Timelapse plots use the **final frame** of each series.
+Each run produces `REPORT.md` (narrative + equations from this file, **physical assembly walkthrough** with CadQuery/Blender figures, parameters, per-step JSON, PNG figures), `results/step_*.json`, `figures/*.png`, and `run.log`. Timelapse plots use the **final frame** of each series.
 
 ---
 

@@ -12,7 +12,8 @@ description: >
 
 run:
   skip_pic: false
-  run_inverse: false
+  run_inverse: true
+  run_gap_agent: true
   pic_steps: null
 
 geometry:

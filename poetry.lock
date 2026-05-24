@@ -205,7 +205,7 @@ version = "4.13.0"
 description = "High-level concurrency and networking framework on top of asyncio or Trio"
 optional = false
 python-versions = ">=3.10"
-groups = ["dev"]
+groups = ["main", "dev"]
 markers = "sys_platform == \"win32\" or sys_platform == \"emscripten\" or sys_platform != \"win32\" and sys_platform != \"emscripten\""
 files = [
     {file = "anyio-4.13.0-py3-none-any.whl", hash = "sha256:08b310f9e24a9594186fd75b4f73f4a4152069e3853f1ed8bfbf58369f4ad708"},
@@ -1043,6 +1043,29 @@ test = ["Pillow", "contourpy[test-no-images]", "matplotlib"]
 test-no-images = ["pytest", "pytest-cov", "pytest-rerunfailures", "pytest-xdist", "wurlitzer"]
 
 [[package]]
+name = "cursor-sdk"
+version = "0.1.5"
+description = "Python client for the Cursor SDK bridge."
+optional = false
+python-versions = ">=3.10"
+groups = ["main"]
+markers = "sys_platform == \"win32\" or sys_platform == \"emscripten\" or sys_platform != \"win32\" and sys_platform != \"emscripten\""
+files = [
+    {file = "cursor_sdk-0.1.5-py3-none-macosx_11_0_arm64.whl", hash = "sha256:f6bab3effc495dbf2d435ddd7dc11023d4100e9ccd15534f4eb465fd491bb540"},
+    {file = "cursor_sdk-0.1.5-py3-none-macosx_11_0_x86_64.whl", hash = "sha256:51dcb3173e8010beabc0b603a54865b10357a0f7595ff66a841b5c20ce18daf6"},
+    {file = "cursor_sdk-0.1.5-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:d6d7e1596f95dae1a05191fafded286260de068bda7b4ff140ef6bf58204e2fd"},
+    {file = "cursor_sdk-0.1.5-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:463b19cddb434411c7e95c3ef58deda9002291a03ed5b2f0e4470994e900a0b8"},
+    {file = "cursor_sdk-0.1.5-py3-none-win_amd64.whl", hash = "sha256:1bd5c5d21c89d700370d1fd730d646df54bba6b49ab16203dcf1bc893fe9be80"},
+    {file = "cursor_sdk-0.1.5.tar.gz", hash = "sha256:292622c4a81da0633685ff84e9117ae22bd2c4db4bab99bd16461f0490454edf"},
+]
+
+[package.dependencies]
+httpx = ">=0.27,<1"
+
+[package.extras]
+test = ["pytest (>=8)", "pytest-asyncio (>=0.23)"]
+
+[[package]]
 name = "cycler"
 version = "0.12.1"
 description = "Composable style cycles"
@@ -1552,7 +1575,7 @@ version = "0.16.0"
 description = "A pure-Python, bring-your-own-I/O implementation of HTTP/1.1"
 optional = false
 python-versions = ">=3.8"
-groups = ["dev"]
+groups = ["main", "dev"]
 markers = "sys_platform == \"win32\" or sys_platform == \"emscripten\" or sys_platform != \"win32\" and sys_platform != \"emscripten\""
 files = [
     {file = "h11-0.16.0-py3-none-any.whl", hash = "sha256:63cf8bbe7522de3bf65932fda1d9c2772064ffb3dae62d55932da54b31cb6c86"},
@@ -1627,7 +1650,7 @@ version = "1.0.9"
 description = "A minimal low-level HTTP client."
 optional = false
 python-versions = ">=3.8"
-groups = ["dev"]
+groups = ["main", "dev"]
 markers = "sys_platform == \"win32\" or sys_platform == \"emscripten\" or sys_platform != \"win32\" and sys_platform != \"emscripten\""
 files = [
     {file = "httpcore-1.0.9-py3-none-any.whl", hash = "sha256:2d400746a40668fc9dec9810239072b40b4484b640a8c38fd654a024c7a1bf55"},
@@ -1704,7 +1727,7 @@ version = "0.28.1"
 description = "The next generation HTTP client."
 optional = false
 python-versions = ">=3.8"
-groups = ["dev"]
+groups = ["main", "dev"]
 markers = "sys_platform == \"win32\" or sys_platform == \"emscripten\" or sys_platform != \"win32\" and sys_platform != \"emscripten\""
 files = [
     {file = "httpx-0.28.1-py3-none-any.whl", hash = "sha256:d909fcccc110f8c7faf814ca82a9a4d816bc5a6dbfea25d6591d6985b8ba59ad"},
@@ -6495,4 +6518,4 @@ ytdata = ["yt[hdf5]"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12,<3.15"
-content-hash = "0d6fb81cc0e872f468c546dccc3baf8f17875e6c26ceb5f375488d0fb830d267"
+content-hash = "58e1bc92443dd7a051f02ce27013896d7132c8c758b924997180ad5929d1279a"

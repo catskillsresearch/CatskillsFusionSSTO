@@ -44,9 +44,19 @@ def main() -> int:
         help="Override run.skip_pic — skip WarpX (fast sanity check)",
     )
     parser.add_argument(
+        "--no-inverse",
+        action="store_true",
+        help="Skip step 09 inverse + gap-closed re-validation (on by default)",
+    )
+    parser.add_argument(
+        "--no-gap-agent",
+        action="store_true",
+        help="Skip Cursor-agent UNOBTANIUM_GAP.md (template still written unless --no-inverse)",
+    )
+    parser.add_argument(
         "--inverse",
         action="store_true",
-        help="Override run.run_inverse — run step 09 after step 08",
+        help=argparse.SUPPRESS,
     )
     parser.add_argument(
         "--report-dir",
@@ -64,8 +74,12 @@ def main() -> int:
     exp = load_experiment_yaml(yaml_path)
     if args.skip_pic:
         exp.run["skip_pic"] = True
-    if args.inverse:
+    if args.no_inverse:
+        exp.run["run_inverse"] = False
+    elif args.inverse:
         exp.run["run_inverse"] = True
+    if args.no_gap_agent:
+        exp.run["run_gap_agent"] = False
 
     ok, detail = bootstrap_warpx_runtime(repo_root_path=_REPO)
     if not exp.skip_pic and not ok:
