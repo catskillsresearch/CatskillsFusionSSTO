@@ -58,16 +58,19 @@ def _build_agent_prompt(
     return f"""You are a fusion materials and plasma-engineering analyst.
 
 ## Task
-Review the Orbitron p-¹¹B unobtanium gap from an inverse solve (minimum performance
-scales needed to hit {step09.get('target_mw', 3.5)} MW gross fusion-thermal while
-passing U1–U4 gates). Use general knowledge and **web search** where helpful for
-state-of-the-art (2024–2026).
+Review the Orbitron p-¹¹B unobtanium gap from a **stress inverse** (literature-class ⟨σv⟩,
+NOT the design-calibrated curve). Minimum performance scales to hit {step09.get('target_mw', 3.5)} MW
+while passing U1–U4 gates. Use general knowledge and **web search** where helpful (2024–2026).
+
+**Do not claim the reactor is proven.** Distinguish Tier-1 calibrated closure from physics evidence.
 
 ## Experiment
 - Name: {experiment_name}
-- Proof-forward design_validated: {proof_validated}
-- Inverse solve success: {step09.get('success')}
-- Residual MW at solve: {step09.get('residual_mw')}
+- Proof-forward Tier-1 design_validated: {proof_validated}
+- Stress inverse success: {step09.get('success')} (mode={step09.get('inverse_mode', 'stress')})
+- Forward confirmation (design σv @ required knobs): {step09.get('forward_confirmation_passes')}
+- Confirmation P_gross [MW]: {step09.get('forward_confirmation_mw')}
+- Residual MW at stress solve: {step09.get('residual_mw')}
 
 ## Geometry / fuel (summary)
 {parameters.get('geometry', {})}

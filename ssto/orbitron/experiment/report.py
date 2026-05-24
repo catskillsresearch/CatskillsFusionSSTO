@@ -13,7 +13,8 @@ from ssto.orbitron.experiment.assembly_narrative import (
     stage_assembly_figures,
     stand_build_dir,
 )
-from ssto.orbitron.experiment.narrative import load_validation_narratives, narrative_for_step
+from ssto.orbitron.experiment.forward_scenarios import scenarios_table_md
+from ssto.orbitron.experiment.narrative import load_validation_narratives, md_math_for_preview, narrative_for_step
 from ssto.orbitron.experiment.runner import ExperimentRunResult
 
 
@@ -75,6 +76,84 @@ def _fmt_json_block(obj: Any) -> str:
     return "```json\n" + json.dumps(obj, indent=2, default=str) + "\n```\n"
 
 
+def _render_forward_scenarios_section(fwd: dict[str, Any]) -> str:
+    lines = [
+        "## Forward performance (unobtanium scenarios)\n\n",
+        "These are **forward** predictions with the **design-calibrated** plant model: "
+        "if the rig achieves the listed knob values, what MW and Tier-1 gates result?\n\n",
+        "### How this differs from step 09 inverse\n\n",
+        "| Question | Step 09 stress inverse | This section |\n",
+        "|----------|------------------------|--------------|\n",
+        "| What is it? | Optimizer **minimum** knobs under **literature** σv | "
+        "Named **engineering** knob sets you choose |\n",
+        "| Reactivity model | Literature (honest, usually cannot hit 3.5 MW) | "
+        "Design (predicts rig performance) |\n",
+        "| Use | Gap factors vs nominal; CNF check | "
+        "**5-year SOTA** planning and expected MW |\n\n",
+        "**CNF (confirmation):** if stress-inverse knobs are built, the **design** model "
+        "should reach ≥ target MW — that does **not** mean literature σv already hits target.\n\n",
+        scenarios_table_md(fwd),
+    ]
+    for row in fwd.get("scenarios") or []:
+        if row.get("id") in ("five_year_sota", "stretch_sota", "stress_inverse_minimum"):
+            lines.append(f"#### {row.get('label')}\n\n")
+            desc = (row.get("description") or "").strip()
+            if desc:
+                lines.append(desc + "\n\n")
+            lines.append(
+                f"- **P_gross:** {row.get('gross_power_mw', 0):.3f} MW  \n"
+                f"- **Tier-1 validated:** {row.get('design_validated')}  \n"
+            )
+            if row.get("violations"):
+                lines.append(f"- **Violations:** {', '.join(row['violations'][:3])}\n")
+            lines.append("\n")
+    lines.append(
+        f"*Edit scenarios in `ssto/orbitron/unobtanium_scenarios.yaml` and re-run the experiment.*\n"
+    )
+    return "".join(lines)
+
+
+def _render_physics_audit_section(physics: dict[str, Any]) -> str:
+    lines = ["## Physics evidence audit\n\n", f"**{physics.get('summary', '')}**\n\n"]
+    lit = physics.get("literature_forward_mw")
+    conf = physics.get("confirmation_design_mw")
+    if lit is not None:
+        lines.append(f"- Literature σv forward @ nominal knobs: **{lit:.3f} MW**\n")
+    if conf is not None:
+        ok = physics.get("confirmation_passes")
+        lines.append(
+            f"- Forward confirmation (design σv @ stress-required knobs): "
+            f"**{conf:.3f} MW** ({'PASS' if ok else 'FAIL'})\n"
+        )
+    stress = physics.get("gap_factors_stress") or {}
+    if stress:
+        lines.append("\n### Stress inverse gap factors (honest goals)\n\n")
+        lines.append("| Knob | Required / nominal |\n|------|-------------------|\n")
+        for key in sorted(stress):
+            lines.append(f"| `{key}` | **{stress[key]:.3f}×** |\n")
+    holdout = physics.get("calibration_holdout") or []
+    if holdout:
+        lines.append("\n### ⟨σv⟩ calibration hold-out\n\n")
+        lines.append("| Point | T [keV] | design / literature |\n|-------|---------|---------------------|\n")
+        for row in holdout:
+            lines.append(
+                f"| {row.get('label')} | {row.get('T_kev', 0):.0f} | "
+                f"{row.get('design_over_literature', 0):.1f}× |\n"
+            )
+    checks = physics.get("checks") or []
+    if checks:
+        lines.append("\n### Audit checks\n\n")
+        lines.append("| ID | Status | Required | Achieved |\n|----|--------|----------|----------|\n")
+        for c in checks:
+            lines.append(
+                f"| {c.get('spec_id')} | {c.get('status')} | {c.get('required')} | {c.get('achieved')} |\n"
+            )
+    lines.append("\n<details><summary>Full physics audit JSON</summary>\n\n")
+    lines.append(_fmt_json_block(physics))
+    lines.append("</details>\n")
+    return "".join(lines)
+
+
 def _embed_figure(report_dir: Path, figures: dict[str, str | None], key: str, caption: str) -> str:
     name = figures.get(key)
     if not name:
@@ -98,8 +177,22 @@ def write_experiment_report(
     lines.append(f"# {result.experiment.experiment_name}\n\n")
     lines.append(f"**Run date:** {date_str}  \n")
     lines.append(f"**Report directory:** `{report_dir}`  \n")
-    status = "SUCCESS" if result.success else f"FAILED — {result.error}"
-    lines.append(f"**Status:** {status}  \n\n")
+    tier1 = result.tier1_design_validated
+    phys = result.physics_evidence
+    if result.success and phys:
+        status = "SUCCESS (Tier-1 + physics evidence)"
+    elif result.success and tier1:
+        status = "TIER-1 OK — physics evidence incomplete (see audit below)"
+    elif result.error:
+        status = f"FAILED — {result.error}"
+    else:
+        status = "FAILED — Tier-1 design validation"
+    lines.append(f"**Status:** {status}  \n")
+    if tier1 is not None:
+        lines.append(f"**Tier-1 design validated:** {tier1}  \n")
+    if phys is not None:
+        lines.append(f"**Physics evidence:** {phys}  \n")
+    lines.append("\n")
 
     if result.experiment.description:
         lines.append("## Experiment description\n\n")
@@ -126,15 +219,38 @@ def write_experiment_report(
         "injection and reaction rate stay at zero.\n\n"
     )
 
-    lines.append("## Proof-mode rules\n\n")
+    if "physics" in result.step_results:
+        lines.append(_render_physics_audit_section(result.step_results["physics"]))
+        lines.append("\n")
+
+    if "forward" in result.step_results:
+        lines.append(_render_forward_scenarios_section(result.step_results["forward"]))
+        lines.append("\n")
+
+    lines.append("## Fidelity and proof-mode rules\n\n")
     lines.append(
-        "- **Proof-forward (steps 00–08):** `ORBITRON_PROOF_CHAIN=1` — fusion reactivity scale fixed at 1.0.\n"
-        "- **Step 09 + gap-closed (default):** inverse unobtanium solve, then steps 05–08 re-run with "
-        "solved knobs (`proof_mode` off). Opt out with `run.run_inverse: false` or `--no-inverse`.\n"
-        "- **Gap agent (default):** writes `UNOBTANIUM_GAP.md` via Cursor SDK; API key from "
-        "`CURSOR_API_KEY` or `~/Desktop/tokens_ssto.yaml` (`ORBITRON_TOKENS_YAML` to override). "
-        "Use `--no-gap-agent` to skip.\n"
-        "- WarpX step 01 uses the electron-ring-only deck (τ ring density, p cathode pulse).\n\n"
+        "### What this report can and cannot prove\n\n"
+        "| Claim | Mechanism | Falsifiable? |\n"
+        "|-------|-----------|-------------|\n"
+        "| **Tier-1 design closure** | Calibrated `fusion_pb11` ⟨σv⟩ + U1–U4 gates + jet closure | "
+        "Yes — per-spec pass/fail |\n"
+        "| **Honest unobtanium goals** | Step 09 **stress inverse**: literature σv (~3× lower peak), "
+        "pessimistic knob start | Yes — gap factors ≫ 1 if physics is hard |\n"
+        "| **Attain goals → target power** | **CNF** check: design σv @ stress-required knobs | "
+        "Yes — confirmation MW must hit 3.5 ± tol |\n"
+        "| **p-¹¹B burn in hardware** | Not in this chain | No — needs experiments (α, n, beam, 600 kV) |\n"
+        "| **WarpX fusion Q** | Electron-ring PIC only | No — density/beam proxies only |\n\n"
+    )
+    lines.append(
+        "- **Proof-forward (steps 00–08):** `ORBITRON_PROOF_CHAIN=1` — design-calibrated reactivity, "
+        "`fusion_reactivity_scale` fixed at 1.0.\n"
+        "- **U1 gate:** program limit **2×10⁷ V/m** @ margin 1 (not legacy 3 GV/m placeholder).\n"
+        "- **Step 09 (default):** **stress** inverse (literature σv), plus margin audit if Tier-1 passed; "
+        "then gap-closed 05–08 with solved knobs on **design** σv. `--no-inverse` to skip.\n"
+        "- **Physics audit:** runs after step 08 (`results/step_physics.json`). "
+        "Set `run.require_pic: true` to require WarpX ρ_e proxy.\n"
+        "- **Gap agent:** `UNOBTANIUM_GAP.md` via Cursor SDK + tokens file. `--no-gap-agent` to skip.\n"
+        "- WarpX step 01: electron-ring-only (τ, cathode pulse); not p-¹¹B fusion yield.\n\n"
     )
 
     lines.append("## Chain results summary\n\n")
@@ -165,10 +281,19 @@ def write_experiment_report(
         lines.append("### Mathematics and narrative (from validation_steps.md)\n\n")
         lines.append(narrative_for_step(9, equations=equations, operations=operations))
         lines.append("\n\n")
+        s09 = result.step_results["09"]
+        mode = s09.get("inverse_mode", "stress")
         lines.append(
-            "Minimum performance scales on U1–U4 knobs (and pad τ/c if needed) to hit the "
-            "target MW while passing spec gates. **Not** first-principles proof — gap documentation.\n\n"
+            f"**Mode: {mode}** — literature-class ⟨σv⟩, pessimistic start. "
+            "Reports **honest** unobtanium scale factors. "
+            "**Forward confirmation** (`forward_confirmation_passes`): at these knobs, "
+            "does the **design-calibrated** plant hit target MW?\n\n"
         )
+        if s09.get("margin_inverse"):
+            lines.append(
+                "*Margin audit (design σv, when Tier-1 passed):* "
+                f"```json\n{json.dumps(s09['margin_inverse'].get('gap_factors', {}), indent=2)}\n```\n\n"
+            )
         lines.append("### Results\n\n")
         lines.append(_fmt_json_block(result.step_results["09"]))
 
@@ -190,7 +315,7 @@ def write_experiment_report(
         lines.append("## Unobtanium technology gap (AI / template)\n\n")
         if result.gap_analysis_mode:
             lines.append(f"*Mode: {result.gap_analysis_mode}*\n\n")
-        lines.append(gap_md.read_text(encoding="utf-8"))
+        lines.append(md_math_for_preview(gap_md.read_text(encoding="utf-8")))
         lines.append("\n")
 
     lines.append("## Artifacts on disk\n\n")
@@ -220,6 +345,10 @@ def _step_sort_key(step_id: str) -> tuple[int, str]:
             return (200, step_id)
     if step_id == "09":
         return (90, step_id)
+    if step_id == "physics":
+        return (85, step_id)
+    if step_id == "forward":
+        return (86, step_id)
     try:
         return (int(step_id), step_id)
     except ValueError:
@@ -255,7 +384,23 @@ def _step_metrics_row(step_id: str, data: dict[str, Any]) -> str:
     if step_id == "09":
         u = data.get("unobtanium_required") or {}
         fs = u.get("fusion_reactivity_scale", "—")
-        return f"success={data.get('success')}, η_react={fs:.3g}×" if isinstance(fs, (int, float)) else f"success={data.get('success')}"
+        conf = data.get("forward_confirmation_passes")
+        base = (
+            f"success={data.get('success')}, η_react={fs:.3g}×, CNF={conf}"
+            if isinstance(fs, (int, float))
+            else f"success={data.get('success')}, CNF={conf}"
+        )
+        return base
+    if step_id == "physics":
+        return (
+            f"physics_evidence={data.get('physics_evidence')}, "
+            f"lit_fwd={data.get('literature_forward_mw', '—')} MW"
+        )
+    if step_id == "forward":
+        for row in data.get("scenarios") or []:
+            if row.get("id") == "five_year_sota":
+                return f"5yr SOTA P_gross={row.get('gross_power_mw', '—')} MW"
+        return "see table"
     if step_id == "01" and data.get("skipped"):
         return "SKIP_PIC"
     return "OK"

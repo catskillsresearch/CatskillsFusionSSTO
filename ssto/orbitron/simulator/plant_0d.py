@@ -23,7 +23,8 @@ def _clamp01(x: float) -> float:
 
 def evaluate_steady_state(inputs: SimulatorInputs) -> SteadyStateResult:
     """Evaluate one steady operating point and check unobtanium constraints."""
-    from ssto.orbitron.simulator.fusion_pb11 import evaluate_fusion_pb11
+    from ssto.orbitron.simulator.fusion_pb11 import active_reactivity_model, evaluate_fusion_pb11
+    from ssto.orbitron.simulator.physics_constants import EMISSION_FIELD_LIMIT_V_M
     from ssto.orbitron.simulator.pad_startup import effective_operating_point, evaluate_pad_status
     from ssto.orbitron.simulator.surrogate_calib import (
         blended_gross_power_mw,
@@ -49,7 +50,7 @@ def evaluate_steady_state(inputs: SimulatorInputs) -> SteadyStateResult:
     # --- U1: cathode surface field ---
     gap_m = max(g.r_anode_m - g.r_cathode_m, 1.0e-4)
     e_surface = abs(g.V_cathode_v) / gap_m
-    e_limit = 3.0e9 * u.field_emission_margin
+    e_limit = EMISSION_FIELD_LIMIT_V_M * u.field_emission_margin
     if e_surface > e_limit:
         violations.append(
             f"U1 cathode: |E|={e_surface:.2e} V/m exceeds emission limit {e_limit:.2e} V/m"
@@ -70,6 +71,7 @@ def evaluate_steady_state(inputs: SimulatorInputs) -> SteadyStateResult:
         laser_ablation_hz=op.laser_ablation_hz,
         fusion_reactivity_scale=u.fusion_reactivity_scale,
         pic_rho_e_norm=inputs.pic_rho_e_norm,
+        reactivity_model=active_reactivity_model(),
     )
 
     proof_chain = os.environ.get("ORBITRON_PROOF_CHAIN") == "1"

@@ -110,7 +110,7 @@ ASSEMBLY_WALKTHROUGH: tuple[AssemblyWalkthrough, ...] = (
     AssemblyWalkthrough(
         designator="INJ-H2-01",
         title="Hydrogen proton feed",
-        png_basenames=("hydrogen_tank_assy", "integrated_pad_services"),
+        png_basenames=("hydrogen_tank_assy",),
         yaml_group="proton_and_thermal_farm",
         narrative=(
             "**Tank_Hydrogen** and **Hydrogen_Trunk_Line** route **H₂** to **NBI_Injector** for proton "
@@ -218,6 +218,20 @@ def stand_build_dir(repo: Path | None = None) -> Path:
     return repo / "Aircraft" / aircraft_package_dir(repo) / "build"
 
 
+def _trim_assembly_png(path: Path) -> None:
+    """Best-effort crop of factory-gray margins after copy."""
+    try:
+        import sys
+
+        if str(_REPO) not in sys.path:
+            sys.path.insert(0, str(_REPO))
+        from tools.trim_assembly_png import trim_png
+
+        trim_png(path)
+    except Exception:
+        pass
+
+
 def _resolve_png(source_build: Path, basenames: tuple[str, ...]) -> Path | None:
     for name in basenames:
         p = source_build / f"{name}.png"
@@ -247,6 +261,7 @@ def stage_assembly_figures(
             continue
         dest = dest_dir / f"{asm.designator}_{src.name}"
         shutil.copy2(src, dest)
+        _trim_assembly_png(dest)
         staged[asm.designator] = f"figures/assemblies/{dest.name}"
     return staged
 

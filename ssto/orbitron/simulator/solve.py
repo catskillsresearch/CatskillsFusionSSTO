@@ -140,8 +140,11 @@ def solve_unobtanium_requirements(
         res = evaluate_steady_state(inp)
         err = res.gross_power_mw - target
         penalty = 2e4 * len(res.violations)
+        wall_nom = u0.max_wall_heat_flux_W_m2
+        wall_ratio = x[3] / wall_nom if wall_nom > 0 else 1.0
         nominal = (
             (x[2] - 1.0) ** 2
+            + (wall_ratio - 1.0) ** 2
             + (x[4] - 1.0) ** 2
             + (x[5] - 1.0) ** 2
             + (x[6] - 1.0) ** 2

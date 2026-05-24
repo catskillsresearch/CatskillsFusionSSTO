@@ -100,6 +100,58 @@ def fusion_field_color_limits(
     return vmin, vmax
 
 
+def fusion_channel_s_limits(s_m: np.ndarray, *, margin_frac: float = 0.06) -> tuple[float, float]:
+    """Axial limits for fusion-channel heatmaps (data span only, not full engine)."""
+    s = np.asarray(s_m, dtype=float).ravel()
+    if s.size < 2:
+        return 0.0, 1.0
+    span = float(s[-1] - s[0]) or 1.0
+    margin = span * margin_frac
+    return float(s[0] - margin), float(s[-1] + margin)
+
+
+def draw_fusion_channel_heatmap(
+    ax,
+    s_m: np.ndarray,
+    r_m: np.ndarray,
+    field_2d: np.ndarray,
+    *,
+    r_anode_m: float,
+    title: str,
+    vmin: float | None = None,
+    vmax: float | None = None,
+    cmap: str = "magma",
+    radial_stretch: float = 14.0,
+):
+    """
+    s–r heatmap zoomed to the fusion-channel domain (no full-duct CAD underlay).
+
+    ``radial_stretch`` exaggerates r vs s so the bore is readable (physical s–r is very wide).
+    """
+    xh, yv, sl = _align_pcolormesh_grid(s_m, r_m, field_2d)
+    s_lo, s_hi = fusion_channel_s_limits(s_m)
+    r_hi = float(r_anode_m) * 1.08
+    im = ax.pcolormesh(xh, yv, sl, shading="auto", cmap=cmap, vmin=vmin, vmax=vmax)
+    ax.set_xlim(s_lo, s_hi)
+    ax.set_ylim(0.0, r_hi)
+    ax.axhline(r_anode_m, color="#e0af68", ls="--", lw=0.9, alpha=0.85, label="r_anode")
+    ax.set_xlabel("s [m]")
+    ax.set_ylabel("r [m]")
+    ax.set_title(title, color="#c0caf5")
+    s_span = s_hi - s_lo
+    if s_span > 0 and r_hi > 0:
+        ax.set_aspect((s_span / r_hi) / radial_stretch, adjustable="box")
+    ax.set_facecolor("#1a1b26")
+    return im
+
+
+def fusion_off_on_log_ratio(off_2d: np.ndarray, on_2d: np.ndarray, *, floor: float = 1e-30) -> np.ndarray:
+    """log10(OFF/ON) — positive means laminar hack reduced the field."""
+    off = np.maximum(np.asarray(off_2d, dtype=float), floor)
+    on = np.maximum(np.asarray(on_2d, dtype=float), floor)
+    return np.log10(off / on)
+
+
 def _align_pcolormesh_grid(
     x: np.ndarray,
     y: np.ndarray,

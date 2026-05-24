@@ -29,10 +29,12 @@ def _unobtanium_dict(u: Any) -> dict[str, float]:
 
 def run_inverse_gap_solve(*, allow_forward_fail: bool = True) -> dict[str, Any]:
     """
-    Step 09 — minimum unobtanium knobs to hit target MW.
+    Step 09 — **stress** unobtanium inverse (literature ⟨σv⟩, pessimistic start).
 
-    Unlike the Proof Suite GUI path, ``allow_forward_fail=True`` (default for
-    headless reports) runs even when step 08 has FAIL checks (e.g. U4c shortfall).
+    This is the primary unobtanium goal for reports: minimum performance scales
+    needed when reactivity is **not** calibrated to 3.5 MW.
+
+    Also records a **margin** inverse (design σv) when forward Tier-1 already passes.
     """
     from tools.orbitron_proof_chain.chain_lib import base_inputs, load_step_json, require_step, step08_blocks_inverse
 
@@ -45,25 +47,80 @@ def run_inverse_gap_solve(*, allow_forward_fail: bool = True) -> dict[str, Any]:
 
     inp, _ = base_inputs()
     os.environ.pop("ORBITRON_PROOF_CHAIN", None)
-    from ssto.orbitron.simulator.solve import solve_unobtanium_requirements
 
-    report = solve_unobtanium_requirements(inp, target_mw=inp.scales.target_gross_power_mw)
-    u = report.inputs.unobtanium
+    from ssto.orbitron.simulator.physics_evidence import (
+        confirm_at_required_knobs,
+        solve_margin_inverse,
+        solve_stress_inverse,
+    )
+    from ssto.orbitron.simulator.plant_0d import evaluate_steady_state
+    from ssto.orbitron.simulator.validation import validate_design
+
+    target_mw = inp.scales.target_gross_power_mw
+    stress = solve_stress_inverse(inp, target_mw=target_mw)
+
+    req = stress.get("unobtanium_required") or {}
+    nom = stress.get("unobtanium_nominal") or _unobtanium_dict(inp.unobtanium)
+
+    # Evaluate solved point under literature model for step JSON steady state
+    from dataclasses import replace
+
+    from ssto.orbitron.simulator.types import UnobtaniumParams
+
+    u_req = UnobtaniumParams(
+        fusion_reactivity_scale=float(req.get("fusion_reactivity_scale", 1.0)),
+        field_emission_margin=float(req.get("field_emission_margin", 1.0)),
+        max_wall_heat_flux_W_m2=float(req.get("max_wall_heat_flux_W_m2", 2e6)),
+        ch4_cooling_effectiveness=float(req.get("ch4_cooling_effectiveness", 1.0)),
+        hts_capability_scale=float(req.get("hts_capability_scale", 1.0)),
+        beam_coupling_scale=float(req.get("beam_coupling_scale", 1.0)),
+    )
+    pad_solved = stress.get("pad_solved") or {}
+    solved_inp = replace(
+        inp,
+        unobtanium=u_req,
+        pad=replace(
+            inp.pad,
+            throttle=float(pad_solved.get("throttle", inp.pad.throttle)),
+            compressor=float(pad_solved.get("compressor", inp.pad.compressor)),
+            cathode_pulse=float(pad_solved.get("cathode_pulse", inp.pad.cathode_pulse)),
+        ),
+    )
+    os.environ["ORBITRON_REACTIVITY_MODEL"] = "literature"
+    try:
+        res = evaluate_steady_state(solved_inp)
+        vrep = validate_design(solved_inp, res)
+    finally:
+        os.environ.pop("ORBITRON_REACTIVITY_MODEL", None)
+
+    conf_mw, conf_ok = confirm_at_required_knobs(inp, req, target_mw=target_mw)
+    # Same threshold as physics audit: ≥ target − tolerance on design σv
+
+    margin: dict[str, Any] | None = None
+    s8 = load_step_json("08")
+    if s8.get("design_validated"):
+        margin = solve_margin_inverse(inp, target_mw=target_mw)
+
     payload = {
-        "success": bool(report.success),
-        "message": report.message,
-        "residual_mw": report.residual_mw,
-        "target_mw": inp.scales.target_gross_power_mw,
-        "unobtanium_required": _unobtanium_dict(u),
-        "unobtanium_nominal": _unobtanium_dict(inp.unobtanium),
-        "pad_solved": {
-            "throttle": float(report.inputs.pad.throttle),
-            "compressor": float(report.inputs.pad.compressor),
-            "cathode_pulse": float(report.inputs.pad.cathode_pulse),
-        },
-        "steady_state": steady_to_dict(report.result),
-        "spec_checks": validation_checks_to_dict(report.validation) if report.validation else [],
-        "design_validated_at_solve": bool(report.validation and report.validation.design_validated),
+        "success": bool(stress.get("success")),
+        "message": (
+            "Stress inverse (literature σv, pessimistic start)"
+            + (" OK" if stress.get("success") else " — see spec_checks")
+        ),
+        "inverse_mode": "stress",
+        "residual_mw": stress.get("residual_mw"),
+        "target_mw": target_mw,
+        "unobtanium_required": req,
+        "unobtanium_nominal": nom,
+        "gap_factors": stress.get("gap_factors") or {},
+        "pad_solved": pad_solved,
+        "steady_state": steady_to_dict(res),
+        "spec_checks": validation_checks_to_dict(vrep) if vrep else [],
+        "design_validated_at_solve": bool(vrep and vrep.design_validated),
+        "stress_inverse": stress,
+        "margin_inverse": margin,
+        "forward_confirmation_mw": conf_mw,
+        "forward_confirmation_passes": conf_ok,
     }
     save_step("09", payload)
     enable_proof_env()
@@ -95,13 +152,14 @@ def apply_solved_knobs_to_chain(step09: dict[str, Any]) -> dict[str, Any]:
 
     cfg["proof_mode"] = False
     cfg.setdefault("experiment", {})["gap_closed_analytics"] = True
+    cfg.setdefault("experiment", {})["gap_closed_reactivity_model"] = "design"
     save_config(cfg)
     return cfg
 
 
 def rerun_analytics_with_gap_knobs() -> dict[str, dict[str, Any]]:
     """
-    Re-run steps 05–08 with solved unobtanium (proof mode off).
+    Re-run steps 05–08 with solved unobtanium (proof mode off, design σv).
 
     Returns payloads keyed ``05_gap`` … ``08_gap``.
     """
@@ -113,15 +171,19 @@ def rerun_analytics_with_gap_knobs() -> dict[str, dict[str, Any]]:
     )
 
     os.environ.pop("ORBITRON_PROOF_CHAIN", None)
+    os.environ["ORBITRON_REACTIVITY_MODEL"] = "design"
     out: dict[str, dict[str, Any]] = {}
-    for step_id, fn in (
-        ("05_gap", run_step_05),
-        ("06_gap", run_step_06),
-        ("07_gap", run_step_07),
-        ("08_gap", run_step_08),
-    ):
-        out[step_id] = fn()
-    enable_proof_env()
+    try:
+        for step_id, fn in (
+            ("05_gap", run_step_05),
+            ("06_gap", run_step_06),
+            ("07_gap", run_step_07),
+            ("08_gap", run_step_08),
+        ):
+            out[step_id] = fn()
+    finally:
+        os.environ.pop("ORBITRON_REACTIVITY_MODEL", None)
+        enable_proof_env()
     return out
 
 

@@ -1,0 +1,49 @@
+# Forward performance scenarios — unobtanium knob sets for experiment reports.
+#
+# Each scenario is evaluated with the **design-calibrated** plant model (what the rig
+# is expected to deliver if those material/plasma goals are met). Compare to the
+# physics audit "literature σv" row for honest reactivity shortfall at nominal knobs.
+#
+# Edit with program judgment; re-run experiment to refresh REPORT.md.
+
+scenarios:
+  nominal:
+    label: "Experiment nominal (YAML)"
+    description: >
+      Knobs as specified in the experiment file (Tier-1 proof-forward point).
+      Fusion uses design-calibrated ⟨σv⟩.
+    knobs:
+      fusion_reactivity_scale: 1.0
+      field_emission_margin: 1.0
+      max_wall_heat_flux_W_m2: 2000000.0
+      ch4_cooling_effectiveness: 1.0
+      hts_capability_scale: 1.0
+      beam_coupling_scale: 1.0
+
+  five_year_sota:
+    label: "~5-year focused R&D (engineering judgment)"
+    description: >
+      Plausible near-term improvements from gap analysis and fusion PFC / HTS /
+      high-voltage literature — not an optimizer output. Assumes: partial closure of
+      p-¹¹B effective reactivity vs the calibrated curve (still needs benchmark),
+      modest 600 kV hold margin, CH₄ loop at design flux, beam coupling improved.
+    knobs:
+      fusion_reactivity_scale: 3.0
+      field_emission_margin: 1.25
+      max_wall_heat_flux_W_m2: 2500000.0
+      ch4_cooling_effectiveness: 1.1
+      hts_capability_scale: 1.0
+      beam_coupling_scale: 1.2
+
+  stretch_sota:
+    label: "Aggressive 5-year stretch (upper R&D band)"
+    description: >
+      Optimistic but not infinite: reactivity halfway from literature peak to design
+      calibration (~10²×), stronger cathode margin, higher wall flux allowance.
+    knobs:
+      fusion_reactivity_scale: 8.0
+      field_emission_margin: 1.5
+      max_wall_heat_flux_W_m2: 3000000.0
+      ch4_cooling_effectiveness: 1.15
+      hts_capability_scale: 1.05
+      beam_coupling_scale: 1.4

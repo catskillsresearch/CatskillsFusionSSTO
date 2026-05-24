@@ -13,6 +13,7 @@ EEVEE still render.
 from __future__ import annotations
 
 import math
+import os
 import sys
 from pathlib import Path
 
@@ -28,7 +29,7 @@ CAM_LENS_MM = 50.0
 CAM_SENSOR_WIDTH_MM = 36.0
 # Multiplier on bounding-sphere radius before fitting; >1 leaves padding so the
 # whole part sits comfortably inside the frame at any aspect ratio.
-FRAME_MARGIN = 1.25
+FRAME_MARGIN = float(os.environ.get("ORBITRON_FRAME_MARGIN", "1.08"))
 
 
 def _argv_paths() -> tuple[Path, Path]:

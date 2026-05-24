@@ -14,6 +14,8 @@ run:
   run_inverse: true
   run_gap_agent: true
   pic_steps: null
+  require_pic: false
+  physics_strict: true
 
 geometry:
   r_anode_m: 0.04

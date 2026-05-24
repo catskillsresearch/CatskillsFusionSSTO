@@ -22,9 +22,20 @@ adapted only as confinement placeholder — not a full transport solve.
 from __future__ import annotations
 
 import math
+import os
 from dataclasses import dataclass
+from typing import Literal
 
 from ssto.orbitron.simulator.injectants import effective_b11_density_scale, injectant_mixing_scale
+
+ReactivityModel = Literal["design", "literature"]
+
+# Design curve peak log10(⟨σv⟩) — calibrated to Orbitron reference point (~3.5 MW @ η≈1).
+_DESIGN_LOG_SV_PEAK = -13.15
+# Literature-class peak (~3 orders lower); not tuned to Catskills power target.
+_LITERATURE_LOG_SV_PEAK = -16.15
+_REACTIVITY_LOG_T_PEAK = 2.55
+_REACTIVITY_LOG_T_WIDTH = 3.2
 
 # Net energy per p-¹¹B reaction [J]
 E_RXN_J = 8.68e6 * 1.602176634e-19  # 8.68 MeV → J
@@ -49,18 +60,24 @@ class FusionPhysicsResult:
     fueling_mix_scale: float
 
 
-def pb11_reactivity_m3_s(T_kev: float) -> float:
+def active_reactivity_model() -> ReactivityModel:
+    """``ORBITRON_REACTIVITY_MODEL``: ``design`` (calibrated) or ``literature`` (honest σv)."""
+    raw = os.environ.get("ORBITRON_REACTIVITY_MODEL", "design").strip().lower()
+    return "literature" if raw == "literature" else "design"
+
+
+def pb11_reactivity_m3_s(T_kev: float, *, model: ReactivityModel | None = None) -> float:
     """
     Volume-averaged <σv> for p-¹¹B vs ion temperature [keV].
 
-    Peaked near ~300–600 keV CM; vanishes below ~50 keV. Coefficients tuned so that
-    Orbitron-class ``n``, ``V``, and ``T_i@600kV`` land near MW scale when η_conf ~ 1.
+    ``design``: peaked fit calibrated to Orbitron reference (see module docstring).
+    ``literature``: same shape, lower peak — not tuned to 3.5 MW closure.
     """
     T = max(10.0, min(1200.0, float(T_kev)))
-    # log10(<σv> [m³/s]) — Gaussian bump in log T (keV)
     log_t = math.log10(T)
-    # Calibrated so Orbitron reference (600 kV, 80/20 sccm, 2 m, r=5 cm) → ~3.5 MW gross when η_conf≈1
-    log_sv = -13.15 - 3.2 * (log_t - 2.55) ** 2
+    m = model or active_reactivity_model()
+    peak = _LITERATURE_LOG_SV_PEAK if m == "literature" else _DESIGN_LOG_SV_PEAK
+    log_sv = peak - _REACTIVITY_LOG_T_WIDTH * (log_t - _REACTIVITY_LOG_T_PEAK) ** 2
     return 10.0**log_sv
 
 
@@ -111,6 +128,7 @@ def evaluate_fusion_pb11(
     pic_rho_e_norm: float = float("nan"),
     volume_fill: float = 0.35,
     tau_residence_s: float = 5.0e-4,
+    reactivity_model: ReactivityModel | None = None,
 ) -> FusionPhysicsResult:
     """Compute p-¹¹B fusion thermal power from fueling, geometry, and ion energy."""
     mix = injectant_mixing_scale(h2_sccm, laser_ablation_hz)
@@ -124,7 +142,7 @@ def evaluate_fusion_pb11(
     n_b_eff = max(n_b, n_p * 0.05)
 
     T_kev = effective_ion_temperature_kev(V_cathode_v, cathode_pulse, throttle)
-    sv = pb11_reactivity_m3_s(T_kev)
+    sv = pb11_reactivity_m3_s(T_kev, model=reactivity_model)
 
     # Confinement / PIC coupling
     conf = fusion_reactivity_scale * (0.55 + 0.45 * throttle) * (0.5 + 0.5 * mix)

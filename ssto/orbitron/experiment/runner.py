@@ -19,6 +19,8 @@ from ssto.orbitron.experiment.gap_pipeline import (
     rerun_analytics_with_gap_knobs,
     run_inverse_gap_solve,
 )
+from ssto.orbitron.experiment.forward_scenarios import evaluate_forward_scenarios
+from ssto.orbitron.experiment.physics_audit import run_experiment_physics_audit
 from ssto.orbitron.experiment.plots import generate_all_figures, generate_gap_figures
 from ssto.orbitron.simulator.proof_chain.runners import (
     run_step_00,
@@ -57,6 +59,8 @@ class ExperimentRunResult:
     figures: dict[str, str | None] = field(default_factory=dict)
     gap_analysis_path: str | None = None
     gap_analysis_mode: str | None = None
+    physics_evidence: bool | None = None
+    tier1_design_validated: bool | None = None
     started_utc: str = ""
     finished_utc: str = ""
     success: bool = False
@@ -167,6 +171,18 @@ def run_experiment(
         for name, png in out.figures.items():
             emit(f"  {name}: {png or '(skipped)'}\n")
 
+        emit("\n--- Physics evidence audit ---\n")
+        s08 = out.step_results.get("08", {})
+        out.tier1_design_validated = bool(s08.get("design_validated"))
+        physics_payload = run_experiment_physics_audit(
+            tier1_validated=out.tier1_design_validated,
+            require_pic=exp.require_pic and not exp.skip_pic,
+        )
+        out.step_results["physics"] = _step_payload_for_report(physics_payload)
+        out.physics_evidence = bool(physics_payload.get("physics_evidence"))
+        write_json(report_dir / "results" / "step_physics.json", out.step_results["physics"])
+        emit(f"  {physics_payload.get('summary', '')}\n")
+
         if exp.run_inverse:
             emit("\n--- Step 09 — inverse unobtanium solve ---\n")
             step09 = run_inverse_gap_solve(allow_forward_fail=True)
@@ -201,9 +217,30 @@ def run_experiment(
                 out.gap_analysis_mode = gap_mode
                 emit(f"  UNOBTANIUM_GAP.md ({gap_mode}): {gap_path}\n")
 
+        emit("\n--- Forward unobtanium scenarios (design σv performance) ---\n")
+        from tools.orbitron_proof_chain.chain_lib import base_inputs
+
+        inp_fwd, _ = base_inputs()
+        stress_req = out.step_results.get("09", {}).get("unobtanium_required")
+        fwd = evaluate_forward_scenarios(
+            inp_fwd,
+            experiment_unobtanium=out.parameters.get("unobtanium"),
+            stress_required=stress_req,
+        )
+        out.step_results["forward"] = _step_payload_for_report(fwd)
+        write_json(report_dir / "results" / "step_forward.json", out.step_results["forward"])
+        for row in fwd.get("scenarios") or []:
+            if row.get("id") == "five_year_sota":
+                emit(f"  5-year SOTA: P_gross={row.get('gross_power_mw')} MW\n")
+                break
+
         _copy_chain_artifacts(report_dir / "results")
 
-        out.success = True
+        out.success = bool(out.tier1_design_validated)
+        if exp.physics_strict and out.physics_evidence is False:
+            emit(
+                "Note: Tier-1 passed but physics_evidence=False — see physics audit in REPORT.md\n"
+            )
         out.finished_utc = utc_now()
         emit(f"\nFinished {out.finished_utc}\n")
         return out
@@ -231,5 +268,7 @@ def run_experiment(
                 "gap_analysis_mode": out.gap_analysis_mode,
                 "run_inverse": exp.run_inverse,
                 "run_gap_agent": exp.run_gap_agent,
+                "tier1_design_validated": out.tier1_design_validated,
+                "physics_evidence": out.physics_evidence,
             },
         )

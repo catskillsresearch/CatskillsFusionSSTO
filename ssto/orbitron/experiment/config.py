@@ -52,6 +52,14 @@ class ExperimentConfig:
         v = self.run.get("pic_steps")
         return int(v) if v is not None else None
 
+    @property
+    def require_pic(self) -> bool:
+        return bool(self.run.get("require_pic", False))
+
+    @property
+    def physics_strict(self) -> bool:
+        return bool(self.run.get("physics_strict", True))
+
 
 def load_experiment_yaml(path: Path) -> ExperimentConfig:
     data = yaml.safe_load(path.read_text(encoding="utf-8"))

@@ -11,20 +11,41 @@ _DISPLAY_MATH = re.compile(r"\\\[(.*?)\\\]", re.DOTALL)
 _INLINE_MATH = re.compile(r"\\\((.*?)\\\)", re.DOTALL)
 
 
+def _simplify_math_body(body: str) -> str:
+    """Make LaTeX bodies render in GitHub / VS Code $…$ preview."""
+    body = body.replace(r"\text{--}", "–")
+    body = body.replace(r"\text{–}", "–")
+    body = body.replace(r"\text{-}", "-")
+    body = re.sub(r"\\mathrm\{([^}]+)\}", r"\1", body)
+    body = re.sub(r"\\mathbf\{([^}]+)\}", r"\1", body)
+    return body
+
+
 def md_math_for_preview(text: str) -> str:
     """
     Convert LaTeX ``\\( … \\)`` / ``\\[ … \\]`` to ``$…$`` / ``$$…$$``.
 
-    ``validation_steps.md`` uses LaTeX delimiters; Cursor/VS Code markdown preview
-    (Ctrl+Shift+V) renders ``$`` / ``$$`` but not ``\\(`` / ``\\[`` by default.
+    ``validation_steps.md`` and gap-agent output use ``\\(`` delimiters; most markdown
+    previews (Cursor, VS Code, GitHub) need ``$`` / ``$$``.
     """
 
     def _display(m: re.Match[str]) -> str:
-        body = m.group(1).strip()
+        body = _simplify_math_body(m.group(1).strip())
         return f"$$\n{body}\n$$"
 
+    def _inline(m: re.Match[str]) -> str:
+        body = _simplify_math_body(m.group(1).strip())
+        return f"${body}$"
+
     out = _DISPLAY_MATH.sub(_display, text)
-    out = _INLINE_MATH.sub(r"$\1$", out)
+    out = _INLINE_MATH.sub(_inline, out)
+    # Bare $$ blocks from agent output
+    out = re.sub(
+        r"\$\$([^$]+)\$\$",
+        lambda m: f"$$\n{_simplify_math_body(m.group(1).strip())}\n$$",
+        out,
+        flags=re.DOTALL,
+    )
     return out
 
 

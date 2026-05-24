@@ -14,6 +14,11 @@ from dataclasses import dataclass, field
 from enum import Enum
 
 from ssto.orbitron.simulator.pad_startup import PadStartupStatus, evaluate_pad_status
+from ssto.orbitron.simulator.physics_constants import (
+    BEAM_CURRENT_MIN_MA,
+    EMISSION_FIELD_LIMIT_V_M,
+    LOG10_DENSITY_MIN,
+)
 from ssto.orbitron.simulator.types import SimulatorInputs, SteadyStateResult
 
 LBF_TO_N = 4.4482216152605
@@ -57,7 +62,8 @@ class DesignValidationReport:
         lines = [
             self.summary,
             "",
-            f"Design validated: {self.design_validated}",
+            f"Tier-1 design validated: {self.design_validated}",
+            f"Physics evidence (strict): {self.physics_evidence}",
             f"Fusion run point (ignited + power): {self.fusion_operating_point}",
             f"P_gross: {self.power_achieved_mw:.3f} MW  (target {self.power_target_mw:.3f}, "
             f"Δ {self.power_residual_mw:+.3f} MW)",
@@ -152,7 +158,7 @@ def validate_design(
 
     # --- U1 cathode field ---
     gap_m = max(g.r_anode_m - g.r_cathode_m, 1e-6)
-    e_lim = 3.0e9 * u.field_emission_margin
+    e_lim = EMISSION_FIELD_LIMIT_V_M * u.field_emission_margin
     e_ok = result.cathode_surface_field_V_m <= e_lim
     checks.append(
         SpecCheck(
@@ -162,8 +168,9 @@ def validate_design(
             f"{result.cathode_surface_field_V_m:.2e} V/m",
             f"margin {(e_lim / max(result.cathode_surface_field_V_m, 1)):.2f}×",
             SpecStatus.PASS if e_ok else SpecStatus.FAIL,
-            f"Gap {gap_m*1e3:.1f} mm @ {abs(g.V_cathode_v)/1e3:.0f} kV. "
-            "Emission margin scale >1 = more tolerant cathode material.",
+            f"Gap {gap_m*1e3:.1f} mm @ {abs(g.V_cathode_v)/1e3:.0f} kV "
+            f"(program limit {EMISSION_FIELD_LIMIT_V_M:.1e} V/m @ margin 1). "
+            "Margin scale >1 relaxes allowable |E|.",
         )
     )
 
@@ -208,13 +215,13 @@ def validate_design(
     )
 
     # --- U4 fusion operating point ---
-    beam_ok = result.beam_current_ma >= 1.0 or result.gross_power_mw < 0.5
-    dens_ok = result.log10_density >= 11.0 or result.gross_power_mw < 0.5
+    beam_ok = result.beam_current_ma >= BEAM_CURRENT_MIN_MA or result.gross_power_mw < 0.5
+    dens_ok = result.log10_density >= LOG10_DENSITY_MIN or result.gross_power_mw < 0.5
     checks.append(
         SpecCheck(
             "U4a",
             "Ion beam integration",
-            "≥ 1 mA @ meaningful power",
+            f"≥ {BEAM_CURRENT_MIN_MA:.0f} mA @ meaningful power",
             f"{result.beam_current_ma:.2f} mA",
             f"P_beam = {result.beam_power_kw:.2f} kW",
             SpecStatus.PASS if beam_ok else SpecStatus.FAIL,
@@ -225,7 +232,7 @@ def validate_design(
         SpecCheck(
             "U4b",
             "Plasma density (proxy)",
-            "log₁₀ n ≥ 11 @ meaningful power",
+            f"log₁₀ n ≥ {LOG10_DENSITY_MIN:.0f} @ meaningful power",
             f"{result.log10_density:.2f}",
             f"{result.plasma_density_cm3:.2e} cm⁻³",
             SpecStatus.PASS if dens_ok else SpecStatus.FAIL,
