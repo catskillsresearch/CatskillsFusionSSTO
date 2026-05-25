@@ -32,10 +32,9 @@ ASSEMBLY_WALKTHROUGH: tuple[AssemblyWalkthrough, ...] = (
         png_basenames=("orbitron_lab",),
         yaml_group="test_stand",
         narrative=(
-            "Complete **test_stand** logical root from `orbitron_lab.yaml`: Phase 1 benchtop, Phase 2 "
-            "wind-tunnel engine, **CTRL-01** operator console, **TS-01** thrust sled, and **INJ-H2-01** / "
-            "**U2-CH4-01** tank farm. Propulsion axis **−X → +X** (bellmouth to nozzle); tank farm on **+Y**. "
-            "FlightGear scene root: `fusion_arcjet_engine`. Subsections below zoom individual assemblies."
+            "Full laboratory layout: Phase-1 benchtop fusion core, Phase-2 air-breathing engine train, "
+            "operator station (**CTRL-01**), thrust measurement sled (**TS-01**), and cryogenic **H₂** / **CH₄** "
+            "services. Propulsion axis **−X → +X**; tank farm on **+Y**."
         ),
         physics_refs=(),
         mesh_anchors=("fusion_arcjet_engine",),
@@ -46,9 +45,8 @@ ASSEMBLY_WALKTHROUGH: tuple[AssemblyWalkthrough, ...] = (
         png_basenames=("thrust_sled",),
         yaml_group="thrust_sled",
         narrative=(
-            "Four corner **LoadCell_0…3** pucks on the deck feed pad thrust bookkeeping "
-            "(step 07 jet closure, operator Screen). **Engine_Mount_Frame** posts carry the "
-            "engine pivot at `ENGINE_MOUNT_TOP_Z`. Compressor/throttle moments split corner loads."
+            "Four corner load cells integrate thrust and moment for jet–shaft power bookkeeping. "
+            "The engine mount frame sets the pivot height for the Brayton train relative to the pad deck."
         ),
         physics_refs=("plant_scales.thrust_lbf_at_full", "plant_scales.mass_flow_kgps_at_full"),
         mesh_anchors=("LoadCell_0", "LoadCell_1", "LoadCell_2", "LoadCell_3", "Engine_Mount_Frame"),
@@ -59,9 +57,9 @@ ASSEMBLY_WALKTHROUGH: tuple[AssemblyWalkthrough, ...] = (
         png_basenames=("control_panel_stand",),
         yaml_group="control_panel_stand",
         narrative=(
-            "Operator **Screen**, APU/starter/bleed switches, and **Big_Red_Button** map to "
-            "`pad.*` interlocks in the experiment YAML (APU → starter → bleed → vacuum → laser → HV → ignite). "
-            "Until **CTRL-01** sequence completes, step 03 fuel injection and reaction rate stay gated."
+            "Operator console for pad power, compressor bleed, vacuum interlock, laser arm, and high-voltage "
+            "enable before ignition. The interlock chain mirrors a real hot-fire sequence; fueling and reaction "
+            "physics stay off until the pad is in a safe steady-ready state."
         ),
         physics_refs=(
             "pad.pad_apu_online",
@@ -84,10 +82,9 @@ ASSEMBLY_WALKTHROUGH: tuple[AssemblyWalkthrough, ...] = (
         ),
         yaml_group="subassembly_1_2_electrostatic_orbitron_core",
         narrative=(
-            "**Central_Cathode_Wire (K1)** and **Outer_Anode_Grid (A1)** define the electrostatic bore "
-            "used in chain geometry (`r_cathode_m`, `r_anode_m`, `length_m`). **Magnet (M1)** provides "
-            "axial **B** (`B_axial_tesla`). WarpX step 01 models the electron ring in this annulus only "
-            "(τ = `pad.throttle`, p = `pad.cathode_pulse`). **NBI_Injector** is tangential keV fuel entry."
+            "Central cathode and outer anode define the electrostatic well for **H⁺** and **B⁺**; solid "
+            "**¹¹B** targets sit on the holder. An axial magnet provides **B ≈ 2 T** for orbit confinement. "
+            "The tangential neutral-beam injector delivers proton inventory into the bore."
         ),
         physics_refs=(
             "geometry.r_anode_m",
@@ -112,9 +109,9 @@ ASSEMBLY_WALKTHROUGH: tuple[AssemblyWalkthrough, ...] = (
         png_basenames=("proton_h2_feed", "proton_and_thermal_farm"),
         yaml_group="proton_h2_feed",
         narrative=(
-            "**Tank_Hydrogen** and **Hydrogen_Trunk_Line** route **H₂** to **NBI_Injector** for proton "
-            "inventory (`injectants.h2_sccm`). Optimal mixing with boron delivery peaks near "
-            "H₂:laser ≈ 8:1 in the 0D fuel model."
+            "Cryogenic **H₂** tank and trunk line feed the neutral-beam path for proton inventory. "
+            "The benchmark fueling point targets strong mixing with the **¹¹B** ablation line near "
+            "an **8:1 H₂:laser** duty ratio."
         ),
         physics_refs=("injectants.h2_sccm", "fusion_channel.h2_ref_sccm"),
         mesh_anchors=("Tank_Hydrogen", "Hydrogen_Trunk_Line", "Decal_H2"),
@@ -128,9 +125,9 @@ ASSEMBLY_WALKTHROUGH: tuple[AssemblyWalkthrough, ...] = (
         ),
         yaml_group="subassembly_1_3_laser_ablation_system",
         narrative=(
-            "**Q_Switched_NdYAG_Laser** (355 nm) ablates **Solid_Boron_11_Target** disks in "
-            "**Solid_B11_Target_Holder** (`injectants.laser_ablation_hz`, `b11_target_index`). "
-            "Requires **CTRL-01** vacuum + laser arm interlocks."
+            "Q-switched **Nd:YAG** at **355 nm** cold-ablates solid **¹¹B** disks in the vacuum chamber "
+            "viewport line. Repetition rate sets boron delivery into the electrostatic well alongside "
+            "the hydrogen feed."
         ),
         physics_refs=("injectants.laser_ablation_hz", "injectants.b11_target_index", "fusion_channel.laser_ref_hz"),
         mesh_anchors=(
@@ -146,9 +143,8 @@ ASSEMBLY_WALKTHROUGH: tuple[AssemblyWalkthrough, ...] = (
         png_basenames=("thermal_ch4_feed", "proton_and_thermal_farm"),
         yaml_group="thermal_ch4_feed",
         narrative=(
-            "**Tank_Cryo_Methane** and **Cryo_Methane_Piping** size the first-wall / anode jacket loop "
-            "checked in step 06 (**U2a** heat flux, **U2c** mdot). Knobs: `max_wall_heat_flux_W_m2`, "
-            "`ch4_cooling_effectiveness`."
+            "Cryogenic **CH₄** loop for first-wall and anode-jacket cooling — the **U2** gate in the plant "
+            "model. Wall heat flux and loop effectiveness must close simultaneously with fusion power."
         ),
         physics_refs=(
             "unobtanium.max_wall_heat_flux_W_m2",
@@ -169,9 +165,9 @@ ASSEMBLY_WALKTHROUGH: tuple[AssemblyWalkthrough, ...] = (
         ),
         yaml_group="air_breathing_nozzle_train",
         narrative=(
-            "**Bellmouth** and **Compressor_Housing** on **−X** set Brayton **`pad.compressor`** "
-            "effective mdot (step 06 **PLANT**, step 07 closure). **Nozzle_CD_Contour** and exit hardware "
-            "on **+X** convert **P_gross** to measurable thrust on **TS-01**."
+            "Bellmouth intake and compressor housing on **−X** set ingested air mass flow into the "
+            "fusion-heated Brayton core. Converging–diverging nozzle hardware on **+X** converts gross "
+            "thermal power to jet thrust measured on the thrust sled."
         ),
         physics_refs=("pad.compressor", "plant_scales.jet_propulsive_efficiency"),
         mesh_anchors=(

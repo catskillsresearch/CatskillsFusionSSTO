@@ -6,7 +6,13 @@ from pathlib import Path
 from typing import Any
 
 from ssto.orbitron.experiment.assembly_narrative import ASSEMBLY_WALKTHROUGH
-from ssto.orbitron.experiment.narrative import md_math_for_preview
+from ssto.orbitron.experiment.narrative import (
+    inline_publishable_markdown,
+    load_equations_ssot_block,
+    load_fidelity_and_claims_block,
+    load_pb11_fusion_reaction_block,
+    load_unobtanium_basis_block,
+)
 from ssto.orbitron.experiment.report_formatting import (
     gap_factors_table_md,
     physics_parameters_md,
@@ -14,14 +20,6 @@ from ssto.orbitron.experiment.report_formatting import (
 )
 from ssto.orbitron.experiment.runner import ExperimentRunResult
 
-_REPO = Path(__file__).resolve().parents[3]
-_UNOBTANIUM_MD = _REPO / "ssto" / "orbitron" / "UNOBTANIUM.md"
-
-_OPS_LINE_RE = re.compile(
-    r"(pip install|poetry run|\./scripts/|make orbitron|chain_config|build/orbitron|"
-    r"run\.skip_pic|--no-gap-agent|results/step_|parameters\.json|experiment\.yaml)",
-    re.I,
-)
 
 
 def _target_mw(result: ExperimentRunResult) -> float:
@@ -59,20 +57,16 @@ def _embed_figure(
     return f"![{caption}]({rel})\n\n"
 
 
-def _sanitize_gap_markdown(md: str) -> str:
-    """Strip code, ops notes, and deep headings for a public physics narrative."""
-    md = re.sub(r"```[\s\S]*?```", "", md)
-    md = re.sub(r"^#{4,}\s+", "### ", md, flags=re.MULTILINE)
-    flat: list[str] = []
+def _flatten_markdown_bullets(md: str) -> str:
+    """No nested bullet lists in the published report."""
+    out: list[str] = []
     for line in md.splitlines():
-        if _OPS_LINE_RE.search(line):
-            continue
         m = re.match(r"^(\s{2,})[-*]\s+(.*)$", line)
         if m:
-            flat.append(f"- {m.group(2).strip()}")
-            continue
-        flat.append(line)
-    return re.sub(r"\n{3,}", "\n\n", "\n".join(flat)).strip()
+            out.append(f"- {m.group(2).strip()}")
+        else:
+            out.append(line)
+    return "\n".join(out)
 
 
 def _strip_leading_h1(md: str) -> str:
@@ -86,6 +80,62 @@ def _strip_leading_h1(md: str) -> str:
     return "\n".join(lines)
 
 
+_GAP_HTML_COMMENT = re.compile(r"<!--[\s\S]*?-->\s*")
+_GAP_HEADING = re.compile(r"^(#{1,6})\s+(.*)$")
+_GAP_NUMBERED_HEADING = re.compile(r"^\d+\.\s+")
+_OVERALL_LIKELIHOOD = re.compile(
+    r"^\*\*(Overall likelihood of closing[^*]+)\*\*\s*$",
+    re.IGNORECASE,
+)
+
+
+def _normalize_gap_conclusion_markdown(md: str) -> str:
+    """
+    Fit ``UNOBTANIUM_GAP.md`` under report ``## Conclusion``.
+
+    - Drop agent HTML comment and duplicate document ``#`` title
+    - Remove ``## N.`` numbering; demote headings one level (``##`` → ``###``, ``###`` → ``####``)
+    - Replace ``## 1. Executive summary`` with ``### Overall likelihood…`` lead heading
+    """
+    text = _GAP_HTML_COMMENT.sub("", md)
+    text = _strip_leading_h1(text)
+    out: list[str] = []
+    after_exec_heading = False
+
+    for line in text.splitlines():
+        hm = _GAP_HEADING.match(line)
+        if hm:
+            level = len(hm.group(1))
+            title = _GAP_NUMBERED_HEADING.sub("", hm.group(2).strip())
+            if re.search(r"executive\s+summary", title, re.I):
+                after_exec_heading = True
+                continue
+            new_level = min(level + 1, 4)
+            out.append("#" * new_level + " " + title)
+            after_exec_heading = False
+            continue
+
+        overall = _OVERALL_LIKELIHOOD.match(line.strip())
+        if overall:
+            out.append("### " + overall.group(1).strip())
+            after_exec_heading = False
+            continue
+
+        if after_exec_heading and line.strip() and not line.startswith("|"):
+            # Body lines before next heading stay as paragraphs under Overall likelihood.
+            pass
+        out.append(line)
+        after_exec_heading = False
+
+    return re.sub(r"\n{3,}", "\n\n", "\n".join(out)).strip()
+
+
+def _prepare_gap_conclusion_body(raw: str) -> str:
+    normalized = _normalize_gap_conclusion_markdown(raw)
+    flattened = _flatten_markdown_bullets(normalized)
+    return inline_publishable_markdown(flattened, cap_headings_at=None)
+
+
 def render_introduction(result: ExperimentRunResult) -> str:
     target = _target_mw(result)
     lines = ["## Introduction\n\n"]
@@ -96,10 +146,9 @@ def render_introduction(result: ExperimentRunResult) -> str:
         "train** on a laboratory test stand. The question for this benchmark is whether a credible "
         f"**{target:g} MW** gross plant can close while respecting first-wall, field-emission, HTS, and "
         "reactivity **Unobtanium** gates — and, if not at today's art, what performance must improve.\n\n"
-        "We walk from the **physical hardware layout** through **nominal** performance, then an "
-        "**honest stress inverse** under literature-class fusion reactivity, and finish with a "
-        "**technology gap** and R&D program. Figures are placeholders for manual illustration upload "
-        "in the published article.\n\n"
+        "The narrative below is **self-contained**: governing equations, unobtanium specs, numeric "
+        "results, and gap analysis are included in full. Figure slots are text placeholders for "
+        "manual illustration upload in the published article.\n\n"
     )
     s08 = result.step_results.get("08") or {}
     if s08.get("design_validated") is True:
@@ -109,13 +158,53 @@ def render_introduction(result: ExperimentRunResult) -> str:
         )
     elif "08" in result.step_results:
         lines.append(
-            "At nominal knobs the plant model **does not fully close** the power and materials gates — "
-            "see baseline and inverse sections.\n\n"
+            "At nominal knobs the plant model **does not fully close** the power and materials gates; "
+            "the stress-inverse and gap-closed sections quantify what must improve.\n\n"
         )
     return "".join(lines)
 
 
-def render_test_stand_section(staged: dict[str, str | None]) -> str:
+def render_governing_equations_section() -> str:
+    body = load_equations_ssot_block()
+    if not body:
+        return ""
+    return (
+        "## Governing equations\n\n"
+        "State evolution for the proof chain (steps 0–8). Each stage defines a state vector, "
+        "initial condition, and discrete update.\n\n"
+        f"{body}\n\n"
+    )
+
+
+def render_fidelity_section() -> str:
+    body = load_fidelity_and_claims_block()
+    if not body:
+        return ""
+    return f"## Fidelity tiers and proof claims\n\n{body}\n\n"
+
+
+def render_pb11_fusion_reaction_section() -> str:
+    body = load_pb11_fusion_reaction_block()
+    if not body:
+        return (
+            "## p-¹¹B fusion reaction\n\n"
+            "*(Sources `pb11.md` and `proton_boron_rand.md` not found in repo root.)*\n\n"
+        )
+    return (
+        "## p-¹¹B fusion reaction\n\n"
+        "Headline channel: **¹H + ¹¹B → ¹²C∗ → ⁴He + ⁸Be∗ → 3 ⁴He** (~8.7 MeV per reaction). "
+        "The sections below are the full in-repo physics narrative (pathway, why a thermal "
+        "plasma would need ~8 billion K, how a **600 kV** Orbitron beam differs from that "
+        "temperature, and which particles are emitted at each step).\n\n"
+        f"{body}\n"
+    )
+
+
+def render_test_stand_section(
+    staged: dict[str, str | None],
+    *,
+    report_dir: Path,
+) -> str:
     lines = [
         "## The Phase-1 test stand\n\n",
         "Propulsion runs **−X → +X** from bellmouth intake to nozzle exit. Cryogenic **H₂** and **CH₄** "
@@ -125,7 +214,7 @@ def render_test_stand_section(staged: dict[str, str | None]) -> str:
     ]
     lab = staged.get("LAB-01")
     if lab:
-        lines.append(_embed_figure(Path(), {"x": lab}, "x", "Full laboratory test stand"))
+        lines.append(f"![LAB-01 — full test stand]({lab})\n\n")
     for asm in ASSEMBLY_WALKTHROUGH:
         if asm.designator == "LAB-01":
             continue
@@ -149,7 +238,7 @@ def render_physics_design_section(parameters: dict[str, Any]) -> str:
 def render_unobtanium_section(parameters: dict[str, Any]) -> str:
     unob = parameters.get("unobtanium") or {}
     lines = [
-        "## Unobtanium gates (U1–U4)\n\n",
+        "## Unobtanium design basis (U1–U4)\n\n",
         "Closing **3.5 MW** requires simultaneous progress on emission, wall cooling, bore field, and "
         "p-¹¹B reactivity — not independent tuning knobs.\n\n",
         "| Gate | Physical meaning | Nominal (this run) |\n",
@@ -164,17 +253,13 @@ def render_unobtanium_section(parameters: dict[str, Any]) -> str:
         "| **U4** | p-¹¹B ⟨σv⟩ × beam coupling | "
         f"reactivity **{unob.get('fusion_reactivity_scale', 1.0)}×**, "
         f"coupling **{unob.get('beam_coupling_scale', 1.0)}×** |\n\n",
-        "**Baseline** sections use the **design-calibrated** reactivity curve. **Inverse** stress "
-        "uses **literature-class** ⟨σv⟩ (~3× lower peak) to report honest gap factors.\n\n",
+        "**Baseline** uses the **design-calibrated** ⟨σv⟩ curve. **Stress inverse** uses "
+        "**literature-class** ⟨σv⟩ (~3× lower peak) for honest gap factors.\n\n",
     ]
-    if _UNOBTANIUM_MD.is_file():
-        text = _UNOBTANIUM_MD.read_text(encoding="utf-8")
-        if "Energy offload:" in text:
-            lines.append(
-                "Design intent: fusion-heated Brayton on ingested air — sprint power without a "
-                "multi‑MV grid tie. The benchmark asks whether this geometry and fueling can deliver "
-                "**3.5 MW** while passing U1–U4.\n\n"
-            )
+    basis = load_unobtanium_basis_block()
+    if basis:
+        lines.append(basis)
+        lines.append("\n\n")
     return "".join(lines)
 
 
@@ -352,8 +437,8 @@ def render_conclusion_gap(result: ExperimentRunResult, report_dir: Path) -> str:
         "## Conclusion — technology gaps and R&D program\n\n",
     ]
     if gap_md.is_file():
-        body = _sanitize_gap_markdown(_strip_leading_h1(gap_md.read_text(encoding="utf-8")))
-        lines.append(md_math_for_preview(body))
+        body = _prepare_gap_conclusion_body(gap_md.read_text(encoding="utf-8"))
+        lines.append(body)
         lines.append("\n")
     else:
         lines.append("*Gap synthesis unavailable for this run.*\n\n")

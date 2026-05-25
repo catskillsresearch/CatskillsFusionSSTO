@@ -48,6 +48,11 @@ class ExperimentConfig:
         return bool(self.run.get("run_gap_agent", True))
 
     @property
+    def reuse_gap_analysis(self) -> bool:
+        """If ``UNOBTANIUM_GAP.md`` already exists in the report dir, skip the Cursor agent."""
+        return bool(self.run.get("reuse_gap_analysis", False))
+
+    @property
     def pic_steps_override(self) -> int | None:
         v = self.run.get("pic_steps")
         return int(v) if v is not None else None

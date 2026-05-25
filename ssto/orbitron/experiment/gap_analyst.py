@@ -141,12 +141,11 @@ def _template_fallback(
             lines.append(f"- **{label}**: {fac:.3f}× vs nominal\n")
 
     lines.append(
-        "\n## Enable AI analysis\n\n"
-        "Install `cursor-sdk`, then either export `CURSOR_API_KEY` or place it in "
-        f"`{tokens_yaml_path()}` (outside repo; override path with `ORBITRON_TOKENS_YAML`).\n\n"
-        "```bash\npip install cursor-sdk\n"
-        "./scripts/run_orbitron_experiment.sh experiments/your.yaml\n```\n\n"
-        "See `ssto/orbitron/UNOBTANIUM.md` for knob definitions.\n"
+        "\n### Knob definitions (U1–U4)\n\n"
+        "**U1** field-emission margin — cathode surface field vs vacuum arc limit. "
+        "**U2** max wall heat flux and CH₄ cooling effectiveness. "
+        "**U3** HTS capability scale at 2 T bore. "
+        "**U4** fusion reactivity scale and beam coupling scale for p-¹¹B burn.\n"
     )
     return "".join(lines)
 
@@ -289,6 +288,24 @@ def write_template_gap_analysis(
     return str(out_path), "template", timing
 
 
+def _reuse_existing_gap_analysis(report_dir: Path) -> tuple[str, str, dict[str, Any]] | None:
+    """Return prior gap write if ``UNOBTANIUM_GAP.md`` should be kept (not a Cursor transcript cache)."""
+    out_path = report_dir / "UNOBTANIUM_GAP.md"
+    if not out_path.is_file() or out_path.stat().st_size < 32:
+        return None
+    timing_path = report_dir / "gap_agent_timing.json"
+    timing: dict[str, Any] = {"mode": "reused", "finished_utc": _utc_now(), "elapsed_s": 0.0}
+    if timing_path.is_file():
+        try:
+            prior = json.loads(timing_path.read_text(encoding="utf-8"))
+            if isinstance(prior, dict):
+                timing = {**prior, "mode": "reused", "reused_utc": _utc_now(), "elapsed_s": 0.0}
+        except json.JSONDecodeError:
+            pass
+    _write_gap_timing(report_dir, timing)
+    return str(out_path), "reused", timing
+
+
 def run_gap_agent_analysis(
     *,
     report_dir: Path,
@@ -297,10 +314,25 @@ def run_gap_agent_analysis(
     step09: dict[str, Any],
     step08_proof: dict[str, Any] | None,
     log: Callable[[str], None] | None = None,
+    reuse_if_present: bool = False,
 ) -> tuple[str, str, dict[str, Any]]:
     """
-    Write ``UNOBTANIUM_GAP.md``. Returns (path, mode, timing) where mode is ``cursor`` or ``template``.
+    Write ``UNOBTANIUM_GAP.md``. Returns (path, mode, timing) where mode is ``cursor``, ``template``, or ``reused``.
+
+    There is **no** cache of the Cursor agent conversation — only the markdown file on disk.
+    Set ``reuse_if_present`` (or ``ORBITRON_REUSE_GAP_ANALYSIS=1``) to skip a new agent call when
+    ``UNOBTANIUM_GAP.md`` already exists (e.g. re-run into the same ``--report-dir``).
     """
+    if reuse_if_present or os.environ.get("ORBITRON_REUSE_GAP_ANALYSIS", "").lower() in (
+        "1",
+        "true",
+        "yes",
+    ):
+        reused = _reuse_existing_gap_analysis(report_dir)
+        if reused is not None:
+            _emit(log, "  Reusing existing UNOBTANIUM_GAP.md (no Cursor agent call)\n")
+            return reused
+
     out_path = report_dir / "UNOBTANIUM_GAP.md"
     prompt = _build_agent_prompt(
         experiment_name=experiment_name,

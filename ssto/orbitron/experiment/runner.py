@@ -216,6 +216,7 @@ def run_experiment(
                     step09=step09,
                     step08_proof=out.step_results.get("08"),
                     log=emit,
+                    reuse_if_present=exp.reuse_gap_analysis,
                 )
             else:
                 emit("\n--- Unobtanium gap (template only; agent disabled) ---\n")
