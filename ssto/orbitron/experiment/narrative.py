@@ -8,8 +8,7 @@ from ssto.orbitron.experiment.paths import VALIDATION_STEPS_MD
 
 _REPO = Path(__file__).resolve().parents[3]
 _UNOBTANIUM_MD = _REPO / "ssto" / "orbitron" / "UNOBTANIUM.md"
-_PB11_REACTION_MD = _REPO / "pb11.md"
-_PROTON_BORON_RAND_MD = _REPO / "proton_boron_rand.md"
+_PB11_WHY_FUSION_MD = Path(__file__).resolve().parents[1] / "pb11_why_fusion.md"
 
 _STEP_HEADING = re.compile(r"^### Step (\d+)\s*[—–-]", re.MULTILINE)
 _DISPLAY_MATH = re.compile(r"\\\[(.*?)\\\]", re.DOTALL)
@@ -24,6 +23,63 @@ def _simplify_math_body(body: str) -> str:
     body = re.sub(r"\\mathrm\{([^}]+)\}", r"\1", body)
     body = re.sub(r"\\mathbf\{([^}]+)\}", r"\1", body)
     return body
+
+
+_DISPLAY_MATH_BLOCK = re.compile(r"^\s*\$\$\s*$", re.MULTILINE)
+
+
+def _normalize_display_math_blocks(text: str) -> str:
+    """
+    Put ``$$`` delimiters at column 0 and dedent bodies.
+
+    Indented ``$$`` (common under list items) leaves VS Code/KaTeX math mode open
+    through following ``---`` and headings.
+    """
+    lines = text.splitlines()
+    out: list[str] = []
+    i = 0
+    while i < len(lines):
+        if _DISPLAY_MATH_BLOCK.match(lines[i]):
+            out.append("$$")
+            i += 1
+            body: list[str] = []
+            while i < len(lines) and not _DISPLAY_MATH_BLOCK.match(lines[i]):
+                body.append(lines[i].lstrip())
+                i += 1
+            if body:
+                out.extend(body)
+            if i < len(lines):
+                out.append("$$")
+                i += 1
+            continue
+        out.append(lines[i])
+        i += 1
+    return "\n".join(out)
+
+
+def sanitize_markdown_math_for_vscode(text: str) -> str:
+    """Fix constructs that break the VS Code Markdown+KaTeX preview."""
+    text = _normalize_display_math_blocks(text)
+    # HR lines are often parsed inside an unclosed math block; use spacing instead.
+    text = re.sub(r"^---\s*$", "", text, flags=re.MULTILINE)
+    # **$…$** confuses the math tokenizer; keep math delimiters only.
+    text = re.sub(r"\*\*(\$[^$\n]+\$)\*\*", r"\1", text)
+    text = re.sub(r"\*\*\$c\$ does not appear\.\*\*", r"$c$ does not appear.", text)
+    # Single-letter bold next to display math (e.g. "**E** only") corrupts preview.
+    text = re.sub(
+        r"multiplies \*\*E\*\* only",
+        "multiplies the electric field E only",
+        text,
+        flags=re.I,
+    )
+    text = re.sub(r"\*\*\$c\$\*\* does not appear", r"$c$ does not appear", text)
+    # Prose function notation without nested $ (avoids errors if math mode stuck).
+    text = re.sub(
+        r"No \$f\(S\(t\)\)\$ — not a time integrator",
+        "No *f(S(t))* — not a time integrator",
+        text,
+    )
+    return re.sub(r"\n{3,}", "\n\n", text).strip()
 
 
 def md_math_for_preview(text: str) -> str:
@@ -44,14 +100,13 @@ def md_math_for_preview(text: str) -> str:
 
     out = _DISPLAY_MATH.sub(_display, text)
     out = _INLINE_MATH.sub(_inline, out)
-    # Bare $$ blocks from agent output
     out = re.sub(
         r"\$\$([^$]+)\$\$",
         lambda m: f"$$\n{_simplify_math_body(m.group(1).strip())}\n$$",
         out,
         flags=re.DOTALL,
     )
-    return out
+    return sanitize_markdown_math_for_vscode(out)
 
 
 def _split_sections(text: str, start_marker: str, end_marker: str | None) -> str:
@@ -126,6 +181,121 @@ _POINTER_LINE = re.compile(
     re.I | re.MULTILINE,
 )
 
+# Lines dropped from inlined SSOT text for external readers (no implementation artifacts).
+_SOFTWARE_LINE = re.compile(
+    r"(?:"
+    r"\.(?:py|json|yaml|npz|sh)\b|"
+    r"build/orbitron|chain_config|results/step_|ORBITRON_|"
+    r"poetry\s+run|pip\s+install|ssto/|tools/|scripts/|"
+    r"Proof Suite|Implementation:|^\s*\*\*Display|\(C\)\s+Display|"
+    r"^\|[^\n]*build/orbitron|"
+    r"fusion_pb11|physics_evidence|plant_0d|validation\.py|"
+    r"laminar_flow_2d|fusion_channel_sr|base_inputs|surrogate_calib|"
+    r"pb11_reactivity|compile_|run_all|picmi_overrides|step_ok\.json|"
+    r"JSBSim|FlightGear|holdout T|module default in|"
+    r"Repo:\s*`"
+    r")",
+    re.I,
+)
+
+_KNOB_BACKTICK: dict[str, str] = {
+    "field_emission_margin": "field-emission margin",
+    "max_wall_heat_flux_W_m2": "maximum wall heat flux",
+    "ch4_cooling_effectiveness": "CH₄ cooling effectiveness",
+    "hts_capability_scale": "HTS capability scale",
+    "fusion_reactivity_scale": "fusion reactivity scale",
+    "beam_coupling_scale": "beam coupling scale",
+}
+
+_INLINE_REPLACEMENTS: tuple[tuple[str, str], ...] = (
+    (r"`plant_0d(?:\.py)?`", "0D plant model"),
+    (r"`fusion_pb11(?:\.py)?`", "p-¹¹B fusion reactivity model"),
+    (r"`validation(?:\.py)?`", "design validation checks"),
+    (r"`pad\.throttle`", "throttle τ"),
+    (r"`pad\.cathode_pulse`", "cathode pulse p"),
+    (r"chain_config\.json", "run configuration"),
+    (r"proof[- ]?chain", "forward model"),
+    (r"proof[- ]?forward", "nominal forward model"),
+    (r"proof mode", "nominal reactivity assumption"),
+    (r"Tier[- ]?1", "first-tier"),
+    (r"design_validated", "design gates passed"),
+    (r"last `density_diag` on disk", "last electron-density diagnostic from stage 1"),
+    (r"`electron_ring_only`", "electron-only model"),
+    (r"`fusion_channel\.stochastic_seed`", "stochastic seed"),
+    (r"same NPZ `clump_index`", "clump-index time series"),
+    (r"WarpX plotfile `rho_electrons` every `diag_period` steps", "electron-density snapshots each diagnostic period"),
+    (r"from step 01 artifact \+ levers", "from stage 1 output and control levers"),
+    (r"\*\*Controls on screen:\*\*[^\n]+\n", ""),
+    (r"\(GUI \*\*λ\*\*\)", "(injection lever λ)"),
+    (r"pad \$c_\{eff\}", r"compressor effectiveness $$c_{eff}"),
+    (r", pad \$c_\{eff\}", r", compressor effectiveness $$c_{eff}"),
+    (r"user edits in GUI or checked-in YAML", "operator sets geometry and pad interlocks"),
+    (r"full chain artifacts", "full forward-model states"),
+    (r"first-tier \*\*design gates passed\*\* at nominal knobs is \*\*first-tier calibrated closure\*\*",
+     "**Design gates passed** at nominal knobs reflect **first-tier calibrated closure**"),
+    (r"Removed from default deck \([^)]+\)", "Omitted in the electron-only model"),
+    (r"\\rho_e\^\{\\mathrm\{plotfile\}\}", r"\\rho_e^{\\mathrm{sim}}"),
+    (r"first-tier plant closure\s+design closure passed", "first-tier design gates passed"),
+    (r"first-tier plant closure calibrated closure", "first-tier calibrated closure"),
+    (r"Macroparticle set.*`electrons` only", "Electron macroparticles"),
+    (r"\$Y\$ = YAML spec bundle", r"$$Y$$ = design specification bundle"),
+    (r"PIC / core YAML", "PIC / core specification"),
+    (r"Tier-1 \*\*design gates passed\*\*", "**Design gates passed**"),
+)
+
+_READER_DROP_LINE = re.compile(
+    r"(?:"
+    r"^\| Plot \|"
+    r"|plotfile|density_diag|diag_period|"
+    r"^\| x–z heatmap \|"
+    r"|^\| Clump vs time \|"
+    r"|^\| Radial profile \|"
+    r"|^\| Metrics \| Ring"
+    r"|^\| \*\*Not plotted\*\* \|"
+    r"|^\|[-:| ]+\|\s*$"
+    r"|GUI or checked-in YAML"
+    r")",
+    re.I,
+)
+
+
+_LITERAL_REPLACEMENTS: tuple[tuple[str, str], ...] = (
+    ("pad $c_{eff}", "compressor effectiveness $c_{eff}$"),
+    (r"pad \(c_{\mathrm{eff}}\)", "compressor effectiveness $c_{eff}$"),
+    ("$Y$ = YAML spec bundle", "$Y$ = design specification bundle"),
+    (r"\(Y\) = YAML spec bundle", "$Y$ = design specification bundle"),
+)
+
+
+def _apply_literal_reader_replacements(text: str) -> str:
+    for old, new in _LITERAL_REPLACEMENTS:
+        text = text.replace(old, new)
+    return text
+
+
+def strip_software_implementation_references(md: str) -> str:
+    """Remove implementation paths, modules, and repo pointers from reader-facing prose."""
+    text = _apply_literal_reader_replacements(md)
+    for key, label in _KNOB_BACKTICK.items():
+        text = text.replace(f"`{key}`", label)
+    for pattern, repl in _INLINE_REPLACEMENTS:
+        text = re.sub(pattern, repl, text, flags=re.IGNORECASE)
+    kept: list[str] = []
+    for line in text.splitlines():
+        if _SOFTWARE_LINE.search(line) or _READER_DROP_LINE.search(line):
+            continue
+        if re.search(r"\.md\)|\.md`|/[\w-]+\.md", line, re.I):
+            continue
+        kept.append(line)
+    text = "\n".join(kept)
+    text = re.sub(
+        r"The throttle lever τ \(ring density scale\) is distinct from beam fueling\.\s*",
+        "The throttle lever τ (ring density scale) is distinct from beam fueling.\n\n",
+        text,
+        count=1,
+    )
+    return re.sub(r"\n{3,}", "\n\n", text).strip()
+
 
 def inline_publishable_markdown(md: str, *, cap_headings_at: int | None = 3) -> str:
     """
@@ -134,12 +304,11 @@ def inline_publishable_markdown(md: str, *, cap_headings_at: int | None = 3) -> 
     ``cap_headings_at``: demote headings deeper than this level (``None`` = leave as-is).
     """
     text = _CODE_FENCE.sub("", md)
+    text = strip_software_implementation_references(text)
     text = _MD_LINK.sub(r"\1", text)
     kept: list[str] = []
     for line in text.splitlines():
         if _POINTER_LINE.search(line):
-            continue
-        if re.search(r"\.md\)|\.md`|/[\w-]+\.md", line, re.I):
             continue
         kept.append(line)
     text = "\n".join(kept)
@@ -147,7 +316,8 @@ def inline_publishable_markdown(md: str, *, cap_headings_at: int | None = 3) -> 
         cap = "#" * cap_headings_at
         text = re.sub(rf"^#{{{cap_headings_at + 1},}}\s+", f"{cap} ", text, flags=re.MULTILINE)
     text = re.sub(r"\n{3,}", "\n\n", text).strip()
-    return md_math_for_preview(text)
+    text = md_math_for_preview(text)
+    return _apply_literal_reader_replacements(text)
 
 
 def load_equations_ssot_block(md_path: Path | None = None) -> str:
@@ -159,34 +329,52 @@ def load_equations_ssot_block(md_path: Path | None = None) -> str:
         "## State evolution (equations SSOT)",
         "## Step-by-step (apps, dependencies, gates)",
     )
-    return inline_publishable_markdown(block)
+    body = inline_publishable_markdown(block)
+    empty_compile = "**Update (algebraic, one shot):**\n\n$$\n\n$$"
+    if empty_compile in body:
+        body = body.replace(
+            empty_compile,
+            "**Update (algebraic, one shot):**\n\n$$\n"
+            r"\mathbf{S}_1 = \mathrm{Compile}(Y, G, I)"
+            "\n$$",
+            1,
+        )
+    return body
+
+
+_READER_FIDELITY_TABLE = """| Tier | Mechanism | What it proves |
+|------|-----------|----------------|
+| **0** | Pad interlock sequence | Correct startup order before fueling and reaction |
+| **1** | 0D plant + U1–U4 gates | **3.5 MW** headline, jet closure, materials limits |
+| **2** | Electron-ring simulation (stages 1–2) | Density and beam coupling at 600 kV — **not** fusion Q |
+| **3** | p-¹¹B channel + burn models | ⟨σv⟩(T_i) × fueling × volume; laminar / clump checks |
+| **4** | *Future* | Transport-integrated reactivity without analytical surrogate blend |
+
+**Critical honesty:** The electron-ring simulation integrates **electrons in prescribed E×B fields only**. It does not include fuel species, compressor airflow, or p-¹¹B fusion yield. Fueling and the air-breathing Brayton path enter at later stages.
+"""
 
 
 def load_fidelity_and_claims_block(md_path: Path | None = None) -> str:
-    """Fidelity ladder + proof-claim criteria (no command cheatsheet)."""
+    """Fidelity ladder + what would constitute first-principles proof (reader-facing)."""
     path = md_path or VALIDATION_STEPS_MD
     text = path.read_text(encoding="utf-8")
-    block = _split_sections(text, "## Fidelity ladder (what each tier proves)", "## Individual commands")
-    if not block:
-        block = _split_sections(
-            text,
-            "## Fidelity ladder (what each tier proves)",
-            None,
+    claims = _split_sections(text, "## When you can claim", "## Mapping chain")
+    if not claims:
+        claims = _split_sections(text, "## When you can claim", "## Individual commands")
+    mapping = _split_sections(text, "## Mapping chain", "## Individual commands")
+    if not mapping:
+        mapping = _split_sections(text, "## Mapping chain", None)
+    parts = [_READER_FIDELITY_TABLE]
+    if claims:
+        parts.append(claims)
+    if mapping:
+        mapping = re.sub(
+            r"\| 8 \| Spec-ready YAML for UNOBTANIUM / test stand \|",
+            "| 8 | Design validation summary |",
+            mapping,
         )
-    return inline_publishable_markdown(block)
-
-
-def _demote_markdown_headings(md: str, *, extra_levels: int = 1, max_level: int = 4) -> str:
-    """Shift heading depth (e.g. embed ``pb11.md`` ``##`` as ``###`` under a report section)."""
-    out: list[str] = []
-    for line in md.splitlines():
-        m = re.match(r"^(#{1,6})\s+(.*)$", line)
-        if m:
-            level = min(len(m.group(1)) + extra_levels, max_level)
-            out.append("#" * level + " " + m.group(2).strip())
-        else:
-            out.append(line)
-    return "\n".join(out)
+        parts.append(mapping)
+    return inline_publishable_markdown("\n\n".join(parts))
 
 
 def _flatten_markdown_bullets(md: str) -> str:
@@ -200,83 +388,15 @@ def _flatten_markdown_bullets(md: str) -> str:
     return "\n".join(flat)
 
 
-def _slice_markdown_file(path: Path, start: str, end: str | None) -> str:
+def load_pb11_fusion_reaction_block(
+    md_path: Path | None = None,
+) -> str:
+    """Reader-facing ``Why p-¹¹B fusion?`` body from ``ssto/orbitron/pb11_why_fusion.md``."""
+    path = md_path or _PB11_WHY_FUSION_MD
     if not path.is_file():
         return ""
-    text = path.read_text(encoding="utf-8")
-    block = _split_sections(text, start, end)
-    lines = block.splitlines()
-    if lines and lines[0].strip().startswith(start.strip().split()[0]):
-        first = lines[0].strip()
-        if first == start.strip() or first.startswith(start.strip()[:12]):
-            lines = lines[1:]
-    while lines and not lines[0].strip():
-        lines.pop(0)
-    return "\n".join(lines).strip()
-
-
-def _prepare_fusion_embed(md: str, *, demote_levels: int) -> str:
-    md = re.sub(r"^---\s*$", "", md, flags=re.MULTILINE)
-    md = _demote_markdown_headings(md, extra_levels=demote_levels, max_level=4)
-    md = _flatten_markdown_bullets(md)
-    return inline_publishable_markdown(md, cap_headings_at=4)
-
-
-def load_pb11_fusion_reaction_block(
-    pb11_path: Path | None = None,
-    proton_boron_path: Path | None = None,
-) -> str:
-    """
-    Full in-repo p-¹¹B physics narrative (self-contained in the report).
-
-    Sources (inlined, not linked):
-    - ``pb11.md`` — compact multi-step pathway
-    - ``proton_boron_rand.md`` Reply 4 — 8 GK threshold, Coulomb barrier, resonances, decay
-    - ``proton_boron_rand.md`` Reply 5 — non-thermal 600 kV Orbitron vs thermal temperature
-    - ``proton_boron_rand.md`` Reply 6 §2 — annotated emissions and side reactions
-    """
-    pb11_path = pb11_path or _PB11_REACTION_MD
-    proton_boron_path = proton_boron_path or _PROTON_BORON_RAND_MD
-    chunks: list[str] = []
-
-    if pb11_path.is_file():
-        raw = pb11_path.read_text(encoding="utf-8")
-        lines = raw.splitlines()
-        while lines and not lines[0].strip():
-            lines.pop(0)
-        if lines and lines[0].startswith("# "):
-            lines.pop(0)
-            while lines and not lines[0].strip():
-                lines.pop(0)
-        body = _prepare_fusion_embed("\n".join(lines), demote_levels=1)
-        if body:
-            chunks.append(f"### Reaction pathway (overview)\n\n{body}")
-
-    if proton_boron_path.is_file():
-        reply4 = _slice_markdown_file(proton_boron_path, "## Reply 4", "## Prompt 5")
-        if reply4:
-            chunks.append(
-                "### Thermodynamic threshold, Coulomb barrier, and sequential decay\n\n"
-                + _prepare_fusion_embed(reply4, demote_levels=2)
-            )
-        reply5 = _slice_markdown_file(proton_boron_path, "## Reply 5", "## Prompt 6")
-        if reply5:
-            chunks.append(
-                "### 600 kV Orbitron beams vs billion-Kelvin thermal heat\n\n"
-                + _prepare_fusion_embed(reply5, demote_levels=2)
-            )
-        annotated = _slice_markdown_file(
-            proton_boron_path,
-            "### 2. Step-by-Step Reaction Annotation",
-            "## Prompt 7",
-        )
-        if annotated:
-            chunks.append(
-                "### Particles emitted at each step (primary chain and side channels)\n\n"
-                + _prepare_fusion_embed(annotated, demote_levels=2)
-            )
-
-    return "\n\n".join(chunks)
+    raw = path.read_text(encoding="utf-8").strip()
+    return _flatten_markdown_bullets(inline_publishable_markdown(raw, cap_headings_at=4))
 
 
 def load_unobtanium_basis_block(md_path: Path | None = None) -> str:
@@ -285,10 +405,10 @@ def load_unobtanium_basis_block(md_path: Path | None = None) -> str:
     if not path.is_file():
         return ""
     text = path.read_text(encoding="utf-8")
-    # Drop top matter that only points at other docs / install commands.
-    start = text.find("**Context:**")
+    # U1–U4 specs only (skip workflow / simulator install prose).
+    start = text.find("## U1")
     if start < 0:
-        start = text.find("## U1")
+        start = text.find("**Context:**")
     if start < 0:
         start = 0
     end = text.find("## Removed from design")

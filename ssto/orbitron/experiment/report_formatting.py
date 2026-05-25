@@ -81,7 +81,8 @@ def step_metrics_row(step_id: str, data: dict[str, Any]) -> str:
     if step_id in ("07", "07_gap"):
         return f"closure={data.get('closure_rel_error', 0):.2%}"
     if step_id in ("08", "08_gap"):
-        return f"design_validated={data.get('design_validated')}"
+        dv = data.get("design_validated")
+        return f"design closure={'yes' if dv else 'no'}" if dv is not None else "design closure=—"
     if step_id == "09":
         u = data.get("unobtanium_required") or {}
         fs = u.get("fusion_reactivity_scale", "—")

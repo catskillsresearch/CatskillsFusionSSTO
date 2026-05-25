@@ -209,7 +209,7 @@ Species: **`electrons` only**. Prescribed fields (not from plasma Poisson):
 n_e = n_{e,\mathrm{base}}\,\bigl(0.15 + 0.85\,\tau\bigr)\,\bigl(0.65 + 0.35\,p\bigr)
 \]
 
-- Cathode ramp (every step, multiplies **E** only):
+- Cathode ramp (every step, multiplies the electric field E only):
 
 \[
 \alpha(t;\,p) =

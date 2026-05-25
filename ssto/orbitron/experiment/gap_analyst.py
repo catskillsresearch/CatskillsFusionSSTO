@@ -12,6 +12,7 @@ from typing import Any, Callable
 
 from ssto.orbitron.experiment.cursor_credentials import apply_cursor_api_key_to_env, tokens_yaml_path
 from ssto.orbitron.experiment.gap_pipeline import gap_factors
+from ssto.orbitron.experiment.narrative import strip_software_implementation_references
 
 _REPO_ROOT = Path(__file__).resolve().parents[3]
 _UNOBTANIUM_MD = _REPO_ROOT / "ssto" / "orbitron" / "UNOBTANIUM.md"
@@ -54,7 +55,11 @@ def _build_agent_prompt(
 ) -> str:
     unob_md = ""
     if _UNOBTANIUM_MD.is_file():
-        unob_md = _UNOBTANIUM_MD.read_text(encoding="utf-8")[:8000]
+        raw = _UNOBTANIUM_MD.read_text(encoding="utf-8")
+        start = raw.find("## U1")
+        if start < 0:
+            start = 0
+        unob_md = strip_software_implementation_references(raw[start : start + 8000])
 
     proof_validated = step08_proof.get("design_validated") if step08_proof else None
     factors = gap_factors(step09)
@@ -67,11 +72,14 @@ Review the Orbitron p-¹¹B unobtanium gap from a **stress inverse** (literature
 NOT the design-calibrated curve). Minimum performance scales to hit {step09.get('target_mw', 3.5)} MW
 while passing U1–U4 gates. Use general knowledge and **web search** where helpful (2024–2026).
 
-**Do not claim the reactor is proven.** Distinguish Tier-1 calibrated closure from physics evidence.
+**Do not claim the reactor is proven.** Distinguish design-calibrated plant closure from first-principles physics proof.
+
+## Audience
+Write for an external reader with **no access to source code or repositories**. Do **not** cite file paths, module names, JSON/YAML artifacts, install commands, or repository layout. Use only physics, materials, and R&D language.
 
 ## Experiment
 - Name: {experiment_name}
-- Proof-forward Tier-1 design_validated: {proof_validated}
+- Nominal forward model — design gates passed: {proof_validated}
 - Stress inverse success: {step09.get('success')} (mode={step09.get('inverse_mode', 'stress')})
 - Forward confirmation (design σv @ required knobs): {step09.get('forward_confirmation_passes')}
 - Confirmation P_gross [MW]: {step09.get('forward_confirmation_mw')}
@@ -86,17 +94,18 @@ injectants: {parameters.get('injectants', {})}
 
 Largest gaps: {top}
 
-## Design basis excerpt (UNOBTANIUM.md)
+## Design basis excerpt (U1–U4)
 {unob_md}
 
 ## Output format (Markdown)
-Write a concise report with these sections:
+Write a concise report with these sections **in this order**:
 
 1. **Executive summary** — Can this close with near-term R&D? Overall likelihood (low/medium/high) with 2–3 sentences.
 2. **Knob-by-knob** — For each knob with gap factor > 1.05× or < 0.95×: state of the art, gap vs SOTA, difficulty.
 3. **Recommended R&D program** — Ordered list of materials/plasma experiments (6–10 bullets).
 4. **Risks & unknowns** — What the 0D model may over/under-state.
-5. **Sources** — Cite URLs or papers you used from search.
+5. **Conclusions** — One short closing section (do **not** use the label "Bottom line"). Synthesize the overall R&D and credibility takeaway.
+6. **References** — Numbered list (``1.`` … ``9.``), **not** a markdown table, and **last** in the document. Each entry: short topic label, then journal/preprint/URL citations from web search. **Do not** cite repository paths, ``.py`` modules, or local project files.
 
 Be honest about uncertainty. Do not claim the reactor is proven.
 """
@@ -117,7 +126,7 @@ def _template_fallback(
         "# Unobtanium technology gap (template — no Cursor agent)\n\n",
         f"*Agent skipped: {reason}*\n\n",
         f"**Experiment:** {experiment_name}  \n",
-        f"**Proof-forward validated:** {proof_ok}  \n",
+        f"**Nominal forward model — design gates passed:** {proof_ok}  \n",
         f"**Inverse solve success:** {step09.get('success')}\n\n",
         "## Gap table\n\n",
         _gap_table_md(step09) + "\n\n",
@@ -125,13 +134,13 @@ def _template_fallback(
     ]
     if proof_ok:
         lines.append(
-            "Forward proof chain already met the power target at nominal unobtanium scales. "
+            "The nominal forward model already met the power target at unity Unobtanium scales. "
             "Inverse factors near 1.0× mean the model does not require exotic margins beyond "
             "the design basis — any gap is numerical tolerance, not a materials crisis.\n\n"
         )
     else:
         lines.append(
-            "Forward proof chain missed the target at scale=1.0. Factors above 1.0× are the "
+            "The nominal forward model missed the target at unity scales. Factors above 1.0× are the "
             "**minimum performance multipliers** the optimizer needs on each knob. "
             "Prioritize R&D on the largest factors first.\n\n"
         )
@@ -282,10 +291,17 @@ def write_template_gap_analysis(
         step08_proof=step08_proof,
         reason=reason,
     )
-    out_path.write_text(body, encoding="utf-8")
+    out_path.write_text(_gap_output_text(body), encoding="utf-8")
     timing = {"mode": "template", "reason": reason, "finished_utc": _utc_now(), "elapsed_s": 0.0}
     _write_gap_timing(report_dir, timing)
     return str(out_path), "template", timing
+
+
+def _gap_output_text(body: str, *, header: str = "") -> str:
+    """Normalize agent/template gap markdown before writing ``UNOBTANIUM_GAP.md``."""
+    from ssto.orbitron.experiment.report_narrative import normalize_gap_markdown_for_report
+
+    return header + normalize_gap_markdown_for_report(body.strip()) + "\n"
 
 
 def _reuse_existing_gap_analysis(report_dir: Path) -> tuple[str, str, dict[str, Any]] | None:
@@ -351,7 +367,7 @@ def run_gap_agent_analysis(
             step08_proof=step08_proof,
             reason=f"no Cursor API key (set CURSOR_API_KEY or {tok})",
         )
-        out_path.write_text(body, encoding="utf-8")
+        out_path.write_text(_gap_output_text(body), encoding="utf-8")
         timing = {
             "mode": "template",
             "reason": f"no Cursor API key (set CURSOR_API_KEY or {tok})",
@@ -371,7 +387,7 @@ def run_gap_agent_analysis(
             step08_proof=step08_proof,
             reason=reason,
         )
-        out_path.write_text(body, encoding="utf-8")
+        out_path.write_text(_gap_output_text(body), encoding="utf-8")
         timing = {"mode": "template", "reason": reason, "finished_utc": _utc_now(), "elapsed_s": 0.0}
         _write_gap_timing(report_dir, timing)
         return str(out_path), "template", timing
@@ -398,7 +414,7 @@ def run_gap_agent_analysis(
         else:
             timing["mode"] = "cursor"
         header = f"<!-- Cursor agent model={model} status={result.status} elapsed_s={timing.get('elapsed_s')} -->\n\n"
-        out_path.write_text(header + text, encoding="utf-8")
+        out_path.write_text(_gap_output_text(text, header=header), encoding="utf-8")
         _write_gap_timing(report_dir, timing)
         mode = "cursor" if timing.get("mode") == "cursor" else "template"
         return str(out_path), mode, timing
@@ -410,7 +426,7 @@ def run_gap_agent_analysis(
             step08_proof=step08_proof,
             reason=reason,
         )
-        out_path.write_text(body, encoding="utf-8")
+        out_path.write_text(_gap_output_text(body), encoding="utf-8")
         timing = {"mode": "template", "reason": reason, "finished_utc": _utc_now(), "elapsed_s": 0.0}
         _write_gap_timing(report_dir, timing)
         return str(out_path), "template", timing
