@@ -8,6 +8,7 @@ from typing import Any
 from ssto.orbitron.experiment.assembly_narrative import ASSEMBLY_WALKTHROUGH
 from ssto.orbitron.experiment.narrative import (
     inline_publishable_markdown,
+    load_brayton_air_cycle_block,
     load_equations_ssot_block,
     load_fidelity_and_claims_block,
     load_pb11_fusion_reaction_block,
@@ -259,6 +260,65 @@ def _prepare_gap_conclusion_body(raw: str) -> str:
     normalized = normalize_gap_markdown_for_report(raw)
     flattened = _flatten_markdown_bullets(normalized)
     return inline_publishable_markdown(flattened, cap_headings_at=None)
+
+
+_TRAILING_REFERENCES_SECTION = re.compile(
+    r"\n### References\s*\n(.*)\Z",
+    flags=re.DOTALL | re.IGNORECASE,
+)
+_GAP_NUMBERED_REFERENCE = re.compile(
+    r"^(\d+)\.\s+\*\*(.+?)\.\*\*\s+(.+)$",
+    re.DOTALL,
+)
+
+
+def _split_trailing_references_section(md: str) -> tuple[str, str]:
+    """Remove a trailing ``### References`` block (body for report-wide merge)."""
+    m = _TRAILING_REFERENCES_SECTION.search(md.rstrip())
+    if not m:
+        return md.rstrip() + "\n\n", ""
+    return md[: m.start()].rstrip() + "\n\n", m.group(1).strip()
+
+
+def _parse_gap_reference_entries(refs_block: str) -> list[tuple[str, str]]:
+    """Parse ``### References`` entries as ``(topic, citation)``."""
+    if not refs_block.strip():
+        return []
+    entries: list[tuple[str, str]] = []
+    for chunk in re.split(r"\n(?=\d+\.\s+\*\*)", refs_block.strip()):
+        chunk = chunk.strip()
+        if not chunk:
+            continue
+        m = _GAP_NUMBERED_REFERENCE.match(chunk)
+        if m:
+            cite = re.sub(r"\s+", " ", m.group(3).strip())
+            entries.append((m.group(2).strip(), cite))
+    return entries
+
+
+def render_combined_references_section(
+    brayton_refs: list[tuple[int, str]],
+    gap_refs: list[tuple[str, str]],
+) -> str:
+    """Single numbered reference list at the end of the report."""
+    if not brayton_refs and not gap_refs:
+        return ""
+    lines = ["## References\n\n"]
+    n = 0
+    for _num, cite in sorted(brayton_refs, key=lambda x: x[0]):
+        n += 1
+        lines.append(f"{n}. {cite}")
+    for topic, cite in gap_refs:
+        n += 1
+        lines.append(f"{n}. **{topic}.** {cite}")
+    return "\n\n".join(lines) + "\n\n"
+
+
+def render_brayton_air_cycle_section() -> tuple[str, list[tuple[int, str]]]:
+    body, refs = load_brayton_air_cycle_block()
+    if not body:
+        return "", []
+    return f"## The air-breathing Brayton cycle\n\n{body}\n\n", refs
 
 
 def render_introduction(result: ExperimentRunResult) -> str:
@@ -556,17 +616,23 @@ def render_gap_closed_performance(
     return "".join(lines)
 
 
-def render_conclusion_gap(result: ExperimentRunResult, report_dir: Path) -> str:
+def render_conclusion_gap(
+    result: ExperimentRunResult,
+    report_dir: Path,
+) -> tuple[str, list[tuple[str, str]]]:
     if "09" not in result.step_results:
-        return ""
+        return "", []
     gap_md = report_dir / "UNOBTANIUM_GAP.md"
     lines = [
         "## Conclusion — technology gaps and R&D program\n\n",
     ]
+    gap_refs: list[tuple[str, str]] = []
     if gap_md.is_file():
         body = _prepare_gap_conclusion_body(gap_md.read_text(encoding="utf-8"))
+        body, refs_block = _split_trailing_references_section(body)
+        gap_refs = _parse_gap_reference_entries(refs_block)
         lines.append(body)
         lines.append("\n")
     else:
         lines.append("*Gap synthesis unavailable for this run.*\n\n")
-    return "".join(lines)
+    return "".join(lines), gap_refs

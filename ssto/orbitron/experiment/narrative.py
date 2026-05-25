@@ -9,6 +9,9 @@ from ssto.orbitron.experiment.paths import VALIDATION_STEPS_MD
 _REPO = Path(__file__).resolve().parents[3]
 _UNOBTANIUM_MD = _REPO / "ssto" / "orbitron" / "UNOBTANIUM.md"
 _PB11_WHY_FUSION_MD = Path(__file__).resolve().parents[1] / "pb11_why_fusion.md"
+_BRAYTON_AIR_CYCLE_MD = Path(__file__).resolve().parents[1] / "brayton_air_cycle.md"
+_BRACKET_REFERENCE_LINE = re.compile(r"^\[(\d+)\]\s+(.+)$")
+_BRAYTON_REFERENCES_HEADING = re.compile(r"\n#{2,3}\s+References\s*\n", re.IGNORECASE)
 
 _STEP_HEADING = re.compile(r"^### Step (\d+)\s*[—–-]", re.MULTILINE)
 _DISPLAY_MATH = re.compile(r"\\\[(.*?)\\\]", re.DOTALL)
@@ -397,6 +400,33 @@ def load_pb11_fusion_reaction_block(
         return ""
     raw = path.read_text(encoding="utf-8").strip()
     return _flatten_markdown_bullets(inline_publishable_markdown(raw, cap_headings_at=4))
+
+
+def load_brayton_air_cycle_block(
+    md_path: Path | None = None,
+) -> tuple[str, list[tuple[int, str]]]:
+    """
+    Reader-facing Brayton-cycle background from ``ssto/orbitron/brayton_air_cycle.md``.
+
+    Returns ``(body, references)`` where ``references`` are ``(number, citation)`` pairs.
+    """
+    path = md_path or _BRAYTON_AIR_CYCLE_MD
+    if not path.is_file():
+        return "", []
+    raw = path.read_text(encoding="utf-8").strip()
+    refs: list[tuple[int, str]] = []
+    ref_m = _BRAYTON_REFERENCES_HEADING.search(raw)
+    if ref_m:
+        for line in raw[ref_m.end() :].splitlines():
+            line = line.strip()
+            if not line:
+                continue
+            m = _BRACKET_REFERENCE_LINE.match(line)
+            if m:
+                refs.append((int(m.group(1)), m.group(2).strip()))
+        raw = raw[: ref_m.start()].strip()
+    body = _flatten_markdown_bullets(inline_publishable_markdown(raw, cap_headings_at=4))
+    return body, refs
 
 
 def load_unobtanium_basis_block(md_path: Path | None = None) -> str:
