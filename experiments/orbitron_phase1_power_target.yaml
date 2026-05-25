@@ -3,7 +3,7 @@
 #
 # vs baseline: higher fuel at 8:1 H₂:laser, pad τ/p at max. Model estimate ~3.57 MW.
 
-experiment_name: "Orbitron Phase-1 Power Target"
+experiment_name: "Orbitron Direct Cycle p-11B3.5MW Turbojet In Silico Benchmark"
 
 description: >
   Phase-1 interlocks armed; fuel scaled to land near 3.5 MW gross fusion-thermal

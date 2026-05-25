@@ -338,9 +338,93 @@ def _replace_tables(soup: BeautifulSoup) -> None:
         table.replace_with(_table_to_list(table))
 
 
-def markdown_to_body_html(md: str) -> str:
+_IMAGE_MD = re.compile(r"!\[([^\]]*)\]\(([^)]+)\)")
+
+
+def _resolve_image_path(src: str, base_dir: Path) -> Path:
+    raw = src.strip().split()[0] if src.strip() else ""
+    p = Path(raw)
+    if p.is_absolute():
+        return p.resolve()
+    return (base_dir / p).resolve()
+
+
+def _substitute_images_in_markdown(md: str, base_dir: Path) -> str:
+    def repl(match: re.Match[str]) -> str:
+        path = match.group(2).strip()
+        if not path or path.startswith("<") or "://" in path:
+            return match.group(0)
+        full = _resolve_image_path(path, base_dir)
+        return f"\n\nINSERT HERE: {full}\n\n"
+
+    return _IMAGE_MD.sub(repl, md)
+
+
+def _replace_images(soup: BeautifulSoup, base_dir: Path) -> None:
+    for img in list(soup.find_all("img")):
+        src = (img.get("src") or "").strip()
+        full = _resolve_image_path(src, base_dir) if src else Path(src or "unknown")
+        p = soup.new_tag("p")
+        p.string = f"INSERT HERE: {full}"
+        img.replace_with(p)
+
+
+def _strip_code_blocks(soup: BeautifulSoup) -> None:
+    for pre in list(soup.find_all("pre")):
+        pre.decompose()
+    for code in list(soup.find_all("code")):
+        parent = code.parent
+        if parent and parent.name == "p" and parent.get_text(strip=True) == code.get_text(strip=True):
+            parent.decompose()
+        else:
+            code.unwrap()
+
+
+def _flatten_nested_lists(soup: BeautifulSoup) -> None:
+    """LinkedIn mangles nested bullets — promote nested items to a single list level."""
+    while True:
+        nested_ul = None
+        for ul in soup.find_all("ul"):
+            if ul.find_parent("ul") is not None:
+                nested_ul = ul
+                break
+        if nested_ul is None:
+            return
+        parent_ul = nested_ul.find_parent("ul")
+        parent_li = nested_ul.find_parent("li")
+        if parent_ul is None or parent_li is None:
+            nested_ul.unwrap()
+            continue
+        prefix_parts: list[str] = []
+        for child in parent_li.children:
+            if getattr(child, "name", None) == "ul":
+                break
+            if isinstance(child, NavigableString):
+                prefix_parts.append(str(child))
+            elif getattr(child, "name", None) != "ul":
+                prefix_parts.append(child.get_text())
+        prefix = " ".join("".join(prefix_parts).split())
+        insert_at = parent_li
+        for sub_li in list(nested_ul.find_all("li", recursive=False)):
+            text = sub_li.get_text(" ", strip=True)
+            line = f"{prefix} — {text}" if prefix else text
+            new_li = soup.new_tag("li")
+            new_li.string = line
+            insert_at.insert_after(new_li)
+            insert_at = new_li
+        parent_li.decompose()
+
+
+def _cap_heading_depth(soup: BeautifulSoup) -> None:
+    for tag in soup.find_all(["h4", "h5", "h6"]):
+        tag.name = "h3"
+
+
+def markdown_to_body_html(md: str, *, base_dir: Path | None = None) -> str:
     md = _escape_excited_state_asterisks(md)
     md = _normalize_math_delimiters(md)
+    if base_dir is not None:
+        md = _substitute_images_in_markdown(md, base_dir)
     html_fragment = markdown.markdown(
         md,
         extensions=[
@@ -361,6 +445,11 @@ def markdown_to_body_html(md: str) -> str:
     soup = BeautifulSoup(html_fragment, "html.parser")
     _replace_math(soup)
     _replace_tables(soup)
+    if base_dir is not None:
+        _replace_images(soup, base_dir)
+    _strip_code_blocks(soup)
+    _flatten_nested_lists(soup)
+    _cap_heading_depth(soup)
     return str(soup)
 
 
@@ -420,6 +509,23 @@ def copy_html_to_clipboard(html_path: Path) -> bool:
     return False
 
 
+def write_linkedin_html(
+    md_path: Path,
+    *,
+    output: Path | None = None,
+    title: str | None = None,
+) -> Path:
+    """Convert Markdown to LinkedIn-safe HTML; returns output path."""
+    md = md_path.read_text(encoding="utf-8")
+    body = markdown_to_body_html(md, base_dir=md_path.parent)
+    doc_title = title or md_path.stem.replace("_", " ").title()
+    document = wrap_document(body, doc_title)
+    out = output or md_path.with_suffix(".html")
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(document, encoding="utf-8")
+    return out
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(
         description="Markdown → LinkedIn-safe HTML (Unicode math, list tables)."
@@ -433,13 +539,8 @@ def main() -> int:
         print(f"error: not found: {args.input}", file=sys.stderr)
         return 1
 
-    md = args.input.read_text(encoding="utf-8")
-    body = markdown_to_body_html(md)
-    title = args.input.stem.replace("_", " ").title()
-    document = wrap_document(body, title)
-
-    out = args.output or args.input.with_suffix(".html")
-    out.write_text(document, encoding="utf-8")
+    out = write_linkedin_html(args.input, output=args.output)
+    document = out.read_text(encoding="utf-8")
     print(f"Wrote {out} ({len(document):,} bytes)")
     print("Open in browser → Select article for copy → paste into LinkedIn.")
 

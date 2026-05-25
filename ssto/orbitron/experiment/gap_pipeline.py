@@ -6,6 +6,7 @@ from copy import deepcopy
 from typing import Any
 
 from tools.orbitron_proof_chain.chain_lib import (
+    CHAIN_ROOT,
     CONFIG_PATH,
     enable_proof_env,
     load_config,
@@ -157,12 +158,90 @@ def apply_solved_knobs_to_chain(step09: dict[str, Any]) -> dict[str, Any]:
     return cfg
 
 
+def run_fusion_channel_gap_closed() -> dict[str, Any]:
+    """
+    Re-run step 03 fusion channel (laminar ON/OFF pair) with gap-closed unobtanium.
+
+    Writes NPZ under ``03_fusion_channel_gap/`` so baseline ``03_fusion_channel/`` is preserved.
+    """
+    from dataclasses import replace
+
+    from ssto.orbitron.simulator.longitudinal.focus import LongitudinalFocus, focus_domain
+    from ssto.orbitron.simulator.longitudinal.fusion_channel_sr import (
+        laminar_hack_from_inputs,
+        run_fusion_channel_sr,
+    )
+    from ssto.orbitron.simulator.proof_chain.runners import (
+        _fusion_channel_config,
+        _save_fusion_npz,
+        base_inputs,
+    )
+    from ssto.orbitron.simulator.pad_startup import evaluate_pad_status
+    from tools.orbitron_proof_chain.chain_lib import pad_startup_from_cfg
+
+    cfg = load_config()
+    inp, _ = base_inputs()
+    dom = focus_domain(LongitudinalFocus.FUSION_CHANNEL_SR, inp)
+    cache_dir = CHAIN_ROOT / "03_fusion_channel_gap"
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    cache_on = cache_dir / "fields_laminar_on.npz"
+    cache_off = cache_dir / "fields_laminar_off.npz"
+
+    os.environ.pop("ORBITRON_PROOF_CHAIN", None)
+    os.environ["ORBITRON_REACTIVITY_MODEL"] = "design"
+    try:
+        fcc = _fusion_channel_config(cfg)
+        inp_on = replace(inp, pad=replace(inp.pad, laminar_relaminarization=True))
+        fc_on = run_fusion_channel_sr(
+            dom,
+            inp_on,
+            fcc,
+            laminar=laminar_hack_from_inputs(inp_on),
+            compare_without_hack=False,
+        )
+        inp_off = replace(inp, pad=replace(inp.pad, laminar_relaminarization=False))
+        fc_off = run_fusion_channel_sr(
+            dom,
+            inp_off,
+            fcc,
+            laminar=laminar_hack_from_inputs(inp_off, force_off=True),
+            compare_without_hack=False,
+        )
+        _save_fusion_npz(cache_on, fc_on)
+        _save_fusion_npz(cache_off, fc_off)
+        _save_fusion_npz(cache_dir / "fields.npz", fc_on)
+    finally:
+        os.environ.pop("ORBITRON_REACTIVITY_MODEL", None)
+        enable_proof_env()
+
+    reduction = float(fc_off.clump_index_final) / max(float(fc_on.clump_index_final), 1.0e-6)
+    pad_status = evaluate_pad_status(pad_startup_from_cfg(cfg["pad"]))
+    return {
+        "step": "03_gap",
+        "gap_closed": True,
+        "proof_mode": False,
+        "reactivity_model": "design",
+        "unobtanium_applied": dict(cfg.get("unobtanium") or {}),
+        "integrated_fusion_power_mw": fc_on.integrated_fusion_power_mw,
+        "fusion_pb11_power_mw": fc_on.meta.get("fusion_pb11_power_mw"),
+        "clump_index_final": fc_on.clump_index_final,
+        "clump_index_off": fc_off.clump_index_final,
+        "clump_reduction_ratio": reduction,
+        "fields_npz": str(cache_dir / "fields.npz"),
+        "fields_laminar_on_npz": str(cache_on),
+        "fields_laminar_off_npz": str(cache_off),
+        "has_compare_pair": True,
+        "reactor_armed": pad_status.reactor_armed,
+    }
+
+
 def rerun_analytics_with_gap_knobs() -> dict[str, dict[str, Any]]:
     """
     Re-run steps 05–08 with solved unobtanium (proof mode off, design σv).
 
-    Returns payloads keyed ``05_gap`` … ``08_gap``.
+    Returns payloads keyed ``03_gap``, ``05_gap`` … ``08_gap``.
     """
+    out: dict[str, dict[str, Any]] = {"03_gap": run_fusion_channel_gap_closed()}
     from ssto.orbitron.simulator.proof_chain.runners import (
         run_step_05,
         run_step_06,
@@ -172,7 +251,6 @@ def rerun_analytics_with_gap_knobs() -> dict[str, dict[str, Any]]:
 
     os.environ.pop("ORBITRON_PROOF_CHAIN", None)
     os.environ["ORBITRON_REACTIVITY_MODEL"] = "design"
-    out: dict[str, dict[str, Any]] = {}
     try:
         for step_id, fn in (
             ("05_gap", run_step_05),

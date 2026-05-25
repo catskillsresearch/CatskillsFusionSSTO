@@ -56,6 +56,54 @@ def _spec_checks_table(checks: list[dict[str, Any]]) -> str:
     return "\n".join(lines) + "\n"
 
 
+def step_metrics_row(step_id: str, data: dict[str, Any]) -> str:
+    if data.get("error"):
+        return f"error: {data['error']}"
+    if step_id == "02":
+        return f"ρ_e_norm={data.get('rho_e_norm', '—')}"
+    if step_id == "03":
+        ci = data.get("clump_index_final")
+        ratio = data.get("clump_reduction_ratio")
+        ci_s = f"{float(ci):.2f}" if ci is not None else "—"
+        ratio_s = f"{float(ratio):.2f}×" if ratio is not None else "—"
+        return f"clump_ON={ci_s}, OFF/ON={ratio_s}, armed={data.get('reactor_armed')}"
+    if step_id in ("05", "05_gap"):
+        p = data.get("fusion_power_mw", "—")
+        return f"P_fusion={p:.3g} MW" if isinstance(p, (int, float)) else f"P_fusion={p}"
+    if step_id in ("06", "06_gap"):
+        s = data.get("steady_state") or {}
+        pg = s.get("gross_power_mw", "—")
+        return (
+            f"P_gross={pg:.3g} MW, feasible={data.get('feasible')}"
+            if isinstance(pg, (int, float))
+            else f"P_gross={pg}, feasible={data.get('feasible')}"
+        )
+    if step_id in ("07", "07_gap"):
+        return f"closure={data.get('closure_rel_error', 0):.2%}"
+    if step_id in ("08", "08_gap"):
+        return f"design_validated={data.get('design_validated')}"
+    if step_id == "09":
+        u = data.get("unobtanium_required") or {}
+        fs = u.get("fusion_reactivity_scale", "—")
+        conf = data.get("forward_confirmation_passes")
+        if isinstance(fs, (int, float)):
+            return f"success={data.get('success')}, η_react={fs:.3g}×, CNF={conf}"
+        return f"success={data.get('success')}, CNF={conf}"
+    if step_id == "physics":
+        return (
+            f"physics_evidence={data.get('physics_evidence')}, "
+            f"lit_fwd={data.get('literature_forward_mw', '—')} MW"
+        )
+    if step_id == "forward":
+        for row in data.get("scenarios") or []:
+            if row.get("id") == "five_year_sota":
+                return f"5yr SOTA P_gross={row.get('gross_power_mw', '—')} MW"
+        return "see table"
+    if step_id == "01" and data.get("skipped"):
+        return "SKIP_PIC"
+    return "OK"
+
+
 def gap_factors_table_md(gap: dict[str, float]) -> str:
     if not gap:
         return ""
@@ -104,6 +152,28 @@ def _bool_list(items: list[str], *, prefix: str = "- ") -> str:
     if not items:
         return f"{prefix}*(none)*\n"
     return "".join(f"{prefix}{x}\n" for x in items)
+
+
+def physics_parameters_md(parameters: dict[str, Any]) -> str:
+    """Physics-facing design point only (no pad interlocks, PIC, or file paths)."""
+    sections: list[tuple[str, dict[str, Any] | None]] = [
+        ("Geometry & fields", parameters.get("geometry")),
+        ("Fueling", parameters.get("injectants")),
+        ("Unobtanium knobs", parameters.get("unobtanium")),
+        ("Plant targets", parameters.get("plant_scales")),
+    ]
+    lines: list[str] = []
+    for title, block in sections:
+        if not block or not isinstance(block, dict):
+            continue
+        rows = [(k.replace("_", " "), _fmt_scalar(v)) for k, v in block.items()]
+        lines.append(f"**{title}** — ")
+        lines.append(
+            "; ".join(f"{k}: {v}" for k, v in rows[:8])
+            + ("; …" if len(rows) > 8 else "")
+            + ".\n\n"
+        )
+    return "".join(lines) if lines else ""
 
 
 def parameters_tables_md(parameters: dict[str, Any]) -> str:

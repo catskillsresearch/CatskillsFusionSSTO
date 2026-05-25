@@ -19,6 +19,8 @@ GLTF_LAB_SUB_NAMES := \
 	phase_1_benchtop \
 	phase_2_wind_tunnel \
 	integrated_pad_services \
+	proton_h2_feed \
+	thermal_ch4_feed \
 	subassembly_1_2_electrostatic_orbitron_core \
 	subassembly_1_3_laser_ablation_system \
 	air_breathing_nozzle_train \

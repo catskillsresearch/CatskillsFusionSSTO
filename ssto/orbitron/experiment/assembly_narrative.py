@@ -109,8 +109,8 @@ ASSEMBLY_WALKTHROUGH: tuple[AssemblyWalkthrough, ...] = (
     AssemblyWalkthrough(
         designator="INJ-H2-01",
         title="Hydrogen proton feed",
-        png_basenames=("hydrogen_tank_assy",),
-        yaml_group="proton_and_thermal_farm",
+        png_basenames=("proton_h2_feed", "proton_and_thermal_farm"),
+        yaml_group="proton_h2_feed",
         narrative=(
             "**Tank_Hydrogen** and **Hydrogen_Trunk_Line** route **H₂** to **NBI_Injector** for proton "
             "inventory (`injectants.h2_sccm`). Optimal mixing with boron delivery peaks near "
@@ -143,8 +143,8 @@ ASSEMBLY_WALKTHROUGH: tuple[AssemblyWalkthrough, ...] = (
     AssemblyWalkthrough(
         designator="U2-CH4-01",
         title="CH₄ wall-thermal loop (Unobtanium U2)",
-        png_basenames=("methane_tank_assy", "integrated_pad_services"),
-        yaml_group="proton_and_thermal_farm",
+        png_basenames=("thermal_ch4_feed", "proton_and_thermal_farm"),
+        yaml_group="thermal_ch4_feed",
         narrative=(
             "**Tank_Cryo_Methane** and **Cryo_Methane_Piping** size the first-wall / anode jacket loop "
             "checked in step 06 (**U2a** heat flux, **U2c** mdot). Knobs: `max_wall_heat_flux_W_m2`, "
@@ -329,7 +329,9 @@ def render_assembly_section_md(
         "`ssto/orbitron/assembly_specs/orbitron_lab.yaml` "
         "(schema v2 `logical.groups` + `instances`). "
         "CadQuery builds solids via `tools/yaml_assembly/`; Blender renders hero PNGs from glTF "
-        "(`make orbitron-lab-pngs` or `./stand.sh`). "
+        "(`make orbitron-lab-pngs` or the experiment runner). "
+        "**INJ-H2-01** and **U2-CH4-01** use tank-farm slices only (not `integrated_pad_services`, "
+        "which includes **CTRL-01**). "
         "Throughout this report, **designators** (e.g. **CORE-01**, **K1**) tie analysis parameters "
         "to these assemblies.\n\n"
     )

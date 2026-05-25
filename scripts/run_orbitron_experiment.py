@@ -99,7 +99,10 @@ def main() -> int:
 
     result = run_experiment(exp, report_dir)
     report_path = write_experiment_report(result)
+    linkedin_html = report_path.with_suffix(".html")
     print(f"Report: {report_path}")
+    if linkedin_html.is_file():
+        print(f"LinkedIn HTML: {linkedin_html}")
 
     if not result.success:
         print(f"Experiment failed: {result.error}", file=sys.stderr)

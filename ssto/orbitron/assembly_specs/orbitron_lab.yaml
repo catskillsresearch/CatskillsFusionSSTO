@@ -371,6 +371,25 @@ logical:
       - Decal_CH4
       - Pipe_CH4_Feed
       - Cryo_Methane_Piping
+    proton_h2_feed:
+      title: H\u2082 proton inventory (report INJ-H2-01 hero)
+      detail: "Tank farm **without** operator console \u2014 use for assembly report, not\
+        \ ``integrated_pad_services``."
+      parts:
+      - Tank_Farm_Platform
+      - Tank_Hydrogen
+      - Decal_H2
+      - Pipe_H2_Feed
+      - Hydrogen_Trunk_Line
+    thermal_ch4_feed:
+      title: CH\u2084 wall-thermal loop (report U2-CH4-01 hero)
+      detail: "Cryo methane loop **without** operator console or H\u2082 tanks."
+      parts:
+      - Tank_Cryo_Methane
+      - Decal_CH4
+      - Pipe_CH4_Feed
+      - Cryo_Methane_Piping
+      - Magnet_Service_Bosses
     control_panel_stand:
       title: Control panel and operator station
       detail: "Reply 15/18 startup: APU \u2192 starter \u2192 bleed \u2192 vacuum OK \u2192\

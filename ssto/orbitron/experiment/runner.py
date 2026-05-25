@@ -7,6 +7,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, TextIO
 
+from ssto.orbitron.experiment.assembly_build import ensure_assembly_heroes
 from ssto.orbitron.experiment.config import (
     ExperimentConfig,
     apply_experiment_to_chain,
@@ -59,6 +60,7 @@ class ExperimentRunResult:
     figures: dict[str, str | None] = field(default_factory=dict)
     gap_analysis_path: str | None = None
     gap_analysis_mode: str | None = None
+    gap_agent_timing: dict[str, Any] | None = None
     physics_evidence: bool | None = None
     tier1_design_validated: bool | None = None
     started_utc: str = ""
@@ -127,6 +129,7 @@ def run_experiment(
     try:
         emit(f"=== Experiment: {exp.experiment_name} ===\n")
         emit(f"Report directory: {report_dir}\n")
+        ensure_assembly_heroes(log=emit)
         if not exp.skip_pic:
             from ssto.orbitron.simulator.warpx_env import warpx_env_summary
 
@@ -190,7 +193,7 @@ def run_experiment(
             write_json(report_dir / "results" / "step_09.json", out.step_results["09"])
             emit(f"Step 09 OK (success={step09.get('success')})\n")
 
-            emit("\n--- Gap-closed analytics (steps 05–08 with solved knobs) ---\n")
+            emit("\n--- Gap-closed analytics (step 03 fusion channel + steps 05–08) ---\n")
             apply_solved_knobs_to_chain(step09)
             gap_steps = rerun_analytics_with_gap_knobs()
             for step_id, payload in gap_steps.items():
@@ -199,25 +202,26 @@ def run_experiment(
                 write_json(report_dir / "results" / f"step_{step_id}.json", clean)
                 emit(f"{step_id} OK\n")
 
-            gap_figs = generate_gap_figures(report_dir / "figures")
+            gap_figs = generate_gap_figures(report_dir / "figures", report_dir)
             out.figures.update(gap_figs)
             for name, png in gap_figs.items():
                 emit(f"  {name}: {png or '(skipped)'}\n")
 
             if exp.run_gap_agent:
-                emit("\n--- Unobtanium gap agent ---\n")
-                gap_path, gap_mode = run_gap_agent_analysis(
+                emit("\n--- Unobtanium gap agent (Cursor; may take several minutes) ---\n")
+                gap_path, gap_mode, gap_timing = run_gap_agent_analysis(
                     report_dir=report_dir,
                     experiment_name=exp.experiment_name,
                     parameters=out.parameters,
                     step09=step09,
                     step08_proof=out.step_results.get("08"),
+                    log=emit,
                 )
             else:
                 emit("\n--- Unobtanium gap (template only; agent disabled) ---\n")
                 from ssto.orbitron.experiment.gap_analyst import write_template_gap_analysis
 
-                gap_path, gap_mode = write_template_gap_analysis(
+                gap_path, gap_mode, gap_timing = write_template_gap_analysis(
                     report_dir=report_dir,
                     experiment_name=exp.experiment_name,
                     parameters=out.parameters,
@@ -227,7 +231,10 @@ def run_experiment(
                 )
             out.gap_analysis_path = gap_path
             out.gap_analysis_mode = gap_mode
-            emit(f"  UNOBTANIUM_GAP.md ({gap_mode}): {gap_path}\n")
+            out.gap_agent_timing = gap_timing
+            elapsed = gap_timing.get("elapsed_s")
+            elapsed_note = f", {elapsed}s" if elapsed is not None else ""
+            emit(f"  UNOBTANIUM_GAP.md ({gap_mode}{elapsed_note}): {gap_path}\n")
 
         emit("\n--- Forward unobtanium scenarios (design σv performance) ---\n")
         from tools.orbitron_proof_chain.chain_lib import base_inputs
@@ -278,6 +285,7 @@ def run_experiment(
                 "figures": out.figures,
                 "gap_analysis_path": out.gap_analysis_path,
                 "gap_analysis_mode": out.gap_analysis_mode,
+                "gap_agent_timing": out.gap_agent_timing,
                 "run_inverse": exp.run_inverse,
                 "run_gap_agent": exp.run_gap_agent,
                 "tier1_design_validated": out.tier1_design_validated,

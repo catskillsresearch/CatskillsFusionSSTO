@@ -1,9 +1,14 @@
 """Optional Cursor-agent (or template) R&D gap narrative for unobtanium knobs."""
 from __future__ import annotations
 
+import json
 import os
+import sys
+import threading
+import time
+from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 from ssto.orbitron.experiment.cursor_credentials import apply_cursor_api_key_to_env, tokens_yaml_path
 from ssto.orbitron.experiment.gap_pipeline import gap_factors
@@ -146,6 +151,121 @@ def _template_fallback(
     return "".join(lines)
 
 
+def _utc_now() -> str:
+    return datetime.now(timezone.utc).isoformat()
+
+
+def _emit(log: Callable[[str], None] | None, msg: str) -> None:
+    """Write to run log and stderr so long agent runs show progress in the terminal."""
+    if log is not None:
+        log(msg)
+    sys.stderr.write(msg)
+    sys.stderr.flush()
+
+
+def _heartbeat_interval_s() -> float:
+    raw = os.environ.get("ORBITRON_GAP_AGENT_HEARTBEAT_S", "30")
+    try:
+        return max(5.0, float(raw))
+    except ValueError:
+        return 30.0
+
+
+def _write_gap_timing(report_dir: Path, timing: dict[str, Any]) -> None:
+    path = report_dir / "gap_agent_timing.json"
+    path.write_text(json.dumps(timing, indent=2) + "\n", encoding="utf-8")
+
+
+def _run_cursor_agent(
+    *,
+    prompt: str,
+    report_dir: Path,
+    model: str,
+    api_key: str,
+    log: Callable[[str], None] | None,
+) -> tuple[Any, dict[str, Any]]:
+    from cursor_sdk import Agent, AgentOptions, LocalAgentOptions
+
+    opts = AgentOptions(
+        api_key=api_key,
+        model=model,
+        local=LocalAgentOptions(cwd=str(_REPO_ROOT)),
+    )
+    heartbeat_s = _heartbeat_interval_s()
+    started_utc = _utc_now()
+    t0 = time.monotonic()
+    done = threading.Event()
+    timing: dict[str, Any] = {
+        "started_utc": started_utc,
+        "model": model,
+        "heartbeat_interval_s": heartbeat_s,
+        "verbose_stream": os.environ.get("ORBITRON_GAP_AGENT_VERBOSE", "").lower() in ("1", "true", "yes"),
+    }
+
+    _emit(
+        log,
+        f"\n  Cursor gap agent started {started_utc} (model={model})\n"
+        f"  Web search + analysis typically takes 2–10 min; heartbeat every {heartbeat_s:.0f}s.\n"
+        f"  Tail progress: tail -f {report_dir / 'run.log'}\n",
+    )
+
+    def _heartbeat() -> None:
+        while not done.wait(heartbeat_s):
+            elapsed = time.monotonic() - t0
+            _emit(log, f"  [gap agent] still running… {elapsed:.0f}s elapsed\n")
+
+    hb = threading.Thread(target=_heartbeat, name="gap-agent-heartbeat", daemon=True)
+    hb.start()
+
+    result: Any = None
+    try:
+        if timing["verbose_stream"]:
+            _emit(log, "  [gap agent] verbose stream ON (ORBITRON_GAP_AGENT_VERBOSE=1)\n")
+            agent = Agent.create(opts)
+            run = agent.send(prompt)
+            timing["run_id"] = getattr(run, "id", None)
+            timing["agent_id"] = getattr(agent, "agent_id", None)
+            for msg in run.messages():
+                mtype = getattr(msg, "type", type(msg).__name__)
+                if mtype == "status":
+                    _emit(log, f"  [gap agent] status: {getattr(msg, 'status', msg)!s}\n")
+                elif mtype == "assistant":
+                    content = getattr(getattr(msg, "message", None), "content", None) or []
+                    for block in content:
+                        if getattr(block, "type", None) == "text":
+                            t = getattr(block, "text", "") or ""
+                            if t.strip():
+                                preview = t.strip().replace("\n", " ")[:120]
+                                _emit(log, f"  [gap agent] … {preview}\n")
+            result = run.wait()
+        else:
+            result = Agent.prompt(prompt, opts)
+    finally:
+        done.set()
+
+    elapsed_s = time.monotonic() - t0
+    finished_utc = _utc_now()
+    timing.update(
+        {
+            "finished_utc": finished_utc,
+            "elapsed_s": round(elapsed_s, 2),
+            "status": getattr(result, "status", None) if result is not None else "error",
+            "duration_ms": getattr(result, "duration_ms", None) if result is not None else None,
+            "result_chars": len(getattr(result, "result", "") or "") if result is not None else 0,
+            "run_id": timing.get("run_id") or getattr(result, "id", None),
+        }
+    )
+    _write_gap_timing(report_dir, timing)
+    sdk_ms = timing.get("duration_ms")
+    sdk_note = f", SDK duration_ms={sdk_ms}" if sdk_ms is not None else ""
+    _emit(
+        log,
+        f"  Cursor gap agent finished {finished_utc} — elapsed {elapsed_s:.1f}s{sdk_note}, "
+        f"status={timing.get('status')}, result_chars={timing.get('result_chars')}\n",
+    )
+    return result, timing
+
+
 def write_template_gap_analysis(
     *,
     report_dir: Path,
@@ -154,7 +274,7 @@ def write_template_gap_analysis(
     step09: dict[str, Any],
     step08_proof: dict[str, Any] | None,
     reason: str,
-) -> tuple[str, str]:
+) -> tuple[str, str, dict[str, Any]]:
     """Write UNOBTANIUM_GAP.md from the deterministic template (no Cursor call)."""
     out_path = report_dir / "UNOBTANIUM_GAP.md"
     body = _template_fallback(
@@ -164,7 +284,9 @@ def write_template_gap_analysis(
         reason=reason,
     )
     out_path.write_text(body, encoding="utf-8")
-    return str(out_path), "template"
+    timing = {"mode": "template", "reason": reason, "finished_utc": _utc_now(), "elapsed_s": 0.0}
+    _write_gap_timing(report_dir, timing)
+    return str(out_path), "template", timing
 
 
 def run_gap_agent_analysis(
@@ -174,9 +296,10 @@ def run_gap_agent_analysis(
     parameters: dict[str, Any],
     step09: dict[str, Any],
     step08_proof: dict[str, Any] | None,
-) -> tuple[str, str]:
+    log: Callable[[str], None] | None = None,
+) -> tuple[str, str, dict[str, Any]]:
     """
-    Write ``UNOBTANIUM_GAP.md``. Returns (path, mode) where mode is ``cursor`` or ``template``.
+    Write ``UNOBTANIUM_GAP.md``. Returns (path, mode, timing) where mode is ``cursor`` or ``template``.
     """
     out_path = report_dir / "UNOBTANIUM_GAP.md"
     prompt = _build_agent_prompt(
@@ -197,30 +320,38 @@ def run_gap_agent_analysis(
             reason=f"no Cursor API key (set CURSOR_API_KEY or {tok})",
         )
         out_path.write_text(body, encoding="utf-8")
-        return str(out_path), "template"
+        timing = {
+            "mode": "template",
+            "reason": f"no Cursor API key (set CURSOR_API_KEY or {tok})",
+            "finished_utc": _utc_now(),
+            "elapsed_s": 0.0,
+        }
+        _write_gap_timing(report_dir, timing)
+        return str(out_path), "template", timing
 
     try:
-        from cursor_sdk import Agent, AgentOptions, LocalAgentOptions
+        from cursor_sdk import Agent  # noqa: F401 — import check only
     except ImportError:
+        reason = "cursor-sdk not installed (pip install cursor-sdk)"
         body = _template_fallback(
             experiment_name=experiment_name,
             step09=step09,
             step08_proof=step08_proof,
-            reason="cursor-sdk not installed (pip install cursor-sdk)",
+            reason=reason,
         )
         out_path.write_text(body, encoding="utf-8")
-        return str(out_path), "template"
+        timing = {"mode": "template", "reason": reason, "finished_utc": _utc_now(), "elapsed_s": 0.0}
+        _write_gap_timing(report_dir, timing)
+        return str(out_path), "template", timing
 
-    # Local SDK bridge accepts listed models but often errors on named IDs; "default" works.
     model = os.environ.get("ORBITRON_GAP_AGENT_MODEL", "default")
     try:
-        result = Agent.prompt(
-            prompt,
-            AgentOptions(
-                api_key=api_key,
-                model=model,
-                local=LocalAgentOptions(cwd=str(_REPO_ROOT)),
-            ),
+        result, timing = _run_cursor_agent(
+            prompt=prompt,
+            report_dir=report_dir,
+            model=model,
+            api_key=api_key,
+            log=log,
         )
         text = (result.result or "").strip()
         if not text:
@@ -230,15 +361,24 @@ def run_gap_agent_analysis(
                 step08_proof=step08_proof,
                 reason=f"Cursor agent returned empty result (status={result.status})",
             )
-        header = f"<!-- Cursor agent model={model} status={result.status} -->\n\n"
+            timing["mode"] = "template"
+            timing["fallback_reason"] = "empty result"
+        else:
+            timing["mode"] = "cursor"
+        header = f"<!-- Cursor agent model={model} status={result.status} elapsed_s={timing.get('elapsed_s')} -->\n\n"
         out_path.write_text(header + text, encoding="utf-8")
-        return str(out_path), "cursor"
+        _write_gap_timing(report_dir, timing)
+        mode = "cursor" if timing.get("mode") == "cursor" else "template"
+        return str(out_path), mode, timing
     except Exception as exc:
+        reason = f"Cursor agent error: {exc}"
         body = _template_fallback(
             experiment_name=experiment_name,
             step09=step09,
             step08_proof=step08_proof,
-            reason=f"Cursor agent error: {exc}",
+            reason=reason,
         )
         out_path.write_text(body, encoding="utf-8")
-        return str(out_path), "template"
+        timing = {"mode": "template", "reason": reason, "finished_utc": _utc_now(), "elapsed_s": 0.0}
+        _write_gap_timing(report_dir, timing)
+        return str(out_path), "template", timing
