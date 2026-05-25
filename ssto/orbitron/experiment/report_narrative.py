@@ -8,6 +8,7 @@ from typing import Any
 from ssto.orbitron.experiment.assembly_narrative import ASSEMBLY_WALKTHROUGH
 from ssto.orbitron.experiment.narrative import (
     inline_publishable_markdown,
+    load_benchmark_introduction_block,
     load_brayton_air_cycle_block,
     load_equations_ssot_block,
     load_fidelity_and_claims_block,
@@ -30,35 +31,6 @@ def _target_mw(result: ExperimentRunResult) -> float:
 
 def _is_in_silico_benchmark(result: ExperimentRunResult) -> bool:
     return "in silico benchmark" in result.experiment.experiment_name.lower()
-
-
-BENCHMARK_INTRODUCTION = (
-    "This report is inspired by a fusion device called the Orbitron developed by Avalanche Energy. "
-    "It explores the idea of a jet engine powered directly by a proton-boron (p-¹¹B) "
-    "Orbitron-style fusion reactor, designed to produce about 3.5 megawatts (MW) of total raw power.\n\n"
-    "To test whether this idea is actually possible, we ran a series of computer simulations:\n\n"
-    "1. **The Ideal Test:** First, we ran a standard simulation using the project's target fusion "
-    "reaction rates, assuming we have perfect, ideal materials and conditions (which we refer to "
-    'as "Unobtanium" levels U1 through U4).\n'
-    "2. **The Stress Test:** Next, we ran a more conservative simulation using the standard reaction "
-    "rates found in existing scientific papers. This helped us find the absolute minimum performance "
-    "we would need to make the system work.\n"
-    "3. **The Technology Review:** Finally, we used AI-assisted research (using a Cursor AI agent) "
-    "to map out exactly what technological progress is needed to turn those ideal materials into a "
-    "reality.\n\n"
-    "For the physical shape of the engine we used CadQuery and Blender. "
-    "To simulate how the electrons behave inside the engine we used WarpX "
-    "Particle-In-Cell (PIC) simulation. The Blender output serves outside of this "
-    "benchmark as a physical model input to FlightGear.\n\n"
-    "In practice, this setup connects the proton-boron fusion reactor directly to a jet-engine-style "
-    "turbine (an air-breathing Brayton cycle) on a laboratory test stand. The main question we wanted "
-    "to answer is: can a **3.5 MW** power plant actually work while staying within safe physical limits? "
-    "Specifically, we looked at the limits of the reactor's inner walls, electrical sparking/leakage, "
-    "high-temperature superconducting (HTS) magnets, and reaction speeds. If today's technology isn't "
-    "quite there yet, we wanted to find out exactly what needs to improve.\n\n"
-    "This report is entirely self-contained, meaning we have included all the necessary math "
-    "equations, material specifications, numerical results, and technology gap analyses below.\n\n"
-)
 
 
 def _embed_figure(
@@ -325,31 +297,13 @@ def render_introduction(result: ExperimentRunResult) -> str:
     target = _target_mw(result)
     lines = ["## Introduction\n\n"]
     if _is_in_silico_benchmark(result):
-        lines.append(BENCHMARK_INTRODUCTION)
-        s08 = result.step_results.get("08") or {}
-        if s08.get("design_validated") is True:
-            lines.append(
-                "Under ideal material conditions, the simulated power plant successfully works at "
-                f"**{target:g} MW** and meets all of our primary design and safety limits. "
-                "Reverse-solving under more realistic assumptions for the parameters of the "
-                "Unobtanium components, we find that similar performance is possible. "
-                "AI-driven analysis tells us what the critical gaps are on the Unobtanium and "
-                "gives us a roadmap for further materials science R&D.\n\n"
-            )
-        elif "08" in result.step_results:
-            lines.append(
-                "Under ideal material assumptions the nominal forward model **closes** the power target "
-                f"at **{target:g} MW**, but the conservative stress test and technology review sections "
-                "below show where literature-class reactivity and today's art still fall short.\n\n"
-            )
+        intro = load_benchmark_introduction_block()
+        if intro:
+            lines.append(intro)
+            lines.append("\n\n")
         else:
             lines.append(
-                "Under ideal material conditions, the simulated power plant successfully works at "
-                f"**{target:g} MW** and meets all of our primary design and safety limits. "
-                "Reverse-solving under more realistic assumptions for the parameters of the "
-                "Unobtanium components, we find that similar performance is possible. "
-                "AI-driven analysis tells us what the critical gaps are on the Unobtanium and "
-                "gives us a roadmap for further materials science R&D.\n\n"
+                f"*Introduction unavailable; target plant **{target:g} MW**.*\n\n"
             )
     else:
         lines.append(

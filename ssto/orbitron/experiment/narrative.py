@@ -9,6 +9,7 @@ from ssto.orbitron.experiment.paths import VALIDATION_STEPS_MD
 _REPO = Path(__file__).resolve().parents[3]
 _UNOBTANIUM_MD = _REPO / "ssto" / "orbitron" / "UNOBTANIUM.md"
 _PB11_WHY_FUSION_MD = Path(__file__).resolve().parents[1] / "pb11_why_fusion.md"
+_BENCHMARK_INTRODUCTION_MD = Path(__file__).resolve().parents[1] / "benchmark_introduction.md"
 _BRAYTON_AIR_CYCLE_MD = Path(__file__).resolve().parents[1] / "brayton_air_cycle.md"
 _BRACKET_REFERENCE_LINE = re.compile(r"^\[(\d+)\]\s+(.+)$")
 _BRAYTON_REFERENCES_HEADING = re.compile(r"\n#{2,3}\s+References\s*\n", re.IGNORECASE)
@@ -300,14 +301,21 @@ def strip_software_implementation_references(md: str) -> str:
     return re.sub(r"\n{3,}", "\n\n", text).strip()
 
 
-def inline_publishable_markdown(md: str, *, cap_headings_at: int | None = 3) -> str:
+def inline_publishable_markdown(
+    md: str,
+    *,
+    cap_headings_at: int | None = 3,
+    preserve_code_fences: bool = False,
+    strip_implementation_refs: bool = True,
+) -> str:
     """
     Prepare SSOT/gap text for REPORT.md: keep math, drop code fences and doc pointers.
 
     ``cap_headings_at``: demote headings deeper than this level (``None`` = leave as-is).
     """
-    text = _CODE_FENCE.sub("", md)
-    text = strip_software_implementation_references(text)
+    text = md if preserve_code_fences else _CODE_FENCE.sub("", md)
+    if strip_implementation_refs:
+        text = strip_software_implementation_references(text)
     text = _MD_LINK.sub(r"\1", text)
     kept: list[str] = []
     for line in text.splitlines():
@@ -391,6 +399,21 @@ def _flatten_markdown_bullets(md: str) -> str:
     return "\n".join(flat)
 
 
+def load_benchmark_introduction_block(
+    md_path: Path | None = None,
+) -> str:
+    """Reader-facing benchmark introduction from ``ssto/orbitron/benchmark_introduction.md``."""
+    path = md_path or _BENCHMARK_INTRODUCTION_MD
+    if not path.is_file():
+        return ""
+    raw = path.read_text(encoding="utf-8").strip()
+    return inline_publishable_markdown(
+        raw,
+        cap_headings_at=None,
+        strip_implementation_refs=False,
+    )
+
+
 def load_pb11_fusion_reaction_block(
     md_path: Path | None = None,
 ) -> str:
@@ -425,7 +448,14 @@ def load_brayton_air_cycle_block(
             if m:
                 refs.append((int(m.group(1)), m.group(2).strip()))
         raw = raw[: ref_m.start()].strip()
-    body = _flatten_markdown_bullets(inline_publishable_markdown(raw, cap_headings_at=4))
+    body = _flatten_markdown_bullets(
+        inline_publishable_markdown(
+            raw,
+            cap_headings_at=4,
+            preserve_code_fences=True,
+            strip_implementation_refs=False,
+        )
+    )
     return body, refs
 
 
