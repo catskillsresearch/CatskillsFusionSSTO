@@ -165,14 +165,21 @@ ASSEMBLY_WALKTHROUGH: tuple[AssemblyWalkthrough, ...] = (
         ),
         yaml_group="air_breathing_nozzle_train",
         narrative=(
-            "Bellmouth intake and compressor housing on **−X** set ingested air mass flow into the "
-            "fusion-heated Brayton core. Converging–diverging nozzle hardware on **+X** converts gross "
-            "thermal power to jet thrust measured on the thrust sled."
+            "Bellmouth and S-duct intake on **−X** feed a co-axial **compressor–turbine** spool: pad "
+            "**bleed** opens the annulus, an **electric starter** cranks the shaft, then after fusion "
+            "light-off the **turbine** drives the compressor while the core stream is heated in the "
+            "reactor jacket and expanded through the **+X** nozzle for thrust on the sled."
         ),
-        physics_refs=("pad.compressor", "plant_scales.jet_propulsive_efficiency"),
+        physics_refs=(
+            "pad.compressor",
+            "pad.bleed_air_open",
+            "plant_scales.jet_propulsive_efficiency",
+        ),
         mesh_anchors=(
             "Bellmouth_Flare",
             "Compressor_Housing",
+            "Compressor_Bleed_Port",
+            "Turbine_Can",
             "Nozzle_CD_Contour",
             "Nozzle_Exit_Hardware",
             "Pad_Startup_Motor",

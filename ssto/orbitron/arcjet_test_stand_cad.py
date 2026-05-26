@@ -23,6 +23,28 @@ def compressor_housing(od: float = 0.14, length: float = 0.25) -> cq.Workplane:
     return shell.cut(bore)
 
 
+def compressor_bleed_port(
+    housing_od: float = 0.16,
+    port_od: float = 0.045,
+    port_length: float = 0.08,
+) -> cq.Workplane:
+    """Bleed scoop on the compressor can OD (+Y side in lab pose) — pad start mass-flow path."""
+    r_h = housing_od / 2
+    scoop = (
+        cq.Workplane("XZ")
+        .transformed(offset=(r_h + port_length * 0.35, 0, 0))
+        .circle(port_od / 2)
+        .extrude(port_length)
+    )
+    flange = (
+        cq.Workplane("XZ")
+        .transformed(offset=(r_h - 0.008, 0, 0))
+        .circle(port_od / 2 + 0.012)
+        .extrude(0.018)
+    )
+    return scoop.union(flange)
+
+
 def turbine_housing(od: float = 0.16, length: float = 0.18) -> cq.Workplane:
     """Coarse turbine can on the +X hot-gas train (same spool as ``compressor_housing``)."""
     shell = cq.Workplane("XY").circle(od / 2).extrude(length)

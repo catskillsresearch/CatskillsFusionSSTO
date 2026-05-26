@@ -285,6 +285,8 @@ def _table_to_list(table: Tag) -> Tag:
             continue
 
         values = [_cell_inner_html(c) for c in cells]
+        if values and all(re.fullmatch(r"[\s\-:|]+", re.sub(r"<[^>]+>", "", v)) for v in values):
+            continue
         li = soup.new_tag("li")
 
         if len(values) == 1:
@@ -420,9 +422,76 @@ def _cap_heading_depth(soup: BeautifulSoup) -> None:
         tag.name = "h3"
 
 
+_PIPE_ROW = re.compile(r"^\|.+\|\s*$")
+_PIPE_SEP = re.compile(r"^\|[\s\-:|]+\|\s*$")
+_PIPE_TWO_COL = re.compile(r"^\|\s*(.+?)\s*\|\s*(.+?)\s*\|\s*$")
+
+
+def _repair_pipe_tables_in_markdown(md: str) -> str:
+    """
+    Fix tables that lost GFM separator rows (render as ``<p>| col | …</p>``) and convert
+    two-column spec sheets to bullets before the Markdown parser runs.
+    """
+    lines = md.splitlines()
+    out: list[str] = []
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        hm = _PIPE_TWO_COL.match(line.strip())
+        if hm and hm.group(1).strip().lower() == "spec":
+            if i + 1 < len(lines) and _PIPE_SEP.match(lines[i + 1].strip()):
+                i += 2
+            while i < len(lines):
+                dm = _PIPE_TWO_COL.match(lines[i].strip())
+                if not dm:
+                    break
+                out.append(f"- **{dm.group(1).strip()}:** {dm.group(2).strip()}")
+                i += 1
+            out.append("")
+            continue
+        if _PIPE_ROW.match(line.strip()) and i + 1 < len(lines):
+            nxt = lines[i + 1].strip()
+            if _PIPE_ROW.match(nxt) and not _PIPE_SEP.match(nxt):
+                cells = [c for c in line.split("|")[1:-1]]
+                out.append(line)
+                out.append("|" + "|".join("---" for _ in cells) + "|")
+                i += 1
+                continue
+        out.append(line)
+        i += 1
+    return "\n".join(out)
+
+
+def _repair_pipe_tables_in_html(soup: BeautifulSoup) -> None:
+    """Convert ``<p>`` blocks that contain pipe-table text into bullet lists."""
+    for p in list(soup.find_all("p")):
+        text = p.get_text()
+        if "|" not in text or text.count("|") < 4:
+            continue
+        rows = [ln.strip() for ln in text.splitlines() if ln.strip().startswith("|")]
+        if len(rows) < 2:
+            continue
+        ul = soup.new_tag("ul")
+        for row in rows:
+            m = _PIPE_TWO_COL.match(row)
+            if not m:
+                continue
+            if m.group(1).strip().lower() == "spec":
+                continue
+            li = soup.new_tag("li")
+            strong = soup.new_tag("strong")
+            strong.string = f"{m.group(1).strip()}:"
+            li.append(strong)
+            li.append(f" {m.group(2).strip()}")
+            ul.append(li)
+        if ul.find("li"):
+            p.replace_with(ul)
+
+
 def markdown_to_body_html(md: str, *, base_dir: Path | None = None) -> str:
     md = _escape_excited_state_asterisks(md)
     md = _normalize_math_delimiters(md)
+    md = _repair_pipe_tables_in_markdown(md)
     if base_dir is not None:
         md = _substitute_images_in_markdown(md, base_dir)
     html_fragment = markdown.markdown(
@@ -444,6 +513,7 @@ def markdown_to_body_html(md: str, *, base_dir: Path | None = None) -> str:
     )
     soup = BeautifulSoup(html_fragment, "html.parser")
     _replace_math(soup)
+    _repair_pipe_tables_in_html(soup)
     _replace_tables(soup)
     if base_dir is not None:
         _replace_images(soup, base_dir)

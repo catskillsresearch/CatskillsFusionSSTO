@@ -1137,6 +1137,38 @@ instances:
       - -1.0
       - 0.0
       - 0.0
+  Compressor_Bleed_Port:
+    narrative: "**Bleed scoop** on the compressor can OD — opens the bellmouth→compressor annulus
+      path for pad start (``bleed-air-open``). Parasitic bleed mass flow is modeled in 0D as
+      fraction β of inlet ṁ; core path continues to the fusion jacket and turbine."
+    template: compressor_bleed_port
+    params:
+      housing_od: 0.16
+      port_od: 0.045
+      port_length: 0.08
+    color:
+    - 0.55
+    - 0.72
+    - 0.85
+    transform_chain:
+    - op: translate
+      xyz:
+      - 0.0
+      - 0.0
+      - 0.77
+    - op: rotate_y_about_point
+      pivot:
+      - 0.0
+      - 0.0
+      - 0.32
+      angle_deg: 90.0
+    - op: translate
+      xyz:
+      - -0.92
+      - 0.0
+      - 0.0
+    - op: rotate_z
+      angle_deg: 90.0
   Reactor_Bay_Inlet_Shroud:
     narrative: "Annulus jacket stub in the **axial gap** between compressor housing (\u2212\
       X) and solenoid shell: OD matches the magnet band, ID clears the anode / flange. Makes\

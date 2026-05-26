@@ -298,8 +298,17 @@ Implementation: `ssto/orbitron/laminar_flow_2d_arcjet.py` (`run_arcjet_picmi`, `
 **Axial stir** (not fuel mass — Brayton path proxy):
 
 \[
-c_{\mathrm{eff}} = c \cdot \mathbb{1}_{\mathrm{bleed}} \cdot s_{\mathrm{spool}}
+c_{\mathrm{eff}} = c \cdot s_{\mathrm{spool}}, \quad
+s_{\mathrm{spool}} =
+\begin{cases}
+0 & \text{bleed closed} \\
+0.12 & \text{bleed only} \\
+0.42 & \text{starter on (electric shaft)} \\
+1.0 & \text{armed, starter off (turbine takeover)}
+\end{cases}
 \]
+
+Bleed splits inlet flow: \(\dot m_{\mathrm{bleed}} = \beta \dot m_{\mathrm{in}}\), \(\dot m_{\mathrm{core}} = (1-\beta)\dot m_{\mathrm{in}}\) (core path through jacket / turbine / nozzle).
 
 **Initial** \(\mathbf{S}_3(0)\):
 
@@ -404,24 +413,31 @@ P_{\mathrm{fusion}} = \eta_{\mathrm{conf}} \cdot V \cdot R \cdot E_{\mathrm{rxn}
 **Update** (algebraic steady solve \(f_6\)):
 
 \[
-\dot m = \dot m_0 \cdot c_{\mathrm{eff}} \cdot h(\tau, \rho_{e,\mathrm{norm}}, \mathrm{fuel\_coupling}), \quad
-P_{\mathrm{gross}} = f_{\mathrm{plant}}(P_{\mathrm{fusion}}, \dot m, U)
+\dot m_{\mathrm{in}} = \dot m_0 \cdot c_{\mathrm{eff}} \cdot h(\tau, \rho_{e,\mathrm{norm}}, \mathrm{fuel\_coupling}), \quad
+\dot m_{\mathrm{core}} = (1-\beta)\,\dot m_{\mathrm{in}}, \quad
+\dot m_{\mathrm{bleed}} = \beta\,\dot m_{\mathrm{in}}
 \]
+
+\[
+P_{\mathrm{gross}} = f_{\mathrm{plant}}(P_{\mathrm{fusion}}, \dot m_{\mathrm{core}}, U)
+\]
+
+Shaft: pad **electric starter** supplies \(W_{c,\mathrm{elec}}\) until ignite + starter off; then **turbine** shaft work balances \(w_c\) on the spool.
 
 U1–U4 inequality checks (cathode \(|E|\), wall, HTS, density).
 
-**Display:** Gross MW, thrust, mdot, violation list. **First step where \(c\) drives Brayton mdot.**
+**Display:** Gross MW, thrust, \(\dot m_{\mathrm{core}}\), \(\dot m_{\mathrm{bleed}}\), shaft mode, violation list. **First step where \(c\) drives Brayton mdot.**
 
 ---
 
 ### Step 7 — Jet closure
 
-**State:** \(\mathbf{S}_7 = (F, \dot m, P_{\mathrm{jet}}, P_{\mathrm{gross}}, \eta)\) from step 06.
+**State:** \(\mathbf{S}_7 = (F, \dot m_{\mathrm{core}}, P_{\mathrm{jet}}, P_{\mathrm{gross}}, \eta)\) from step 06.
 
 **Update** (algebraic \(f_7\)):
 
 \[
-P_{\mathrm{from\_}F} = \frac{F^2}{2\dot m}, \quad
+P_{\mathrm{from\_}F} = \frac{F^2}{2\dot m_{\mathrm{core}}}, \quad
 \varepsilon_{\mathrm{closure}} = \frac{|P_{\mathrm{from\_}F} - P_{\mathrm{jet}}|}{P_{\mathrm{jet}}}
 \]
 

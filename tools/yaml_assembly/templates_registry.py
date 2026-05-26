@@ -13,6 +13,7 @@ from arcjet_test_stand_cad import (
     bd_shock_core_insert,
     bellmouth_flare,
     blast_detuner,
+    compressor_bleed_port,
     compressor_housing,
     turbine_housing,
     pad_starter_motor_pod,
@@ -59,6 +60,14 @@ def tpl_compressor_housing(**params: Any) -> cq.Workplane:
     return compressor_housing(
         od=float(params.get("od", 0.14)),
         length=float(params.get("length", 0.25)),
+    )
+
+
+def tpl_compressor_bleed_port(**params: Any) -> cq.Workplane:
+    return compressor_bleed_port(
+        housing_od=float(params.get("housing_od", 0.16)),
+        port_od=float(params.get("port_od", 0.045)),
+        port_length=float(params.get("port_length", 0.08)),
     )
 
 
@@ -432,6 +441,7 @@ def tpl_lab_magnet_feedthrough_bosses(**_: Any) -> cq.Workplane:
 TEMPLATE_REGISTRY: dict[str, Callable[..., cq.Workplane]] = {
     "bellmouth_flare": tpl_bellmouth_flare,
     "compressor_housing": tpl_compressor_housing,
+    "compressor_bleed_port": tpl_compressor_bleed_port,
     "turbine_housing": tpl_turbine_housing,
     "pad_starter_motor": tpl_pad_starter_motor,
     "pad_startup_cart": tpl_pad_startup_cart,

@@ -382,18 +382,16 @@ def render_unobtanium_section(parameters: dict[str, Any]) -> str:
         "## Unobtanium design basis (U1–U4)\n\n",
         "Closing **3.5 MW** requires simultaneous progress on emission, wall cooling, bore field, and "
         "p-¹¹B reactivity — not independent tuning knobs.\n\n",
-        "| Gate | Physical meaning | Nominal (this run) |\n",
-        "|------|------------------|--------------------|\n",
-        "| **U1** | 600 kV-class cathode emission without vacuum arc | "
-        f"margin **{unob.get('field_emission_margin', 1.0)}×** |\n",
-        "| **U2** | First-wall heat flux + CH₄ loop | "
+        "- **U1 — Cathode emission:** 600 kV-class without vacuum arc — "
+        f"margin **{unob.get('field_emission_margin', 1.0)}×**\n",
+        "- **U2 — First wall + CH₄ loop:** "
         f"**{unob.get('max_wall_heat_flux_W_m2', '—')} W/m²**, "
-        f"cooling **{unob.get('ch4_cooling_effectiveness', 1.0)}×** |\n",
-        "| **U3** | 2 T HTS bore at cryogenic temperature | "
-        f"scale **{unob.get('hts_capability_scale', 1.0)}×** |\n",
-        "| **U4** | p-¹¹B ⟨σv⟩ × beam coupling | "
+        f"cooling **{unob.get('ch4_cooling_effectiveness', 1.0)}×**\n",
+        "- **U3 — HTS bore:** 2 T at cryogenic temperature — "
+        f"scale **{unob.get('hts_capability_scale', 1.0)}×**\n",
+        "- **U4 — p-¹¹B reactivity × beam coupling:** "
         f"reactivity **{unob.get('fusion_reactivity_scale', 1.0)}×**, "
-        f"coupling **{unob.get('beam_coupling_scale', 1.0)}×** |\n\n",
+        f"coupling **{unob.get('beam_coupling_scale', 1.0)}×**\n\n",
         "**Baseline** uses the **design-calibrated** ⟨σv⟩ curve. **Stress inverse** uses "
         "**literature-class** ⟨σv⟩ (~3× lower peak) for honest gap factors.\n\n",
     ]

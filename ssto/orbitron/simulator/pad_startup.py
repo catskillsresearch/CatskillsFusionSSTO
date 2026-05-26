@@ -10,6 +10,13 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+from ssto.orbitron.simulator.brayton_spool import (
+    CompressorShaftMode,
+    compressor_effective as _compressor_effective,
+    compressor_shaft_mode,
+    spool_drive_factor as _spool_drive_factor,
+    turbine_takeover,
+)
 from ssto.orbitron.simulator.types import OperatingPoint, PadStartupState
 
 
@@ -21,6 +28,9 @@ class PadStartupStatus:
     reactor_armed: bool
     compressor_effective: float
     spool_drive_factor: float
+    bleed_mass_fraction: float = 0.0
+    turbine_takeover: bool = False
+    shaft_mode: CompressorShaftMode = CompressorShaftMode.OFF
     interlock_messages: list[str] = field(default_factory=list)
     step_labels: list[str] = field(default_factory=list)
 
@@ -44,18 +54,11 @@ def apply_pad_interlocks(state: PadStartupState) -> PadStartupState:
 
 
 def compressor_effective(bleed_on: bool, starter_on: bool, armed: bool, comp: float) -> float:
-    if not bleed_on:
-        return 0.0
-    spool = 1.0 if armed else (0.42 if starter_on else 0.12)
-    return max(0.0, min(1.0, comp)) * spool
+    return _compressor_effective(bleed_on, starter_on, armed, comp)
 
 
 def spool_drive_factor(bleed_on: bool, starter_on: bool, armed: bool) -> float:
-    if not bleed_on:
-        return 0.0
-    if armed:
-        return 1.0
-    return 0.42 if starter_on else 0.12
+    return _spool_drive_factor(bleed_on, starter_on, armed)
 
 
 def evaluate_pad_status(state: PadStartupState) -> PadStartupStatus:
@@ -78,11 +81,17 @@ def evaluate_pad_status(state: PadStartupState) -> PadStartupStatus:
     armed = s.startup_trigger
     comp_eff = compressor_effective(s.bleed_air_open, s.starter_engage, armed, s.compressor)
     spool = spool_drive_factor(s.bleed_air_open, s.starter_engage, armed)
+    takeover = turbine_takeover(s.bleed_air_open, s.starter_engage, armed)
+    shaft = compressor_shaft_mode(s.bleed_air_open, s.starter_engage, armed)
+    from ssto.orbitron.simulator.brayton_spool import bleed_mass_fraction
+
+    beta = bleed_mass_fraction(s.bleed_air_open)
 
     labels = [
         f"1 APU / cart: {'ON' if s.pad_apu_online else 'off'}",
         f"2 Starter (2.4): {'ENGAGED' if s.starter_engage else 'off'}",
-        f"3 Bleed / compressor: {'OPEN' if s.bleed_air_open else 'closed'}  eff={comp_eff:.2f}",
+        f"3 Bleed / compressor: {'OPEN' if s.bleed_air_open else 'closed'}  eff={comp_eff:.2f}  "
+        f"shaft={shaft.value}  β={beta:.2f}",
         f"4 Vacuum (1.1): {'OK' if s.vacuum_interlock_ok else 'not ready'}",
         f"5 Laser 355 nm (1.3): {'ARMED' if s.laser_armed else 'off'}",
         f"6 HV (1.4): {'ENABLED' if s.hv_enabled else 'off'}",
@@ -94,6 +103,9 @@ def evaluate_pad_status(state: PadStartupState) -> PadStartupStatus:
         reactor_armed=armed,
         compressor_effective=comp_eff,
         spool_drive_factor=spool,
+        bleed_mass_fraction=beta,
+        turbine_takeover=takeover,
+        shaft_mode=shaft,
         interlock_messages=msgs,
         step_labels=labels,
     )

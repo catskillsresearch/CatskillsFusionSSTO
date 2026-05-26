@@ -256,7 +256,6 @@ _READER_DROP_LINE = re.compile(
     r"|^\| Radial profile \|"
     r"|^\| Metrics \| Ring"
     r"|^\| \*\*Not plotted\*\* \|"
-    r"|^\|[-:| ]+\|\s*$"
     r"|GUI or checked-in YAML"
     r")",
     re.I,
@@ -459,6 +458,40 @@ def load_brayton_air_cycle_block(
     return body, refs
 
 
+_TWO_COL_TABLE_ROW = re.compile(r"^\|\s*(.+?)\s*\|\s*(.+?)\s*\|\s*$")
+_GFM_TABLE_SEP = re.compile(r"^\|[\s\-:|]+\|\s*$")
+
+
+def _spec_tables_to_bullets(md: str) -> str:
+    """
+    Convert ``| Spec | Value |`` GFM tables to bullet lines (LinkedIn-safe, no half-pipe layout).
+    """
+    lines = md.splitlines()
+    out: list[str] = []
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        hm = _TWO_COL_TABLE_ROW.match(line.strip())
+        if (
+            hm
+            and hm.group(1).strip().lower() == "spec"
+            and i + 1 < len(lines)
+            and _GFM_TABLE_SEP.match(lines[i + 1].strip())
+        ):
+            i += 2
+            while i < len(lines):
+                dm = _TWO_COL_TABLE_ROW.match(lines[i].strip())
+                if not dm:
+                    break
+                out.append(f"- **{dm.group(1).strip()}:** {dm.group(2).strip()}")
+                i += 1
+            out.append("")
+            continue
+        out.append(line)
+        i += 1
+    return "\n".join(out)
+
+
 def load_unobtanium_basis_block(md_path: Path | None = None) -> str:
     """Design-basis prose and U1–U4 specs (no repo / GUI run instructions)."""
     path = md_path or _UNOBTANIUM_MD
@@ -474,4 +507,5 @@ def load_unobtanium_basis_block(md_path: Path | None = None) -> str:
     end = text.find("## Removed from design")
     if end < 0:
         end = len(text)
-    return inline_publishable_markdown(text[start:end])
+    body = inline_publishable_markdown(text[start:end])
+    return _spec_tables_to_bullets(body)

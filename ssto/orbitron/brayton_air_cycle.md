@@ -1,70 +1,96 @@
-The thermodynamic cycle of this propulsion system is modeled as an **open-loop, externally heated, electrically driven Brayton cycle**. While conventional jet engines rely on internal combustion—where fuel is mixed directly with the working fluid (air) and ignited [1, 3]—this design decouples the compression and heating mechanisms. It relies on indirect thermal transfer and electric turbomachinery, eliminating chemical emissions and bypassing several traditional metallurgical limitations of gas turbines.
+The propulsion thermodynamic cycle is an **open-loop, externally heated Brayton cycle** on a **single compressor–turbine spool**. Conventional jets add heat by burning fuel in the working fluid [1, 3]; here enthalpy is added through the fusion reactor's hot jacket, the working fluid remains atmospheric air, and there is no combustion chemistry in the main path.
+
+**Pad start:** an electric starter (APU cart) drives the shaft; **bleed air** opens the bellmouth → compressor annulus so the machine can ingest and compress air before fusion is armed. **Cruise / light-off:** after the hot section raises gas enthalpy, a **turbine** expands part of the flow to supply compressor shaft work; the pad motor disengages. **Nozzle expansion** of the core stream produces thrust.
 
 ### Cycle Configuration and the Dorsal Intake
 
-Instead of a traditional nose or wing intake, the engine utilizes a fuselage-integrated dorsal scoop (resembling the S-duct intake found above the tail of a Boeing 727) to capture ambient air. The air-breathing Brayton cycle operates continuously, using atmospheric air as the working fluid. However, because the heat is added externally through the reactor's hot jacket, there is no combustion and no mixing of fuel or combustion products into the air stream.
+A dorsal S-duct scoop (727-style fuselage intake) captures ambient air. With bleed open, a fraction of ingested air may be routed through a **compressor bleed path** (parasitic flow that does not pass through the fusion jacket) while the **core path** supplies the heated stream to the turbine and nozzle. Bleed establishes minimum compressor flow during ground start and reduces the effective core mass flow available for thrust.
 
 ### The Four Stages of the Cycle
 
-In an air-standard thermodynamic analysis, the open cycle is modeled with the following stages:
+In air-standard notation:
 
-1. **Isentropic Compression ($1 \rightarrow 2$):** Ambient air enters the S-duct intake and is mechanically compressed by a rotary compressor. In this architecture, the compressor consists of turbofan blades driven by an electric motor rather than a mechanical shaft connected to an exhaust turbine. This compression stage increases both the pressure ($P$) and temperature ($T$) of the air.
-2. **Isobaric Heat Addition ($2 \rightarrow 3$):** The compressed air is channeled over the hot external jacket of the proton-boron ($p\text{-}^{11}\text{B}$) fusion reactor. Heat transfer occurs conductively and convectively through the jacket walls, heating and exciting the air at nearly constant pressure. Because there is no fuel injection or combustion, the chemical composition of the working fluid remains unchanged.
-3. **Isentropic Expansion ($3 \rightarrow 4$):** The highly excited, high-pressure air expands as it is propelled through a compressing and focusing nozzle. In a traditional Brayton cycle, a portion of this expansion must occur across a turbine to extract the shaft work needed to run the compressor [3, 9]. Because the compressor in this system is driven by an independent electric motor, the entirety of the expansion process is utilized in the nozzle to maximize exhaust velocity and generate forward thrust.
-4. **Isobaric Heat Rejection ($4 \rightarrow 1$):** The hot exhaust air is discharged into the atmosphere, which acts as an infinite heat sink, while fresh ambient air is continuously drawn into the intake to sustain the cycle [1, 2].
+1. **Isentropic Compression ($1 \rightarrow 2$):** Air enters the S-duct and is compressed in the rotary compressor. **Before turbine takeover:** shaft work is supplied by the **pad electric starter** ($W_{\text{shaft,in}} = W_{c,\text{elec}}$). **After takeover:** shaft work is supplied by the **turbine** ($W_{\text{shaft,in}} = W_t$). Compression raises $P$ and $T$.
+2. **Isobaric Heat Addition ($2 \rightarrow 3$):** Core-path air passes over the proton-boron ($p\text{-}^{11}\text{B}$) reactor jacket at nearly constant pressure. No fuel is mixed into the air stream.
+3. **Split Expansion ($3 \rightarrow 4_t$, $4_t \rightarrow 4$):** Hot gas first expands through the **turbine** ($3 \rightarrow 4_t$) to deliver $w_t$ per unit mass to the shaft. The remaining enthalpy expands through the **nozzle** ($4_t \rightarrow 4$) to exhaust velocity and thrust. Before takeover, the starter still provides $w_c$ and only the nozzle branch carries net propulsive acceleration for the core stream.
+4. **Isobaric Heat Rejection ($4 \rightarrow 1$):** Exhaust and bleed dump to the atmosphere; fresh air enters the scoop [1, 2].
 
 ```
-       [1] Intake Scoop (S-duct)
+       [1] Intake Scoop (S-duct) + bleed tap
                │
                ▼
-       [2] Electric Compressor (Turbofan driven by motor)
-               │
-               ▼
-       [3] Fusion Reactor Hot Jacket (Isobaric External Heating)
-               │
-               ▼
-       [4] Compressing/Focusing Nozzle (Expansion & Thrust)
+       [2] Compressor  ←── shaft ──→  [3t] Turbine (post light-off)
+          ↑  (starter motor)              │
+          │  pad APU                      ▼
+          │                         [3] Fusion jacket heating (core path)
+                                          │
+                                          ▼
+                                   [4] Nozzle (thrust)
 ```
+
+### Bleed Air and Effective Mass Flow
+
+Let $\dot{m}_{\text{in}}$ be total corrected inlet mass flow (compressor command × spool capability), and $\beta$ the **bleed mass fraction** when the bleed valve is open ($0 \le \beta < 1$):
+
+$$
+\dot{m}_{\text{bleed}} = \beta \, \dot{m}_{\text{in}}, \qquad
+\dot{m}_{\text{core}} = (1 - \beta) \, \dot{m}_{\text{in}}
+$$
+
+Only $\dot{m}_{\text{core}}$ passes through the fusion jacket, turbine, and nozzle thrust bookkeeping. Compressor shaft work is evaluated on $\dot{m}_{\text{in}}$ (the machine pumps the bleed stream as well).
+
+Pad / surrogate effective compressor command (steps 03–07):
+
+$$
+c_{\mathrm{eff}} = c \cdot \mathbb{1}_{\mathrm{bleed}} \cdot s_{\mathrm{spool}}
+$$
+
+with $s_{\mathrm{spool}} = 0.12$ (bleed only), $0.42$ (starter engaged), or $1.0$ (fusion armed and starter off — **turbine takeover**).
 
 ### Mathematical Efficiency and Power Balance
 
-In a standard ideal Brayton cycle, the thermal efficiency ($\eta_{\text{th}}$) is a function of the compressor pressure ratio ($r_p = P_2/P_1$) and the specific heat ratio of air ($\gamma \approx 1.4$):
+Ideal-cycle thermal efficiency vs pressure ratio $r_p = P_2/P_1$ and $\gamma \approx 1.4$ [1]:
 
 $$
 \eta_{\text{th}} = 1 - \frac{1}{r_p^{(\gamma - 1)/\gamma}}
 $$
 
-For an electrically driven, externally heated cycle, the overall system energy balance must account for the electrical work input to the compressor ($W_c$) and the thermal energy input from the reactor ($Q_{\text{in}}$).
-
-The electrical work required by the compressor per unit mass flow rate ($\dot{m}$) is:
+**Compressor shaft work** per unit mass (on total inlet flow):
 
 $$
-w_c = \frac{W_c}{\dot{m}} = \frac{C_p (T_2 - T_1)}{\eta_c}
+w_c = \frac{C_p (T_2 - T_1)}{\eta_c}
 $$
 
-where $C_p$ is the specific heat of air and $\eta_c$ is the isentropic efficiency of the compressor.
+**Pad start (electric drive):** $W_{c,\text{elec}} = \dot{m}_{\text{in}} \, w_c / \eta_{\text{motor}}$.
 
-The thermal energy added to the air by the fusion reactor's jacket is:
-
-$$
-q_{\text{in}} = \frac{Q_{\text{in}}}{\dot{m}} = C_p (T_3 - T_2)
-$$
-
-The kinetic energy of the exhaust jet ($w_j$) generated through the nozzle expansion is:
+**Turbine takeover:** turbine specific work $w_t$ must balance $w_c$ (mechanical efficiency $\eta_{\text{mech}}$ on the spool):
 
 $$
-w_j = C_p (T_3 - T_4) \cdot \eta_n
+w_t \approx w_c / \eta_{\text{mech}}, \qquad W_t = \dot{m}_{\text{core}} \, w_t
 $$
 
-where $\eta_n$ is the nozzle efficiency. For the cycle to produce net thrust, the total thermal energy converted to kinetic energy must exceed the electrical work required to run the compressor, taking into account the efficiency of the electric motor and the reactor's electrical power generation system.
+**External heating** on the core path:
 
-### Engineering Advantages and Deviations
+$$
+q_{\text{in}} = C_p (T_3 - T_2), \qquad Q_{\text{in}} = \dot{m}_{\text{core}} \, q_{\text{in}}
+$$
 
-By utilizing an externally heated, electrically driven configuration, this cycle departs from traditional jet engines in several key areas [10]:
+**Nozzle / jet power** (core stream):
 
-- **Bypassing Turbine Inlet Temperature (TIT) Limits:** In standard gas turbines, the maximum operating temperature is strictly limited by the metallurgical limits of the turbine blades, which are subject to extreme centripetal stress in the hot gas path [3]. Because this design drives the compressor electrically and does not require an exhaust turbine, the peak cycle temperature ($T_3$) is limited only by the thermal tolerances of the reactor jacket and the nozzle materials.
-- **Constant Working Fluid Composition:** Traditional combustion changes the chemical composition of the gas (adding water vapor, carbon dioxide, and other combustion products), which alters its thermodynamic properties [1, 8]. In this externally heated cycle, the working fluid remains pure atmospheric air, simplifying aerodynamic and thermodynamic modeling.
-- **Decoupled Turbomachinery:** The use of an electric motor to drive the compressor allows the compression ratio and mass flow rate to be controlled independently of the reactor's thermal output, offering greater operational flexibility across different altitudes and flight speeds [13].
+$$
+w_j = \eta_n \, C_p (T_{4_t} - T_4), \qquad
+P_{\text{jet}} \approx \tfrac{1}{2} \dot{m}_{\text{core}} \, v_e^2
+$$
+
+**Closure check (step 07):** with thrust $F$ and $\dot{m}_{\text{core}}$ used in $F^2/(2\dot{m}) \approx P_{\text{jet}}$.
+
+At takeover, net propulsive power must exceed pad electrical draw; in steady cruise the compressor is sustained by $W_t$ from fusion-heated gas, not ship battery.
+
+### Engineering Notes
+
+- **Bleed** is required for ground start and is modeled as a reduction in $\dot{m}_{\text{core}}$; closing bleed interlocks fusion ignite in the pad sequence.
+- **Turbine takeover** is procedural in FlightGear (starter off after light-off); the 0D plant uses $s_{\mathrm{spool}}=1$ only when armed and starter is disengaged.
+- **Externally heated** operation avoids combustion product chemistry in the core path [1, 8] while retaining a conventional shaft-coupled turbomachine [3, 9].
 
 ### References
 

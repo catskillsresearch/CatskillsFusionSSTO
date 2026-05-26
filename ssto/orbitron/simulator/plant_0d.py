@@ -25,6 +25,7 @@ def evaluate_steady_state(inputs: SimulatorInputs) -> SteadyStateResult:
     """Evaluate one steady operating point and check unobtanium constraints."""
     from ssto.orbitron.simulator.fusion_pb11 import active_reactivity_model, evaluate_fusion_pb11
     from ssto.orbitron.simulator.physics_constants import EMISSION_FIELD_LIMIT_V_M
+    from ssto.orbitron.simulator.brayton_spool import evaluate_brayton_path
     from ssto.orbitron.simulator.pad_startup import effective_operating_point, evaluate_pad_status
     from ssto.orbitron.simulator.surrogate_calib import (
         blended_gross_power_mw,
@@ -142,9 +143,18 @@ def evaluate_steady_state(inputs: SimulatorInputs) -> SteadyStateResult:
     if armed and gross_mw < 0.1:
         violations.append("U4 fusion: ignited but p-¹¹B model reports negligible fusion power")
 
-    mdot = sc.mass_flow_kgps_at_full * c * (0.2 + 0.8 * t)
+    brayton = evaluate_brayton_path(
+        bleed_on=pad_status.state.bleed_air_open,
+        starter_on=pad_status.state.starter_engage,
+        armed=armed,
+        compressor_command=c,
+        mass_flow_full_kgps=sc.mass_flow_kgps_at_full,
+        throttle=t,
+    )
+    mdot = brayton.mdot_core_kgps
+    mdot_in = brayton.mdot_in_kgps
     jet_mw = sc.jet_propulsive_efficiency * gross_mw
-    thrust_n = math.sqrt(max(0.0, 2.0 * jet_mw * 1.0e6 * mdot))
+    thrust_n = math.sqrt(max(0.0, 2.0 * jet_mw * 1.0e6 * max(mdot, 1.0e-12)))
     thrust_lbf = thrust_n * 0.224809
     v_e = thrust_n / mdot if mdot > 1.0e-9 else 0.0
 
@@ -157,6 +167,11 @@ def evaluate_steady_state(inputs: SimulatorInputs) -> SteadyStateResult:
         log10_density=log10_n,
         thrust_lbf=thrust_lbf,
         mass_flow_kgps=mdot,
+        mass_flow_in_kgps=mdot_in,
+        mass_flow_bleed_kgps=brayton.mdot_bleed_kgps,
+        bleed_mass_fraction=brayton.bleed_mass_fraction,
+        compressor_shaft_mode=brayton.shaft_mode.value,
+        turbine_takeover=brayton.turbine_takeover,
         jet_kinetic_power_mw=jet_mw,
         equiv_exhaust_velocity_mps=v_e,
         cathode_surface_field_V_m=e_surface,

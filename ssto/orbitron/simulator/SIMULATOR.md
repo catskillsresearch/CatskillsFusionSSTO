@@ -197,9 +197,14 @@ Mirrors [`../assembly_specs/orbitron_operator_console_spec.yaml`](../assembly_sp
 **Effective compressor** (same as Nasal/JSBSim):
 
 ```
-compressor_effective = compressor × bleed × spool_drive
-spool_drive = 1.0 if ignited else (0.42 if starter else 0.12)
+compressor_effective = compressor × spool_drive
+spool_drive = 0 | 0.12 (bleed only) | 0.42 (starter on) | 1.0 (turbine takeover)
+turbine takeover = bleed ∧ ignited ∧ ¬starter
+ṁ_core = (1 − β) ṁ_in     (β ≈ 0.12 when bleed open — see brayton_spool.py)
 ```
+
+Pad **electric starter** drives the compressor until light-off; then the **turbine** balances
+shaft work and the starter disengages (procedure in FlightGear; 0D uses spool factors above).
 
 Operator checklist: [`../OPERATOR.md`](../OPERATOR.md).
 

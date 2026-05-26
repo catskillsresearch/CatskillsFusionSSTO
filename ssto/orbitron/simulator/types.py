@@ -117,3 +117,8 @@ class SteadyStateResult:
     clump_reduction_ratio: float = 1.0
     laminar_hack_enabled: bool = True
     b11_laser_delivery_scale: float = 0.0
+    mass_flow_in_kgps: float = 0.0
+    mass_flow_bleed_kgps: float = 0.0
+    bleed_mass_fraction: float = 0.0
+    compressor_shaft_mode: str = "off"
+    turbine_takeover: bool = False

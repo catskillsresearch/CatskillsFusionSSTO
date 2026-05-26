@@ -970,7 +970,7 @@ def _emit_orbitron_ops(ops: Mapping[str, Any]) -> str:
         "        me._last_starter = starter;",
         "",
         "        if (bleed and !me._last_bleed and apu) {",
-        '            print("OrbitronOps: bleed OPEN — electric compressor path live (inlet hiss + motor when starter is on).");',
+        '            print("OrbitronOps: bleed OPEN — compressor annulus live (starter motor when engaged; turbine after light-off).");',
         "        }",
         "        me._last_bleed = bleed;",
         "",
