@@ -9,6 +9,7 @@ from ssto.orbitron.experiment.assembly_narrative import ASSEMBLY_WALKTHROUGH
 from ssto.orbitron.experiment.narrative import (
     inline_publishable_markdown,
     load_benchmark_introduction_block,
+    load_benchmark_methodology_block,
     load_brayton_air_cycle_block,
     load_equations_ssot_block,
     load_fidelity_and_claims_block,
@@ -314,6 +315,15 @@ def render_introduction(result: ExperimentRunResult) -> str:
             "and reactivity limits.\n\n"
         )
     return "".join(lines)
+
+
+def render_benchmark_methodology_section(result: ExperimentRunResult) -> str:
+    if not _is_in_silico_benchmark(result):
+        return ""
+    body = load_benchmark_methodology_block()
+    if not body:
+        return ""
+    return f"## Benchmark Methodology\n\n{body}\n\n"
 
 
 def render_governing_equations_section() -> str:

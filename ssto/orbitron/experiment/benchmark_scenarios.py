@@ -264,7 +264,6 @@ def benchmark_scenarios_table_md(payload: dict[str, Any]) -> str:
     tgt = payload.get("target_mw", 3.5)
     lines = [
         "## Three-scenario benchmark\n\n",
-        "Per [`BENCHMARK_METHODOLOGY.md`](../BENCHMARK_METHODOLOGY.md). "
         f"Target gross power **{tgt:g} MW**.\n\n",
         "| Scenario | σv | V_cathode | η_react scale | Reactivity gap vs lit. | P_gross [MW] | Tier-1 valid |\n",
         "|----------|-----|-----------|---------------|-------------------------|--------------|--------------|\n",

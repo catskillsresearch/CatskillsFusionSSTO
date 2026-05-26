@@ -10,6 +10,13 @@ _REPO = Path(__file__).resolve().parents[3]
 _UNOBTANIUM_MD = _REPO / "ssto" / "orbitron" / "UNOBTANIUM.md"
 _PB11_WHY_FUSION_MD = Path(__file__).resolve().parents[1] / "pb11_why_fusion.md"
 _BENCHMARK_INTRODUCTION_MD = Path(__file__).resolve().parents[1] / "benchmark_introduction.md"
+_BENCHMARK_METHODOLOGY_REPORT_MD = (
+    Path(__file__).resolve().parents[1] / "benchmark_methodology_report.md"
+)
+_MD_FILE_REF = re.compile(
+    r"(?:\(see\s+)?[`']?(?:[\w./_-]+/)?[\w.-]+\.md[`']?\)?",
+    re.I,
+)
 _BRAYTON_AIR_CYCLE_MD = Path(__file__).resolve().parents[1] / "brayton_air_cycle.md"
 _BRACKET_REFERENCE_LINE = re.compile(r"^\[(\d+)\]\s+(.+)$")
 _BRAYTON_REFERENCES_HEADING = re.compile(r"\n#{2,3}\s+References\s*\n", re.IGNORECASE)
@@ -285,11 +292,18 @@ def strip_software_implementation_references(md: str) -> str:
         text = re.sub(pattern, repl, text, flags=re.IGNORECASE)
     kept: list[str] = []
     for line in text.splitlines():
+        if not line.strip():
+            kept.append("")
+            continue
         if _SOFTWARE_LINE.search(line) or _READER_DROP_LINE.search(line):
             continue
         if re.search(r"\.md\)|\.md`|/[\w-]+\.md", line, re.I):
             continue
-        kept.append(line)
+        line = _MD_FILE_REF.sub("", line)
+        line = re.sub(r"\(\s*\)", "", line)
+        line = re.sub(r"\s{2,}", " ", line).strip()
+        if line:
+            kept.append(line)
     text = "\n".join(kept)
     text = re.sub(
         r"The throttle lever τ \(ring density scale\) is distinct from beam fueling\.\s*",
@@ -410,6 +424,21 @@ def load_benchmark_introduction_block(
         raw,
         cap_headings_at=None,
         strip_implementation_refs=False,
+    )
+
+
+def load_benchmark_methodology_block(
+    md_path: Path | None = None,
+) -> str:
+    """Benchmark methodology body for REPORT.md (no cross-file doc links)."""
+    path = md_path or _BENCHMARK_METHODOLOGY_REPORT_MD
+    if not path.is_file():
+        return ""
+    raw = path.read_text(encoding="utf-8").strip()
+    return inline_publishable_markdown(
+        raw,
+        cap_headings_at=3,
+        strip_implementation_refs=True,
     )
 
 

@@ -36,7 +36,7 @@ is demonstrated at 3.5 MW.
 
 ### (c) Minimum
 
-- **Constrained stress inverse** (`solve_constrained.py`, `trust-constr`): literature σv;
+- **Constrained stress inverse** (`solve_constrained.py`, least-squares + η search): literature σv;
   **minimize** `fusion_reactivity_scale` subject to power ≥ target and U1–U4 inequalities.
 - **`success=True` only if** `design_validated` and no hard spec FAIL — otherwise **(c) infeasible**.
 - **Margin inverse:** design σv; minimize knob distance from nominal under the same gates — should ≈ **(a)**.

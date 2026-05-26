@@ -10,6 +10,7 @@ from ssto.orbitron.experiment.linkedin_html import write_report_linkedin_html
 from ssto.orbitron.experiment.report_narrative import (
     render_baseline_overview,
     render_baseline_physics,
+    render_benchmark_methodology_section,
     render_benchmark_scenarios_section,
     render_brayton_air_cycle_section,
     render_combined_references_section,
@@ -47,6 +48,7 @@ def write_experiment_report(
     lines.append(f"*In-silico benchmark — {date_str}*\n\n")
 
     lines.append(render_introduction(result))
+    lines.append(render_benchmark_methodology_section(result))
     brayton_section, brayton_refs = render_brayton_air_cycle_section()
     lines.append(brayton_section)
     lines.append(render_pb11_fusion_reaction_section())
