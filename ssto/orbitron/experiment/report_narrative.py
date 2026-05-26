@@ -15,6 +15,7 @@ from ssto.orbitron.experiment.narrative import (
     load_pb11_fusion_reaction_block,
     load_unobtanium_basis_block,
 )
+from ssto.orbitron.experiment.benchmark_scenarios import benchmark_scenarios_table_md
 from ssto.orbitron.experiment.report_formatting import (
     gap_factors_table_md,
     physics_parameters_md,
@@ -334,6 +335,13 @@ def render_fidelity_section() -> str:
     return f"## Fidelity tiers and what each stage proves\n\n{body}\n\n"
 
 
+def render_benchmark_scenarios_section(result: ExperimentRunResult) -> str:
+    fwd = result.step_results.get("forward")
+    if not fwd:
+        return ""
+    return benchmark_scenarios_table_md(fwd)
+
+
 def render_pb11_fusion_reaction_section() -> str:
     body = load_pb11_fusion_reaction_block()
     if not body:
@@ -392,8 +400,9 @@ def render_unobtanium_section(parameters: dict[str, Any]) -> str:
         "- **U4 — p-¹¹B reactivity × beam coupling:** "
         f"reactivity **{unob.get('fusion_reactivity_scale', 1.0)}×**, "
         f"coupling **{unob.get('beam_coupling_scale', 1.0)}×**\n\n",
-        "**Baseline** uses the **design-calibrated** ⟨σv⟩ curve. **Stress inverse** uses "
-        "**literature-class** ⟨σv⟩ (~3× lower peak) for honest gap factors.\n\n",
+        "**(a) Pretend** uses the **design-calibrated** ⟨σv⟩ curve. **(b) Today** uses "
+        "**literature-class** ⟨σv⟩ (~10³× lower peak at operating T) plus experimental "
+        "anchors in `scenario_anchors.yaml`. **(c) Minimum** is the stress-inverse solve.\n\n",
     ]
     basis = load_unobtanium_basis_block()
     if basis:
@@ -493,13 +502,45 @@ def render_inverse_section(result: ExperimentRunResult, report_dir: Path) -> str
     s09 = result.step_results["09"]
     target = _target_mw(result)
     lines = [
-        "## Honest gap to 3.5 MW (stress inverse)\n\n",
-        f"Under **literature-class** p-¹¹B reactivity we invert unobtanium knobs to find the minimum "
-        f"multipliers that reach **{target:g} MW** while satisfying U1–U4. Gap factors ≫ 1× are the "
-        "R&D stretch relative to nominal art.\n\n",
+        "## Honest gap to 3.5 MW (constrained stress inverse)\n\n",
+        f"Under **literature-class** ⟨σv⟩ we minimize **η_react** (and other knobs) with a "
+        "**trust-region constrained** solve: power ≥ **{target:g} MW** and **U1–U4** are hard "
+        "inequalities. If no feasible point exists, scenario **(c)** is **infeasible** — not a "
+        "violation-bearing “solution.”\n\n",
     ]
+    stress = s09.get("stress_inverse") or {}
+    branch = stress.get("sigma_v_design_over_literature")
+    eta_req = stress.get("fusion_reactivity_scale_required")
+    eff = stress.get("effective_reactivity_gap_vs_nominal")
+    if branch is not None:
+        lines.append(
+            f"Primary reactivity gap at solve: ⟨σv⟩ design/literature ≈ **{float(branch):.1f}×**; "
+        )
+        if eta_req is not None:
+            lines.append(f"`fusion_reactivity_scale` required ≈ **{float(eta_req):.1f}×**; ")
+        if eff is not None:
+            lines.append(f"combined ≈ **{float(eff):.1f}×** vs nominal scale.\n\n")
+        else:
+            lines.append("\n\n")
+    if not stress.get("success", s09.get("success")):
+        lines.append(
+            "**Constrained stress inverse: INFEASIBLE** — no literature-σv point meets "
+            f"**{target:g} MW** and **U1–U4** together. The ⟨σv⟩ branch gap (~10³×) cannot be "
+            "closed with the allowed knob bounds while satisfying cathode, wall, and magnet gates. "
+            "Scenario **(c)** in the table above is marked infeasible; do not treat optimizer "
+            "knobs as a operating solution.\n\n"
+        )
     factors = s09.get("gap_factors") or {}
-    if factors:
+    if factors and stress.get("success", s09.get("success")):
+        lines.append(
+            "Material knob ratios at the constrained minimum (required/nominal):\n\n"
+        )
+        lines.append(gap_factors_table_md(factors))
+        lines.append("\n")
+    elif factors:
+        lines.append(
+            "*Optimizer best-effort knobs (gates not satisfied — illustrative only):*\n\n"
+        )
         lines.append(gap_factors_table_md(factors))
         lines.append("\n")
     conf = s09.get("forward_confirmation_passes")
@@ -512,7 +553,8 @@ def render_inverse_section(result: ExperimentRunResult, report_dir: Path) -> str
         if conf_mw is not None:
             lines.append(f" (**{float(conf_mw):.3f} MW**)")
         lines.append(
-            ". This confirms internal consistency — not that literature σv already hits target.\n\n"
+            ". Uses **margin-inverse** knobs on design σv (back-solve ≈ pretend), "
+            "not stress-inverse η_react ~10³× on literature σv.\n\n"
         )
     lines.append(_embed_figure(report_dir, result.figures, "step09_unobtanium_compare", "Gap factors vs nominal"))
     return "".join(lines)

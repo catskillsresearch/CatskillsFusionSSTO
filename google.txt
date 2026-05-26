@@ -1,0 +1,154 @@
+Skip to main content
+Explaining The Meaning Of Isp
+25,873 tokens
+
+User 6:10 AM
+What does she mean by lsp in chain below
+…………
+Hi Carolyn,
+I'm glad you like my fusion powered rocket plane!
+I was at a military aerospace symposium in Houston last month and met the manager of the Artemis program in the lunch line.  I told him the journey to Mars needed to be broken up into 8 hops with smaller rockets because the Artemis was just too big.  Then when I got home I thought about it more and decided fusion was the thing.  The best small fusion company (with some DARPA funding) is Avalanche Energy, so I based my design on that one.  The Avalanche guys are LinkedIn contacts now and a few more fusion people and the Artemis guy.
+I asked the right lady at DARPA if they would like to collaborate.  This is she, and she has a handy DM form at the bottom of her page:
+https://www.darpa.mil/about/people/tabitha-dodson
+I said "I have a DBA of Catskills Research Company in SAM.gov with entity
+ID JF6PC4E2J7H1, currently in unregistered state. I have no
+security clearance. I have no facility or experience with US
+Government contracting procedures or compliance. I propose an
+open source/unclassified collaboration with DARPA to complete the
+above task under the simplest available engagement model."
+For some reason, she never replied.
+Since I didn't get any street cred from her, I decided to just spec out the engine on LinkedIn and share with everyone who might care.  I've gotten some good interest so far, from people who know the subject.
+Before that I was running the one and only forecasting bot on Glimt.nu for the Swedes except they never looked at the output.  They wanted me to keep doing it but I got 0 feedback. Their forecasting GUI is from Emile Servain-Schrieber.  I know from a picture that at least he got a coffee mug out of it.  I have no Swedish coffee mug.  I kept doing it anyway except recently they scored Putin's Parade Pause as a "ceasefire" and a woman that Mike Rehfeldt knows named Banu had a fit.  This is actually a question that RAND is quite proud of:
+https://www.randforecastinginitiative.org/rfi-blog/ukraine-ceasefire-collaboration
+I transmitted her concerns to the Glimt people and Emile and Regina Joseph for good measure and I got 0 response.  So I stopped running the bot, closed out my FOI entry on my current activities, and I am now 100% focused on fusion powered rocket planes.  I feel much better for it.  Forecasting is a crock, and is now very much Commercial Off The Shelf with kalshi and predictit and the attentions of Donald Trump Jr, so nothing more to do in that space.
+Thanks,
+Lars
+Carolyn Meinel:
+Your unobtainium was the tell.
+I used to do calculations where Isp was key. The problem with existing high Isp technologies is low thrust e.g. Ion engines. But if you could make a compact fusion engine, you could get both high Isp and high thrust.
+ 
+But lots of luck getting that compact fusion engine.
+Lars:
+AI is doing the heavy lifting, I am just the manager who is barely following along, but I have enough technical literacy to guide the process.  I am vibe coding a reactor.  It is not as hopeless as it looks.  The AI builds on a compact summary of a very broad set of skills and experience. I am not pretending to be an insightful and skilled physicist.  I don't have to be.  The proof is what comes out of the physics simulator codes.
+Model 6:10 AM
+ThinkingThoughts
+ 
+ 
+Expand to view model thoughts
+
+chevron_right
+In the email chain, the term Carolyn refers to is actually written as 
+I
+s
+p
+I 
+sp
+​
+ 
+ (with a capital letter "I", rather than a lowercase "l"), which stands for Specific Impulse.
+What is Specific Impulse (
+I
+s
+p
+I 
+sp
+​
+ 
+)?
+Specific impulse is a key measure of the efficiency of a rocket or jet engine. You can think of it as the "miles per gallon" of rocket engines. It measures how much thrust an engine can produce for a given amount of fuel consumed over time.
+How it is measured: 
+I
+s
+p
+I 
+sp
+​
+ 
+ is usually measured in seconds. A higher number means the engine is more fuel-efficient.
+Context in the Conversation
+Carolyn is talking about a classic engineering trade-off in space travel:
+High 
+I
+s
+p
+I 
+sp
+​
+ 
+, Low Thrust: Some modern engines, like ion engines (electric propulsion), are incredibly fuel-efficient (they have a very high 
+I
+s
+p
+I 
+sp
+​
+ 
+). However, they produce a tiny amount of thrust—about equivalent to the weight of a piece of paper. This means they are great for long-duration deep-space travel once already in space, but they cannot lift a spacecraft off the ground or accelerate it quickly.
+Low 
+I
+s
+p
+I 
+sp
+​
+ 
+, High Thrust: Traditional chemical rockets (like those used on the Space Shuttle or Saturn V) produce massive amounts of thrust to break orbit, but they burn through their fuel incredibly quickly because they have low 
+I
+s
+p
+I 
+sp
+​
+ 
+.
+The Fusion Ideal: Carolyn points out that if someone could successfully design a compact fusion engine, it could theoretically achieve the "holy grail" of rocketry: both high 
+I
+s
+p
+I 
+sp
+​
+ 
+ (great fuel efficiency) and high thrust (lots of power to move quickly).
+Model 6:11 AM
+ThinkingThoughts
+Expand to view model thoughts
+
+chevron_right
+Model 6:32 AM
+ThinkingThoughts
+Expand to view model thoughts
+
+chevron_right
+Model 6:36 AM
+ThinkingThoughts
+ 
+ 
+ 
+ 
+ 
+Expand to view model thoughts
+
+chevron_right
+Model 6:38 AM
+ThinkingThoughts
+Expand to view model thoughts
+
+chevron_right
+Model 6:41 AM
+ThinkingThoughts
+ 
+Expand to view model thoughts
+
+chevron_right
+info
+Google AI models may make mistakes, so double-check outputs.
+Use Arrow Up and Arrow Down to select a turn, Enter to jump to it, and Escape to return to the chat.
+Start typing a prompt to see what our models can do
+
+google
+Grounding with Google Search
+
+link
+URL context
+Response ready.

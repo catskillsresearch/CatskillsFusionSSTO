@@ -26,6 +26,7 @@ from ssto.orbitron.simulator.physics_constants import (
 )
 from ssto.orbitron.simulator.plant_0d import evaluate_steady_state
 from ssto.orbitron.simulator.solve import solve_unobtanium_requirements
+from ssto.orbitron.simulator.solve_constrained import solve_unobtanium_constrained
 from ssto.orbitron.simulator.types import SimulatorInputs, UnobtaniumParams
 from ssto.orbitron.simulator.validation import SpecCheck, SpecStatus, validate_design
 
@@ -165,18 +166,28 @@ def literature_forward_mw(inp: SimulatorInputs) -> float:
 def solve_stress_inverse(inp: SimulatorInputs, *, target_mw: float | None = None) -> dict[str, Any]:
     """Minimum unobtanium with literature σv, starting from pessimistic knobs."""
     target = target_mw if target_mw is not None else inp.scales.target_gross_power_mw
-    stressed = replace(inp, unobtanium=_pessimistic_unobtanium(inp.unobtanium))
     restore = _with_reactivity_model("literature")
     try:
-        report = solve_unobtanium_requirements(
-            stressed,
+        report = solve_unobtanium_constrained(
+            inp,
             target,
-            prefer_near_nominal=0.05,
+            mode="stress",
+            fusion_scale_max=5000.0,
         )
     finally:
         restore()
     nom = _unobtanium_dict(inp.unobtanium)
     req = _unobtanium_dict(report.inputs.unobtanium)
+    t_op = effective_ion_temperature_kev(
+        report.inputs.geometry.V_cathode_v,
+        report.inputs.pad.cathode_pulse,
+        report.inputs.pad.throttle,
+    )
+    sv_d = pb11_reactivity_m3_s(t_op, model="design")
+    sv_l = pb11_reactivity_m3_s(t_op, model="literature")
+    branch = float(sv_d / max(sv_l, 1e-30))
+    eta_req = float(req.get("fusion_reactivity_scale", 1.0))
+    eta_nom = float(nom.get("fusion_reactivity_scale", 1.0))
     return {
         "success": bool(report.success),
         "message": report.message,
@@ -184,6 +195,10 @@ def solve_stress_inverse(inp: SimulatorInputs, *, target_mw: float | None = None
         "target_mw": target,
         "reactivity_model": "literature",
         "pessimistic_start": True,
+        "sigma_v_design_over_literature": branch,
+        "fusion_reactivity_scale_required": eta_req,
+        "effective_reactivity_multiplier": branch * eta_req,
+        "effective_reactivity_gap_vs_nominal": branch * (eta_req / max(eta_nom, 1e-9)),
         "unobtanium_required": req,
         "unobtanium_nominal": nom,
         "gap_factors": _gap_factors(req, nom),
@@ -203,7 +218,7 @@ def solve_margin_inverse(inp: SimulatorInputs, *, target_mw: float | None = None
     target = target_mw if target_mw is not None else inp.scales.target_gross_power_mw
     restore = _with_reactivity_model("design")
     try:
-        report = solve_unobtanium_requirements(inp, target, prefer_near_nominal=0.15)
+        report = solve_unobtanium_constrained(inp, target, mode="margin", fusion_scale_max=5.0)
     finally:
         restore()
     nom = _unobtanium_dict(inp.unobtanium)
@@ -356,10 +371,11 @@ def run_physics_audit(
             "STR",
             "Stress inverse (literature σv, pessimistic start)",
             "success + factors documented",
-            f"success={stress.get('success')} max factor {max_stress_gap:.2f}×",
-            f"fusion scale req={stress_factors.get('fusion_reactivity_scale', 1):.2f}×",
+            f"success={stress.get('success')} η_react req="
+            f"{stress.get('fusion_reactivity_scale_required', 1):.1f}×",
+            f"σv branch {stress.get('sigma_v_design_over_literature', 1):.0f}×",
             SpecStatus.PASS if stress.get("success") else SpecStatus.WARN,
-            "Primary unobtanium goals — WARN if literature solve misses MW (expected); see gap factors.",
+            "Stress inverse: primary gap is ⟨σv⟩ branch × fusion_reactivity_scale, not 5% U1–U3 knobs.",
         )
     )
 
@@ -368,18 +384,21 @@ def run_physics_audit(
         margin_inv = solve_margin_inverse(inp, target_mw=target)
 
     req = stress.get("unobtanium_required") or {}
+    conf_knobs = req
+    if margin_inv and margin_inv.get("unobtanium_required"):
+        conf_knobs = margin_inv["unobtanium_required"]
     conf_mw, conf_ok = confirm_at_required_knobs(
-        inp, req, target_mw=target, tolerance_mw=power_tolerance_mw
+        inp, conf_knobs, target_mw=target, tolerance_mw=power_tolerance_mw
     )
     checks.append(
         SpecCheck(
             "CNF",
-            "Forward confirmation (design σv @ stress-required knobs)",
+            "Forward confirmation (design σv @ margin-inverse knobs)",
             f"≥ {target - power_tolerance_mw:.2f} MW",
             f"{conf_mw:.3f} MW",
-            "If PASS: attaining stress unobtanium delivers target+ on calibrated plant.",
+            "Back-solve check: margin inverse on design σv should ≈ (a) pretend.",
             SpecStatus.PASS if conf_ok else SpecStatus.FAIL,
-            "FAIL means required knobs do not restore MW on design curve.",
+            "FAIL means margin knobs do not restore MW on design curve.",
         )
     )
 

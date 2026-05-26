@@ -1,15 +1,13 @@
 This report is inspired by a fusion device called the Orbitron developed by Avalanche Energy. It explores the feasibility of an air-breathing jet propulsion system powered directly by a proton-boron ($p\text{-}^{11}\text{B}$) Orbitron-style fusion reactor designed to produce approximately 3.5 megawatts (MW) of total raw power.
 
-To evaluate this concept, we performed a series of numerical simulations and analyses:
+We report **three scenarios** (see [`BENCHMARK_METHODOLOGY.md`](BENCHMARK_METHODOLOGY.md)):
 
-1. **The Ideal Test:** First, we simulated the system using target fusion reaction rates, assuming ideal materials and conditions (referred to as "Unobtanium" levels U1 through U4).
-2. **The Stress Test:** Next, we conducted a conservative simulation based on reaction rates documented in existing scientific literature to establish the minimum baseline performance required for viability.
-3. **The Technology Review:** Finally, we mapped out the materials science and engineering advancements required to bridge the gap between current technology and the ideal parameters.
+1. **(a) Pretend — design target:** design-calibrated ⟨σv⟩, 600 kV class, unity unobtanium. The proof chain (steps 0–8) runs on this path. Tier-1 closure is **not** measured fusion yield.
+2. **(b) Today — COTS + experiment:** literature ⟨σv⟩, Avalanche-class **300 kV**, same pad fueling as (a), wall/HTS at published limits. No tuning to recover MW.
+3. **(c) Minimum — stress inverse:** literature ⟨σv⟩ with optimizer free to raise `fusion_reactivity_scale` (~10³×) to approach target; margin inverse checks back-solve ≈ (a).
 
-The physical geometry of the propulsion system was modeled using CadQuery and Blender, and the electron behavior within the reactor was simulated using WarpX Particle-In-Cell (PIC) software. The 3D models from Blender and control input reaction surfaces saved from multiple WarpX runs with parameter variations also serve as inputs for "real world" operating simulation in FlightGear.
+The physical geometry was modeled using CadQuery and Blender. **WarpX PIC (step 01)** validates electron loading at the **design-point (a)** — prescribed E×B; not fusion Q. FlightGear integrates the test stand for operations simulation.
 
-In this design, a fuselage-integrated dorsal S-duct scoop ingests ambient air into a single-spool **compressor–turbine** train. On the pad, an **APU-fed electric starter** spins the shaft while **bleed air** is opened to establish compressor mass flow; the starter motor drives the compressor until fusion heats the duct gas. After light-off, a co-axial **turbine** extracts shaft work from the expanding hot gas to drive the compressor, the pad starter **clutches out**, and the remaining expansion through the focusing nozzle produces thrust. Heat is added externally over the fusion reactor jacket—there is no fuel–air combustion. This is an **open-loop, externally heated Brayton cycle** with a **motor start → turbine-sustained** spool.
+In this design, a fuselage-integrated dorsal S-duct scoop feeds a single-spool **compressor–turbine** train with **externally heated Brayton** air (no combustion in the core path).
 
-The primary objective of this study is to determine whether a **3.5 MW** power plant can sustain operation while remaining within safe engineering limits. Specifically, we evaluate the thermal and mechanical limits of the reactor's inner walls, electrical dielectric strength (to prevent sparking and leakage), high-temperature superconducting (HTS) magnets, and reaction kinetics.
-
-This report is self-contained and details the governing equations, material properties, simulation results, and technology gap analyses below. Under ideal material assumptions, the simulated system achieves the target 3.5 MW power output while satisfying the primary design constraints. Under more realistic parameters, the analysis outlines the critical development pathways required for key components.
+Under **(a)** the simulated plant reaches the **3.5 MW** headline while satisfying Tier-1 gates. Under **(b)** expect a large shortfall — that is the quantitative “mountain.” Under **(c)** the inverse states what effective reactivity and knobs would be required on literature σv.

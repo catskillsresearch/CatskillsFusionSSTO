@@ -127,6 +127,23 @@ def regenerate_experiment_report(
     summary = _read_json(report_dir / "run_summary.json")
     when = run_date or _report_timestamp(report_dir, summary)
     result = load_run_from_report_dir(report_dir)
+    # Refresh forward benchmark table from saved step 09 (code may evolve).
+    s09 = result.step_results.get("09")
+    if s09:
+        from tools.orbitron_proof_chain.chain_lib import base_inputs
+
+        from ssto.orbitron.experiment.forward_scenarios import evaluate_forward_scenarios
+
+        inp_fwd, _ = base_inputs()
+        margin_inv = s09.get("margin_inverse") or {}
+        fwd = evaluate_forward_scenarios(
+            inp_fwd,
+            experiment_unobtanium=result.parameters.get("unobtanium"),
+            stress_required=s09.get("unobtanium_required"),
+            stress_infeasible=not bool(s09.get("success")),
+            margin_required=margin_inv.get("unobtanium_required"),
+        )
+        result.step_results["forward"] = fwd
     return write_experiment_report(
         result,
         run_date=when,

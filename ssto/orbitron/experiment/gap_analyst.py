@@ -41,9 +41,48 @@ def _gap_table_md(step09: dict[str, Any]) -> str:
         n = float(nom.get(key, 1.0))
         r = float(req[key])
         f = factors.get(key, 1.0)
-        flag = " ← largest gap" if f == max_f and f > 1.05 else ""
+        flag = " ← largest material gap" if f == max_f and 0.95 < f < 1.05 else ""
+        if f >= 10:
+            flag = " ← η_react dominates" if key == "fusion_reactivity_scale" else flag
         lines.append(f"| {label} | {n:.4g} | {r:.4g} | {f:.3f}×{flag} |")
     return "\n".join(lines)
+
+
+def _stress_summary_md(step09: dict[str, Any]) -> str:
+    stress = step09.get("stress_inverse") or {}
+    branch = stress.get("sigma_v_design_over_literature")
+    eta = stress.get("fusion_reactivity_scale_required")
+    lines = ["## Stress inverse (constrained, literature ⟨σv⟩)\n"]
+    if step09.get("success"):
+        lines.append(
+            f"- **Feasible minimum:** yes — U1–U4 pass at **{step09.get('target_mw', 3.5)} MW**.\n"
+        )
+        if eta is not None:
+            lines.append(f"- **Minimum η_react scale:** {float(eta):.1f}× (on top of literature σv branch).\n")
+        if branch is not None:
+            lines.append(f"- **⟨σv⟩ design/literature at solve:** {float(branch):.1f}×\n")
+    else:
+        lines.append(
+            "- **Feasible minimum:** **no** — no point satisfies literature ⟨σv⟩, "
+            f"**{step09.get('target_mw', 3.5)} MW**, and U1–U4 within bounds.\n"
+        )
+        if branch is not None:
+            lines.append(
+                f"- **⟨σv⟩ branch (design/literature):** ~{float(branch):.0f}× — "
+                "this is the dominant gap, not 5% material knobs.\n"
+            )
+        if eta is not None:
+            lines.append(
+                f"- Optimizer η_react at best effort: {float(eta):.1f}× "
+                "(not a validated operating point).\n"
+            )
+    conf = step09.get("forward_confirmation_passes")
+    conf_mw = step09.get("forward_confirmation_mw")
+    lines.append(
+        f"- **Margin back-solve (design σv):** confirmation "
+        f"{'PASS' if conf else 'FAIL'} @ {conf_mw} MW — checks (a) pretends internal consistency.\n"
+    )
+    return "".join(lines)
 
 
 def _build_agent_prompt(
@@ -62,52 +101,60 @@ def _build_agent_prompt(
         unob_md = strip_software_implementation_references(raw[start : start + 8000])
 
     proof_validated = step08_proof.get("design_validated") if step08_proof else None
-    factors = gap_factors(step09)
-    top = sorted(factors.items(), key=lambda kv: abs(kv[1] - 1.0), reverse=True)[:3]
+    stress = step09.get("stress_inverse") or {}
 
-    return f"""You are a fusion materials and plasma-engineering analyst.
+    return f"""You are a fusion materials and plasma-physics analyst writing for a benchmark report audience
+(nuclear/plasma specialists who read many facility and design studies).
 
 ## Task
-Review the Orbitron p-¹¹B unobtanium gap from a **stress inverse** (literature-class ⟨σv⟩,
-NOT the design-calibrated curve). Minimum performance scales to hit {step09.get('target_mw', 3.5)} MW
-while passing U1–U4 gates. Use general knowledge and **web search** where helpful (2024–2026).
+Interpret the **three-scenario** Orbitron p-¹¹B in-silico benchmark:
+- **(a) Pretend:** design-calibrated ⟨σv⟩, 600 kV design point (Tier-1 plant closure).
+- **(b) Today:** literature ⟨σv⟩, Avalanche-class 300 kV, experimental wall/HTS limits, same fueling as (a).
+- **(c) Minimum:** **constrained** stress inverse on literature ⟨σv⟩ — minimize η_react subject to U1–U4 and power.
+  If stress inverse success is **False**, (c) is **infeasible** — state that clearly.
 
-**Do not claim the reactor is proven.** Distinguish design-calibrated plant closure from first-principles physics proof.
+Use web search for 2024–2026 literature where helpful.
+
+**Do not claim the reactor is proven.** WarpX validates electron loading (Tier 2), not fusion Q.
 
 ## Audience
-Write for an external reader with **no access to source code or repositories**. Do **not** cite file paths, module names, JSON/YAML artifacts, install commands, or repository layout. Use only physics, materials, and R&D language.
+- Write like a **benchmark memo**, not marketing copy.
+- No repository paths, module names, or software install instructions.
+- Lead with the **~10³× ⟨σv⟩ branch** when stress inverse is infeasible or η_react ≫ 1.
+- Do **not** describe forward confirmation at design σv as a physical demonstration of fusion power.
 
 ## Experiment
 - Name: {experiment_name}
-- Nominal forward model — design gates passed: {proof_validated}
-- Stress inverse success: {step09.get('success')} (mode={step09.get('inverse_mode', 'stress')})
-- Forward confirmation (design σv @ required knobs): {step09.get('forward_confirmation_passes')}
-- Confirmation P_gross [MW]: {step09.get('forward_confirmation_mw')}
-- Residual MW at stress solve: {step09.get('residual_mw')}
+- (a) Tier-1 design validated: {proof_validated}
+- Constrained stress inverse success: {step09.get('success')}
+- σv design/literature branch: {stress.get('sigma_v_design_over_literature', '—')}
+- η_react required (if reported): {stress.get('fusion_reactivity_scale_required', '—')}
+- Residual MW: {step09.get('residual_mw')}
+- Margin confirmation @ design σv: {step09.get('forward_confirmation_passes')} ({step09.get('forward_confirmation_mw')} MW)
 
-## Geometry / fuel (summary)
+## Geometry / fuel
 {parameters.get('geometry', {})}
 injectants: {parameters.get('injectants', {})}
 
-## Gap table (required / nominal)
-{_gap_table_md(step09)}
+{_stress_summary_md(step09)}
 
-Largest gaps: {top}
+## Gap table (only if stress feasible; else explain infeasibility)
+{_gap_table_md(step09) if step09.get('success') else '*Table omitted — no feasible constrained minimum.*'}
 
-## Design basis excerpt (U1–U4)
+## Design basis (U1–U4)
 {unob_md}
 
 ## Output format (Markdown)
-Write a concise report with these sections **in this order**:
+1. **Executive summary** — Is (c) feasible on literature physics? Overall R&D likelihood (low/medium/high).
+2. **Scenario interpretation** — One short subsection each for (a), (b), (c) in plain physics language.
+3. **Dominant gap** — ⟨σv⟩ branch vs materials; quantify order of magnitude.
+4. **Knob-by-knob** — Only for material knobs if a **feasible** (c) exists; otherwise one paragraph on why η_react dominates.
+5. **Recommended R&D program** — 6–10 ordered experiments (measurements that would collapse uncertainty).
+6. **Risks & unknowns** — What the 0D plant may over/under-state (beam-target, Ti/Te, PIC tier).
+7. **Conclusions** — Short synthesis for a skeptical reader.
+8. **References** — Numbered list, journals/preprints/URLs only (no repo paths).
 
-1. **Executive summary** — Can this close with near-term R&D? Overall likelihood (low/medium/high) with 2–3 sentences.
-2. **Knob-by-knob** — For each knob with gap factor > 1.05× or < 0.95×: state of the art, gap vs SOTA, difficulty.
-3. **Recommended R&D program** — Ordered list of materials/plasma experiments (6–10 bullets).
-4. **Risks & unknowns** — What the 0D model may over/under-state.
-5. **Conclusions** — One short closing section (do **not** use the label "Bottom line"). Synthesize the overall R&D and credibility takeaway.
-6. **References** — Numbered list (``1.`` … ``9.``), **not** a markdown table, and **last** in the document. Each entry: short topic label, then journal/preprint/URL citations from web search. **Do not** cite repository paths, ``.py`` modules, or local project files.
-
-Be honest about uncertainty. Do not claim the reactor is proven.
+Be direct. If literature path is infeasible, that **is** the main scientific result.
 """
 
 
@@ -118,43 +165,34 @@ def _template_fallback(
     step08_proof: dict[str, Any] | None,
     reason: str,
 ) -> str:
-    factors = gap_factors(step09)
-    top = sorted(factors.items(), key=lambda kv: abs(kv[1] - 1.0), reverse=True)
     proof_ok = step08_proof.get("design_validated") if step08_proof else False
+    stress = step09.get("stress_inverse") or {}
+    branch = stress.get("sigma_v_design_over_literature")
 
     lines = [
-        "# Unobtanium technology gap (template — no Cursor agent)\n\n",
-        f"*Agent skipped: {reason}*\n\n",
+        "# Technology gap — constrained stress inverse (template)\n\n",
+        f"*Narrative agent skipped: {reason}*\n\n",
         f"**Experiment:** {experiment_name}  \n",
-        f"**Nominal forward model — design gates passed:** {proof_ok}  \n",
-        f"**Inverse solve success:** {step09.get('success')}\n\n",
-        "## Gap table\n\n",
-        _gap_table_md(step09) + "\n\n",
-        "## Interpretation\n\n",
+        f"**(a) design Tier-1 validated:** {proof_ok}  \n",
+        f"**(c) constrained stress inverse feasible:** {step09.get('success')}  \n\n",
+        _stress_summary_md(step09),
+        "\n",
     ]
-    if proof_ok:
-        lines.append(
-            "The nominal forward model already met the power target at unity Unobtanium scales. "
-            "Inverse factors near 1.0× mean the model does not require exotic margins beyond "
-            "the design basis — any gap is numerical tolerance, not a materials crisis.\n\n"
-        )
+    if step09.get("success"):
+        lines.append("## Material knob table\n\n" + _gap_table_md(step09) + "\n\n")
     else:
         lines.append(
-            "The nominal forward model missed the target at unity scales. Factors above 1.0× are the "
-            "**minimum performance multipliers** the optimizer needs on each knob. "
-            "Prioritize R&D on the largest factors first.\n\n"
+            "## Interpretation\n\n"
+            "Under literature-class p-¹¹B reactivity, the plant model finds **no** operating point that "
+            "simultaneously meets the gross-power target and the U1–U4 inequality gates within the "
+            "allowed knob bounds. The benchmark should be read as mapping the **reactivity mountain** "
+            f"(design/literature ⟨σv⟩ branch ≈ **{float(branch or 1000):.0f}×** when quoted), not as a near-term "
+            "materials-only engineering fix.\n\n"
         )
-        lines.append("### Largest gaps\n\n")
-        for key, fac in top[:4]:
-            label = _KNOB_LABELS.get(key, key)
-            lines.append(f"- **{label}**: {fac:.3f}× vs nominal\n")
-
     lines.append(
-        "\n### Knob definitions (U1–U4)\n\n"
-        "**U1** field-emission margin — cathode surface field vs vacuum arc limit. "
-        "**U2** max wall heat flux and CH₄ cooling effectiveness. "
-        "**U3** HTS capability scale at 2 T bore. "
-        "**U4** fusion reactivity scale and beam coupling scale for p-¹¹B burn.\n"
+        "### U1–U4 (definitions)\n\n"
+        "**U1** cathode surface field vs vacuum arc limit. **U2** wall heat flux and CH₄ cooling. "
+        "**U3** HTS bore field vs 2 T target. **U4** beam, density proxy, and fusion-thermal power.\n"
     )
     return "".join(lines)
 
@@ -177,8 +215,6 @@ def _heartbeat_interval_s() -> float:
         return max(5.0, float(raw))
     except ValueError:
         return 30.0
-
-
 def _write_gap_timing(report_dir: Path, timing: dict[str, Any]) -> None:
     path = report_dir / "gap_agent_timing.json"
     path.write_text(json.dumps(timing, indent=2) + "\n", encoding="utf-8")

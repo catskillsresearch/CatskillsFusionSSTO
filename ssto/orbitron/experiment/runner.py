@@ -237,22 +237,31 @@ def run_experiment(
             elapsed_note = f", {elapsed}s" if elapsed is not None else ""
             emit(f"  UNOBTANIUM_GAP.md ({gap_mode}{elapsed_note}): {gap_path}\n")
 
-        emit("\n--- Forward unobtanium scenarios (design σv performance) ---\n")
+        emit("\n--- Three-scenario benchmark (a/b/c) ---\n")
         from tools.orbitron_proof_chain.chain_lib import base_inputs
 
         inp_fwd, _ = base_inputs()
-        stress_req = out.step_results.get("09", {}).get("unobtanium_required")
+        s09 = out.step_results.get("09") or {}
+        stress_req = s09.get("unobtanium_required")
+        margin_inv = s09.get("margin_inverse") or {}
+        margin_req = margin_inv.get("unobtanium_required")
         fwd = evaluate_forward_scenarios(
             inp_fwd,
             experiment_unobtanium=out.parameters.get("unobtanium"),
             stress_required=stress_req,
+            stress_infeasible=not bool(s09.get("success")),
+            margin_required=margin_req,
         )
         out.step_results["forward"] = _step_payload_for_report(fwd)
         write_json(report_dir / "results" / "step_forward.json", out.step_results["forward"])
         for row in fwd.get("scenarios") or []:
-            if row.get("id") == "five_year_sota":
-                emit(f"  5-year SOTA: P_gross={row.get('gross_power_mw')} MW\n")
-                break
+            emit(
+                f"  {row.get('id')}: P_gross={row.get('gross_power_mw')} MW "
+                f"(σv={row.get('reactivity_model')})\n"
+            )
+        emit(
+            f"  today shortfall vs target: {fwd.get('today_shortfall_mw', '—')} MW\n"
+        )
 
         _copy_chain_artifacts(report_dir / "results")
 

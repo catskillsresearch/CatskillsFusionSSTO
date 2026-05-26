@@ -1,4 +1,5 @@
-# Orbitron Phase-1 — tuned to close U4c (3.5 MW ± 0.2) in honest proof mode.
+# Orbitron Phase-1 — (a) pretend design point; tuned to close 3.5 MW on design σv.
+# Methodology: ssto/orbitron/BENCHMARK_METHODOLOGY.md
 # Run: ./scripts/run_orbitron_experiment.sh experiments/orbitron_phase1_power_target.yaml
 #
 # vs baseline: higher fuel at 8:1 H₂:laser, pad τ/p at max. Model estimate ~3.57 MW.

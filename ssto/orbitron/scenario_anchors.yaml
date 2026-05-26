@@ -1,0 +1,52 @@
+# Benchmark scenario anchors — see BENCHMARK_METHODOLOGY.md
+# (b) values are experimental / vendor-reported only (no in-silico fusion claims).
+
+scenarios:
+  pretend:
+    label: "(a) Pretend — design target"
+    description: >
+      Design-calibrated ⟨σv⟩; experiment geometry (600 kV, 2 T); unity unobtanium.
+      Primary proof-chain path. Tier-1 closure is bookkeeping, not measured Q.
+    reactivity_model: design
+    geometry: {}  # use experiment YAML
+    knobs: {}      # use experiment unobtanium (unity)
+    provenance: {}
+
+  today:
+    label: "(b) Today — literature σv + experimental anchors"
+    description: >
+      Literature p-¹¹B ⟨σv⟩; same pad fueling as (a); Avalanche-class 300 kV;
+      published wall/HTS limits. Not tuned to recover MW.
+    reactivity_model: literature
+    geometry:
+      V_cathode_v: -300000.0
+    knobs:
+      fusion_reactivity_scale: 1.0
+      field_emission_margin: 1.0
+      max_wall_heat_flux_W_m2: 1000000.0
+      ch4_cooling_effectiveness: 1.0
+      hts_capability_scale: 0.4
+      beam_coupling_scale: 1.0
+    provenance:
+      V_cathode_v:
+        value: "300 kV sustained"
+        source: "Avalanche Energy Orbitron public updates (2024 press / orbitron page); D₂ hardware"
+      max_wall_heat_flux_W_m2:
+        value: "1.0 MW/m²"
+        source: "STEP / DEMO first-wall steady heat-flux class (~0.3–1 MW/m²)"
+      hts_capability_scale:
+        value: "0.4 (0.8 T effective vs 2 T design)"
+        source: "REBCO tape ~0.8 T @ 77 K class solenoid demos (PPPL 2024 order of magnitude)"
+      reactivity_model:
+        value: literature
+        source: "Nevins/Sikora-class p-¹¹B ⟨σv⟩ tabulation in fusion_pb11.py (not calibrated to 3.5 MW)"
+
+  minimum:
+    label: "(c) Minimum — stress inverse (literature σv)"
+    description: >
+      Filled at report time from step 09 stress inverse (unobtanium_required + geometry from solve).
+    reactivity_model: literature
+    geometry: {}
+    knobs: {}
+    provenance:
+      note: "Runtime merge from solve_stress_inverse — see results/step_09.json"

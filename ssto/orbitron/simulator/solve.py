@@ -97,14 +97,18 @@ def solve_for_target_power(
     )
 
 
-def _pack_unobtanium(x: list[float]) -> UnobtaniumParams:
+def _pack_unobtanium(
+    x: list[float],
+    *,
+    fusion_scale_max: float = 5000.0,
+) -> UnobtaniumParams:
     return UnobtaniumParams(
-        field_emission_margin=max(0.1, x[2]),
-        max_wall_heat_flux_W_m2=max(1e5, x[3]),
-        ch4_cooling_effectiveness=max(0.1, x[4]),
-        hts_capability_scale=max(0.1, x[5]),
-        fusion_reactivity_scale=max(0.1, x[6]),
-        beam_coupling_scale=max(0.1, x[7]),
+        field_emission_margin=max(0.1, min(50.0, x[2])),
+        max_wall_heat_flux_W_m2=max(1e5, min(1.0e8, x[3])),
+        ch4_cooling_effectiveness=max(0.1, min(50.0, x[4])),
+        hts_capability_scale=max(0.1, min(50.0, x[5])),
+        fusion_reactivity_scale=max(0.1, min(fusion_scale_max, x[6])),
+        beam_coupling_scale=max(0.1, min(50.0, x[7])),
     )
 
 
@@ -113,12 +117,15 @@ def solve_unobtanium_requirements(
     target_mw: float | None = None,
     *,
     prefer_near_nominal: float = 0.15,
+    fusion_scale_max: float = 5000.0,
 ) -> SolveReport:
     """
     Find pad run point + all unobtanium knobs for target power with spec gates.
 
-    Objective: hit ``target_mw``, minimize violations, keep scales near 1.0 (nominal
-    = "off-the-shelf would barely work").
+    Objective: hit ``target_mw``, minimize violations. When ``prefer_near_nominal > 0``,
+    penalize moving scales away from 1.0 (margin / design audit). For literature stress
+  inverse, pass ``prefer_near_nominal=0`` so ``fusion_reactivity_scale`` can bridge the
+    ~10³ ⟨σv⟩ branch gap.
     """
     target = target_mw if target_mw is not None else base.scales.target_gross_power_mw
     u0 = base.unobtanium
@@ -135,21 +142,23 @@ def solve_unobtanium_requirements(
                 throttle=max(0.05, min(1.0, throttle)),
                 compressor=max(0.05, min(1.0, comp)),
             ),
-            unobtanium=_pack_unobtanium(x),
+            unobtanium=_pack_unobtanium(x, fusion_scale_max=fusion_scale_max),
         )
         res = evaluate_steady_state(inp)
         err = res.gross_power_mw - target
         penalty = 2e4 * len(res.violations)
         wall_nom = u0.max_wall_heat_flux_W_m2
         wall_ratio = x[3] / wall_nom if wall_nom > 0 else 1.0
-        nominal = (
-            (x[2] - 1.0) ** 2
-            + (wall_ratio - 1.0) ** 2
-            + (x[4] - 1.0) ** 2
-            + (x[5] - 1.0) ** 2
-            + (x[6] - 1.0) ** 2
-            + (x[7] - 1.0) ** 2
-        )
+        nominal = 0.0
+        if prefer_near_nominal > 0:
+            nominal = (
+                (x[2] - 1.0) ** 2
+                + (wall_ratio - 1.0) ** 2
+                + (x[4] - 1.0) ** 2
+                + (x[5] - 1.0) ** 2
+                + (x[6] - 1.0) ** 2
+                + (x[7] - 1.0) ** 2
+            )
         return err * err + penalty + prefer_near_nominal * nominal
 
     x0 = [
@@ -179,7 +188,7 @@ def solve_unobtanium_requirements(
             throttle=float(max(0.05, min(1.0, throttle))),
             compressor=float(max(0.05, min(1.0, comp))),
         ),
-        unobtanium=_pack_unobtanium(out.x),
+        unobtanium=_pack_unobtanium(out.x, fusion_scale_max=fusion_scale_max),
     )
     res = evaluate_steady_state(solved)
     vrep = validate_design(solved, res)

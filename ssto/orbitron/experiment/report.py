@@ -10,6 +10,7 @@ from ssto.orbitron.experiment.linkedin_html import write_report_linkedin_html
 from ssto.orbitron.experiment.report_narrative import (
     render_baseline_overview,
     render_baseline_physics,
+    render_benchmark_scenarios_section,
     render_brayton_air_cycle_section,
     render_combined_references_section,
     render_conclusion_gap,
@@ -54,6 +55,7 @@ def write_experiment_report(
     lines.append(render_physics_design_section(result.parameters))
     lines.append(render_unobtanium_section(result.parameters))
     lines.append(render_fidelity_section())
+    lines.append(render_benchmark_scenarios_section(result))
     lines.append(render_baseline_overview(result))
     lines.append(render_baseline_physics(result, report_dir))
     lines.append(render_inverse_section(result, report_dir))

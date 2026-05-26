@@ -4,6 +4,10 @@ This document is the **operator-facing process SSOT** for the Catskills p-¹¹B 
 
 ---
 
+## Benchmark methodology
+
+Three-scenario in-silico reports: **[`BENCHMARK_METHODOLOGY.md`](BENCHMARK_METHODOLOGY.md)** · anchors: [`scenario_anchors.yaml`](scenario_anchors.yaml).
+
 ## What we claim vs what we defer (fidelity ladder)
 
 | Tier | Claim | Tooling |

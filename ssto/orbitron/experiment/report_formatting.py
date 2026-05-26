@@ -96,10 +96,13 @@ def step_metrics_row(step_id: str, data: dict[str, Any]) -> str:
             f"lit_fwd={data.get('literature_forward_mw', '—')} MW"
         )
     if step_id == "forward":
+        parts = []
         for row in data.get("scenarios") or []:
-            if row.get("id") == "five_year_sota":
-                return f"5yr SOTA P_gross={row.get('gross_power_mw', '—')} MW"
-        return "see table"
+            sid = row.get("id", "?")
+            pg = row.get("gross_power_mw", "—")
+            if isinstance(pg, (int, float)):
+                parts.append(f"{sid}={pg:.3g}MW")
+        return ", ".join(parts) if parts else "see table"
     if step_id == "01" and data.get("skipped"):
         return "SKIP_PIC"
     return "OK"

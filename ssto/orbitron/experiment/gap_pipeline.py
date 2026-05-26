@@ -94,13 +94,14 @@ def run_inverse_gap_solve(*, allow_forward_fail: bool = True) -> dict[str, Any]:
     finally:
         os.environ.pop("ORBITRON_REACTIVITY_MODEL", None)
 
-    conf_mw, conf_ok = confirm_at_required_knobs(inp, req, target_mw=target_mw)
-    # Same threshold as physics audit: ≥ target − tolerance on design σv
-
     margin: dict[str, Any] | None = None
     s8 = load_step_json("08")
     if s8.get("design_validated"):
         margin = solve_margin_inverse(inp, target_mw=target_mw)
+
+    # Forward confirmation uses margin-inverse knobs on design σv (≈ back-solve check), not stress knobs.
+    conf_knobs = (margin or {}).get("unobtanium_required") or req
+    conf_mw, conf_ok = confirm_at_required_knobs(inp, conf_knobs, target_mw=target_mw)
 
     payload = {
         "success": bool(stress.get("success")),
