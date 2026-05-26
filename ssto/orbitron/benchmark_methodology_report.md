@@ -1,8 +1,27 @@
 ### Purpose
 
-Reproducible **integration + physics-envelope** benchmark: CAD, WarpX PIC (Tier 2), 0D plant (Tier 1),
-and unobtanium inverse. **Not** a license to operate a reactor or a claim that p-¹¹B Orbitron fusion
-is demonstrated at 3.5 MW.
+Reproducible **integration + physics-envelope** benchmark: CAD layout, WarpX PIC electron loading,
+0D plant closure with U1–U4 gates, and unobtanium inverse. **Not** a license to operate a reactor or a
+claim that p-¹¹B Orbitron fusion is demonstrated at 3.5 MW.
+
+### Validation levels
+
+Claims in this report are tagged by **level** — what each part of the toolchain is allowed to prove:
+
+| Level | Mechanism | What it proves |
+|-------|-----------|----------------|
+| **0** | Pad interlock sequence | Correct startup order before fueling and reaction |
+| **1** | 0D plant + U1–U4 gates | **3.5 MW** headline, jet closure, materials limits (per σv branch) |
+| **2** | WarpX PIC (electron ring) | Density and E×B loading at design voltage — **not** fusion gain |
+| **3** | p-¹¹B channel + burn models | ⟨σv⟩(T_i) × fueling × volume; laminar / clump checks |
+| **4** | *Future* | Transport-integrated reactivity without analytical surrogate blend |
+
+Never write “WarpX proves 3.5 MW.” Level **2** validates electrons in prescribed fields only; level **1**
+is plant accounting at the chosen reactivity branch.
+
+**HTS** — **high-temperature superconductor** bore magnet (U3). **REBCO** — **rare-earth barium copper
+oxide** tape; **YBCO** (yttrium barium copper oxide) is the common member of that family. Both are used
+below as published anchors for achievable field in compact solenoids.
 
 ### Three scenarios (only these)
 
@@ -17,8 +36,8 @@ is demonstrated at 3.5 MW.
 #### (a) Pretend
 
 - Primary **proof chain** (steps 0–8) runs here.
-- Tier-1 design validated means **calibrated plant closure**, not measured fusion yield.
-- WarpX step 01 figures are labeled **design-point (a)**.
+- **Design validated** at level **1** means **calibrated plant closure**, not measured fusion yield.
+- WarpX step 01 figures are labeled **design-point (a)** (level **2**).
 
 #### (b) Today
 
@@ -34,18 +53,6 @@ is demonstrated at 3.5 MW.
 - **success = true** only if design validated and no hard spec FAIL — otherwise **(c) is infeasible**.
 - **Margin inverse:** design σv; minimize knob distance from nominal under the same gates — should approximate **(a)**.
 
-### Fidelity ladder (claims)
-
-| Tier | Mechanism | Claim |
-|------|-----------|--------|
-| 0 | Pad interlocks | Startup order |
-| 1 | 0D plant + U1–U4 | MW closure **per σv branch** |
-| 2 | WarpX PIC | Electron E×B loading — **not** fusion Q |
-| 3 | p-¹¹B channel | Analytical ⟨σv⟩ × fueling |
-| 4 | Future | Transport-integrated reactivity |
-
-Never write “WarpX proves 3.5 MW.”
-
 ### Inverse solver rules
 
 - **Stress (c):** find the **minimum** η_react (on literature σv) for which a feasible point exists; do not treat power-only fits as solutions.
@@ -54,7 +61,7 @@ Never write “WarpX proves 3.5 MW.”
 
 ### Report outputs
 
-1. **Scenario comparison table** — (a)(b)(c): gross power, σv branch ratio, effective gap, Tier-1 valid.
+1. **Scenario comparison table** — (a)(b)(c): gross power, σv branch ratio, effective gap, level-1 gates pass.
 2. **Stress section** — η_react required, design/literature ⟨σv⟩ ratio at operating ion temperature.
 3. **PIC** — design-point (a) unless a second run is added later.
 

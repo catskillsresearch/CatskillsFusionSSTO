@@ -1,6 +1,6 @@
 # p-¹¹B Orbitron Design Validation Simulator
 
-**Status (Sprint 2):** The simulator is **ready for design validation and unobtanium spec quantification**. It is **not** a full multi-D transport or PIC-integrated fusion-burn code—that is explicitly Tier 4 (future).
+**Status:** The simulator is **ready for design validation and unobtanium spec quantification**. It is **not** a full multi-D transport or PIC-integrated fusion-burn code—that is explicitly level 4 (future).
 
 **One-sentence answer:** You can step through pad startup like FlightGear, run a **physics-based p-¹¹B power model** blended with the engineering surrogate, check **U1–U4** with numbers, **solve** for the unobtanium knobs needed to hit **3.5 MW**, and **export YAML** for spec documents.
 
@@ -43,9 +43,9 @@
 | Prove fusion Q from first-principles PIC | **No** | WarpX supplies ρ/beam proxies only |
 | Orbitron “movies” / publication PIC animations | **No** | Longitudinal/heuristic views are optional aids |
 
-**Verdict:** You are **there** for **Sprint 2 design validation**: *given this geometry and these parameters, does the plant achieve fusion-class operating point and 3.5 MW without violating material limits, and what unobtanium margins are required?*
+**Verdict:** You can run **design validation** today: *given this geometry and these parameters, does the plant achieve fusion-class operating point and 3.5 MW without violating material limits, and what unobtanium margins are required?*
 
-You are **not there** for claiming **first-principles proof** of p-¹¹B fusion yield—that requires Tier 4 (transport + measured reactivity).
+You are **not there** for claiming **first-principles proof** of p-¹¹B fusion yield—that requires level 4 (transport + measured reactivity).
 
 ---
 
@@ -454,4 +454,4 @@ Optional visualization (`longitudinal/`, **Longitudinal 2D** tab):
 
 ---
 
-*Catskills Fusion SSTO — Orbitron test stand simulator (Sprint 2). For questions about FlightGear/JSBSim pad operation, see OPERATOR.md; for material specs, see UNOBTANIUM.md.*
+*Catskills Fusion SSTO — Orbitron test stand simulator. For questions about FlightGear/JSBSim pad operation, see OPERATOR.md; for material specs, see UNOBTANIUM.md.*

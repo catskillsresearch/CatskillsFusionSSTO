@@ -10,7 +10,7 @@ real Orbitron, but **not** for our fuel).
 **Energy offload:** **Fusion-heated Brayton** on ingested **air** (test stand + SSTO). No multi‑MV grid
 tie, no DEC-as-primary-power, no multi‑MV arc in the intake duct.
 
-**Sprint 2 goal:** A **step-through design validation simulator** that answers:
+**Design-validation goal:** A **step-through design validation simulator** that answers:
 
 > With this geometry and these operating parameters, does the plant meet **3.5 MW** and pass
 > quantified **U1–U4** performance specs—and what unobtanium margins are required?
@@ -90,7 +90,7 @@ Auxiliary: **Device** / **Longitudinal 2D** views (optional; not required for sp
 | Material (concept) | **Tungsten–rhenium** core with **defect-free / CNT-class** surface treatment |
 | Performance | Field emission suppressed so the well is electrostatic, not a lightning short to the wall |
 
-**Sprint 2 derives:** allowable surface field (V/m), emission current density, and whether **600 kV** is
+**The simulator derives:** allowable surface field (V/m), emission current density, and whether **600 kV** is
 consistent with gap geometry without arc — feeds U1 acceptance criteria.
 
 ---
@@ -105,7 +105,7 @@ consistent with gap geometry without arc — feeds U1 acceptance criteria.
 | Coolant | **Liquid methane** ~**−160 °C**, annulus jacket on anode / boundary |
 | Limit | Metal hot spots stay below structural failure for **continuous** pad run |
 
-**Sprint 2 derives:** required coolant ṁ, ΔT, and whether **400 kW** closes with stated CH₄ properties —
+**The simulator derives:** required coolant ṁ, ΔT, and whether **400 kW** closes with stated CH₄ properties —
 feeds U2 loop sizing and material temperature limits.
 
 ---
@@ -119,7 +119,7 @@ feeds U2 loop sizing and material temperature limits.
 | Temperature | Superconducting at **~−160 °C**, cooled by **same liquid CH₄** plant as U2 (no helium plant) |
 | Mass | Light enough for SSTO (vs copper-dominated 2 T solenoid) |
 
-**Sprint 2 derives:** cryogenic heat leak to CH₄ inventory and whether **2 T** is required for the density
+**The simulator derives:** cryogenic heat leak to CH₄ inventory and whether **2 T** is required for the density
 / stability target at 600 kV — feeds U3 tape length and cryogen budget.
 
 ---
@@ -130,11 +130,11 @@ feeds U2 loop sizing and material temperature limits.
 |------|--------|
 | Headline channel | **¹H + ¹¹B → 3 ⁴He** (+ energy) |
 | Injectants | **H₂** + **B₂H₆** (dissociated in discharge) to tangential keV injectors |
-| Power headline | **3.5 MW** gross thermal at full command (surrogate scale; Sprint 2 must derive conditions) |
+| Power headline | **3.5 MW** gross thermal at full command (surrogate scale; model must derive conditions) |
 | Beam | **> 1 mA** class ion beam integration target |
-| Density | **10¹¹–10¹² cm⁻³** class goals (Sprint 2) |
+| Density | **10¹¹–10¹² cm⁻³** class goals |
 
-**Sprint 2 derives:** required fusion power density, beam power, and confinement time — this is the
+**The simulator derives:** required fusion power density, beam power, and confinement time — this is the
 **largest** unknown; U1–U3 must survive whatever power and wall load that solution demands.
 
 ---

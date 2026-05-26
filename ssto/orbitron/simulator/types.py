@@ -30,7 +30,7 @@ class OperatingPoint:
 @dataclass
 class UnobtaniumParams:
     """
-    Tunable material / physics knobs (Sprint 2 inverse-solve targets).
+    Tunable material / physics knobs (inverse-solve targets).
 
     These stand in for properties not available off-the-shelf (see UNOBTANIUM.md).
     """

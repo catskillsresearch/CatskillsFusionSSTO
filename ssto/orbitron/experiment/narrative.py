@@ -228,7 +228,6 @@ _INLINE_REPLACEMENTS: tuple[tuple[str, str], ...] = (
     (r"proof[- ]?chain", "forward model"),
     (r"proof[- ]?forward", "nominal forward model"),
     (r"proof mode", "nominal reactivity assumption"),
-    (r"Tier[- ]?1", "first-tier"),
     (r"design_validated", "design gates passed"),
     (r"last `density_diag` on disk", "last electron-density diagnostic from stage 1"),
     (r"`electron_ring_only`", "electron-only model"),
@@ -280,6 +279,14 @@ _LITERAL_REPLACEMENTS: tuple[tuple[str, str], ...] = (
 def _apply_literal_reader_replacements(text: str) -> str:
     for old, new in _LITERAL_REPLACEMENTS:
         text = text.replace(old, new)
+    return text
+
+
+def normalize_report_validation_levels(text: str) -> str:
+    """Use defined 'level N' wording in reader-facing reports (see Benchmark Methodology)."""
+    text = re.sub(r"\bTier[- ]?(\d)\b", r"level \1", text, flags=re.I)
+    text = re.sub(r"\bfirst-tier\b", "level 1", text, flags=re.I)
+    text = re.sub(r"\bSprint\s*2\b", "design validation", text, flags=re.I)
     return text
 
 
@@ -341,7 +348,8 @@ def inline_publishable_markdown(
         text = re.sub(rf"^#{{{cap_headings_at + 1},}}\s+", f"{cap} ", text, flags=re.MULTILINE)
     text = re.sub(r"\n{3,}", "\n\n", text).strip()
     text = md_math_for_preview(text)
-    return _apply_literal_reader_replacements(text)
+    text = _apply_literal_reader_replacements(text)
+    return normalize_report_validation_levels(text)
 
 
 def load_equations_ssot_block(md_path: Path | None = None) -> str:
@@ -366,11 +374,11 @@ def load_equations_ssot_block(md_path: Path | None = None) -> str:
     return body
 
 
-_READER_FIDELITY_TABLE = """| Tier | Mechanism | What it proves |
-|------|-----------|----------------|
+_READER_FIDELITY_TABLE = """| Level | Mechanism | What it proves |
+|-------|-----------|----------------|
 | **0** | Pad interlock sequence | Correct startup order before fueling and reaction |
 | **1** | 0D plant + U1–U4 gates | **3.5 MW** headline, jet closure, materials limits |
-| **2** | Electron-ring simulation (stages 1–2) | Density and beam coupling at 600 kV — **not** fusion Q |
+| **2** | Electron-ring simulation (stages 1–2) | Density and beam coupling at 600 kV — **not** fusion gain |
 | **3** | p-¹¹B channel + burn models | ⟨σv⟩(T_i) × fueling × volume; laminar / clump checks |
 | **4** | *Future* | Transport-integrated reactivity without analytical surrogate blend |
 

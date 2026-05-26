@@ -47,7 +47,7 @@ logical:
       CD segment, divergent exit) that tile axially behind the reactor outlet ring.
   - term: Ion beam injectors (NBI)
     definition: "**Tangential keV ion beam** hardware on the core\u2014not a low-energy gas\
-      \ bleed. FG throttle\ncommands **beam current (mA)** toward the **>1 mA** Sprint 2 integration\
+      \ bleed. FG throttle\ncommands **beam current (mA)** toward the **>1 mA** design-validation\
       \ target.\n"
   - term: "p-\xB9\xB9B headline channel"
     definition: "After dissociation in the discharge: ``\xB9H + \xB9\xB9B \u2192 3 \u2074\

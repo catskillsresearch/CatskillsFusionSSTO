@@ -5,9 +5,21 @@ Normative rules for the **Orbitron Direct Cycle p-¹¹B** experiment report. Mac
 
 ## Purpose
 
-Reproducible **integration + physics-envelope** benchmark: CAD, WarpX PIC (Tier 2), 0D plant (Tier 1),
-and unobtanium inverse. **Not** a license to operate a reactor or a claim that p-¹¹B Orbitron fusion
-is demonstrated at 3.5 MW.
+Reproducible **integration + physics-envelope** benchmark: CAD layout, WarpX PIC electron loading,
+0D plant with U1–U4 gates, and unobtanium inverse. **Not** a license to operate a reactor or a claim
+that p-¹¹B Orbitron fusion is demonstrated at 3.5 MW.
+
+## Validation levels
+
+| Level | Mechanism | Claim |
+|-------|-----------|--------|
+| 0 | Pad interlocks | Startup order |
+| 1 | `plant_0d` + U1–U4 | MW closure **per σv branch** |
+| 2 | WarpX PIC | Electron E×B loading — **not** fusion Q |
+| 3 | `fusion_pb11` | Analytical ⟨σv⟩ × fueling |
+| 4 | Future | Transport-integrated reactivity |
+
+Never write “WarpX proves 3.5 MW.”
 
 ## Three scenarios (only these)
 
@@ -22,7 +34,7 @@ is demonstrated at 3.5 MW.
 ### (a) Pretend
 
 - Primary **proof chain** (steps 0–8) runs here.
-- Tier-1 `design_validated` means **calibrated plant closure**, not measured fusion yield.
+- Level-1 `design_validated` means **calibrated plant closure**, not measured fusion yield.
 - WarpX step 01 figures are labeled **design-point (a)**.
 
 ### (b) Today
@@ -40,18 +52,6 @@ is demonstrated at 3.5 MW.
   **minimize** `fusion_reactivity_scale` subject to power ≥ target and U1–U4 inequalities.
 - **`success=True` only if** `design_validated` and no hard spec FAIL — otherwise **(c) infeasible**.
 - **Margin inverse:** design σv; minimize knob distance from nominal under the same gates — should ≈ **(a)**.
-
-## Fidelity ladder (claims)
-
-| Tier | Mechanism | Claim |
-|------|-----------|--------|
-| 0 | Pad interlocks | Startup order |
-| 1 | `plant_0d` + U1–U4 | MW closure **per σv branch** |
-| 2 | WarpX PIC | Electron E×B loading — **not** fusion Q |
-| 3 | `fusion_pb11` | Analytical ⟨σv⟩ × fueling |
-| 4 | Future | Transport-integrated reactivity |
-
-Never write “WarpX proves 3.5 MW.”
 
 ## Inverse solver rules
 

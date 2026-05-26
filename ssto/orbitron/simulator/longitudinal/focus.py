@@ -1,5 +1,5 @@
 """
-Focus levels for Sprint 2 longitudinal / cross-section views.
+Focus levels for longitudinal / cross-section views.
 
 Physics note
 ------------

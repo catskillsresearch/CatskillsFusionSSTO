@@ -15,7 +15,7 @@ separate; legacy `chain_config.json` borane keys migrate automatically on load.
 |------|-------------|---------|
 | `orbitron_lab.yaml` | `compile_assembly_yaml.py` | CadQuery meshes + logical assembly tree (schema v2) |
 | `orbitron_avalanche_core.yaml` | (reference) | p-¹¹B core physics (topology from public D₂ Orbitron; 600 kV class) |
-| `UNOBTANIUM.md` | (reference) | Exotic material specs + Sprint 2 physics targets |
+| `UNOBTANIUM.md` | (reference) | Exotic material specs + design-validation physics targets |
 | `orbitron_reference_plant.yaml` | (reference) | **Propulsion mechanism** — fusion-heated Brayton spool, heat paths, pad APU start |
 | `orbitron_physics_surrogate.yaml` | `build_surrogate_map.py`, `compile_orbitron_aircraft_runtime.py`, **`surrogate_closure_check.py`** | WarpX sweep, surrogate scales, **0D traceability** (`formal.traceability_chain`), thrust-sled load model |
 | `orbitron_aircraft_flightgear.yaml` | `compile_orbitron_aircraft_runtime.py` | `*-set.xml`, `Orbitron.xml`, panel picks, JSBSim template copy |

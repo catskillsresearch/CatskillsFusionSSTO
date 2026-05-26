@@ -342,7 +342,7 @@ def render_fidelity_section() -> str:
     body = load_fidelity_and_claims_block()
     if not body:
         return ""
-    return f"## Fidelity tiers and what each stage proves\n\n{body}\n\n"
+    return f"## Validation levels and what each stage proves\n\n{body}\n\n"
 
 
 def render_benchmark_scenarios_section(result: ExperimentRunResult) -> str:
@@ -405,7 +405,7 @@ def render_unobtanium_section(parameters: dict[str, Any]) -> str:
         "- **U2 — First wall + CH₄ loop:** "
         f"**{unob.get('max_wall_heat_flux_W_m2', '—')} W/m²**, "
         f"cooling **{unob.get('ch4_cooling_effectiveness', 1.0)}×**\n",
-        "- **U3 — HTS bore:** 2 T at cryogenic temperature — "
+        "- **U3 — HTS bore** (high-temperature superconductor): 2 T at cryogenic temperature — "
         f"scale **{unob.get('hts_capability_scale', 1.0)}×**\n",
         "- **U4 — p-¹¹B reactivity × beam coupling:** "
         f"reactivity **{unob.get('fusion_reactivity_scale', 1.0)}×**, "

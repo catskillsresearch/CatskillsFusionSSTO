@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Launch the Orbitron Sprint 2 simulator GUI."""
+"""Launch the Orbitron design-validation simulator GUI."""
 from __future__ import annotations
 
 import sys

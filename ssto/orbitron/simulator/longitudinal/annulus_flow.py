@@ -1,5 +1,5 @@
 """
-2D axisymmetric annulus flow along duct length (s) — Sprint 2 level 3.
+2D axisymmetric annulus flow along duct length (s).
 
 Coarse finite-volume style update for demonstration / GUI timelapse:
   - s: axial (−X intake at s≈0, +X nozzle at s≈L)

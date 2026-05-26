@@ -108,14 +108,14 @@ def _build_agent_prompt(
 
 ## Task
 Interpret the **three-scenario** Orbitron p-¹¹B in-silico benchmark:
-- **(a) Pretend:** design-calibrated ⟨σv⟩, 600 kV design point (Tier-1 plant closure).
+- **(a) Pretend:** design-calibrated ⟨σv⟩, 600 kV design point (level-1 plant closure).
 - **(b) Today:** literature ⟨σv⟩, Avalanche-class 300 kV, experimental wall/HTS limits, same fueling as (a).
 - **(c) Minimum:** **constrained** stress inverse on literature ⟨σv⟩ — minimize η_react subject to U1–U4 and power.
   If stress inverse success is **False**, (c) is **infeasible** — state that clearly.
 
 Use web search for 2024–2026 literature where helpful.
 
-**Do not claim the reactor is proven.** WarpX validates electron loading (Tier 2), not fusion Q.
+**Do not claim the reactor is proven.** WarpX validates electron loading (validation level 2), not fusion gain.
 
 ## Audience
 - Write like a **benchmark memo**, not marketing copy.
@@ -125,7 +125,7 @@ Use web search for 2024–2026 literature where helpful.
 
 ## Experiment
 - Name: {experiment_name}
-- (a) Tier-1 design validated: {proof_validated}
+- (a) Level-1 design validated: {proof_validated}
 - Constrained stress inverse success: {step09.get('success')}
 - σv design/literature branch: {stress.get('sigma_v_design_over_literature', '—')}
 - η_react required (if reported): {stress.get('fusion_reactivity_scale_required', '—')}
@@ -173,7 +173,7 @@ def _template_fallback(
         "# Technology gap — constrained stress inverse (template)\n\n",
         f"*Narrative agent skipped: {reason}*\n\n",
         f"**Experiment:** {experiment_name}  \n",
-        f"**(a) design Tier-1 validated:** {proof_ok}  \n",
+        f"**(a) level-1 design validated:** {proof_ok}  \n",
         f"**(c) constrained stress inverse feasible:** {step09.get('success')}  \n\n",
         _stress_summary_md(step09),
         "\n",

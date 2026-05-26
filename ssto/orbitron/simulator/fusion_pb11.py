@@ -1,5 +1,5 @@
 """
-p-¹¹B fusion power model for the Orbitron 0D plant (Sprint 2 high-fidelity path).
+p-¹¹B fusion power model for the Orbitron 0D plant.
 
 Reaction (headline channel):
   ¹H + ¹¹B → 3 ⁴He + 8.7 MeV (net ~8.68 MeV per reaction used here)
