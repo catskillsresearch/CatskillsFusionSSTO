@@ -381,6 +381,22 @@ def render_test_stand_section(
         lines.append(f"### {asm.designator} — {asm.title}\n\n")
         if rel:
             lines.append(f"![{asm.designator}]({rel})\n\n")
+        if asm.designator == "CORE-01":
+            lines.append(
+                "Layer detail for CORE-01: filled radial cross-section (color-matched legend) and a "
+                "**layer peel** sequence that removes one outer zone per panel until only the cathode "
+                "remains (no bench / engine hardware in these views).\n\n"
+            )
+            core_cross = staged.get("CORE-01-CROSS")
+            if core_cross:
+                lines.append(f"![CORE-01 radial cross-section]({core_cross})\n\n")
+            core_seq = staged.get("CORE-01-SEQUENCE")
+            if core_seq:
+                lines.append(f"![CORE-01 sequence views]({core_seq})\n\n")
+            lines.append(
+                "**Assembly movie (MP4):** "
+                "[CORE-01 layered build](figures/assemblies/CORE-01_layered_build.mp4)\n\n"
+            )
         lines.append(f"{asm.narrative}\n\n")
     return "".join(lines)
 

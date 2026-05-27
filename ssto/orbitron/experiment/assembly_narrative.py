@@ -9,6 +9,25 @@ from typing import Any
 
 _REPO = Path(__file__).resolve().parents[3]
 
+# Radial bands (inside → outside). Colors are unique per zone for cross-section + peel sequence.
+_CORE01_BANDS: tuple[tuple[str, str, float, float, str, str], ...] = (
+    # key, title, r_inner_m, r_outer_m, color, glTF mesh
+    ("cathode", "Cathode", 0.0, 0.01, "#6b7280", "Central_Cathode_Wire"),
+    ("first_wall", "Hot first wall / anode", 0.01, 0.04, "#ef4444", "Outer_Anode_Grid"),
+    ("air", "Air annulus", 0.04, 0.06, "#38bdf8", "Air_Annulus_Channel"),
+    ("cryostat", "Cryostat vacuum + MLI", 0.06, 0.075, "#a8a29e", "Cryostat_Vacuum_Gap"),
+    ("magnet", "HTS solenoid", 0.075, 0.10, "#1d4ed8", "Magnet"),
+)
+
+# Outer zone removed one step at a time (full stack → cathode only).
+_CORE01_PEEL_STEPS: tuple[tuple[str, tuple[str, ...]], ...] = (
+    ("Full stack (5 zones)", ("cathode", "first_wall", "air", "cryostat", "magnet")),
+    ("Remove HTS magnet", ("cathode", "first_wall", "air", "cryostat")),
+    ("Remove cryostat gap", ("cathode", "first_wall", "air")),
+    ("Remove air annulus", ("cathode", "first_wall")),
+    ("Remove first wall", ("cathode",)),
+)
+
 
 @dataclass(frozen=True)
 class AssemblyWalkthrough:
@@ -280,6 +299,141 @@ def compose_lab01_hero(source_build: Path) -> Path | None:
     return out
 
 
+def _core01_band_map() -> dict[str, tuple[str, str, float, float, str, str]]:
+    return {row[0]: row for row in _CORE01_BANDS}
+
+
+def _core01_fill_annulus(ax, r_inner: float, r_outer: float, color: str, *, alpha: float = 1.0) -> None:
+    import numpy as np
+
+    if r_outer <= r_inner:
+        return
+    theta = np.linspace(0.0, 2.0 * np.pi, 256)
+    xo = r_outer * np.cos(theta)
+    yo = r_outer * np.sin(theta)
+    xi = r_inner * np.cos(theta[::-1])
+    yi = r_inner * np.sin(theta[::-1])
+    ax.fill(
+        np.concatenate([xo, xi]),
+        np.concatenate([yo, yi]),
+        color=color,
+        alpha=alpha,
+        linewidth=0.0,
+        zorder=2,
+    )
+
+
+def _core01_draw_radial_stack(ax, present_keys: tuple[str, ...], *, show_bore: bool) -> None:
+    """Transverse slice: only CORE-01 zoning solids (no bench / engine hardware)."""
+    bands = _core01_band_map()
+    ax.set_facecolor("#f8fafc")
+    ax.set_aspect("equal")
+    ax.set_xlim(-0.115, 0.115)
+    ax.set_ylim(-0.115, 0.115)
+    ax.axis("off")
+
+    if show_bore and "first_wall" not in present_keys:
+        # Plasma vacuum bore visible once the first wall is removed.
+        _core01_fill_annulus(ax, 0.01, 0.04, "#e2e8f0", alpha=0.95)
+
+    for key in present_keys:
+        _title, title, r_in, r_out, color, _mesh = bands[key]
+        _core01_fill_annulus(ax, r_in, r_out, color)
+
+
+def _build_core01_layer_peel_sequence(dest_dir: Path) -> str | None:
+    """
+  Vertical peel sequence: remove one outer zone per panel until only the cathode remains.
+
+  Schematic transverse slices aligned to ``assembly.radial_thermal_stack`` radii.
+  """
+    try:
+        import matplotlib.pyplot as plt
+    except Exception:
+        return None
+
+    steps = _CORE01_PEEL_STEPS
+    n = len(steps)
+    ncols = 2
+    nrows = (n + ncols - 1) // ncols
+    fig, axes = plt.subplots(nrows, ncols, figsize=(6.8, 2.9 * nrows), dpi=160)
+    fig.patch.set_facecolor("#f8fafc")
+    axes_flat = list(axes.flatten()) if hasattr(axes, "flatten") else [axes]
+
+    for ax, (caption, keys) in zip(axes_flat, steps, strict=False):
+        _core01_draw_radial_stack(ax, keys, show_bore=True)
+        ax.set_title(caption, fontsize=9, pad=6, color="#111827")
+
+    for ax in axes_flat[n:]:
+        ax.axis("off")
+
+    fig.suptitle(
+        "CORE-01 layer peel (outer → inner): one radial slice per step",
+        fontsize=10,
+        color="#111827",
+        y=0.995,
+    )
+    fig.tight_layout(rect=(0, 0, 1, 0.97))
+    out = dest_dir / "CORE-01_detail_sequence.png"
+    fig.savefig(out, bbox_inches="tight", facecolor=fig.get_facecolor())
+    plt.close(fig)
+    _trim_assembly_png(out)
+    return f"figures/assemblies/{out.name}"
+
+
+def _build_core01_cross_section(dest_dir: Path) -> str | None:
+    """Filled radial cross-section: unique band colors + color-matched legend."""
+    try:
+        import matplotlib.pyplot as plt
+        from matplotlib.lines import Line2D
+    except Exception:
+        return None
+
+    fig, ax = plt.subplots(figsize=(7.0, 7.0), dpi=160)
+    _core01_draw_radial_stack(
+        ax,
+        tuple(row[0] for row in _CORE01_BANDS),
+        show_bore=False,
+    )
+
+    legend_handles: list[Line2D] = []
+    legend_labels: list[str] = []
+    for _key, title, r_in, r_out, color, mesh in _CORE01_BANDS:
+        legend_handles.append(
+            Line2D([0], [0], marker="s", linestyle="", markersize=9, markerfacecolor=color, markeredgecolor=color)
+        )
+        legend_labels.append(f"{title}: r={r_out:.3f} m ({mesh})")
+
+    leg = ax.legend(
+        legend_handles,
+        legend_labels,
+        loc="upper right",
+        frameon=True,
+        framealpha=0.92,
+        fontsize=8,
+        borderpad=0.6,
+        labelspacing=0.55,
+    )
+    for text, (_h, row) in zip(leg.get_texts(), zip(legend_handles, _CORE01_BANDS, strict=True)):
+        text.set_color(row[4])
+
+    ax.text(
+        0.0,
+        -0.125,
+        "CORE-01 radial cross-section (inside → outside)",
+        ha="center",
+        va="top",
+        fontsize=9,
+        color="#111827",
+        transform=ax.transData,
+    )
+    out = dest_dir / "CORE-01_radial_cross_section.png"
+    fig.savefig(out, bbox_inches="tight", facecolor="#f8fafc")
+    plt.close(fig)
+    _trim_assembly_png(out)
+    return f"figures/assemblies/{out.name}"
+
+
 def _trim_assembly_png(path: Path) -> None:
     """Best-effort crop of factory-gray margins after copy."""
     try:
@@ -325,6 +479,9 @@ def stage_assembly_figures(
         shutil.copy2(src, dest)
         _trim_assembly_png(dest)
         staged[asm.designator] = f"figures/assemblies/{dest.name}"
+    # CORE-01 extras: (1) explicit radial cross-section, (2) multi-view reveal strip.
+    staged["CORE-01-CROSS"] = _build_core01_cross_section(dest_dir)
+    staged["CORE-01-SEQUENCE"] = _build_core01_layer_peel_sequence(dest_dir)
     return staged
 
 
