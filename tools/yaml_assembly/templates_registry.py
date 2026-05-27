@@ -32,6 +32,8 @@ from arcjet_test_stand_cad import (
 )
 from full_reactor_cad import (
     IntegratedOrbitronTube,
+    RadialStackGeometry,
+    build_radial_thermal_stack,
     LabInfrastructure,
     build_magnet_feedthrough_bosses,
     fusion_exhaust_outlet_ring,
@@ -101,11 +103,12 @@ def tpl_lab_pad_startup_power_cable(**params: Any) -> cq.Workplane:
 
 
 def tpl_bay_inlet_annulus_shroud(**params: Any) -> cq.Workplane:
+    z = RadialStackGeometry.from_mapping(params)
     return bay_inlet_annulus_shroud(
         x0=float(params.get("x0", -0.31)),
         length=float(params.get("length", 0.175)),
-        outer_r=float(params.get("outer_r", 0.149)),
-        inner_r=float(params.get("inner_r", 0.088)),
+        outer_r=float(params.get("outer_r", z.r_cryostat_outer_m)),
+        inner_r=float(params.get("inner_r", z.r_first_wall_m)),
     )
 
 
@@ -183,9 +186,10 @@ def tpl_lab_fuel_feed_valve(**params: Any) -> cq.Workplane:
 
 
 def tpl_orbitron_exhaust_outlet_ring(**params: Any) -> cq.Workplane:
+    z = RadialStackGeometry.from_mapping(params)
     return fusion_exhaust_outlet_ring(
-        outer_r=float(params.get("outer_r", 0.082)),
-        inner_r=float(params.get("inner_r", 0.055)),
+        outer_r=float(params.get("outer_r", z.r_air_outer_m + 0.005)),
+        inner_r=float(params.get("inner_r", z.r_first_wall_m)),
         thickness=float(params.get("thickness", 0.016)),
     )
 
@@ -210,25 +214,44 @@ def tpl_engine_mount_frame(**params: Any) -> cq.Workplane:
     return engine_mount_frame(**params)
 
 
-def tpl_orbitron_anode(**_: Any) -> cq.Workplane:
-    a, *_ = _tube()
-    return a
+def _stack_parts(**params: Any) -> dict[str, cq.Workplane]:
+    return build_radial_thermal_stack(RadialStackGeometry.from_mapping(params))
 
 
-def tpl_orbitron_cathode(**_: Any) -> cq.Workplane:
-    return _tube()[1]
+def tpl_orbitron_anode(**params: Any) -> cq.Workplane:
+    return _stack_parts(**params)["first_wall"]
 
 
-def tpl_orbitron_insulators(**_: Any) -> cq.Workplane:
-    return _tube()[2]
+def tpl_orbitron_first_wall(**params: Any) -> cq.Workplane:
+    return tpl_orbitron_anode(**params)
 
 
-def tpl_orbitron_magnet(**_: Any) -> cq.Workplane:
-    return _tube()[3]
+def tpl_orbitron_cathode(**params: Any) -> cq.Workplane:
+    return _stack_parts(**params)["cathode"]
 
 
-def tpl_orbitron_nbi(**_: Any) -> cq.Workplane:
-    return _tube()[4]
+def tpl_orbitron_air_annulus(**params: Any) -> cq.Workplane:
+    return _stack_parts(**params)["air_annulus"]
+
+
+def tpl_orbitron_cryostat_gap(**params: Any) -> cq.Workplane:
+    return _stack_parts(**params)["cryostat_gap"]
+
+
+def tpl_orbitron_hts_magnet(**params: Any) -> cq.Workplane:
+    return _stack_parts(**params)["hts_magnet"]
+
+
+def tpl_orbitron_insulators(**params: Any) -> cq.Workplane:
+    return _stack_parts(**params)["insulators"]
+
+
+def tpl_orbitron_magnet(**params: Any) -> cq.Workplane:
+    return tpl_orbitron_hts_magnet(**params)
+
+
+def tpl_orbitron_nbi(**params: Any) -> cq.Workplane:
+    return _stack_parts(**params)["nbi"]
 
 
 def _infra() -> LabInfrastructure:
@@ -462,7 +485,11 @@ TEMPLATE_REGISTRY: dict[str, Callable[..., cq.Workplane]] = {
     "load_cell_puck": tpl_load_cell_puck,
     "engine_mount_frame": tpl_engine_mount_frame,
     "orbitron_anode": tpl_orbitron_anode,
+    "orbitron_first_wall": tpl_orbitron_first_wall,
     "orbitron_cathode": tpl_orbitron_cathode,
+    "orbitron_air_annulus": tpl_orbitron_air_annulus,
+    "orbitron_cryostat_gap": tpl_orbitron_cryostat_gap,
+    "orbitron_hts_magnet": tpl_orbitron_hts_magnet,
     "orbitron_insulators": tpl_orbitron_insulators,
     "orbitron_magnet": tpl_orbitron_magnet,
     "lab_magnet_feedthrough_bosses": tpl_lab_magnet_feedthrough_bosses,

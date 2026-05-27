@@ -156,14 +156,32 @@ def patch_geometry_into_picmi_overrides(cfg: dict[str, Any]) -> Path:
     g = cfg.get("geometry", {})
     overrides = json.loads(path.read_text(encoding="utf-8"))
     cells = pic_grid_cells(cfg)
+    r_anode = float(g.get("r_anode_m", overrides.get("r_anode_m", 0.04)))
+    r_cathode = float(g.get("r_cathode_m", overrides.get("r_cathode_m", 0.01)))
+    r_magnet = float(
+        g.get(
+            "r_magnet_outer_m",
+            overrides.get("r_magnet_outer_m", r_anode + 0.06),
+        )
+    )
+    r_air = float(
+        g.get(
+            "r_air_channel_outer_m",
+            overrides.get("r_air_channel_outer_m", r_anode + 0.02),
+        )
+    )
     overrides.update(
         {
-            "r_anode_m": float(g.get("r_anode_m", overrides.get("r_anode_m", 0.04))),
-            "r_cathode_m": float(g.get("r_cathode_m", overrides.get("r_cathode_m", 0.01))),
+            "r_anode_m": r_anode,
+            "r_cathode_m": r_cathode,
+            "r_magnet_outer_m": r_magnet,
+            "r_air_channel_outer_m": r_air,
             "V_cathode_v": float(g.get("V_cathode_v", overrides.get("V_cathode_v", -600_000))),
             "B_axial_tesla": float(g.get("B_axial_tesla", overrides.get("B_axial_tesla", 2.0))),
             "domain_half_extent_m": max(
-                float(g.get("r_anode_m", 0.04)),
+                r_magnet,
+                r_air,
+                r_anode,
                 float(overrides.get("domain_half_extent_m", 0.05)),
             ),
             "number_of_cells": [cells, cells],

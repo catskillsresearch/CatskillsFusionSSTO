@@ -2,6 +2,13 @@ schema_version: 2
 assembly:
   id: orbitron_lab
   title: Orbitron Phase 1+2 R&D stand (Reply 19 SSOT)
+  radial_thermal_stack: &id_radial
+    r_cathode_m: 0.01
+    r_first_wall_m: 0.04
+    r_air_outer_m: 0.06
+    r_cryostat_outer_m: 0.075
+    r_magnet_outer_m: 0.10
+    length_m: 1.2
   narrative: "CadQuery assembly mirrors **proton_boron_rand.md Reply 19** subassemblies. **Fuel:**\
     \ solid **\xB9\xB9B** disks + **355 nm** laser ablation (Reply 9, 11\u201312)\u2014not\
     \ solid B-11. Integrated pad adds **H\u2082** proton feed and **CH\u2084** wall-thermal\
@@ -249,6 +256,8 @@ logical:
       parts:
       - Central_Cathode_Wire
       - Outer_Anode_Grid
+      - Air_Annulus_Channel
+      - Cryostat_Vacuum_Gap
       - HV_Vacuum_Feedthrough
       - Solid_Boron_11_Target
       - Solid_Boron_11_Target_2
@@ -1178,7 +1187,7 @@ instances:
       \ as a cold surface). Centreline bore stays sealed vacuum/plasma \u2014 not open shop\
       \ air through the discharge.\n"
     template: bay_inlet_annulus_shroud
-    params: {}
+    params: *id_radial
     color:
     - 0.42
     - 0.44
@@ -1193,7 +1202,7 @@ instances:
     narrative: "Thin outlet ring at the anode / bay exhaust plane\u2014structural stand-in\
       \ for the\nfusion_hot_gas_outlet group in this file (``logical.groups``).\n"
     template: orbitron_exhaust_outlet_ring
-    params: {}
+    params: *id_radial
     color:
     - 0.75
     - 0.76
@@ -1218,7 +1227,7 @@ instances:
   Insulators:
     narrative: Ceramic standoffs.
     template: orbitron_insulators
-    params: {}
+    params: *id_radial
     color:
     - 0.85
     - 0.85
@@ -1236,11 +1245,11 @@ instances:
       - 0.32
       angle_deg: 90.0
   Magnet:
-    narrative: "**HTS-class** 2 T solenoid **outside** the cryostat in the target layout (lab\
-      \ surrogate mesh is a single OD cylinder). Field penetrates bore; coil is **not** the\
-      \ Brayton heat-exchanger surface.\n"
-    template: orbitron_magnet
-    params: {}
+    narrative: "**HTS-class** 2 T solenoid **outside** the cryostat vacuum gap (annular coil\
+      \ r_cryostat\u2192r_magnet). Field penetrates bore; coil is **not** the Brayton heat-exchanger\
+      \ surface.\n"
+    template: orbitron_hts_magnet
+    params: *id_radial
     color:
     - 0.2
     - 0.25
@@ -1262,7 +1271,7 @@ instances:
   NBI_Injector:
     narrative: "Tangential keV injectors \u2014 H\u2082 + laser-ablated \xB9\xB9B."
     template: orbitron_nbi
-    params: {}
+    params: *id_radial
     color:
     - 0.1
     - 0.55
@@ -1489,18 +1498,37 @@ instances:
     - 0.35
     transform_chain: *id003
   Central_Cathode_Wire:
-    narrative: W / W-Re cathode at ~600 kV class.
+    narrative: W / W-Re cathode at ~600 kV class (plasma bore r < r_cathode).
     template: orbitron_cathode
-    params: {}
+    params: *id_radial
     color:
     - 0.55
     - 0.55
     - 0.6
     transform_chain: *id004
+  Air_Annulus_Channel:
+    narrative: "Brayton **process air** annulus between hot first wall and cryostat (r_fw\u2192\
+      r_air). Not shop air over the HTS coil.\n"
+    template: orbitron_air_annulus
+    params: *id_radial
+    color:
+    - 0.55
+    - 0.72
+    - 0.88
+    transform_chain: *id004
+  Cryostat_Vacuum_Gap:
+    narrative: "Vacuum + MLI stand-in shell between air annulus and HTS (r_air\u2192r_cryostat).\n"
+    template: orbitron_cryostat_gap
+    params: *id_radial
+    color:
+    - 0.72
+    - 0.74
+    - 0.78
+    transform_chain: *id004
   Outer_Anode_Grid:
-    narrative: Grounded anode shell (Reply 19 outer grid).
-    template: orbitron_anode
-    params: {}
+    narrative: "Hot **first wall** / grounded anode shell (niobium pressure boundary at r_fw)."
+    template: orbitron_first_wall
+    params: *id_radial
     color:
     - 0.45
     - 0.45

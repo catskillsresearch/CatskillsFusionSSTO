@@ -76,12 +76,21 @@ def split_first_wall_power(
     return ch4, air, ash
 
 
+def cryostat_wetted_area_m2(zones: RadialZones, length_m: float) -> float:
+    """Cylindrical MLI-gap wetted area from CAD-aligned radii [m²]."""
+    r_mean = 0.5 * (zones.r_air_channel_outer_m + zones.r_cryostat_outer_m)
+    return 2.0 * math.pi * r_mean * max(0.1, length_m)
+
+
 def estimate_cryostat_radiation_kw(
     *,
     hot_face_temp_k: float = 1100.0,
     cold_face_temp_k: float = 113.0,
     emissivity: float = 0.12,
     view_factor: float = 0.35,
+    zones: RadialZones | None = None,
+    length_m: float = 1.2,
+    area_m2: float | None = None,
 ) -> float:
     """Order-of-magnitude radiative leak across MLI gap [kW] — placeholder for U3 budgeting."""
     sigma = 5.67e-8
@@ -91,9 +100,9 @@ def estimate_cryostat_radiation_kw(
         * sigma
         * (hot_face_temp_k**4 - cold_face_temp_k**4)
     )
-    # ~0.015 m gap × 2π r ~ 0.06 m × 1.2 m length ≈ 0.45 m² wetted proxy
-    area_proxy_m2 = 0.45
-    return q_w_m2 * area_proxy_m2 / 1000.0
+    if area_m2 is None:
+        area_m2 = cryostat_wetted_area_m2(zones, length_m) if zones is not None else 0.45
+    return q_w_m2 * area_m2 / 1000.0
 
 
 def evaluate_thermal_split(
@@ -102,13 +111,15 @@ def evaluate_thermal_split(
     gross_power_mw: float,
     magnet_cryo_kw: float,
     ch4_intercept_fraction: float = CH4_WALL_INTERCEPT_FRACTION,
+    zones: RadialZones | None = None,
+    length_m: float = 1.2,
 ) -> ThermalPowerSplit:
     ch4, air, ash = split_first_wall_power(
         first_wall_kw,
         gross_power_mw=gross_power_mw,
         ch4_intercept_fraction=ch4_intercept_fraction,
     )
-    rad = estimate_cryostat_radiation_kw()
+    rad = estimate_cryostat_radiation_kw(zones=zones, length_m=length_m)
     brayton = air + ash
     return ThermalPowerSplit(
         first_wall_kw=first_wall_kw,

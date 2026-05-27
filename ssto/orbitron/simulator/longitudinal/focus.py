@@ -82,10 +82,12 @@ def focus_domain(
     """Build display / simulation bounds for a focus level."""
     from ssto.orbitron.simulator.blender_layout import engine_axial_layout
 
+    from ssto.orbitron.simulator.thermal_zoning import radial_zones_from_geometry
+
     g = inputs.geometry
     r_a = g.r_anode_m
     r_c = g.r_cathode_m
-    r_mag = max(0.15, r_a * 2.2)
+    r_mag = radial_zones_from_geometry(g).r_magnet_outer_m
     r_duct = 0.18
     layout = engine_axial_layout(g, duct_length_m=duct_length_m)
     s_core0, s_core1 = layout.s_core0, layout.s_core1

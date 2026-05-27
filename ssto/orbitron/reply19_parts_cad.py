@@ -52,11 +52,12 @@ def part_solid_b11_target_holder() -> cq.Workplane:
 
 
 def part_central_cathode_wire() -> cq.Workplane:
-    return cq.Workplane("XY").circle(0.0025).extrude(0.35).translate((0.0, 0.0, 0.75))
+    return cq.Workplane("XY").circle(0.01).extrude(0.35).translate((0.0, 0.0, 0.75))
 
 
 def part_outer_anode_grid() -> cq.Workplane:
-    return _cyl(0.05, 0.32, (0.0, 0.0, 0.75))
+    """Bench-scale first-wall proxy (r_fw = 0.04 m Phase-1 benchmark)."""
+    return _cyl(0.04, 0.32, (0.0, 0.0, 0.75))
 
 
 def part_hv_vacuum_feedthrough() -> cq.Workplane:

@@ -93,10 +93,12 @@ def engine_axial_layout(
     nozzle_len: float = 0.45,
 ) -> EngineLongitudinalLayout:
     """Piecewise constant radii along s (intake at s=0, nozzle at s=duct_length)."""
+    from ssto.orbitron.simulator.thermal_zoning import radial_zones_from_geometry
+
     g = geometry
     r_a = g.r_anode_m
     r_c = g.r_cathode_m
-    r_mag = max(0.15, r_a * 2.2)
+    r_mag = radial_zones_from_geometry(g).r_magnet_outer_m
     r_duct = 0.18
     r_comp = 0.07
     core_len = max(g.length_m, 0.5)
@@ -114,7 +116,14 @@ def engine_axial_layout(
     segs: list[AxialSegment] = [
         AxialSegment(SegmentKind.BELLMOUTH, s0, s_bell, 0.0, r_duct, "Bellmouth"),
         AxialSegment(SegmentKind.COMPRESSOR, s_bell, s_comp, 0.0, r_comp, "Compressor"),
-        AxialSegment(SegmentKind.REACTOR_INLET, s_comp, s_inlet, r_a, r_mag, "Annulus jacket"),
+        AxialSegment(
+            SegmentKind.REACTOR_INLET,
+            s_comp,
+            s_inlet,
+            r_a,
+            radial_zones_from_geometry(g).r_air_channel_outer_m,
+            "Air annulus jacket",
+        ),
         AxialSegment(SegmentKind.MAGNET_BORE, s_core0, s_core1, 0.0, r_mag, "Magnet"),
         AxialSegment(SegmentKind.FUSION_CORE, s_core0, s_core1, 0.0, r_a, "Anode bore"),
         AxialSegment(SegmentKind.TURBINE, s_core1, s_turb, 0.0, 0.08, "Turbine"),
@@ -152,8 +161,10 @@ def draw_blender_underlay(
     symmetric: bool = True,
 ) -> None:
     """Draw longitudinal section (r ≥ 0; optional mirror for Blender-style full cut)."""
+    from ssto.orbitron.simulator.thermal_zoning import radial_zones_from_geometry
+
     g = layout.geometry
-    r_mag = max(0.15, g.r_anode_m * 2.2)
+    r_mag = radial_zones_from_geometry(g).r_magnet_outer_m
     r_duct = 0.18
 
     if focus == LongitudinalFocus.CORE_TUBE:

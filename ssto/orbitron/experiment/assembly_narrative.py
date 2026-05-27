@@ -99,10 +99,10 @@ ASSEMBLY_WALKTHROUGH: tuple[AssemblyWalkthrough, ...] = (
             "5. **HTS solenoid** (`Magnet`, **~7.5–10 cm** outer radius) — **outside** the cryostat; "
             "**B ≈ 2 T** penetrates the bore through vacuum. **Liquid CH₄** (~113 K) removes **parasitic "
             "cryo leak only** — not the megawatt first-wall stream.\n\n"
-            "**CAD honesty:** Phase-1 meshes export cathode, anode, magnet, injectors, and (in the "
-            "full engine) `Reactor_Bay_Inlet_Shroud` as **separate coarse parts**. They do **not** yet "
-            "model distinct solids for the **air-channel liner**, **cryostat shell**, and **MLI** — "
-            "the stack above is the **design target**, not fully resolved in CadQuery/Blender yet."
+            "**CAD:** glTF exports **five radial zones** as separate annular solids — "
+            "`Central_Cathode_Wire`, `Outer_Anode_Grid` (first wall), `Air_Annulus_Channel`, "
+            "`Cryostat_Vacuum_Gap`, `Magnet` (HTS), plus `Reactor_Bay_Inlet_Shroud` on the engine train. "
+            "Radii match `assembly.radial_thermal_stack` / Phase-1 benchmark (4–10 cm OD stack)."
         ),
         physics_refs=(
             "geometry.r_anode_m",
@@ -116,6 +116,8 @@ ASSEMBLY_WALKTHROUGH: tuple[AssemblyWalkthrough, ...] = (
         mesh_anchors=(
             "Central_Cathode_Wire",
             "Outer_Anode_Grid",
+            "Air_Annulus_Channel",
+            "Cryostat_Vacuum_Gap",
             "Magnet",
             "NBI_Injector",
             "Insulators",

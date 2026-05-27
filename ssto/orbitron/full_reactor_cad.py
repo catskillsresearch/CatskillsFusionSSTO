@@ -1,7 +1,17 @@
+from __future__ import annotations
+
 import math
+from dataclasses import dataclass
 from typing import Any
 
 import cadquery as cq
+
+try:
+    from ssto.orbitron.simulator.thermal_zoning import radial_zones_from_geometry
+    from ssto.orbitron.simulator.types import DeviceGeometry
+except ImportError:
+    radial_zones_from_geometry = None  # type: ignore[misc, assignment]
+    DeviceGeometry = None  # type: ignore[misc, assignment]
 
 # Shared pose for reactor stack instances in ``orbitron_lab.yaml`` (CadQuery → world).
 # Pivot Z matches ``arcjet_test_stand_cad.ENGINE_MOUNT_TOP_Z`` (mount plate on load cells).
@@ -130,9 +140,101 @@ def _hv_seg_along_z(x: float, y: float, z0: float, z1: float, radius: float = 0.
     return cq.Workplane("XY").cylinder(length, radius).translate((x, y, cz))
 
 
+@dataclass(frozen=True)
+class RadialStackGeometry:
+    """Phase-1 benchmark inside-out radii — aligned with ``thermal_zoning.RadialZones``."""
+
+    r_cathode_m: float = 0.01
+    r_first_wall_m: float = 0.04
+    r_air_outer_m: float = 0.06
+    r_cryostat_outer_m: float = 0.075
+    r_magnet_outer_m: float = 0.10
+    length_m: float = 1.2
+    first_wall_thickness_m: float = 0.003
+    cryostat_shell_m: float = 0.004
+
+    @classmethod
+    def phase1_benchmark(cls, *, length_m: float = 1.2) -> RadialStackGeometry:
+        return cls(length_m=length_m)
+
+    @classmethod
+    def from_mapping(cls, params: dict[str, Any]) -> RadialStackGeometry:
+        base = cls.phase1_benchmark()
+        fields = {f.name for f in base.__dataclass_fields__.values()}  # type: ignore[attr-defined]
+        kw = {k: float(v) for k, v in params.items() if k in fields}
+        return cls(**{**base.__dict__, **kw})
+
+    @classmethod
+    def from_device_geometry(cls, g: Any) -> RadialStackGeometry:
+        if radial_zones_from_geometry is None or DeviceGeometry is None:
+            return cls.phase1_benchmark(length_m=float(getattr(g, "length_m", 1.2)))
+        z = radial_zones_from_geometry(g)
+        return cls(
+            r_cathode_m=z.r_cathode_m,
+            r_first_wall_m=z.r_first_wall_m,
+            r_air_outer_m=z.r_air_channel_outer_m,
+            r_cryostat_outer_m=z.r_cryostat_outer_m,
+            r_magnet_outer_m=z.r_magnet_outer_m,
+            length_m=float(getattr(g, "length_m", 1.2)),
+        )
+
+
+def annular_cylinder(r_inner: float, r_outer: float, height: float) -> cq.Workplane:
+    """Hollow cylinder on **+Z**, axis through origin."""
+    ri = max(1e-4, float(r_inner))
+    ro = max(ri + 1e-4, float(r_outer))
+    h = max(1e-4, float(height))
+    outer = cq.Workplane("XY").cylinder(h, ro)
+    inner = cq.Workplane("XY").cylinder(h + 0.02, ri)
+    return outer.cut(inner)
+
+
+def build_radial_thermal_stack(
+    params: RadialStackGeometry | None = None,
+) -> dict[str, cq.Workplane]:
+    """Five-zone reactor stack (local +Z = bore axis before fusion-stack pose)."""
+    p = params or RadialStackGeometry.phase1_benchmark()
+    h = p.length_m
+
+    first_wall = orbitron_anode_pressure_shell(r=p.r_first_wall_m, h=h)
+
+    cathode = cq.Workplane("XY").cylinder(h + 0.15, p.r_cathode_m)
+
+    air_annulus = annular_cylinder(p.r_first_wall_m, p.r_air_outer_m, h)
+
+    cryostat_gap = annular_cylinder(p.r_air_outer_m, p.r_cryostat_outer_m, h)
+
+    hts_magnet = annular_cylinder(p.r_cryostat_outer_m, p.r_magnet_outer_m, h - 0.08)
+
+    r_ins = min(0.048, p.r_first_wall_m * 1.05)
+    ins = cq.Workplane("XY").cylinder(0.22, 0.022)
+    for i in range(5):
+        ins = ins.union(
+            cq.Workplane("XY").workplane(offset=-0.08 + i * 0.04).cylinder(0.018, r_ins)
+        )
+    ins_top = ins.translate((0, 0, h / 2 + 0.12))
+    ins_bot = ins.translate((0, 0, -h / 2 - 0.12))
+    insulators = ins_top.union(ins_bot)
+
+    r_inj = 0.5 * (p.r_cathode_m + p.r_first_wall_m)
+    nbi = cq.Workplane("XZ").cylinder(0.18, 0.032).translate((0, r_inj, 0))
+    nbi_flange = cq.Workplane("XZ").cylinder(0.05, 0.055).translate((0, r_inj + 0.09, 0))
+    nbi_injector = nbi.union(nbi_flange)
+
+    return {
+        "first_wall": first_wall,
+        "cathode": cathode,
+        "air_annulus": air_annulus,
+        "cryostat_gap": cryostat_gap,
+        "hts_magnet": hts_magnet,
+        "insulators": insulators,
+        "nbi": nbi_injector,
+    }
+
+
 def fusion_exhaust_outlet_ring(
-    outer_r: float = 0.082,
-    inner_r: float = 0.055,
+    outer_r: float = 0.065,
+    inner_r: float = 0.04,
     thickness: float = 0.016,
 ) -> cq.Workplane:
     """Thin annular flange at the anode / bay exhaust plane (coarse commissioning mesh)."""
@@ -141,7 +243,7 @@ def fusion_exhaust_outlet_ring(
     return disc.cut(bore)
 
 
-def orbitron_anode_pressure_shell(r: float = 0.05, h: float = 2.0) -> cq.Workplane:
+def orbitron_anode_pressure_shell(r: float = 0.04, h: float = 1.2) -> cq.Workplane:
     """Thin-wall niobium shell with **asymmetric ends**: −Z = compressor / inlet clamp flange
 
     (+Z = exhaust boss toward ``fusion_exhaust_outlet_ring``), plus shallow OD jacket rings.
@@ -206,26 +308,23 @@ def orbitron_anode_pressure_shell(r: float = 0.05, h: float = 2.0) -> cq.Workpla
 
 
 class IntegratedOrbitronTube:
-    """The 3.5 MW p-B11 Reactor Core"""
-    def build(self):
-        r = 0.05
-        h = 2.0
-        anode = orbitron_anode_pressure_shell(r=r, h=h)
-        cathode = cq.Workplane("XY").cylinder(h + 0.6, 0.005)
-        
-        ins = cq.Workplane("XY").cylinder(0.3, 0.03)
-        for i in range(5):
-            ins = ins.union(cq.Workplane("XY").workplane(offset=-0.1 + i*0.05).cylinder(0.02, 0.045))
-        ins_top = ins.translate((0, 0, h/2 + 0.15))
-        ins_bot = ins.translate((0, 0, -h/2 - 0.15))
-        
-        mag = cq.Workplane("XY").cylinder(h-0.5, 0.15).faces(">Z").workplane().hole(r*2 + 0.01)
-        
-        # NBI sticks out of the side
-        nbi = cq.Workplane("XZ").cylinder(0.2, 0.04).translate((0, 0.1, 0))
-        nbi_flange = cq.Workplane("XZ").cylinder(0.05, 0.06).translate((0, 0.2, 0))
-        
-        return anode, cathode, ins_top.union(ins_bot), mag, nbi.union(nbi_flange)
+    """3.5 MW p-B11 reactor core — inside-out thermal zoning (Phase-1 radii)."""
+
+    def __init__(self, stack: RadialStackGeometry | None = None) -> None:
+        self._stack = stack or RadialStackGeometry.phase1_benchmark()
+
+    def build(self) -> tuple[cq.Workplane, ...]:
+        parts = build_radial_thermal_stack(self._stack)
+        return (
+            parts["first_wall"],
+            parts["cathode"],
+            parts["insulators"],
+            parts["hts_magnet"],
+            parts["nbi"],
+        )
+
+    def build_zoned(self) -> dict[str, cq.Workplane]:
+        return build_radial_thermal_stack(self._stack)
 
 class LabInfrastructure:
     """The Test Facility (Rigid Pipes + Decals)"""

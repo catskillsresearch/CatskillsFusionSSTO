@@ -102,7 +102,7 @@ formal:
       steady-state reactor discharge.
 
     Geometry (analytic, not meshed CAD):
-    - r_anode = 0.05 m, r_cathode = 0.005 m matches ~10 cm tube / 5 mm cathode poloidal-slice scale.
+    - r_anode = 0.04 m (first wall), r_cathode = 0.01 m — Phase-1 radial zoning; PIC domain to r_magnet_outer ≈ 0.10 m.
     - Boundaries: Dirichlet fields on all sides; particles absorbing — walls are ideal sinks,
       not a real high-voltage feedthrough stack.
 
@@ -208,23 +208,23 @@ picmi:
     # 128²: stable through 400+ steps on AMReX 26.04; 256² hits SIGSEGV ~step 440 (Tier-2 proxy only).
     number_of_cells: [128, 128]
   domain:
-    half_extent_m: 0.05
+    half_extent_m: 0.10
   electrostatic:
-    r_anode_m: 0.05
-    r_cathode_m: 0.005
+    r_anode_m: 0.04
+    r_cathode_m: 0.01
     V_cathode_v: -600000.0
     B_axial_tesla: 2.0
   species_geometry:
-    electron_ring_inner_m: 0.01
-    electron_ring_outer_m: 0.03
-    arc_channel_inner_m: 0.035
+    electron_ring_inner_m: 0.012
+    electron_ring_outer_m: 0.036
+    arc_channel_inner_m: 0.038
   timestep:
     dt_s: 1.0e-12
     cfl: 0.9
   inject_beams:
     h_beam:
-      x_m: 0.04
-      z_half_span_m: 0.01
+      x_m: 0.025
+      z_half_span_m: 0.008
       n_particles: 60
       u_tangential_m_s: 3.0e6
       u_radial_m_s: -4.5e5
@@ -232,8 +232,8 @@ picmi:
       particle_type: proton
       charge_state: 1
     b_beam:
-      x_m: 0.041
-      z_half_span_m: 0.009
+      x_m: 0.026
+      z_half_span_m: 0.007
       n_particles: 40
       u_tangential_m_s: -2.8e6
       u_radial_m_s: -4.0e5
@@ -246,7 +246,7 @@ reductions:
     x_cutoff_m: -0.005
     z_half_width_m: 0.022
     r_inner_m: 0.012
-    r_outer_m: 0.048
+    r_outer_m: 0.038
 
 surrogate_engineering:
   # --- p-¹¹B + arcjet design headline (0D; bilinear maps use these at full T×C×proxy) ---

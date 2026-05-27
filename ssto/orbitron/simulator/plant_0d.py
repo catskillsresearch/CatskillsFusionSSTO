@@ -131,6 +131,8 @@ def evaluate_steady_state(inputs: SimulatorInputs) -> SteadyStateResult:
         first_wall_kw=wall_kw,
         gross_power_mw=gross_mw,
         magnet_cryo_kw=hts.cryo_load_kw,
+        zones=zones,
+        length_m=g.length_m,
     )
     ch4 = size_ch4_loop(
         thermal.ch4_wall_intercept_kw,
