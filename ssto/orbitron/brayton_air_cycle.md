@@ -1,4 +1,4 @@
-The propulsion thermodynamic cycle is an **open-loop, externally heated Brayton cycle** on a **single compressor–turbine spool**. Conventional jets add heat by burning fuel in the working fluid [1, 3]; here enthalpy is added through the fusion reactor's hot jacket, the working fluid remains atmospheric air, and there is no combustion chemistry in the main path.
+The propulsion thermodynamic cycle is an **open-loop, externally heated Brayton cycle** on a **single compressor–turbine spool**. Conventional jets add heat by burning fuel in the working fluid [1, 3]; here enthalpy is added when compressed air passes through a **hot annulus around the fusion first wall** (and mixes with a small **⁴He ash** stream) — **not** by flowing over the cryogenic HTS magnet. The working fluid remains atmospheric air; there is no combustion chemistry in the main path.
 
 **Pad start:** an electric starter (APU cart) drives the shaft; **bleed air** opens the bellmouth → compressor annulus so the machine can ingest and compress air before fusion is armed. **Cruise / light-off:** after the hot section raises gas enthalpy, a **turbine** expands part of the flow to supply compressor shaft work; the pad motor disengages. **Nozzle expansion** of the core stream produces thrust.
 
@@ -11,7 +11,7 @@ A dorsal S-duct scoop (727-style fuselage intake) captures ambient air. With ble
 In air-standard notation:
 
 1. **Isentropic Compression ($1 \rightarrow 2$):** Air enters the S-duct and is compressed in the rotary compressor. **Before turbine takeover:** shaft work is supplied by the **pad electric starter** ($W_{\text{shaft,in}} = W_{c,\text{elec}}$). **After takeover:** shaft work is supplied by the **turbine** ($W_{\text{shaft,in}} = W_t$). Compression raises $P$ and $T$.
-2. **Isobaric Heat Addition ($2 \rightarrow 3$):** Core-path air passes over the proton-boron ($p\text{-}^{11}\text{B}$) reactor jacket at nearly constant pressure. No fuel is mixed into the air stream.
+2. **Isobaric Heat Addition ($2 \rightarrow 3$):** Core-path air passes through the **first-wall annulus** (hot metal at ~800–1000 °C class) at nearly constant pressure. No fuel is mixed into the air stream; the HTS magnet sits **outside** a vacuum cryostat and is not the heat-exchanger surface.
 3. **Split Expansion ($3 \rightarrow 4_t$, $4_t \rightarrow 4$):** Hot gas first expands through the **turbine** ($3 \rightarrow 4_t$) to deliver $w_t$ per unit mass to the shaft. The remaining enthalpy expands through the **nozzle** ($4_t \rightarrow 4$) to exhaust velocity and thrust. Before takeover, the starter still provides $w_c$ and only the nozzle branch carries net propulsive acceleration for the core stream.
 4. **Isobaric Heat Rejection ($4 \rightarrow 1$):** Exhaust and bleed dump to the atmosphere; fresh air enters the scoop [1, 2].
 

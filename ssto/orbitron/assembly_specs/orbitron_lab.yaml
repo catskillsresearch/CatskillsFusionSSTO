@@ -243,8 +243,9 @@ logical:
       - Solid_B11_Target_Holder
     subassembly_1_2_electrostatic_orbitron_core:
       title: "Subassembly 1.2 \u2014 Electrostatic Orbitron Core"
-      detail: "Electrostatic well for **H\u207A** and **B\u207A**; solid **\xB9\xB9B** targets\
-        \ on holder."
+      detail: "Inside-out: cathode \u2192 plasma vacuum \u2192 hot first wall (anode) \u2192\
+        \ future air annulus \u2192 cryostat \u2192 HTS magnet outside. p-\xB9\xB9B fueling\
+        \ via NBI + solid \xB9\xB9B; not a single \"jacket = magnet\" part."
       parts:
       - Central_Cathode_Wire
       - Outer_Anode_Grid
@@ -294,7 +295,8 @@ logical:
       - air_breathing_nozzle_train
     subassembly_2_1_engine_core_heat_exchanger:
       title: "Subassembly 2.1 \u2014 Full-Scale Engine Core & Heat Exchanger"
-      detail: Inconel-class jacket; fusion heat to air (bremsstrahlung + alphas + CX).
+      detail: "Hot first-wall annulus + bay shroud for Brayton air; HTS magnet outside vacuum\
+        \ cryostat (see THERMAL_ZONING.md). Heat: bremsstrahlung + alphas + CX, not neutrons."
       parts:
       - Containment_Vessel_Jacket
       - Heat_Exchanger_Channels
@@ -1170,10 +1172,11 @@ instances:
     - op: rotate_z
       angle_deg: 90.0
   Reactor_Bay_Inlet_Shroud:
-    narrative: "Annulus jacket stub in the **axial gap** between compressor housing (\u2212\
-      X) and solenoid shell: OD matches the magnet band, ID clears the anode / flange. Makes\
-      \ the **compressor \u2192 bay annulus \u2192 detuner** path visible; centreline bore\
-      \ to the anode remains **seal / structure**, not shop air through the discharge.\n"
+    narrative: "Coarse **air annulus** shroud: compressor discharge routes in the gap toward\
+      \ the hot **anode / first-wall** region. **ID** sits at the hot wall OD; **OD** should\
+      \ lie **inside** the future cryostat inner radius (not \"wrapped around the magnet OD\"\
+      \ as a cold surface). Centreline bore stays sealed vacuum/plasma \u2014 not open shop\
+      \ air through the discharge.\n"
     template: bay_inlet_annulus_shroud
     params: {}
     color:
@@ -1233,7 +1236,9 @@ instances:
       - 0.32
       angle_deg: 90.0
   Magnet:
-    narrative: 2 T axial solenoid (lab surrogate).
+    narrative: "**HTS-class** 2 T solenoid **outside** the cryostat in the target layout (lab\
+      \ surrogate mesh is a single OD cylinder). Field penetrates bore; coil is **not** the\
+      \ Brayton heat-exchanger surface.\n"
     template: orbitron_magnet
     params: {}
     color:

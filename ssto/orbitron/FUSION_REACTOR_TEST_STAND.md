@@ -86,11 +86,11 @@ Pad-only hardware also anchors here: **pad startup cart**, **power cable**, and 
 
 The **reactor bay** is the moral center of the machine. Inside it:
 
-- **Fusion reactor:** gridless **anode** shell, on-axis **cathode** (~600 kV design class), **magnet** for **2 T** axial **B**, tangential **NBI injectors** for keV **H⁺ / B⁺**, **insulators**, and **magnet service bosses** for CH₄ wall thermal, cryo jacket tap, and HV feedthrough. One anode channel in the lab mesh stands in for a thousand-channel flight article.
-- **Reactor inlet jacket:** **reactor bay inlet shroud**—compressor discharge washes the niobium pressure boundary in an annulus, then flows toward the hot duct.
+- **Fusion reactor (radial zones):** on-axis **cathode**, plasma vacuum bore, **first-wall anode** (α / X-ray / CX), **air annulus** for Brayton, **vacuum cryostat**, **HTS magnet** outside the hot air path (**2 T** into bore), tangential **NBI**, insulators, and service bosses for CH₄ wall intercept, cryostat fill, and HV.
+- **Reactor bay inlet shroud:** compressor discharge enters the **air annulus** around the **hot anode** — not the cryogenic magnet winding.
 - **Reactor duct shielding:** a coarse **blast detuner** module (annulus sleeve, shock-conditioning insert, brackets/seals) that softens bypass-stream shocks—not acoustic silencing, and not the fusion exhaust path, which uses **fusion hot gas outlet** and **helium ash vent line** instead.
 
-Fusion adds enthalpy by **wall convection** on hot metal and by **mixing** hot core exhaust and ash at the downstream plenum. It does not “push air through the plasma.”
+Fusion adds enthalpy by **first-wall convection** to the air annulus and by **mixing** hot core exhaust and **⁴He ash** at the plenum. **CH₄** removes the high-grade wall load on internal channels; **HTS** stays behind vacuum insulation. It does not “push air through the plasma.” See **`THERMAL_ZONING.md`**.
 
 *Build narrative:* Lower the core into the shroud, torq the detuner flanges, connect H₂ and solid ¹¹B trunks to the injector manifold, dress the HV umbilical from the console side, and verify the ash vent aims at the nozzle plenum route before the +X train is closed.
 

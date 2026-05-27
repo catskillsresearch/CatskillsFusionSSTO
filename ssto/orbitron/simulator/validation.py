@@ -297,6 +297,20 @@ def validate_design(
             SpecStatus.PASS if mdot_ok else SpecStatus.FAIL,
         )
     )
+    for msg in result.thermal_warnings:
+        checks.append(
+            SpecCheck(
+                "THERMAL",
+                "Radial zoning (first wall → air vs CH₄)",
+                "Brayton enthalpy vs gross — see report",
+                msg[:120],
+                "—",
+                SpecStatus.WARN,
+                "Wall-coupled Brayton may be << gross MW until HX tier is modeled.",
+            )
+        )
+        break
+
     if armed and math.isfinite(jerr):
         checks.append(
             SpecCheck(

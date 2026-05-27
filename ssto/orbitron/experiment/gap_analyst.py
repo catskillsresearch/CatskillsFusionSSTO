@@ -122,6 +122,7 @@ Use web search for 2024–2026 literature where helpful.
 - No repository paths, module names, or software install instructions.
 - Lead with the **~10³× ⟨σv⟩ branch** when stress inverse is infeasible or η_react ≫ 1.
 - Do **not** describe forward confirmation at design σv as a physical demonstration of fusion power.
+- **Thermal zoning:** HTS magnet is **outside** a vacuum cryostat; hot air flows in an **annulus inside** the magnet over the **first wall** (α / X-ray load). **CH₄** intercepts wall heat; air heats for Brayton. Do **not** say air cools the HTS or that the magnet is the Brayton jacket.
 
 ## Experiment
 - Name: {experiment_name}
@@ -150,7 +151,8 @@ injectants: {parameters.get('injectants', {})}
 3. **Dominant gap** — ⟨σv⟩ branch vs materials; quantify order of magnitude.
 4. **Knob-by-knob** — Only for material knobs if a **feasible** (c) exists; otherwise one paragraph on why η_react dominates.
 5. **Recommended R&D program** — 6–10 ordered experiments (measurements that would collapse uncertainty).
-6. **Risks & unknowns** — What the 0D plant may over/under-state (beam-target, Ti/Te, PIC tier).
+   Include **cryostat + MLI integration** and **first-wall / air-annulus / CH₄-intercept** zoning if thermal layout is discussed.
+6. **Risks & unknowns** — What the 0D plant may over/under-state (beam-target, Ti/Te, PIC tier, **cryoplant mass and refrigeration power**, **liquid-to-air HX** if annulus alone cannot reach turbine inlet temperature).
 7. **Conclusions** — Short synthesis for a skeptical reader.
 8. **References** — Numbered list, journals/preprints/URLs only (no repo paths).
 

@@ -111,6 +111,12 @@ class SteadyStateResult:
     ch4_mdot_kgps: float = 0.0
     ch4_delta_T_K: float = 0.0
     hts_cryo_kw: float = 0.0
+    ch4_wall_intercept_kw: float = 0.0
+    air_annulus_kw: float = 0.0
+    brayton_thermal_kw: float = 0.0
+    cryostat_radiation_budget_kw: float = 0.0
+    reactor_outer_diameter_m: float = 0.0
+    thermal_warnings: list[str] = field(default_factory=list)
     fueling_mix_scale: float = 0.0
     fusion_channel_power_mw: float = 0.0
     clump_index: float = 1.0

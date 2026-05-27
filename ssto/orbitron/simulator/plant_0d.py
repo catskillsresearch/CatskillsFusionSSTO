@@ -33,6 +33,11 @@ def evaluate_steady_state(inputs: SimulatorInputs) -> SteadyStateResult:
         yaml_scale_scalars,
     )
     from ssto.orbitron.simulator.thermal_systems import size_ch4_loop, size_hts_cryo
+    from ssto.orbitron.simulator.thermal_zoning import (
+        evaluate_thermal_split,
+        radial_zones_from_geometry,
+        check_thermal_zoning,
+    )
     from ssto.orbitron.simulator.types import SteadyStateResult
 
     g = inputs.geometry
@@ -114,8 +119,29 @@ def evaluate_steady_state(inputs: SimulatorInputs) -> SteadyStateResult:
     anode_area_m2 = 2.0 * math.pi * g.r_anode_m * max(g.length_m, 0.1)
     q_wall = (wall_kw * 1000.0) / max(anode_area_m2, 1.0e-6)
 
-    ch4 = size_ch4_loop(wall_kw, ch4_effectiveness=u.ch4_cooling_effectiveness)
-    hts = size_hts_cryo(g.B_axial_tesla, g.length_m, g.r_anode_m, hts_capability_scale=u.hts_capability_scale)
+    zones = radial_zones_from_geometry(g)
+    hts = size_hts_cryo(
+        g.B_axial_tesla,
+        g.length_m,
+        g.r_anode_m,
+        hts_capability_scale=u.hts_capability_scale,
+        r_magnet_outer_m=zones.r_magnet_outer_m,
+    )
+    thermal = evaluate_thermal_split(
+        first_wall_kw=wall_kw,
+        gross_power_mw=gross_mw,
+        magnet_cryo_kw=hts.cryo_load_kw,
+    )
+    ch4 = size_ch4_loop(
+        thermal.ch4_wall_intercept_kw,
+        ch4_effectiveness=u.ch4_cooling_effectiveness,
+    )
+    # Thermal zoning advisories (reported in validation THERMAL check — not plant hard-fail).
+    thermal_warnings = check_thermal_zoning(
+        thermal,
+        gross_power_mw=gross_mw,
+        target_gross_mw=sc.target_gross_power_mw,
+    )
 
     q_allow = u.max_wall_heat_flux_W_m2 * u.ch4_cooling_effectiveness
     if q_wall > q_allow:
@@ -153,6 +179,7 @@ def evaluate_steady_state(inputs: SimulatorInputs) -> SteadyStateResult:
     )
     mdot = brayton.mdot_core_kgps
     mdot_in = brayton.mdot_in_kgps
+    # Jet/thrust closure still uses gross headline; brayton_thermal_kw is reported separately.
     jet_mw = sc.jet_propulsive_efficiency * gross_mw
     thrust_n = math.sqrt(max(0.0, 2.0 * jet_mw * 1.0e6 * max(mdot, 1.0e-12)))
     thrust_lbf = thrust_n * 0.224809
@@ -185,6 +212,12 @@ def evaluate_steady_state(inputs: SimulatorInputs) -> SteadyStateResult:
         ch4_mdot_kgps=ch4.mdot_ch4_kgps,
         ch4_delta_T_K=ch4.delta_T_K,
         hts_cryo_kw=hts.cryo_load_kw,
+        ch4_wall_intercept_kw=thermal.ch4_wall_intercept_kw,
+        air_annulus_kw=thermal.air_annulus_kw,
+        brayton_thermal_kw=thermal.brayton_thermal_kw,
+        cryostat_radiation_budget_kw=thermal.cryostat_radiation_budget_kw,
+        reactor_outer_diameter_m=zones.reactor_outer_diameter_m,
+        thermal_warnings=thermal_warnings,
         fueling_mix_scale=fusion.fueling_mix_scale,
         fusion_channel_power_mw=inputs.fusion_channel_power_mw
         if math.isfinite(inputs.fusion_channel_power_mw)

@@ -67,7 +67,38 @@ below as published anchors for achievable field in compact solenoids.
 
 **Gate before publishing:** (b) gross power must be **much** lower than (a). If not, (b) anchors are wrong.
 
+### Radial thermal zoning (resolves HTS vs hot air)
+
+p-¹¹B is **aneutronic** — the first wall catches **alphas**, **bremsstrahlung X-rays**, and **charge-exchange**
+losses, not a neutron blanket. The **HTS magnet is not the air “jacket.”** Compressed air must **not** flow over
+the cryogenic coil; it flows in an **annulus inside the magnet radius**, over a **hot first-wall sheath**.
+
+**Inside-out stack** (Phase-1 radii at `r_anode = 4 cm`):
+
+| Zone | Radius | Role |
+|------|--------|------|
+| Cathode | 0 → 1 cm | −600 kV wire |
+| Plasma vacuum | 1 → 4 cm | E×B + beams only |
+| **First wall** | **4 cm** | Absorbs α / X-ray / CX; **800–1000 °C** class |
+| **Air annulus** | 4 → **6 cm** | Brayton working fluid **heated** by hot wall |
+| **Cryostat (vacuum + MLI)** | 6 → **7.5 cm** | Blocks heat leak to magnet |
+| **HTS solenoid** | 7.5 → **10 cm** | **2 T** through vacuum; **CH₄** removes parasitic leak only |
+| Casing | > 10 cm | Structure, services |
+
+**Two thermal fluids, two jobs:**
+
+| Path | Fluid | Purpose |
+|------|-------|---------|
+| U2 intercept | Liquid **CH₄** | Remove high-grade wall load so the sheath survives |
+| Brayton | Compressed **air** | Enthalpy for turbine / nozzle — from **hot wall + ash mixer**, not from quenching HTS |
+| U3 cryostat | Liquid **CH₄** (closed) | Hold magnet at ~113 K; separate from air temperature |
+
+**0D energy split** (level 1): `first_wall_kw` → **CH₄ intercept** + **air annulus**; `brayton_thermal_kw` drives
+the jet surrogate; `gross_mw` remains the fusion headline. Passing U1–U4 does **not** yet size cryostat mass,
+refrigeration electrical power, or a dedicated **liquid-to-air heat exchanger** if the annulus alone cannot reach T₃.
+
 ### Non-goals
 
 - No secondary “judgment” scenario row beyond (a)(b)(c).
 - Gap narrative does not override solver numbers.
+- No claim that air washes the HTS pack or that the magnet absorbs α / X-ray directly.

@@ -22,6 +22,7 @@ from ssto.orbitron.experiment.report_narrative import (
     render_inverse_section,
     render_pb11_fusion_reaction_section,
     render_physics_design_section,
+    render_thermal_architecture_snapshot,
     render_test_stand_section,
     render_unobtanium_section,
 )
@@ -55,6 +56,7 @@ def write_experiment_report(
     lines.append(render_test_stand_section(staged, report_dir=report_dir))
     lines.append(render_governing_equations_section())
     lines.append(render_physics_design_section(result.parameters))
+    lines.append(render_thermal_architecture_snapshot(result))
     lines.append(render_unobtanium_section(result.parameters))
     lines.append(render_fidelity_section())
     lines.append(render_benchmark_scenarios_section(result))

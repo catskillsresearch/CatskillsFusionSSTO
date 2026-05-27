@@ -21,6 +21,13 @@ that p-¹¹B Orbitron fusion is demonstrated at 3.5 MW.
 
 Never write “WarpX proves 3.5 MW.”
 
+## Radial thermal zoning
+
+HTS is **outside** a vacuum cryostat; Brayton air flows in an **annulus inside** the magnet over the
+**first wall** (α / X-ray / CX). **CH₄** intercepts wall load; air receives enthalpy for the turbine path.
+Normative stack: [`THERMAL_ZONING.md`](THERMAL_ZONING.md). 0D plant splits `first_wall_kw` → CH₄ + air;
+`brayton_thermal_kw` drives the jet surrogate.
+
 ## Three scenarios (only these)
 
 | ID | Name | σv model | Geometry / knobs |

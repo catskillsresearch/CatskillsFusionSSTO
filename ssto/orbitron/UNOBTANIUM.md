@@ -95,32 +95,34 @@ consistent with gap geometry without arc — feeds U1 acceptance criteria.
 
 ---
 
-## U2 — X-ray resilient first wall + cryogenic cooling
+## U2 — First wall (hot) + CH₄ intercept
 
 | Spec | Value |
 |------|--------|
-| Wall load (design anchor) | **~400 kW** steady Bremsstrahlung / boundary deposition (0D `heat_kw_scale`) |
+| Location | **First wall / anode sheath** at plasma radius — catches **α**, **X-ray**, **CX** (not neutrons) |
+| Wall load (design anchor) | **~400 kW** steady boundary deposition (0D `heat_kw_scale`) |
 | Wall material (concept) | **Niobium C-103**-class pressure boundary (or equivalent) |
-| Radiation (concept) | **Self-healing / low-dpa** alloy behavior under sustained X-ray wall loading |
-| Coolant | **Liquid methane** ~**−160 °C**, annulus jacket on anode / boundary |
-| Limit | Metal hot spots stay below structural failure for **continuous** pad run |
+| Face temperature | **800–1000 °C** class toward plasma; outer face feeds **air annulus** |
+| Coolant | **Liquid methane** ~**−160 °C** in **internal channels** — removes ~55% of wall load in 0D split |
+| Limit | Metal stays below failure; **CH₄** must close flux limits independent of Brayton air |
 
-**The simulator derives:** required coolant ṁ, ΔT, and whether **400 kW** closes with stated CH₄ properties —
-feeds U2 loop sizing and material temperature limits.
+**The simulator derives:** CH₄ ṁ for the **intercept fraction** of `first_wall_kw`, not for cooling compressed air.
 
 ---
 
-## U3 — Methane-cooled 2 T magnet (HTS class)
+## U3 — HTS solenoid outside cryostat (cold zone)
 
 | Spec | Value |
 |------|--------|
+| Layout | **Outside** vacuum cryostat; **B** penetrates bore; **no** direct α / X-ray flux on tape |
 | Field | **2.0 T** axial **B** in the plasma bore (PIC / core YAML) |
-| Magnet (concept) | **YBCO-class** high-temperature superconducting tape solenoid |
-| Temperature | Superconducting at **~−160 °C**, cooled by **same liquid CH₄** plant as U2 (no helium plant) |
-| Mass | Light enough for SSTO (vs copper-dominated 2 T solenoid) |
+| Magnet (concept) | **YBCO-class** HTS tape solenoid (~7.5–10 cm outer radius in zoning budget) |
+| Temperature | **~113 K** via liquid **CH₄** cryostat loop (parasitic leak only — not the 400 kW wall stream) |
+| Insulation | Vacuum gap + **MLI** between **hot air annulus** and coil |
+| Mass | Light enough for SSTO vs copper — **cryostat + MLI mass not fully sized in 0D** |
 
-**The simulator derives:** cryogenic heat leak to CH₄ inventory and whether **2 T** is required for the density
-/ stability target at 600 kV — feeds U3 tape length and cryogen budget.
+**The simulator derives:** cryo load vs `hts_capability_scale`; radiative leak budget vs air-channel temperature.
+See **`THERMAL_ZONING.md`** for the inside-out stack.
 
 ---
 

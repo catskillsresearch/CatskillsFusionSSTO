@@ -76,6 +76,7 @@ def size_hts_cryo(
     r_bore_m: float,
     *,
     hts_capability_scale: float = 1.0,
+    r_magnet_outer_m: float | None = None,
 ) -> HtsCryoSizing:
     """
     Cryogenic load scales ~ B² · L · r (AC + conduction placeholder).
@@ -84,7 +85,7 @@ def size_hts_cryo(
     """
     B = max(0.1, B_tesla)
     L = max(0.1, length_m)
-    r = max(0.02, r_bore_m)
+    r = max(0.02, r_magnet_outer_m if r_magnet_outer_m is not None else r_bore_m)
     scale = max(0.1, hts_capability_scale)
     load_w = _CRYO_BASE_W_AT_NOMINAL * (B / 2.0) ** 2 * (L / 2.0) * (r / 0.05) / scale
     b_max = 2.0 * scale

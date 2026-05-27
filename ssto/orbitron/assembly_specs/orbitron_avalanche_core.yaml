@@ -59,7 +59,7 @@ stability_and_density:
     - rotational_shear_relaminarization
     - PSP2_Jin_cathode_pulse
   density_milestones_per_cm3:
-    sprint2_target: 1.0e11
+    design_validation_target: 1.0e11
     stretch_goal: 4.0e12
   beam_current_ma:
     integration_target_greater_than: 1.0

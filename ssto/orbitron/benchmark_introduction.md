@@ -2,7 +2,7 @@ This report is inspired by a fusion device called the Orbitron developed by Aval
 
 Here $⟨σv⟩$ denotes the **fusion reactivity**: the fusion cross section $σ(E)$ multiplied by ion relative speed $v$, then averaged over the ion velocity distribution at the operating ion temperature. In this notation, $E$ is center-of-mass collision energy, $n_1$ and $n_2$ are the reacting-ion number densities (for p-¹¹B, proton and boron-ion density), and $R$ is volumetric fusion reaction rate (reactions per m³ per s). The model scaling is $R \propto n_1 n_2⟨σv⟩$, so $⟨σv⟩$ is the key bridge from plasma conditions to predicted fusion power. In this benchmark, changing from the design-calibrated branch to the literature branch changes $⟨σv⟩$ by about three orders of magnitude near the operating point, which is why the same geometry and fueling can move from MW-class closure to a strong shortfall.
 
-**HTS** means **high-temperature superconductor** — here, the liquid-methane-cooled solenoid that sets the axial magnetic field in the plasma bore (U3 in the unobtanium gates).
+**HTS** means **high-temperature superconductor** — here, a **liquid-methane-cooled solenoid outside a vacuum cryostat** that projects **2 T** into the bore (U3). It is **not** the surface that compressed air washes; air flows in a **hot annulus inside the magnet radius** over the **first wall** (see **Benchmark Methodology — Radial thermal zoning**). p-¹¹B does **not** heat the engine via neutrons; the wall catches **alphas and X-rays**.
 
 We report **three scenarios** (definitions and rules in **Benchmark Methodology** below):
 

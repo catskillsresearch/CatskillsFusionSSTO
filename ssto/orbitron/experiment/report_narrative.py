@@ -385,6 +385,36 @@ def render_test_stand_section(
     return "".join(lines)
 
 
+def render_thermal_architecture_snapshot(result: ExperimentRunResult) -> str:
+    """0D thermal split for this run (complements Benchmark Methodology zoning)."""
+    if not _is_in_silico_benchmark(result):
+        return ""
+    s06 = result.step_results.get("06") or {}
+    ss = s06.get("steady_state") or {}
+    if not ss or ss.get("brayton_thermal_kw") is None:
+        return ""
+    lines = [
+        "## Thermal architecture — this run\n\n",
+        "Radial zoning per **Benchmark Methodology**. Level-1 split of first-wall power:\n\n",
+        "| Quantity | Value |\n",
+        "|----------|-------|\n",
+        f"| First-wall load | **{float(ss.get('wall_heat_kw', 0)):.1f} kW** |\n",
+        f"| CH₄ wall intercept | **{float(ss.get('ch4_wall_intercept_kw', 0)):.1f} kW** |\n",
+        f"| Air annulus → Brayton | **{float(ss.get('air_annulus_kw', 0)):.1f} kW** |\n",
+        f"| Ash mixer (model) | **{float(ss.get('brayton_thermal_kw', 0)) - float(ss.get('air_annulus_kw', 0)):.1f} kW** |\n",
+        f"| Brayton thermal total | **{float(ss.get('brayton_thermal_kw', 0)):.1f} kW** "
+        f"({float(ss.get('brayton_thermal_kw', 0)) / 1000.0:.2f} MW) |\n",
+        f"| HTS cryostat load | **{float(ss.get('hts_cryo_kw', 0)):.2f} kW** |\n",
+        f"| Cryostat radiative budget (est.) | **{float(ss.get('cryostat_radiation_budget_kw', 0)):.2f} kW** |\n",
+        f"| Reactor OD (zoned) | **{float(ss.get('reactor_outer_diameter_m', 0)) * 100:.1f} cm** |\n",
+        f"| Gross fusion headline | **{float(ss.get('gross_power_mw', 0)):.3f} MW** |\n",
+        "\n",
+        "Jet surrogate uses **Brayton thermal × propulsive efficiency**, not the full gross headline. "
+        "Cryoplant electrical power and HX area are **not** closed in this benchmark.\n\n",
+    ]
+    return "".join(lines)
+
+
 def render_physics_design_section(parameters: dict[str, Any]) -> str:
     lines = [
         "## Design point\n\n",

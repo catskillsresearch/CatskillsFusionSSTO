@@ -42,15 +42,21 @@ Compressed air alone does **not** self-start the spool on a static rig; you need
 
 ---
 
-## Heat: where fusion energy enters the air
+## Heat: radial zones (not “air over the magnet”)
+
+**Inside-out:** plasma vacuum → **first wall (hot)** → **air annulus** → **cryostat vacuum** → **HTS magnet (cold)**.
+See `ssto/orbitron/THERMAL_ZONING.md`.
 
 | Path | Physics | In mesh / story |
 |------|---------|-----------------|
-| **Wall convection** | Hot anode / magnet / jacket → air in **annulus** | `Reactor_Bay_Inlet_Shroud`, hot `Anode` / `Magnet` |
-| **Gas mixing** | Hot core exhaust + ash into **plenum** | `Fusion_Hot_Gas_Outlet`, `Helium_Ash_Vent_Line`, `Nozzle_Inlet_Plenum` |
+| **First-wall deposition** | α, bremsstrahlung, CX on **anode sheath** | `Outer_Anode_Grid` — **not** on HTS |
+| **CH₄ intercept (U2)** | Removes high-grade wall load | Dewar → wall channels / magnet service bosses |
+| **Air annulus (Brayton)** | Hot wall → compressed air enthalpy | `Reactor_Bay_Inlet_Shroud`, annulus around anode |
+| **Cryostat** | Vacuum + MLI blocks heat to magnet | Gap between air channel and `Magnet` |
+| **Gas mixing** | Hot core exhaust + **⁴He ash** → plenum | `Fusion_Hot_Gas_Outlet`, `Helium_Ash_Vent_Line` |
 | **Shaft work** | Turbine drives compressor | `Turbine_Can` on same spool as `Compressor_Can` |
 
-Alphas and other wall loads **heat metal first**; air does not need a “courier” slug of core gas to carry **all** waste heat.
+Alphas and X-rays **heat the first wall**; **CH₄** and **air** split that load. The **HTS coil stays outside** the hot air path.
 
 ---
 

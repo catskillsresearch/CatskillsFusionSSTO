@@ -82,9 +82,27 @@ ASSEMBLY_WALKTHROUGH: tuple[AssemblyWalkthrough, ...] = (
         ),
         yaml_group="subassembly_1_2_electrostatic_orbitron_core",
         narrative=(
-            "Central cathode and outer anode define the electrostatic well for **H⁺** and **B⁺**; solid "
-            "**¹¹B** targets sit on the holder. An axial magnet provides **B ≈ 2 T** for orbit confinement. "
-            "The tangential neutral-beam injector delivers proton inventory into the bore."
+            "**Radial stack (inside → outside)** — normative layout for p-¹¹B; see **Benchmark "
+            "Methodology — Radial thermal zoning** and level-1 thermal split in this report.\n\n"
+            "1. **Cathode wire** (on-axis, **~−600 kV**) and **plasma vacuum bore** — keV **H⁺** / **B⁺** "
+            "from tangential **NBI** and solid **¹¹B** laser ablation; **no** Brayton air in the bore. "
+            "Energy leaves as **⁴He alphas**, **bremsstrahlung X-rays**, and **charge-exchange** — "
+            "**not** a significant neutron flux.\n\n"
+            "2. **First wall / anode sheath** (`Outer_Anode_Grid`) at **r ≈ 4 cm** — the **heat catcher**: "
+            "absorbs α and X-ray / CX load (**~400 kW** class in the 0D model). Runs **hot** "
+            "(~800–1000 °C class) on the plasma side.\n\n"
+            "3. **Air annulus** — compressed **air** flows **between the hot first wall and the cryostat**, "
+            "**inside** the magnet bore radius. It **heats** the air for the Brayton train; it does **not** "
+            "wash or cool the HTS winding.\n\n"
+            "4. **Cryostat** — vacuum gap + **MLI** (target ~1.5 cm radial in the zoning budget). "
+            "Blocks conduction and convection from the hot air channel to the coil.\n\n"
+            "5. **HTS solenoid** (`Magnet`, **~7.5–10 cm** outer radius) — **outside** the cryostat; "
+            "**B ≈ 2 T** penetrates the bore through vacuum. **Liquid CH₄** (~113 K) removes **parasitic "
+            "cryo leak only** — not the megawatt first-wall stream.\n\n"
+            "**CAD honesty:** Phase-1 meshes export cathode, anode, magnet, injectors, and (in the "
+            "full engine) `Reactor_Bay_Inlet_Shroud` as **separate coarse parts**. They do **not** yet "
+            "model distinct solids for the **air-channel liner**, **cryostat shell**, and **MLI** — "
+            "the stack above is the **design target**, not fully resolved in CadQuery/Blender yet."
         ),
         physics_refs=(
             "geometry.r_anode_m",
@@ -101,6 +119,9 @@ ASSEMBLY_WALKTHROUGH: tuple[AssemblyWalkthrough, ...] = (
             "Magnet",
             "NBI_Injector",
             "Insulators",
+            "Reactor_Bay_Inlet_Shroud",
+            "Fusion_Hot_Gas_Outlet",
+            "Magnet_Service_Bosses",
         ),
     ),
     AssemblyWalkthrough(
@@ -143,8 +164,10 @@ ASSEMBLY_WALKTHROUGH: tuple[AssemblyWalkthrough, ...] = (
         png_basenames=("thermal_ch4_feed", "proton_and_thermal_farm"),
         yaml_group="thermal_ch4_feed",
         narrative=(
-            "Cryogenic **CH₄** loop for first-wall and anode-jacket cooling — the **U2** gate in the plant "
-            "model. Wall heat flux and loop effectiveness must close simultaneously with fusion power."
+            "Two **CH₄** duties, not one: **(U2)** internal channels on the **first wall** remove the "
+            "high-grade α / X-ray / CX load (~55% of `first_wall_kw` in the 0D split); **(U3)** a "
+            "closed cryostat loop on the **HTS solenoid** removes **parasitic leak** through the vacuum "
+            "gap. **CH₄ does not cool the Brayton air stream.**"
         ),
         physics_refs=(
             "unobtanium.max_wall_heat_flux_W_m2",
@@ -166,9 +189,10 @@ ASSEMBLY_WALKTHROUGH: tuple[AssemblyWalkthrough, ...] = (
         yaml_group="air_breathing_nozzle_train",
         narrative=(
             "Bellmouth and S-duct intake on **−X** feed a co-axial **compressor–turbine** spool: pad "
-            "**bleed** opens the annulus, an **electric starter** cranks the shaft, then after fusion "
-            "light-off the **turbine** drives the compressor while the core stream is heated in the "
-            "reactor jacket and expanded through the **+X** nozzle for thrust on the sled."
+            "**bleed** opens the path, an **electric starter** cranks the shaft, then after fusion "
+            "light-off the **turbine** drives the compressor. Core-path air is heated in the **annulus "
+            "around the hot first wall** (`Reactor_Bay_Inlet_Shroud` region) — **not** by flowing over "
+            "the cryogenic **HTS** pack — then expands through the **+X** nozzle for thrust on the sled."
         ),
         physics_refs=(
             "pad.compressor",
