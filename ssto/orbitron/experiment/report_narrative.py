@@ -317,6 +317,43 @@ def render_introduction(result: ExperimentRunResult) -> str:
     return "".join(lines)
 
 
+def render_phases_section() -> str:
+    """Operating phases for the Orbitron test stand (bench vs wind-tunnel Brayton)."""
+    return (
+        "## Phases\n\n"
+        "The Orbitron program uses **Phase** to mean a **hardware and operations milestone** on the "
+        "test stand — where the rig runs, what reaction mass is used, and how fusion heat is offloaded. "
+        "A phase is **not** a single simulation timestep, a proof-chain step number, or a frame in an "
+        "assembly animation.\n\n"
+        "### Phase 1 — Benchtop (stationary ultra-high vacuum)\n\n"
+        "Phase 1 is the **stationary laboratory** configuration. The operator sequence is: evacuate "
+        "the chamber and confirm vacuum interlocks; align and arm the UV laser on **solid boron-11** "
+        "targets; enable high-voltage bias on the central cathode through safety interlocks; introduce "
+        "**hydrogen** while watching beam and fusion diagnostics. Fuel enters as a laser ablation plume "
+        "plus controlled H₂ flow. Ions are confined and accelerated in the electrostatic trap (with "
+        "weak axial magnetic field for E×B electron neutralization); the laser delivers fuel, it does "
+        "not steer the beam.\n\n"
+        "Experiments and reports scoped to **Phase 1** assume this bench layout: core geometry and "
+        "pad interlocks appropriate to a sealed UHV vessel, without wind-tunnel airflow or a spooled "
+        "compressor–turbine train.\n\n"
+        "### Phase 2 — Wind-tunnel rig (ground Brayton)\n\n"
+        "Phase 2 adds a **ground air-breathing path**: simulated or blower-fed intake, compressor "
+        "light-off, bleed through inlet guide vanes into the containment jacket annulus, and — once "
+        "flow is stable — the same Phase 1 vacuum, laser, and high-voltage interlocks inside the "
+        "running duct. Fusion-heated mixed gas drives a **turbine** that sustains the **compressor**; "
+        "exhaust leaves through silencing ducting. The primary reaction mass is **ingested air**, not "
+        "tanked propellant. Cryogenic wall thermal services (for example methane cooling of the first "
+        "wall and HTS magnet) belong to the integrated plant; they are support systems, not the "
+        "Phase 1 fusion fuel path.\n\n"
+        "### Relation to the rest of this report\n\n"
+        "Sections on the test stand, thermal zoning, and jet closure mix **Phase 1 core physics** with "
+        "**Phase 2 propulsion plumbing** where the narrative needs both. The numbered **proof-chain "
+        "steps** in the forward model (geometry through plant and validation) are a separate software "
+        "validation ladder; they support both phases but do not map one-to-one to each operator action "
+        "in Phase 1 or Phase 2.\n\n"
+    )
+
+
 def render_benchmark_methodology_section(result: ExperimentRunResult) -> str:
     if not _is_in_silico_benchmark(result):
         return ""
@@ -359,6 +396,22 @@ def render_pb11_fusion_reaction_section() -> str:
     return f"## Why p-¹¹B fusion?\n\n{body}\n"
 
 
+def _render_core01_movie_block(staged: dict[str, str | None]) -> str:
+    """HTML video embed (local HTML / VS Code preview) plus MP4 link fallback."""
+    rel = staged.get("CORE-01-MOVIE")
+    if not rel:
+        return (
+            "**Assembly movie:** "
+            "*(not staged — run `scripts/make_core01_build_movie.py` then regenerate the report)*\n\n"
+        )
+    return (
+        f'<video controls preload="metadata" style="max-width: 100%; width: 720px;">\n'
+        f'  <source src="{rel}" type="video/mp4">\n'
+        f"</video>\n\n"
+        f"**[CORE-01 layered build (MP4)]({rel})**\n\n"
+    )
+
+
 def render_test_stand_section(
     staged: dict[str, str | None],
     *,
@@ -377,26 +430,14 @@ def render_test_stand_section(
     for asm in ASSEMBLY_WALKTHROUGH:
         if asm.designator == "LAB-01":
             continue
-        rel = staged.get(asm.designator)
         lines.append(f"### {asm.designator} — {asm.title}\n\n")
+        if asm.designator == "CORE-01":
+            lines.append(_render_core01_movie_block(staged))
+            lines.append(f"{asm.narrative}\n\n")
+            continue
+        rel = staged.get(asm.designator)
         if rel:
             lines.append(f"![{asm.designator}]({rel})\n\n")
-        if asm.designator == "CORE-01":
-            lines.append(
-                "Layer detail for CORE-01: filled radial cross-section (color-matched legend) and a "
-                "**layer peel** sequence that removes one outer zone per panel until only the cathode "
-                "remains (no bench / engine hardware in these views).\n\n"
-            )
-            core_cross = staged.get("CORE-01-CROSS")
-            if core_cross:
-                lines.append(f"![CORE-01 radial cross-section]({core_cross})\n\n")
-            core_seq = staged.get("CORE-01-SEQUENCE")
-            if core_seq:
-                lines.append(f"![CORE-01 sequence views]({core_seq})\n\n")
-            lines.append(
-                "**Assembly movie (MP4):** "
-                "[CORE-01 layered build](figures/assemblies/CORE-01_layered_build.mp4)\n\n"
-            )
         lines.append(f"{asm.narrative}\n\n")
     return "".join(lines)
 

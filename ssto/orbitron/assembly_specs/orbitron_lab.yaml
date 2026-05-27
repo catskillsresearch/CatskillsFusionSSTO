@@ -730,7 +730,7 @@ instances:
     - 0.97
     - 0.95
     - 0.88
-    transform_chain:
+    transform_chain: &id_ctrl_stand_pose
     - op: translate
       xyz:
       - -1.4
@@ -744,12 +744,7 @@ instances:
     - 0.1
     - 0.08
     - 0.06
-    transform_chain:
-    - op: translate
-      xyz:
-      - -1.4
-      - -2.3
-      - 0.0
+    transform_chain: *id_ctrl_stand_pose
   Operator_Console:
     narrative: 'Desk + battery block (slanted switch panel is Operator_Panel).
 
@@ -760,12 +755,7 @@ instances:
     - 0.22
     - 0.24
     - 0.26
-    transform_chain:
-    - op: translate
-      xyz:
-      - -1.4
-      - -2.3
-      - 0.0
+    transform_chain: *id_ctrl_stand_pose
   Operator_Panel:
     narrative: 'Slanted panel from podium front edge to monitor; shuttle toggles mount on
       this face.
@@ -777,12 +767,7 @@ instances:
     - 0.78
     - 0.8
     - 0.82
-    transform_chain:
-    - op: translate
-      xyz:
-      - -1.4
-      - -2.3
-      - 0.0
+    transform_chain: *id_ctrl_stand_pose
   Screen:
     narrative: 'Flat display solid in front of the tilted panel; same offset as the desk so
       it
@@ -796,12 +781,7 @@ instances:
     - 0.05
     - 0.05
     - 0.05
-    transform_chain:
-    - op: translate
-      xyz:
-      - -1.4
-      - -2.3
-      - 0.0
+    transform_chain: *id_ctrl_stand_pose
   Panel_Label_APU:
     template: lab_panel_label_apu
     params: {}
@@ -809,12 +789,7 @@ instances:
     - 0.12
     - 0.12
     - 0.14
-    transform_chain:
-    - op: translate
-      xyz:
-      - -1.4
-      - -2.3
-      - 0.0
+    transform_chain: *id_ctrl_stand_pose
   Panel_Label_STARTER:
     template: lab_panel_label_starter
     params: {}
@@ -822,12 +797,7 @@ instances:
     - 0.12
     - 0.12
     - 0.14
-    transform_chain:
-    - op: translate
-      xyz:
-      - -1.4
-      - -2.3
-      - 0.0
+    transform_chain: *id_ctrl_stand_pose
   Panel_Label_BLEED:
     template: lab_panel_label_bleed
     params: {}
@@ -835,33 +805,22 @@ instances:
     - 0.12
     - 0.12
     - 0.14
-    transform_chain:
-    - op: translate
-      xyz:
-      - -1.4
-      - -2.3
-      - 0.0
+    transform_chain: *id_ctrl_stand_pose
   Panel_Label_VAC:
     template: lab_panel_label_vac
     params: {}
     color: [0.12, 0.12, 0.14]
-    transform_chain:
-    - op: translate
-      xyz: [-1.4, -2.3, 0.0]
+    transform_chain: *id_ctrl_stand_pose
   Panel_Label_LASER:
     template: lab_panel_label_laser
     params: {}
     color: [0.12, 0.12, 0.14]
-    transform_chain:
-    - op: translate
-      xyz: [-1.4, -2.3, 0.0]
+    transform_chain: *id_ctrl_stand_pose
   Panel_Label_HV:
     template: lab_panel_label_hv
     params: {}
     color: [0.12, 0.12, 0.14]
-    transform_chain:
-    - op: translate
-      xyz: [-1.4, -2.3, 0.0]
+    transform_chain: *id_ctrl_stand_pose
   Big_Red_Button:
     narrative: 'Red mushroom IGNITE pushbutton on the slanted panel (key 4 / SPACE).
 
@@ -872,12 +831,7 @@ instances:
     - 0.88
     - 0.1
     - 0.06
-    transform_chain:
-    - op: translate
-      xyz:
-      - -1.4
-      - -2.3
-      - 0.0
+    transform_chain: *id_ctrl_stand_pose
   Panel_Label_IGNITE:
     template: lab_panel_label_ignite
     params: {}
@@ -885,12 +839,7 @@ instances:
     - 0.75
     - 0.08
     - 0.06
-    transform_chain:
-    - op: translate
-      xyz:
-      - -1.4
-      - -2.3
-      - 0.0
+    transform_chain: *id_ctrl_stand_pose
   Panel_Label_BEAM:
     template: lab_panel_label_beam
     params: {}
@@ -898,12 +847,7 @@ instances:
     - 0.12
     - 0.12
     - 0.14
-    transform_chain:
-    - op: translate
-      xyz:
-      - -1.4
-      - -2.3
-      - 0.0
+    transform_chain: *id_ctrl_stand_pose
   Panel_Label_COMP:
     template: lab_panel_label_comp
     params: {}
@@ -911,12 +855,7 @@ instances:
     - 0.12
     - 0.12
     - 0.14
-    transform_chain:
-    - op: translate
-      xyz:
-      - -1.4
-      - -2.3
-      - 0.0
+    transform_chain: *id_ctrl_stand_pose
   Pipe_H2_Feed:
     narrative: "H\u2082 service valve / flex-jumper boss at the hydrogen tank roof (tank-end\
       \ fitting for ``Hydrogen_Trunk_Line``)."

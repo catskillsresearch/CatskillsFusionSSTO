@@ -19,6 +19,7 @@ from ssto.orbitron.experiment.report_narrative import (
     render_gap_closed_performance,
     render_governing_equations_section,
     render_introduction,
+    render_phases_section,
     render_inverse_section,
     render_pb11_fusion_reaction_section,
     render_physics_design_section,
@@ -49,6 +50,7 @@ def write_experiment_report(
     lines.append(f"*In-silico benchmark — {date_str}*\n\n")
 
     lines.append(render_introduction(result))
+    lines.append(render_phases_section())
     lines.append(render_benchmark_methodology_section(result))
     brayton_section, brayton_refs = render_brayton_air_cycle_section()
     lines.append(brayton_section)

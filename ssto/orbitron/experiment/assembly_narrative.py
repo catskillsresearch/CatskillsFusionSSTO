@@ -456,6 +456,23 @@ def _resolve_png(source_build: Path, basenames: tuple[str, ...]) -> Path | None:
     return None
 
 
+def _stage_core01_build_movie(dest_dir: Path, *, repo: Path | None = None) -> str | None:
+    """Copy layered-build MP4 into the report if ``reports/core01-media`` has one."""
+    root = repo if repo is not None else _REPO
+    dest = dest_dir / "CORE-01_layered_build.mp4"
+    sources = (
+        root / "reports" / "core01-media" / "CORE-01_layered_build.mp4",
+        dest,
+    )
+    for src in sources:
+        if not src.is_file():
+            continue
+        if src.resolve() != dest.resolve():
+            shutil.copy2(src, dest)
+        return f"figures/assemblies/{dest.name}"
+    return None
+
+
 def stage_assembly_figures(
     report_dir: Path,
     *,
@@ -471,6 +488,9 @@ def stage_assembly_figures(
     dest_dir.mkdir(parents=True, exist_ok=True)
     staged: dict[str, str | None] = {}
     for asm in ASSEMBLY_WALKTHROUGH:
+        if asm.designator == "CORE-01":
+            staged[asm.designator] = None
+            continue
         src = _resolve_png(source, asm.png_basenames)
         if src is None:
             staged[asm.designator] = None
@@ -479,9 +499,7 @@ def stage_assembly_figures(
         shutil.copy2(src, dest)
         _trim_assembly_png(dest)
         staged[asm.designator] = f"figures/assemblies/{dest.name}"
-    # CORE-01 extras: (1) explicit radial cross-section, (2) multi-view reveal strip.
-    staged["CORE-01-CROSS"] = _build_core01_cross_section(dest_dir)
-    staged["CORE-01-SEQUENCE"] = _build_core01_layer_peel_sequence(dest_dir)
+    staged["CORE-01-MOVIE"] = _stage_core01_build_movie(dest_dir, repo=repo)
     return staged
 
 

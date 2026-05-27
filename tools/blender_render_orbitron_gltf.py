@@ -248,6 +248,54 @@ def _frame_perspective_camera(mins, maxs, size: tuple[int, int]) -> None:
     bpy.context.scene.camera = cam_obj
 
 
+def _frame_console_operator_camera(mins, maxs, size: tuple[int, int]) -> None:
+    """Pad console hero: camera on −Y (propulsion / sled side) reads panel + monitor.
+
+    Panel +Y face and screen sit at negative world Y; the screen is slightly closer to
+    +Y than the panel bulk, so a −Y camera puts the monitor behind the slanted pad
+    (matches the Blender operator preview, without rotating the CAD).
+    """
+    import bpy
+    from mathutils import Vector
+
+    cx = 0.5 * (mins[0] + maxs[0])
+    cy = 0.5 * (mins[1] + maxs[1])
+    cz = 0.5 * (mins[2] + maxs[2])
+    dx = maxs[0] - mins[0]
+    dy = maxs[1] - mins[1]
+    dz = maxs[2] - mins[2]
+    half_diag = 0.5 * math.sqrt(dx * dx + dy * dy + dz * dz)
+    radius = max(half_diag * FRAME_MARGIN, 0.05)
+
+    aspect = float(size[0]) / float(max(size[1], 1))
+    half_hfov = math.atan((CAM_SENSOR_WIDTH_MM * 0.5) / CAM_LENS_MM)
+    half_vfov = math.atan(math.tan(half_hfov) / aspect)
+    half_fov = min(half_hfov, half_vfov)
+    distance = radius / math.sin(half_fov)
+
+    az = math.radians(float(os.environ.get("ORBITRON_CONSOLE_CAM_AZ_DEG", "178")))
+    el = math.radians(float(os.environ.get("ORBITRON_CONSOLE_CAM_EL_DEG", "18")))
+    dir_x = math.sin(az) * math.cos(el)
+    dir_y = math.cos(az) * math.cos(el)
+    dir_z = math.sin(el)
+    target = Vector((cx, cy, cz + 0.18 * dz))
+    cam_loc = target + distance * Vector((dir_x, dir_y, dir_z))
+
+    cam_data = bpy.data.cameras.new("OrbitronConsoleFront")
+    cam_data.type = "PERSP"
+    cam_data.lens = CAM_LENS_MM
+    cam_data.sensor_fit = "HORIZONTAL"
+    cam_data.sensor_width = CAM_SENSOR_WIDTH_MM
+    cam_data.clip_start = max(distance * 1e-4, 1e-3)
+    cam_data.clip_end = max(distance * 10.0, 1000.0)
+
+    cam_obj = bpy.data.objects.new("OrbitronConsoleFrontCam", cam_data)
+    bpy.context.scene.collection.objects.link(cam_obj)
+    cam_obj.location = cam_loc
+    cam_obj.rotation_euler = (target - cam_loc).to_track_quat("-Z", "Y").to_euler()
+    bpy.context.scene.camera = cam_obj
+
+
 def _setup_lights(mins, maxs) -> None:
     """Add key + fill sun lamps so the assembly reads as 3D, not a flat decal."""
     import bpy
@@ -327,13 +375,20 @@ def main() -> None:
             "ORBITRON_FRAME_EXCLUDE_EXTRA",
             "Industrial_Blower,Pad_Startup,S_Duct,Exhaust_Silencer,Pneumatic_Air",
         )
+    elif stem == "control_panel_stand":
+        # Operator-facing monitor (see _frame_console_operator_camera); square crop reads well in report.
+        size = (1280, 1280)
+        os.environ.setdefault("ORBITRON_FRAME_MARGIN", "1.12")
 
     _import_and_clean(gltf_path)
     mins, maxs = _mesh_world_bounds()
     _setup_world(_hex_to_rgb01(bg))
     _setup_render(size, out_path)
     _setup_lights(mins, maxs)
-    _frame_perspective_camera(mins, maxs, size)
+    if stem == "control_panel_stand":
+        _frame_console_operator_camera(mins, maxs, size)
+    else:
+        _frame_perspective_camera(mins, maxs, size)
     bpy.ops.render.render(write_still=True)
     _trim_output_png(out_path)
     print(f"Wrote {out_path}")

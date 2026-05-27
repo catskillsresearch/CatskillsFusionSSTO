@@ -20,6 +20,10 @@ def apply_transform_chain(obj: cq.Workplane, chain: list[dict[str, Any]] | None)
             p = tuple(float(x) for x in step["pivot"])
             p1 = (p[0], p[1] + 1.0, p[2])
             out = out.rotate(p, p1, float(step["angle_deg"]))
+        elif op == "rotate_z_about_point":
+            p = tuple(float(x) for x in step["pivot"])
+            p1 = (p[0] + 1.0, p[1], p[2])
+            out = out.rotate(p, p1, float(step["angle_deg"]))
         else:
             raise ValueError(f"Unknown transform op: {op!r} in {step!r}")
     return out
