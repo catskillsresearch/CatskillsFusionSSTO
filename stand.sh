@@ -2,7 +2,8 @@
 # Poetry env + repo-local WarpX (pywarpx) paths, then GNU make.
 #
 # Full test-stand build (one command):  ./stand.sh
-#   → make all (fg-ready): orbitron_lab.yaml → orbitron_lab.gltf → Blender → orbitron.ac, surrogate, sounds, …
+#   → make all (fg-ready): orbitron_lab.yaml → glTF/PNG → orbitron.ac, surrogate, sounds, …
+#   CORE-01 assembly movie is built into each experiment report run (not a shared reports/ file).
 #   No extra merge/patch steps — Reply 19 geometry lives in ssto/orbitron/assembly_specs/orbitron_lab.yaml.
 #   Clean rebuild:  make clean && ./stand.sh
 # Preview lab mesh in Blender: ./bl.sh

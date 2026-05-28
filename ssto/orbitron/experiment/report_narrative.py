@@ -397,19 +397,28 @@ def render_pb11_fusion_reaction_section() -> str:
 
 
 def _render_core01_movie_block(staged: dict[str, str | None]) -> str:
-    """HTML video embed (local HTML / VS Code preview) plus MP4 link fallback."""
-    rel = staged.get("CORE-01-MOVIE")
-    if not rel:
+    """HTML video embed: WebM first (MD preview audio), MP4 for download / browsers."""
+    rel_mp4 = staged.get("CORE-01-MOVIE")
+    if not rel_mp4:
         return (
             "**Assembly movie:** "
-            "*(not staged — run `scripts/make_core01_build_movie.py` then regenerate the report)*\n\n"
+            "*(not built for this run — check `run.log`; peel frames under "
+            "`ssto/orbitron/media/core01_peel_frames/`)*\n\n"
         )
-    return (
+    rel_webm = staged.get("CORE-01-MOVIE-WEBM")
+    sources: list[str] = []
+    if rel_webm:
+        sources.append(f'  <source src="{rel_webm}" type="video/webm">')
+    sources.append(f'  <source src="{rel_mp4}" type="video/mp4">')
+    body = (
         f'<video controls preload="metadata" style="max-width: 100%; width: 720px;">\n'
-        f'  <source src="{rel}" type="video/mp4">\n'
-        f"</video>\n\n"
-        f"**[CORE-01 layered build (MP4)]({rel})**\n\n"
+        + "\n".join(sources)
+        + "\n</video>\n\n"
     )
+    links = f"**[CORE-01 layered build (MP4)]({rel_mp4})**"
+    if rel_webm:
+        links += f" · **[WebM preview]({rel_webm})** *(audio in VS Code / Cursor Markdown preview)*"
+    return body + links + "\n\n"
 
 
 def render_test_stand_section(

@@ -456,21 +456,35 @@ def _resolve_png(source_build: Path, basenames: tuple[str, ...]) -> Path | None:
     return None
 
 
-def _stage_core01_build_movie(dest_dir: Path, *, repo: Path | None = None) -> str | None:
-    """Copy layered-build MP4 into the report if ``reports/core01-media`` has one."""
+def _load_core01_movie_builder():
+    import importlib.util
+
+    script = _REPO / "scripts" / "make_core01_build_movie.py"
+    spec = importlib.util.spec_from_file_location("make_core01_build_movie", script)
+    if spec is None or spec.loader is None:
+        raise ImportError(f"cannot load {script}")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def _stage_core01_build_movie(report_dir: Path, *, repo: Path | None = None) -> str | None:
+    """Build CORE-01 layered-build MP4 inside this report run (not a shared reports/ path)."""
+    report_dir = report_dir.resolve()
     root = repo if repo is not None else _REPO
-    dest = dest_dir / "CORE-01_layered_build.mp4"
-    sources = (
-        root / "reports" / "core01-media" / "CORE-01_layered_build.mp4",
-        dest,
-    )
-    for src in sources:
-        if not src.is_file():
-            continue
-        if src.resolve() != dest.resolve():
-            shutil.copy2(src, dest)
-        return f"figures/assemblies/{dest.name}"
-    return None
+    try:
+        mod = _load_core01_movie_builder()
+        built = mod.ensure_core01_build_movie(report_dir, repo=root)
+    except Exception as exc:
+        log = report_dir / "run.log"
+        if log.is_file():
+            with log.open("a", encoding="utf-8") as f:
+                f.write(f"\nCORE-01 movie build failed: {exc}\n")
+        return None
+    if built is None or not built.is_file():
+        return None
+    rel = built.relative_to(report_dir)
+    return rel.as_posix()
 
 
 def stage_assembly_figures(
@@ -499,7 +513,11 @@ def stage_assembly_figures(
         shutil.copy2(src, dest)
         _trim_assembly_png(dest)
         staged[asm.designator] = f"figures/assemblies/{dest.name}"
-    staged["CORE-01-MOVIE"] = _stage_core01_build_movie(dest_dir, repo=repo)
+    staged["CORE-01-MOVIE"] = _stage_core01_build_movie(report_dir, repo=repo)
+    webm = report_dir / "figures" / "assemblies" / "CORE-01_layered_build.webm"
+    staged["CORE-01-MOVIE-WEBM"] = (
+        "figures/assemblies/CORE-01_layered_build.webm" if webm.is_file() else None
+    )
     return staged
 
 

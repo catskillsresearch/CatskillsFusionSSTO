@@ -144,6 +144,7 @@ help:
 	@echo "  make orbitron-shuttle-panel  Shuttle R1 levers → $(ORBITRON_SHUTTLE_PANEL_AC) + $(ORBITRON_PANEL_ANIMS_JSON) (also via make all)"
 	@echo "  make orbitron-lab-gltf  Build $(GLTF_LAB) + all sub-assembly glTFs under build/ (tanks, air path, panel, sled)"
 	@echo "  make orbitron-lab-pngs  EEVEE PNGs ($(STAND)/build/*.png, #ECECEC) from each lab glTF"
+	@echo "  CORE-01 assembly movie: built per report run during experiment / regenerate (not make all)"
 	@echo "  make orbitron-lab-sub-gltfs  Sub-assembly glTFs only (same set as orbitron-lab-gltf minus the full lab file)"
 	@echo "  make orbitron-lab-sub-gltfs  Phase 1/2 + pad slices (see GLTF_LAB_SUB_NAMES in Makefile)"
 	@echo "  make surrogate-closure  0D η·P_gross vs F²/(2ṁ) check (YAML scales); add JSON via ORBITRON_CLOSURE_JSON="

@@ -156,6 +156,28 @@ def _carets_to_unicode(text: str) -> str:
     return text
 
 
+_IDENT_WITH_UNDERSCORES = re.compile(
+    r"(?<![A-Za-z0-9])([A-Za-z][A-Za-z0-9]*(?:_[A-Za-z0-9]+)+)(?![A-Za-z0-9_])"
+)
+
+
+def _apply_identifier_subscripts(text: str, *, as_html: bool) -> str:
+    """``P_fusion``, ``fuel_coupling_norm`` → subscript the part after the first ``_``."""
+
+    def repl(match: re.Match[str]) -> str:
+        token = match.group(1)
+        head, _, tail = token.partition("_")
+        if not tail:
+            return token
+        if as_html:
+            return f"{head}<sub>{html.escape(tail)}</sub>"
+        if re.fullmatch(r"[0-9+\-=(),.]+", tail):
+            return head + tail.translate(_SUBSCRIPT)
+        return token
+
+    return _IDENT_WITH_UNDERSCORES.sub(repl, text)
+
+
 def _underscores_to_unicode(text: str) -> str:
     def repl_braced(match: re.Match[str]) -> str:
         inner = match.group(1)
@@ -163,14 +185,8 @@ def _underscores_to_unicode(text: str) -> str:
             return inner.translate(_SUBSCRIPT)
         return f"_{inner}"
 
-    def repl_simple(match: re.Match[str]) -> str:
-        inner = match.group(1)
-        if len(inner) == 1:
-            return inner.translate(_SUBSCRIPT)
-        return f"_{inner}"
-
     text = re.sub(r"_\{([^}]+)\}", repl_braced, text)
-    text = re.sub(r"_([A-Za-z0-9])", repl_simple, text)
+    text = _apply_identifier_subscripts(text, as_html=False)
     return text
 
 
@@ -232,7 +248,12 @@ def latex_to_html(latex: str) -> str:
     text = re.sub(r"\^\{([^}]+)\}", sup_repl, text)
     text = re.sub(r"\^([0-9+\-=()]+)", sup_repl, text)
     text = re.sub(r"_\{([^}]+)\}", sub_repl, text)
-    text = re.sub(r"_([A-Za-z0-9])", sub_repl, text)
+    text = re.sub(
+        r"_\[([^\]]+)\]",
+        lambda m: f"<sub>{html.escape(m.group(1))}</sub>",
+        text,
+    )
+    text = _apply_identifier_subscripts(text, as_html=True)
     text = text.replace("^", "")
     text = re.sub(r"\s+", " ", text).strip()
     return text
@@ -427,11 +448,32 @@ _PIPE_SEP = re.compile(r"^\|[\s\-:|]+\|\s*$")
 _PIPE_TWO_COL = re.compile(r"^\|\s*(.+?)\s*\|\s*(.+?)\s*\|\s*$")
 
 
+def _drop_orphan_table_separator_lines(md: str) -> str:
+    """Remove ``|------|`` rows that are not between two pipe-table data/header rows."""
+    lines = md.splitlines()
+    out: list[str] = []
+
+    def is_pipe_row(line: str) -> bool:
+        s = line.strip()
+        return bool(_PIPE_ROW.match(s)) and not _PIPE_SEP.match(s)
+
+    for i, line in enumerate(lines):
+        if not _PIPE_SEP.match(line.strip()):
+            out.append(line)
+            continue
+        prev_ok = i > 0 and is_pipe_row(lines[i - 1])
+        next_ok = i + 1 < len(lines) and is_pipe_row(lines[i + 1])
+        if prev_ok and next_ok:
+            out.append(line)
+    return "\n".join(out)
+
+
 def _repair_pipe_tables_in_markdown(md: str) -> str:
     """
     Fix tables that lost GFM separator rows (render as ``<p>| col | …</p>``) and convert
     two-column spec sheets to bullets before the Markdown parser runs.
     """
+    md = _drop_orphan_table_separator_lines(md)
     lines = md.splitlines()
     out: list[str] = []
     i = 0
@@ -462,29 +504,49 @@ def _repair_pipe_tables_in_markdown(md: str) -> str:
     return "\n".join(out)
 
 
+def _pipe_row_cells(row: str) -> list[str]:
+    return [c.strip() for c in row.strip().strip("|").split("|")]
+
+
+def _pipe_rows_to_ul(soup: BeautifulSoup, rows: list[str]) -> Tag | None:
+    ul = soup.new_tag("ul")
+    for row in rows:
+        if _PIPE_SEP.match(row.strip()):
+            continue
+        cells = _pipe_row_cells(row)
+        if not cells or all(re.fullmatch(r"[\s\-:|]+", c) for c in cells):
+            continue
+        li = soup.new_tag("li")
+        if len(cells) == 1:
+            li.string = cells[0]
+        elif len(cells) == 2:
+            strong = soup.new_tag("strong")
+            strong.string = f"{cells[0]}:"
+            li.append(strong)
+            li.append(f" {cells[1]}")
+        else:
+            strong = soup.new_tag("strong")
+            strong.string = f"{cells[0]}:"
+            li.append(strong)
+            li.append(" " + " — ".join(cells[1:]))
+        ul.append(li)
+    return ul if ul.find("li") else None
+
+
 def _repair_pipe_tables_in_html(soup: BeautifulSoup) -> None:
     """Convert ``<p>`` blocks that contain pipe-table text into bullet lists."""
     for p in list(soup.find_all("p")):
-        text = p.get_text()
+        text = p.get_text().strip()
+        if _PIPE_SEP.match(text):
+            p.decompose()
+            continue
         if "|" not in text or text.count("|") < 4:
             continue
         rows = [ln.strip() for ln in text.splitlines() if ln.strip().startswith("|")]
         if len(rows) < 2:
             continue
-        ul = soup.new_tag("ul")
-        for row in rows:
-            m = _PIPE_TWO_COL.match(row)
-            if not m:
-                continue
-            if m.group(1).strip().lower() == "spec":
-                continue
-            li = soup.new_tag("li")
-            strong = soup.new_tag("strong")
-            strong.string = f"{m.group(1).strip()}:"
-            li.append(strong)
-            li.append(f" {m.group(2).strip()}")
-            ul.append(li)
-        if ul.find("li"):
+        ul = _pipe_rows_to_ul(soup, rows)
+        if ul is not None:
             p.replace_with(ul)
 
 

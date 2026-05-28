@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
-"""Build CORE-01 layer-by-layer assembly movie from user-provided screenshot sequence."""
+"""Build CORE-01 layer-by-layer assembly movie (peel screenshots + ChatTTS narration)."""
 from __future__ import annotations
 
+import logging
+import os
 import subprocess
 import math
 import re
@@ -12,17 +14,10 @@ import numpy as np
 import scipy.io.wavfile as wavfile
 from PIL import Image, ImageDraw, ImageFont
 
+logger = logging.getLogger(__name__)
 
 REPO = Path(__file__).resolve().parents[1]
-ASSETS = Path("/home/catskills/.cursor/projects/home-catskills-Desktop-Aircraft-CatskillsFusionSSTO/assets")
-OUT_DIR = REPO / "reports" / "core01-media"
-FRAMES_DIR = OUT_DIR / "core01_build_frames"
-OUT_MP4 = OUT_DIR / "CORE-01_layered_build.mp4"
-OUT_MUTE_MP4 = OUT_DIR / "CORE-01_layered_build_mute.mp4"
-OUT_WAV = OUT_DIR / "CORE-01_layered_build_narration.wav"
-REPORT_DIR = REPO / "reports" / "orbitron-direct-cycle-p-11b3-5mw-turbojet-in-silico-benchmark" / "2026-05-26-20-36"
-REPORT_ASM_DIR = REPORT_DIR / "figures" / "assemblies"
-REPORT_MP4 = REPORT_ASM_DIR / "CORE-01_layered_build.mp4"
+DEFAULT_PEEL_DIR = REPO / "ssto" / "orbitron" / "media" / "core01_peel_frames"
 _CHAT_STATE: dict[str, object] = {}
 CHAT_VOICE_SEED = 1983
 CHAT_SPEED_LEVEL = 1
@@ -108,6 +103,116 @@ class Segment(NamedTuple):
     note: str
     hold_frames: int
     is_step: bool
+
+
+def peel_frames_dir(*, repo: Path | None = None) -> Path:
+    """SSOT peel screenshots (tracked under ``ssto/orbitron/media/``)."""
+    override = os.environ.get("CORE01_PEEL_FRAMES", "").strip()
+    if override:
+        return Path(override)
+    root = repo if repo is not None else REPO
+    return root / "ssto" / "orbitron" / "media" / "core01_peel_frames"
+
+
+def media_paths(*, report_dir: Path) -> tuple[Path, Path, Path, Path, Path, Path]:
+    """Work files under ``report_dir/.core01-movie-work/``; finals in ``figures/assemblies/``."""
+    report_dir = report_dir.resolve()
+    work = report_dir / ".core01-movie-work"
+    assemblies = report_dir / "figures" / "assemblies"
+    assemblies.mkdir(parents=True, exist_ok=True)
+    return (
+        work,
+        work / "frames",
+        assemblies / "CORE-01_layered_build.mp4",
+        assemblies / "CORE-01_layered_build.webm",
+        work / "mute.mp4",
+        work / "narration.wav",
+    )
+
+
+def _newest_mtime(paths: list[Path]) -> float:
+    mt = 0.0
+    for p in paths:
+        if p.is_file():
+            mt = max(mt, p.stat().st_mtime)
+        elif p.is_dir():
+            for child in p.rglob("*"):
+                if child.is_file():
+                    mt = max(mt, child.stat().st_mtime)
+    return mt
+
+
+def _write_webm_preview(out_mp4: Path, out_webm: Path) -> None:
+    """VP8 + Vorbis WebM for VS Code/Cursor Markdown preview (no AAC in embedded webviews)."""
+    subprocess.run(
+        [
+            "ffmpeg",
+            "-y",
+            "-i",
+            str(out_mp4),
+            "-c:v",
+            "libvpx",
+            "-b:v",
+            "1.5M",
+            "-c:a",
+            "libvorbis",
+            "-q:a",
+            "4",
+            str(out_webm),
+        ],
+        check=True,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+
+
+def _ensure_webm_preview(out_mp4: Path, out_webm: Path, *, force: bool = False) -> None:
+    if not out_mp4.is_file():
+        return
+    if (
+        not force
+        and out_webm.is_file()
+        and out_webm.stat().st_mtime >= out_mp4.stat().st_mtime
+    ):
+        return
+    _write_webm_preview(out_mp4, out_webm)
+
+
+def ensure_core01_build_movie(
+    report_dir: Path,
+    *,
+    repo: Path | None = None,
+    force: bool = False,
+) -> Path | None:
+    """Build or refresh MP4 + WebM preview under ``<report_dir>/figures/assemblies/``."""
+    report_dir = report_dir.resolve()
+    _, _, out_mp4, out_webm, _, _ = media_paths(report_dir=report_dir)
+    if os.environ.get("SKIP_CORE01_MOVIE", "").strip().lower() in ("1", "true", "yes"):
+        return out_mp4 if out_mp4.is_file() else None
+    frames_dir = peel_frames_dir(repo=repo)
+    missing = [name for name in PEEL_SEQUENCE if not (frames_dir / name).is_file()]
+    if missing:
+        logger.warning(
+            "CORE-01 movie skipped: missing %d peel frame(s) under %s (first: %s)",
+            len(missing),
+            frames_dir,
+            missing[0],
+        )
+        return None
+    script = Path(__file__).resolve()
+    deps = [script, *[frames_dir / name for name in PEEL_SEQUENCE]]
+    if out_mp4.is_file() and not force and out_mp4.stat().st_mtime >= _newest_mtime(deps):
+        _ensure_webm_preview(out_mp4, out_webm, force=force)
+        return out_mp4
+    try:
+        built = build_movie(report_dir=report_dir, repo=repo)
+        _ensure_webm_preview(built, out_webm, force=True)
+        return built
+    except Exception:
+        logger.exception("CORE-01 layered build movie failed for %s", report_dir)
+        if out_mp4.is_file():
+            _ensure_webm_preview(out_mp4, out_webm, force=force)
+        return out_mp4 if out_mp4.is_file() else None
 
 
 def _font(size: int) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
@@ -329,18 +434,24 @@ def _probe_duration_seconds(path: Path) -> float:
         return 0.0
 
 
-def _measure_tts_seconds(text: str, idx: int) -> float:
+def _measure_tts_seconds(text: str, idx: int, *, out_dir: Path) -> float:
     """Generate temporary ChatTTS audio and return its measured duration (seconds)."""
-    seg_dir = OUT_DIR / "audio_segments"
+    seg_dir = out_dir / "audio_segments"
     seg_dir.mkdir(parents=True, exist_ok=True)
     speech = seg_dir / f"measure_{idx:03d}.wav"
     _synthesize_chattts(text, speech)
     return _probe_duration_seconds(speech)
 
 
-def _build_narration_track(items: list[tuple[str, float]], out_wav: Path, *, tail_silence_s: float = 0.0) -> None:
+def _build_narration_track(
+    items: list[tuple[str, float]],
+    out_wav: Path,
+    *,
+    out_dir: Path,
+    tail_silence_s: float = 0.0,
+) -> None:
     """Synthesize commentary audio with ChatTTS and concat with per-item pacing."""
-    seg_dir = OUT_DIR / "audio_segments"
+    seg_dir = out_dir / "audio_segments"
     seg_dir.mkdir(parents=True, exist_ok=True)
     concat = seg_dir / "concat.txt"
     rows: list[str] = []
@@ -404,10 +515,13 @@ def _build_narration_track(items: list[tuple[str, float]], out_wav: Path, *, tai
     )
 
 
-def build_movie() -> Path:
-    OUT_DIR.mkdir(parents=True, exist_ok=True)
-    FRAMES_DIR.mkdir(parents=True, exist_ok=True)
-    REPORT_ASM_DIR.mkdir(parents=True, exist_ok=True)
+def build_movie(*, report_dir: Path, repo: Path | None = None) -> Path:
+    assets = peel_frames_dir(repo=repo)
+    out_dir, frames_dir, out_mp4, _out_webm, out_mute_mp4, out_wav = media_paths(
+        report_dir=report_dir
+    )
+    out_dir.mkdir(parents=True, exist_ok=True)
+    frames_dir.mkdir(parents=True, exist_ok=True)
 
     hold_frames = 84  # ~2.8 s at 30 fps
     pause_frames = 45  # 1.5 s pause between steps at 30 fps
@@ -419,7 +533,7 @@ def build_movie() -> Path:
 
     annotated: list[Image.Image] = []
     for i, name in enumerate(BUILD_SEQUENCE):
-        src = ASSETS / name
+        src = assets / name
         if not src.is_file():
             raise FileNotFoundError(f"Missing input screenshot: {src}")
         note = COMMENTARY[i] if i < len(COMMENTARY) else f"Step {i + 1}"
@@ -431,7 +545,7 @@ def build_movie() -> Path:
     for i, step_img in enumerate(annotated):
         canvas_size = (step_img.width, step_img.height)
         step_note = COMMENTARY[i] if i < len(COMMENTARY) else f"Step {i + 1}"
-        step_tts_s = _measure_tts_seconds(step_note, measure_idx)
+        step_tts_s = _measure_tts_seconds(step_note, measure_idx, out_dir=out_dir)
         measure_idx += 1
         # Ensure visuals never cut off spoken words; keep baseline hold as a minimum.
         step_hold_frames = max(hold_frames, math.ceil((step_tts_s + 0.35) * fps))
@@ -441,7 +555,7 @@ def build_movie() -> Path:
         layer = LAYER_CALLOUT_AFTER_STEP.get(i)
         if layer:
             callout_note = f"This is layer {layer} of the core."
-            tts_s = _measure_tts_seconds(callout_note, measure_idx)
+            tts_s = _measure_tts_seconds(callout_note, measure_idx, out_dir=out_dir)
             measure_idx += 1
             callout_hold_frames = max(1, math.ceil((tts_s + callout_silence_s) * fps))
             segments.append(
@@ -459,7 +573,7 @@ def build_movie() -> Path:
     for i, seg in enumerate(segments):
         cur = seg.image
         for _ in range(seg.hold_frames):
-            dst = FRAMES_DIR / f"frame_{frame_idx:04d}.png"
+            dst = frames_dir / f"frame_{frame_idx:04d}.png"
             cur.save(dst)
             frames.append(dst)
             frame_idx += 1
@@ -468,7 +582,7 @@ def build_movie() -> Path:
         # Pause only between two consecutive 3D build steps (not before a callout slide).
         if seg.is_step and nxt is not None and nxt.is_step:
             for _ in range(pause_frames):
-                dst = FRAMES_DIR / f"frame_{frame_idx:04d}.png"
+                dst = frames_dir / f"frame_{frame_idx:04d}.png"
                 cur.save(dst)
                 frames.append(dst)
                 frame_idx += 1
@@ -476,7 +590,7 @@ def build_movie() -> Path:
         # Keep at least 1 second before cutting from build step to callout slide.
         if seg.is_step and nxt is not None and not nxt.is_step:
             for _ in range(pre_callout_pause_frames):
-                dst = FRAMES_DIR / f"frame_{frame_idx:04d}.png"
+                dst = frames_dir / f"frame_{frame_idx:04d}.png"
                 cur.save(dst)
                 frames.append(dst)
                 frame_idx += 1
@@ -484,7 +598,7 @@ def build_movie() -> Path:
         if i < len(segments) - 1:
             nxt = segments[i + 1].image
             for blended in _blend_frames(cur, nxt, fade_frames):
-                dst = FRAMES_DIR / f"frame_{frame_idx:04d}.png"
+                dst = frames_dir / f"frame_{frame_idx:04d}.png"
                 blended.save(dst)
                 frames.append(dst)
                 frame_idx += 1
@@ -494,12 +608,17 @@ def build_movie() -> Path:
     # Final 5-second visual pause on completed assembly.
     final_frame = segments[-1].image
     for _ in range(end_pause_frames):
-        dst = FRAMES_DIR / f"frame_{frame_idx:04d}.png"
+        dst = frames_dir / f"frame_{frame_idx:04d}.png"
         final_frame.save(dst)
         frames.append(dst)
         frame_idx += 1
 
-    _build_narration_track(audio_items, OUT_WAV, tail_silence_s=end_pause_frames / fps)
+    _build_narration_track(
+        audio_items,
+        out_wav,
+        out_dir=out_dir,
+        tail_silence_s=end_pause_frames / fps,
+    )
 
     cmd = [
         "ffmpeg",
@@ -507,12 +626,12 @@ def build_movie() -> Path:
         "-framerate",
         str(fps),
         "-i",
-        str(FRAMES_DIR / "frame_%04d.png"),
+        str(frames_dir / "frame_%04d.png"),
         "-vf",
         "scale=trunc(iw/2)*2:trunc(ih/2)*2,format=yuv420p",
         "-movflags",
         "+faststart",
-        str(OUT_MUTE_MP4),
+        str(out_mute_mp4),
     ]
     subprocess.run(cmd, check=True)
     subprocess.run(
@@ -520,9 +639,9 @@ def build_movie() -> Path:
             "ffmpeg",
             "-y",
             "-i",
-            str(OUT_MUTE_MP4),
+            str(out_mute_mp4),
             "-i",
-            str(OUT_WAV),
+            str(out_wav),
             "-c:v",
             "copy",
             "-c:a",
@@ -530,14 +649,25 @@ def build_movie() -> Path:
             "-b:a",
             "160k",
             "-shortest",
-            str(OUT_MP4),
+            str(out_mp4),
         ],
         check=True,
     )
-    REPORT_MP4.write_bytes(OUT_MP4.read_bytes())
-    return OUT_MP4
+    return out_mp4
 
 
 if __name__ == "__main__":
-    out = build_movie()
+    import argparse
+
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "report_dir",
+        type=Path,
+        help="Experiment run directory (writes figures/assemblies/CORE-01_layered_build.mp4)",
+    )
+    parser.add_argument("--force", action="store_true", help="Rebuild even if MP4 is up to date")
+    args = parser.parse_args()
+    out = ensure_core01_build_movie(args.report_dir.resolve(), force=args.force)
+    if out is None:
+        raise SystemExit(1)
     print(out)
