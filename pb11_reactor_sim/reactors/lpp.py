@@ -134,6 +134,38 @@ class LPPReactor(ReactorSimulation):
         self.T_i_keV = max(self.T_i_keV * 0.25, 0.2)
         self.T_e_keV = max(self.T_e_keV * 0.3, 0.1)
 
+    def discharge_phase_key(self) -> str:
+        return "pinch"
+
+    def skip_to_discharge_label(self) -> str:
+        return "Skip to pinch"
+
+    def prepare_skipped_to_discharge(self) -> None:
+        self.charge = 1.0
+        self._circuit_phase = 0.0
+        self.time = 0.0
+        self.sheath_r = self.CATHODE_RADIUS
+        self.sheath_v = 0.0
+        if not self.species:
+            self.seed_particles()
+        dt_step = 5.0e-9
+        t_pre = 0.25e-6  # trigger + rundown before pinch
+        for _ in range(int(t_pre / dt_step)):
+            self._advance_circuit_and_snowplow(dt_step)
+            self.time += dt_step
+        self._update_b_field()
+        v_cap = self.controls.get("v_cap", 35.0)
+        p0 = self.controls.get("p0", 6.0)
+        compression = self.CATHODE_RADIUS / max(self.sheath_r, self.ANODE_RADIUS)
+        t_target = 30.0 + 6.0 * v_cap * min(compression, 6.0) / 6.0
+        self.T_i_keV = t_target * 0.85
+        self.T_e_keV = 0.5 * self.T_i_keV
+        n_fill = 3.3e22 * (p0 / 760.0)
+        self.n_e = n_fill * min(compression**2, 50.0) * 0.5
+        self.n_p = 0.9 * self.n_e
+        self.n_B = 0.02 * self.n_e
+        self._snap_particles_to_temperature()
+
     def on_fire_phase_begin(self, phase_key: str) -> None:
         if phase_key == "trigger":
             self._circuit_phase = 0.0

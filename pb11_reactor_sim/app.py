@@ -19,10 +19,13 @@ from pb11_reactor_sim.engine.pic_backend import FieldSolveBackend, make_backend
 from pb11_reactor_sim.gui.canvas import ReactorCanvas
 from pb11_reactor_sim.gui.controls import ControlPanel
 from pb11_reactor_sim.gui.diagnostics import DiagnosticsPanel
+from pb11_reactor_sim.gui.recorder import FrameRecorder
 from pb11_reactor_sim.reactors import REACTOR_REGISTRY
 
 #: Physics substeps advanced per GUI frame.
 _SUBSTEPS_PER_FRAME = 4
+#: Extra substeps while fast-forwarding pre-discharge countdown after Fire.
+_STARTUP_SUBSTEP_MULT = 35
 #: GUI refresh interval [ms].
 _FRAME_INTERVAL_MS = 33
 
@@ -62,6 +65,7 @@ class PlasmaSimApp(QtWidgets.QMainWindow):
         self._playing = False
         self._frame = 0
         self._auto_paused_after_shot = False
+        self._recorder = FrameRecorder()
 
         # --- widgets ---
         self.controls = ControlPanel(list(REACTOR_REGISTRY.keys()))
@@ -88,7 +92,9 @@ class PlasmaSimApp(QtWidgets.QMainWindow):
         self.controls.resetRequested.connect(self._on_reset)
         self.controls.armRequested.connect(self._on_arm)
         self.controls.fireRequested.connect(self._on_fire)
+        self.controls.skipToDischargeRequested.connect(self._on_skip_to_discharge)
         self.controls.optimizeRequested.connect(self._on_optimize)
+        self.controls.recordToggled.connect(self._on_record_toggled)
 
         # Optimizer worker thread handles (kept alive while running).
         self._opt_thread: QtCore.QThread | None = None
@@ -116,6 +122,7 @@ class PlasmaSimApp(QtWidgets.QMainWindow):
         self._reactor = cls(field_solver=self.backend)
         self._reactor.apply_controls(self.controls.current_values())
         self.diagnostics.clear()
+        self._frame = 0
         self.canvas.attach(self._reactor, self.backend.label)
         self._sync_shot_ui()
         self._update_readout()
@@ -127,10 +134,7 @@ class PlasmaSimApp(QtWidgets.QMainWindow):
         self.controls.set_playing(False)
         self._reactor.apply_controls(self.controls.current_values())
         self._reactor.arm_shot()
-        if self._reactor_needs_geometry_refresh():
-            self.canvas.attach(self._reactor, self.backend.label)
-        else:
-            self.canvas.refresh()
+        self.canvas.attach(self._reactor, self.backend.label)
         self.diagnostics.clear()
         self._sync_shot_ui()
         self._update_readout()
@@ -150,6 +154,20 @@ class PlasmaSimApp(QtWidgets.QMainWindow):
         if r is None:
             return
         self.controls.set_shot_status(r.shot_phase.value, r.shot_callout, r.can_fire())
+        self.controls.set_skip_to_discharge(r.can_skip_to_discharge(), r.skip_to_discharge_label())
+
+    def _substeps_per_frame(self) -> int:
+        r = self._reactor
+        if r is not None and r.is_startup_countdown():
+            return _SUBSTEPS_PER_FRAME * _STARTUP_SUBSTEP_MULT
+        return _SUBSTEPS_PER_FRAME
+
+    def _on_skip_to_discharge(self) -> None:
+        if self._reactor is None or not self._reactor.skip_to_discharge():
+            return
+        self.canvas.attach(self._reactor, self.backend.label)
+        self._sync_shot_ui()
+        self.statusBar().showMessage(self._reactor.shot_callout)
 
     def _on_controls_changed(self, values: dict) -> None:
         if self._reactor is None:
@@ -178,6 +196,7 @@ class PlasmaSimApp(QtWidgets.QMainWindow):
         self.controls.set_values(defaults)
         self._reactor.apply_controls(self.controls.current_values())
         self._reactor.reset()
+        self._frame = 0
         self.canvas.attach(self._reactor, self.backend.label)
         self.diagnostics.clear()
         self._sync_shot_ui()
@@ -224,15 +243,39 @@ class PlasmaSimApp(QtWidgets.QMainWindow):
         self._teardown_opt_thread()
         self.statusBar().showMessage(f"Optimization failed: {message}")
 
+    def _on_record_toggled(self, recording: bool) -> None:
+        if recording:
+            self._recorder.start()
+            self.statusBar().showMessage("Recording frames from plot… toggle again to save MP4.")
+            return
+        saved = self._recorder.stop(self)
+        self.controls.set_recording(False)
+        if saved:
+            self.statusBar().showMessage(f"Recording saved: {saved}")
+        else:
+            self.statusBar().showMessage("Recording cancelled (no frames captured).")
+
     # -- main loop ----------------------------------------------------------
     def _on_tick(self) -> None:
         if self._reactor is None:
             return
         prev_phase = self._reactor.shot_phase
-        for _ in range(_SUBSTEPS_PER_FRAME):
+        substeps = self._substeps_per_frame()
+        ff = self._reactor.is_startup_countdown()
+        for _ in range(substeps):
             self._reactor.step()
         self.canvas.refresh()
+        self.canvas.update_hud(
+            gui_frame=self._frame,
+            substeps=substeps,
+            fast_forward=ff,
+            sim_time_us=self._reactor.time * 1.0e6,
+        )
+        if self._recorder.active:
+            self._recorder.add_png(self.canvas.grab_frame_png())
         self.diagnostics.update_from(self._reactor.diagnostics)
+        if self._reactor.shot_phase == ShotPhase.FIRING:
+            self.statusBar().showMessage(self._reactor.shot_callout)
         if prev_phase == ShotPhase.FIRING and self._reactor.shot_phase == ShotPhase.QUIESCENT:
             self._on_play_toggled(False)
             self.controls.set_playing(False)
@@ -244,6 +287,8 @@ class PlasmaSimApp(QtWidgets.QMainWindow):
             self._update_readout()
 
     def _update_readout(self) -> None:
+        from pb11_reactor_sim.reactors.tae import TAEReactor
+
         r = self._reactor
         if r is None:
             return
@@ -260,6 +305,14 @@ class PlasmaSimApp(QtWidgets.QMainWindow):
             f"P_cond   = {r.last_p_cond:10.3e} W/m^3",
             f"Q_net    = {r.last_q_net:10.3e}",
         ]
+        if isinstance(r, TAEReactor):
+            lines += [
+                f"Sustain  = {getattr(r, 'sustainment', 0.0):10.3f}  (beam-driven FRC hold)",
+                f"P_NBI    = {r.last_p_nbi:10.3e} W/m^3",
+                f"P_ICC    = {r.last_p_icc:10.3e} W/m^3",
+                f"Q_plasma = {r.last_q_plasma:10.3e}",
+                f"Q_sys    = {r.last_q_net:10.3e}  (ICC / NBI+losses)",
+            ]
         lines += self._reactor_specific_readout(r)
         self.controls.update_readout("\n".join(lines))
 

@@ -5,9 +5,12 @@ then a narrative for each of the three reactor concepts (physical architecture,
 control inputs, what the particles are doing, and the output measurements).
 
 > Launch with `./pb11_reactor_sim/run.sh`, pick a reactor from the dropdown,
-> press **Arm shot** to prepare a discharge, then **Fire** to run the countdown
-> (Play advances time automatically during a shot). **Reset** returns to
-> unarmed idle. **Solve for optimal Q_net** auto-tunes the sliders (see below).
+> press **Arm shot** to prepare a discharge (then walk away for coffee — the
+> chamber is safe in **armed** standby), then **Fire** when ready. **Fire**
+> auto-starts **Play** and runs the full countdown underneath, fast-forwarding
+> through gas fill / coil ramp / T−3…2…1 until flat-top, pulse, or pinch at
+> normal speed. Use **Skip to flat-top** (or pulse / pinch) if you want to
+> jump straight to the show. **Reset** returns to unarmed idle.
 
 ---
 
@@ -18,8 +21,9 @@ The simulator no longer starts mid-discharge. At launch the chamber is **unarmed
 
 | Button | What it does |
 |--------|----------------|
-| **Arm shot** | Pre-shot prep: pump-down, gas fill, bank charge, target load, coils standby. Clears the diagnostic plots and sets **Ops = armed**. |
-| **Fire** | Runs a scripted **countdown** (status line in Live Readout), then flat-top / pinch / laser pulse physics. **Play** runs automatically until the shot ends in **quiescent**. |
+| **Arm shot** | Pre-shot prep: pump-down, gas fill, bank charge, target load, coils standby. Clears the diagnostic plots and sets **Ops = armed**. Safe standby — nothing discharges until **Fire**. |
+| **Fire** | Runs the scripted countdown (status bar + Live Readout), **fast-forwarding** pre-discharge phases, then flat-top / pinch / laser pulse at normal speed. **Play** starts automatically until quiescence. |
+| **Skip to …** | Visible during the countdown only. Jumps straight to flat-top (TAE), laser pulse (HB11), or pinch (LPP) with fields and particles already hot. |
 | **Play / Pause** | Advance time manually while **armed** or **quiescent** (watch cooldown between shots). |
 | **Reset** | Factory idle: default sliders, **unarmed**, empty chamber. |
 
@@ -33,7 +37,7 @@ The simulator no longer starts mid-discharge. At launch the chamber is **unarmed
 
 Between shots, leave **Play** on during **quiescent** to watch temperatures fall, particles drain, and fields relax before the next **Fire** (or **Arm** on HB11/LPP).
 
-The **Status** line in Live Readout is the operator callout (e.g. `T−1: NBI on`, `PINCH — focus on axis`).
+The **Status** line in Live Readout is the operator callout (e.g. `T−1: NBI on`, `PINCH — focus on axis`). Countdown labels like **T−5 s** are control-room shorthand, not wall-clock seconds — pre-discharge sim time is compressed so you reach the discharge in a few seconds of real time, not a minute.
 
 ---
 
@@ -199,58 +203,335 @@ Readout box (described per reactor below).
 ![TAE FRC](docs/tae_frc.png)
 
 ### Physical architecture being modeled
-A **2D slice along the machine axis** of a cylindrical confinement chamber. The
-horizontal axis `x` is the machine axis; the vertical axis `y` runs across the
-field-reversal plane. A solid **cylindrical conducting wall** (the cyan border)
-encloses the plasma. At the far +x end sits the **Inverse Cyclotron Converter
-(ICC)** -- a stack of **segmented collector electrodes**.
 
-The displayed field colormap is the **FRC axial magnetic field**:
-`B_z(y) = B0 · tanh(y / y_s)`. You can see it as a vertical gradient -- bright
-(positive `B_z`) at the top, dark (negative `B_z`) at the bottom, with the
-**field-reversal plane (`B_z = 0`)** running through the middle in red/orange.
-The plasma density follows `n(y) = n0 · sech²(y / y_s)`, peaked on that midplane.
+This reactor is a **2D axis-aligned slice** through a cylindrical FRC machine —
+the horizontal axis **`x`** is the machine (axial) direction; the vertical axis
+**`y`** is the radial-like coordinate across the **field-reversal plane** (an
+*r–z* meridian collapsed to *x–y* for visualization).
 
-The ICC physics is the key innovation: fusion **alphas (yellow)** stream axially
-toward +x, pass the segmented electrodes, and induce an **alternating current**
-as their image charge hops segment to segment -- i.e. direct conversion of
-charged-particle energy to AC electricity, no steam cycle.
+| Element | Model |
+|---------|--------|
+| **Domain** | 1.2 m × 0.8 m window (`x ∈ [−0.6, +0.6] m`, `y ∈ [−0.4, +0.4] m`), 181×121 cells |
+| **Conducting wall** | Thin grounded shell on the top, bottom, and left boundaries (cyan lines) |
+| **ICC collector** | **8 segmented electrodes** on the **+x** end wall — alphas are absorbed here |
+| **FRC core** | Interior plasma; field reverses on the midplane `y ≈ 0` |
+| **Timestep** | 2 ns (flat-top holds ~25 µs simulated ≈ 12 ms wall time at normal speed) |
+
+During a shot the coil ramp is modeled by a dimensionless scale **`b_scale(t)`**
+(0 at Arm → 1 at flat-top) that multiplies the slider **`B0`**:
+
+\[
+B_z(x,y,t) = B_0 \cdot b_{\mathrm{scale}}(t) \cdot \tanh\!\left(\frac{y}{y_s}\right),
+\qquad y_s = 0.12\ \mathrm{m}
+\]
+
+The colormap is **`B_z`**: yellow/positive at the top, purple/negative at the
+bottom, with the **field-reversal plane (`B_z = 0`)** through the centre. Macroparticle
+positions sample a **`sech²(y/y_s)`** density profile (implemented as a Gaussian
+with σ ≈ `y_s`).
+
+**TAE-specific hardware narrative in this slice:**
+- **Neutral Beam Injection (NBI)** enters from the **−x** side and deposits **MeV-class
+  fast protons** (red dots with a narrow +x velocity cone).
+- Fusion **alphas (yellow)** are born in the core and stream **+x** toward the
+  **Inverse Cyclotron Converter (ICC)**.
+- At the ICC, alphas crossing segmented electrodes induce an **AC pickup signal**
+  (`ICC sig` in the readout) — a stand-in for **direct conversion** of charged
+  fusion-product energy to electricity (no steam cycle, no neutrons).
+
+The simulator couples a **2D PIC macroparticle view** (what you see bouncing) to a
+**0D power-balance model** (what drives the `Q_net` plot and optimizer). The two
+are intentionally aligned but not yet fully self-consistent in every detail (e.g.
+ICC recovery is counted in 0D before every alpha macroparticle reaches the collector).
 
 ### Control inputs (sliders)
+
 | Slider | Range | Default | Effect |
 |--------|-------|---------|--------|
-| **NBI Current** | 0-120 A | 40 A | Neutral Beam Injection. Higher current injects more fast protons (you will see red dots stream in from the left) and heats the ions, raising `T_i`. |
-| **Background B0** | 0.1-5.0 T | 1.5 T | Sets the FRC field strength `tanh` amplitude. Higher `B0` improves confinement (longer `τ_E`), steepens the field gradient, and tightens the gyro-orbits. |
+| **NBI Current** | 0–120 A | 40 A | Beam current (normalized). Sets beam energy, fast-ion fraction, **`P_NBI`**, and PIC injection rate. |
+| **Background B0** | 0.1–5.0 T | 1.5 T | Peak `\|B_z\|` at flat-top (`b_scale = 1`). Enters **`τ_E`**, bulk **`T_i`**, and core density. |
+| **ICC Coupling** | 0.50–0.95 | 0.85 | **`η_ICC`**: fraction of fusion power recovered as electricity at the collector. |
+
+### 2D particle dynamics (PIC slice)
+
+Macroparticles for **p**, **¹¹B**, **e⁻**, and **α** are advanced each sub-step with
+a **Boris push** in the local **`B_z(y)`** (no in-plane electric field during flat-top).
+
+**Boundaries**
+- **Radial walls** (`y` limits): specular reflection of `v_y`.
+- **−x wall**: specular reflection of `v_x`.
+- **+x wall**: fuel ions reflect; **alphas are collected** when `x` reaches the ICC plane
+  (`x_ICC ≈ x_max − 0.04 m`), incrementing **`ICC sig ∝ Σ|v_x|`** of collected alphas.
+
+**NBI injection** (during `nbi_heat` and flat-top, when `nbi_scale > 0`):
+
+Beam energy from the slider (matches the 0D model):
+
+\[
+E_{\mathrm{beam\,[keV]}} = 250 + 320\left(\frac{I_{\mathrm{NBI}}}{120}\right)^{0.85}
+\]
+
+Protons spawn at the left edge with **`v_x = √(2 E_beam / m_p)`** and a small transverse
+spread (`σ_v ≈ 0.08 v_x`). Injection rate scales with **`I_NBI`**.
+
+**Fusion alphas in PIC** spawn at a rate tied to **`P_fusion`**, with kinetic energies
+sampled from the **p–¹¹B sequential-decay spectrum** (alpha0/alpha1 branches through
+¹²C* and ⁸Be — see *Alpha spectrum* below), launched in a narrow forward (+x) cone.
+
+### 0D plasma state (flat-top scalars)
+
+During flat-top the bulk scalars relax toward:
+
+\[
+T_{i,\mathrm{target}} = 40 + 0.35\,E_{\mathrm{beam\,[keV]}} + 18\,B_0\ \ \mathrm{[keV]}
+\]
+
+\[
+T_{e,\mathrm{target}} = \min\!\bigl(12 + 0.04\,T_i,\ 0.18\,T_i\bigr)\ \ \mathrm{[keV]}
+\]
+
+\[
+n_e = 3.0\times10^{20}\left(0.55 + 0.45\,\frac{B_0}{5}\right)\ \ \mathrm{m^{-3}}
+\]
+
+Fuel fractions: **`n_p = 0.55 n_e · (1 + 0.08 f_beam)`**, **`n_B = 0.09 n_e`**, with
+
+\[
+f_{\mathrm{beam}} = \min\!\left(0.72,\ 0.10 + 0.62\,\frac{I_{\mathrm{NBI}}}{120}\right)
+\]
+
+(fraction of protons in the non-thermal beam population used by the power balance).
+
+### Power balance and gain (TAE-specific)
+
+The **`Q_net`** plot and **Solve for optimal Q_net** use **system gain** for TAE:
+
+\[
+\boxed{
+Q_{\mathrm{sys}} =
+\frac{P_{\mathrm{ICC}}}{P_{\mathrm{NBI}} + P_{\mathrm{Brems}} + P_{\mathrm{transport}}}
+}
+\]
+
+\[
+Q_{\mathrm{plasma}} =
+\frac{P_{\mathrm{fusion}}}{P_{\mathrm{Brems}} + P_{\mathrm{transport}}}
+\]
+
+(`Q_plasma` is shown in the Live Readout; HB11/LPP use `Q_plasma`-style gain only.)
+
+#### Beam-driven sustainment (required — not a slider floor)
+
+TAE's Norm result is **NBI-only FRC formation**: the reversed field is **created and
+held by beam-driven current**, not by external coils alone. The model captures this
+with a sustainment fraction **`S(I_NBI, B0) ∈ [0, 1]`**:
+
+\[
+S = \underbrace{\mathrm{smoothstep}\!\left(\frac{I_{\mathrm{NBI}} - 30\ \mathrm{A}}{25\ \mathrm{A}}\right)}_{\text{beam holds reversal}}
+\times \underbrace{\left(0.70 + 0.30\,\frac{B_0}{5\ \mathrm{T}}\right)}_{\text{B₀ assists confinement once FRC exists}}
+\]
+
+**`B₀` cannot substitute for beams** — if **`I_NBI < ~30 A`**, **`S → 0`**: the FRC
+does not maintain reversal regardless of field strength.
+
+When **`S`** is low:
+- **`τ_E`** collapses (**`∝ S²`**) — confinement time shortens  
+- **End/transport losses** rise (**`∝ 1 + 12(1−S)²`**) — open field lines, tilt  
+- **Beam-target fusion** scales with **`S`** (overlap + trapping)  
+- **Thermal fusion tail** scales with **`S²`** (no free fusion from a cold/decaying FRC)  
+- Bulk **`T_i`**, **`n_e`**, and PIC **`B_z` amplitude** scale with **`S`**
+
+There is **no hard minimum current** — low NBI is legal but **self-penalizing**. During the
+shot, **`nbi_scale(t)`** ramps from 0 → 1 over the **NBI on** phase; all sustainment,
+fusion, **`P_NBI`**, and **`T_i`** scale with **`S × nbi_scale(t)`** so **`Q_sys` rises
+smoothly** rather than stepping at phase boundaries.
+
+The optimizer therefore moves to **~55–90 A** (full sustainment) rather than minimizing
+beam cost at ~10 A.
+
+**Two different Q metrics** (both plotted on the bottom-right chart):
+- **`Q_sys` (solid white)** — plant gain: **`η_ICC · P_fusion / (P_NBI + losses)`**. This
+  is what must cross 1 for net electricity; it stays **~1.5–1.7** at optimum because
+  **`P_NBI`** is in the denominator.
+- **`Q_plasma` (dashed yellow)** — fusion physics only: **`P_fusion / losses`**. This can
+  reach **10+** when **`T_i`** is hot — it is *not* breakeven for the wall plug.
+
+#### Fusion power
+
+**Beam–target channel** (dominant — uses beam energy, not bulk `T_i`):
+
+\[
+P_{\mathrm{beam}} =
+\mathcal{E}_{\mathrm BT}\;
+n_{\mathrm{beam}}\,n_B\;
+\langle\sigma v\rangle(E_{\mathrm{beam}})\;
+E_f,
+\qquad
+n_{\mathrm{beam}} = f_{\mathrm{beam}}\,n_p,
+\qquad
+\mathcal{E}_{\mathrm BT} = 4.5
+\]
+
+**Thermal tail** (small Maxwellian contribution from the slow ion population):
+
+\[
+P_{\mathrm{thermal}} =
+0.12\;
+n_{p,\mathrm{thermal}}\,n_B\;
+\langle\sigma v\rangle(T_{i,\mathrm{thermal}})\;
+E_f
+\]
+
+\[
+P_{\mathrm{fusion}} = P_{\mathrm{beam}} + P_{\mathrm{thermal}},
+\qquad
+E_f = 8.7\ \mathrm{MeV\ per\ reaction}
+\]
+
+Reactivity **`⟨σv⟩`** is a log-parabola fit peaking near **300 keV**:
+
+\[
+\log_{10}\langle\sigma v\rangle =
+-21.5 - 2.0\left[\log_{10} T - \log_{10} 300\right]^2
+\quad (T\ \mathrm{in\ keV})
+\]
+
+#### ICC recovery (output)
+
+p–¹¹B releases essentially all energy in **three charged alphas** (no neutrons):
+
+\[
+P_{\mathrm{ICC}} = \eta_{\mathrm{ICC}}\,P_{\mathrm{fusion}}
+\]
+
+#### NBI input
+
+\[
+P_{\mathrm{NBI}} =
+\frac{1.35\times10^{5}\,\left(I_{\mathrm{NBI}}/120\right)^{1.35}\,\left(E_{\mathrm{beam\,[keV]}}/400\right)}
+{V_{\mathrm{plasma}}},
+\qquad
+V_{\mathrm{plasma}} \approx \pi y_s^2 L_x \cdot 0.85 \approx 0.05\ \mathrm{m^3}
+\]
+
+#### Bremsstrahlung (relativistic)
+
+\[
+P_{\mathrm{Brems}} =
+1.57\times10^{-40}\,Z_{\mathrm{eff}}^2\,n_e^2\,\sqrt{T_e}\,
+\left(1 + 1.71\,\frac{T_e}{m_e c^2}\right)
+\]
+
+with **`Z_eff = (n_p + 25 n_B) / n_e`**. Low **`T_e`** (decoupled from beam-heated ions)
+keeps this term small — the intended Rider workaround.
+
+#### Transport (thermal populations only)
+
+Fast beam ions are **excluded** from the loss inventory (they fuse before equilibrating):
+
+\[
+P_{\mathrm{transport}} =
+\frac{\frac{3}{2}\,k_B\!\left(n_{e,\mathrm{loss}} T_e + n_{i,\mathrm{loss}} T_{i,\mathrm{thermal}}\right)}
+{\tau_E}
+\]
+
+with **`n_e,loss = min(n_e, 4×10¹⁹ m⁻³)`**, **`n_i,loss = min(n_p,thermal, 0.55×4×10¹⁹)`**,
+and **`T_i,thermal = min(T_i, 0.22 E_beam + 15 keV)`**.
+
+Energy confinement time (FRC-scaled, grows with **`B0`** and NBI sustainment):
+
+\[
+\tau_E =
+6.0\times10^{-3}\left(\frac{B_0}{1.5}\right)^{2.4}
+\left(1 + 0.75\,\frac{I_{\mathrm{NBI}}}{120}\right)\times 18\ \ \mathrm{s}
+\]
+
+#### Alpha spectrum (PIC birth energies)
+
+Each fusion event produces **three alphas** via sequential decay:
+
+| Branch | Weight | Primary α | Secondaries (×2) |
+|--------|--------|-----------|------------------|
+| **alpha1** | ~90% | ~3.76 MeV | broad ~2.46 MeV (⁸Be* breakup) |
+| **alpha0** | ~10% | ~5.70 MeV | ~1.43 MeV (⁸Be ground state) |
+
+Macroparticle alphas draw from this four-component mixture; total kinetic energy
+averages **~8.7 MeV per reaction**.
+
+#### ICC AC signal (readout)
+
+\[
+\mathrm{ICC\ sig} \leftarrow 0.97\,\mathrm{ICC\ sig} + 0.01\sin\phi,
+\qquad
+\frac{d\phi}{dt} = 2\pi\left(10^6 + 2\times10^4\,I_{\mathrm{NBI}}\right)
+\]
+
+plus increments proportional to collected alpha **`|v_x|`**. Units are arbitrary —
+it is a qualitative direct-conversion waveform, not a calibrated MW readout.
 
 ### What the dots do
-Red/green/blue fuel and electrons **gyrate** in the `B_z` field (Boris pusher),
-concentrated near the midplane by the `sech²` profile. NBI continuously injects
-fast red protons from the left wall. Yellow alphas are born near the core and
-drift toward the +x ICC, where they are collected.
 
-### Machine-specific readout
-- **`ICC sig`** -- the instantaneous induced AC pickup signal (arbitrary units)
-  from alphas crossing the collector segments. This oscillates -- it is your
-  direct-conversion output waveform.
+Red / green / blue macroparticles **gyrate** in **`B_z`** (Boris pusher), concentrated
+near the midplane. NBI continuously adds **fast red protons** from the left. Yellow
+alphas are born near the core and drift **+x**; many are collected at the ICC segments.
+
+### Machine-specific readout (Live Readout extras)
+
+| Field | Meaning |
+|-------|---------|
+| **`Sustain`** | Beam-driven FRC hold fraction **`S(I_NBI, B0)`** — see sustainment section |
+| **`P_NBI`** | Modeled beam input power density [W/m³] |
+| **`P_ICC`** | **`η_ICC · P_fusion`** — recovered output power density |
+| **`Q_plasma`** | Fusion vs radiation + transport (no NBI/ICC accounting) |
+| **`Q_sys`** | Same as **`Q_net`** plot for TAE |
+| **`ICC sig`** | AC pickup from alphas crossing ICC segments |
+
+### On-screen HUD and MP4 export
+
+The plot shows a **bold black frame counter** (top-left of the canvas):
+**`Frame N [FF×35 140 substeps/frame]`** during the pre-flat-top fast-forward, then
+**`[1× 4 substeps/frame]`** at normal flat-top speed. Use it to see when the GUI is
+advancing 35× more simulation time per tick.
+
+**Record MP4** (control panel): toggle on before **Fire**, toggle off to save. Captures
+each displayed plot frame; writes `.mp4` via **ffmpeg** or **imageio** if available,
+otherwise a numbered PNG sequence. For presentations, record through Arm → Fire → flat-top.
 
 ### Operational sequence (Arm → Fire → quiesce)
 
 **Arm (pre-shot)**  
-Vacuum vessel, neutral gas puff, coils at standby (`B_z` weak). No macroparticles yet.
+Vacuum vessel, neutral gas puff, coils at standby (`b_scale ≈ 0.12`, weak **`B_z`**).
+Cold gas macroparticles visible; diagnostics cleared.
 
-**Fire countdown (automatic while Play runs)**
+**Fire countdown** (automatic; pre-discharge phases fast-forward in the GUI)
 
-1. Gas fill / fuel inventory  
-2. Coil ramp — `B_z` rises toward slider **Background B0**  
-3. FRC formation — plasma macroparticles appear; separatrix forms  
-4. NBI on — beam heating ramps (`NBI Current` slider)  
-5. **Flat-top** — full discharge; fusion, ICC alphas, diagnostic plots fill  
-6. Ramp-down — beams off, field falls  
+| Phase | Sim duration | What happens |
+|-------|--------------|--------------|
+| Gas fill | 0.8 µs | Fuel inventory rises |
+| Coil ramp | 2.0 µs | **`b_scale → 1`**, **`B_z`** rises |
+| FRC formation | 3.0 µs | Hot plasma macroparticles seeded |
+| NBI on | 4.0 µs | **`nbi_scale → 1`**, beam injection begins |
+| **Flat-top** | 25 µs | Full discharge; fusion, ICC alphas, diagnostics |
+| Ramp-down | 4 µs | Beams and field fall |
 
 **Quiescent (post-shot)**  
-Plasma cools and particles drain. **Fire again without re-Arm** (repeat flat-top with a shorter ramp). Use **Arm** only when you want a full fresh prep (e.g. new gas fill).
+Plasma cools and particles drain. **Fire again without re-Arm** (shortened re-ramp).
+TAE is the only reactor that allows repeat **Fire** from quiescence without a fresh **Arm**.
 
-**Typical control-room cadence:** *Standby → Arm → … → Fire → flat-top cheers → quiesce → Fire (repeat) → end of day → Reset.*
+**Typical cadence:** *Standby → Arm → (coffee) → Fire → flat-top → quiesce → Fire …*
+
+### Real-world status vs this model
+
+As of **2025**, TAE has demonstrated **NBI-only FRC formation and sustainment** on
+**Norm** ([Nature Communications, April 2025](https://doi.org/10.1038/s41467-025-58849-5)),
+but has **not** reported **`Q ≥ 1`**. **Copernicus** is targeted toward net-energy
+demonstration later this decade.
+
+This simulator implements TAE's **proposed** aneutronic pathway — beam-target fusion,
+cold electrons, ICC direct conversion — so **`Q_sys > 1`** is **achievable in the model**
+when you **Solve for optimal Q_net** (typically high **`B0`**, strong **`η_ICC`**, and
+**NBI ~ 60–90 A** for a Norm-like operating point). That is a **design exploration**,
+not a claim about current hardware.
 
 ---
 
@@ -417,8 +698,9 @@ How it works:
   optimized plasma evolve and then hand-tune from there.
 
 Things you will learn from it:
-- **TAE FRC** tends to favor high **B0** (better confinement -> lower `P_cond`)
-  with modest **NBI** (enough `T_i` for fusion without over-driving radiation).
+- **TAE FRC** favors high **B0**, strong **ICC Coupling**, and **NBI ~ 55–90 A**
+  (beam sustainment threshold). Below ~30 A the FRC does not hold; the optimizer
+  discovers this from physics, not a floor constraint.
 - **HB11 Laser** is essentially insensitive to **Grid Voltage** for core `Q`
   (the grid governs *energy collection*, not the fusion balance), and prefers a
   moderate **Laser Intensity** -- a vivid illustration that hotter is not always
@@ -426,6 +708,8 @@ Things you will learn from it:
 - **LPP DPF** likes higher **Gas Pressure** (more fuel density) and an
   intermediate **Capacitor Voltage**.
 
-Because thermal p-¹¹B is fundamentally Rider-limited, the "optimal" `Q` is still
-below 1 -- but the button shows you *where* the best achievable operating point
-lives and how far the controls can push you toward it.
+Thermal p-11B remains Rider-limited if you treat it as a Maxwellian plasma with
+no beam channel and no ICC recovery. **TAE FRC** is the exception in this
+simulator: its `Q_net` is **`Q_sys`**, and the optimizer can push it above 1 when
+the proposed physics knobs align. HB11 and LPP still optimize below breakeven
+under their respective 0D models.

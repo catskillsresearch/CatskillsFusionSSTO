@@ -20,6 +20,7 @@ import pyqtgraph as pg
 from PySide6 import QtCore, QtGui, QtWidgets
 
 from pb11_reactor_sim.engine.base import ReactorSimulation
+from pb11_reactor_sim.physics.constants import ALPHA, BORON11, ELECTRON, PROTON
 
 pg.setConfigOption("imageAxisOrder", "row-major")
 pg.setConfigOption("background", "#0a0a12")
@@ -29,6 +30,9 @@ FloatArray = npt.NDArray[np.float64]
 
 #: Maximum macroparticles drawn per species (subsampled for render speed).
 _MAX_DRAW = 1200
+
+#: Species listed in the lower-left macroparticle legend.
+_LEGEND_SPECIES = (PROTON, BORON11, ELECTRON, ALPHA)
 
 
 class ReactorCanvas(QtWidgets.QWidget):
@@ -77,12 +81,21 @@ class ReactorCanvas(QtWidgets.QWidget):
         # One scatter item per species (created lazily).
         self._scatters: dict[str, pg.ScatterPlotItem] = {}
 
-        # Persistent structure labels.
+        # Persistent structure labels + macroparticle legend.
         self._label_items: list[pg.TextItem] = []
+        self._legend_items: list[pg.TextItem] = []
 
         self._backend_text = pg.TextItem(anchor=(0, 0), color=(150, 255, 200))
         self._backend_text.setZValue(6)
         self._plot.addItem(self._backend_text)
+
+        self._hud_text = pg.TextItem(anchor=(0, 0), color=(0, 0, 0))
+        self._hud_text.setZValue(7)
+        self._plot.addItem(self._hud_text)
+        _hud_font = QtGui.QFont()
+        _hud_font.setPointSize(12)
+        _hud_font.setBold(True)
+        self._hud_text.setFont(_hud_font)
 
         self._current_reactor: ReactorSimulation | None = None
 
@@ -97,6 +110,7 @@ class ReactorCanvas(QtWidgets.QWidget):
         self._rebuild_boundaries(reactor)
         self._rebuild_scatters(reactor)
         self._rebuild_labels(reactor, backend_label)
+        self._rebuild_legend(reactor)
 
         # Fit the *entire* domain. Setting the full rect (rather than X/Y
         # ranges separately) lets the aspect-locked view letterbox instead of
@@ -193,7 +207,49 @@ class ReactorCanvas(QtWidgets.QWidget):
 
         g = reactor.grid
         self._backend_text.setText(f"Engine: {backend_label}")
-        self._backend_text.setPos(g.x0 + 0.01 * g.Lx, g.y0 + 0.02 * g.Ly)
+        self._backend_text.setPos(g.x0 + 0.012 * g.Lx, g.y0 + 0.018 * g.Ly)
+
+    def _rebuild_legend(self, reactor: ReactorSimulation) -> None:
+        """Lower-left key for macroparticle colors."""
+        for item in self._legend_items:
+            self._plot.removeItem(item)
+        self._legend_items.clear()
+
+        g = reactor.grid
+        x = g.x0 + 0.012 * g.Lx
+        y0 = g.y0 + 0.065 * g.Ly
+        line_h = 0.028 * g.Ly
+
+        font = QtGui.QFont()
+        font.setPointSize(9)
+        font.setBold(True)
+
+        header = pg.TextItem(
+            "Macroparticles",
+            color=(230, 230, 230),
+            anchor=(0, 0),
+            fill=pg.mkBrush(0, 0, 0, 190),
+            border=pg.mkPen(120, 160, 200, width=1),
+        )
+        header.setFont(font)
+        header.setPos(x, y0 + len(_LEGEND_SPECIES) * line_h + 0.006 * g.Ly)
+        header.setZValue(6)
+        self._plot.addItem(header)
+        self._legend_items.append(header)
+
+        for i, sp in enumerate(_LEGEND_SPECIES):
+            ti = pg.TextItem(
+                f"●  {sp.name} ({sp.symbol})",
+                color=sp.color,
+                anchor=(0, 0),
+                fill=pg.mkBrush(0, 0, 0, 175),
+                border=pg.mkPen(*sp.color, width=1),
+            )
+            ti.setFont(font)
+            ti.setPos(x, y0 + (len(_LEGEND_SPECIES) - 1 - i) * line_h)
+            ti.setZValue(6)
+            self._plot.addItem(ti)
+            self._legend_items.append(ti)
 
     def _rebuild_scatters(self, reactor: ReactorSimulation) -> None:
         for s in self._scatters.values():
@@ -255,6 +311,46 @@ class ReactorCanvas(QtWidgets.QWidget):
                 continue
             x, y = sp.x, sp.y
             if x.size > _MAX_DRAW:
-                idx = np.random.default_rng(sp.count).choice(x.size, _MAX_DRAW, replace=False)
+                idx = np.random.default_rng((sp.count, reactor.step_index)).choice(
+                    x.size, _MAX_DRAW, replace=False,
+                )
                 x, y = x[idx], y[idx]
             scatter.setData(x, y)
+
+    def update_hud(
+        self,
+        *,
+        gui_frame: int,
+        substeps: int,
+        fast_forward: bool,
+        sim_time_us: float,
+    ) -> None:
+        """Bold overlay: GUI frame index and whether we are in 35× fast-forward."""
+        reactor = self._current_reactor
+        if reactor is None:
+            return
+        g = reactor.grid
+        mode = f"FF×{_STARTUP_MULT_LABEL}" if fast_forward else "1×"
+        self._hud_text.setText(
+            f"Frame {gui_frame}   [{mode}  {substeps} substeps/frame]\n"
+            f"t = {sim_time_us:.3f} µs"
+        )
+        self._hud_text.setPos(g.x0 + 0.012 * g.Lx, g.y0 + g.Ly - 0.11 * g.Ly)
+        self._hud_text.setColor((0, 0, 0))
+        self._hud_text.fill = pg.mkBrush(255, 255, 255, 210)
+        self._hud_text.border = pg.mkPen(0, 0, 0, width=2)
+
+    def grab_frame_png(self) -> bytes | None:
+        """Return a PNG snapshot of the plot widget (for MP4 export)."""
+        pix = self._glw.grab()
+        if pix.isNull():
+            return None
+        from PySide6 import QtCore
+        buf = QtCore.QBuffer()
+        buf.open(QtCore.QIODevice.OpenModeFlag.WriteOnly)
+        pix.save(buf, "PNG")
+        return bytes(buf.data())
+
+
+# Displayed in HUD during countdown fast-forward (matches app._STARTUP_SUBSTEP_MULT).
+_STARTUP_MULT_LABEL = 35

@@ -52,12 +52,17 @@ class DiagnosticsPanel(QtWidgets.QWidget):
         layout.addWidget(self.power_plot)
 
         # --- Q_net ---
-        self.q_plot = pg.PlotWidget(title="Net Gain  Q = P_fusion / (P_Brems + P_cond)")
-        self.q_plot.setLabel("left", "Q_net")
+        self.q_plot = pg.PlotWidget(title="Net Gain  Q_sys / Q_plasma")
+        self.q_plot.setLabel("left", "Q")
         self.q_plot.setLabel("bottom", "time", units="us")
         self.q_plot.setLogMode(x=False, y=True)
+        self.q_plot.addLegend(offset=(10, 5))
         self.q_plot.showGrid(x=True, y=True, alpha=0.2)
-        self.curve_q = self.q_plot.plot(pen=pg.mkPen("#ffffff", width=2), name="Q_net")
+        self.curve_q = self.q_plot.plot(pen=pg.mkPen("#ffffff", width=2), name="Q_sys")
+        self.curve_q_plasma = self.q_plot.plot(
+            pen=pg.mkPen("#ffd23c", width=1.5, style=pg.QtCore.Qt.PenStyle.DashLine),
+            name="Q_plasma",
+        )
         self.q_line = pg.InfiniteLine(angle=0, movable=False, pen=pg.mkPen("#888", style=pg.QtCore.Qt.PenStyle.DashLine))
         self.q_line.setPos(0.0)  # log10(Q)=0 -> Q=1 breakeven
         self.q_plot.addItem(self.q_line)
@@ -74,6 +79,7 @@ class DiagnosticsPanel(QtWidgets.QWidget):
             self.curve_pb,
             self.curve_pc,
             self.curve_q,
+            self.curve_q_plasma,
         ):
             curve.setData([], [])
 
@@ -93,3 +99,4 @@ class DiagnosticsPanel(QtWidgets.QWidget):
         self.curve_pc.setData(t, np.maximum(np.asarray(diag.p_cond), eps))
 
         self.curve_q.setData(t, np.maximum(np.asarray(diag.q_net), eps))
+        self.curve_q_plasma.setData(t, np.maximum(np.asarray(diag.q_plasma), eps))

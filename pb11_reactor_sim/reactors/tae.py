@@ -15,7 +15,8 @@ Design physics
 * ICC induction: alphas streaming axially past segmented electrodes induce an
   alternating current as the image charge moves segment to segment.
 
-Controls: Neutral Beam Injection (NBI) current and background field ``B0``.
+Controls: Neutral Beam Injection (NBI) current, background field ``B0``, and ICC
+direct-conversion coupling efficiency.
 """
 from __future__ import annotations
 
@@ -28,7 +29,7 @@ from pb11_reactor_sim.engine.base import (
     ReactorSimulation,
     StructureLabel,
 )
-from pb11_reactor_sim.engine.shot_sequence import FirePhase, ShotOps
+from pb11_reactor_sim.engine.shot_sequence import FirePhase, ShotOps, ShotPhase
 from pb11_reactor_sim.engine.particles import ParticleSpecies
 from pb11_reactor_sim.physics import constants as C
 from pb11_reactor_sim.physics import processes as P
@@ -59,6 +60,7 @@ class TAEReactor(ReactorSimulation):
         self.icc_signal: float = 0.0
         self._b_scale: float = 0.0
         self._nbi_scale: float = 0.0
+        self.sustainment: float = 0.0
         super().__init__(grid, field_solver)
 
     # -- declarations -------------------------------------------------------
@@ -67,6 +69,7 @@ class TAEReactor(ReactorSimulation):
         return [
             ControlSpec("nbi_current", "NBI Current", 0.0, 120.0, 40.0, units="A"),
             ControlSpec("b0", "Background B0", 0.1, 5.0, 1.5, units="T"),
+            ControlSpec("icc_coupling", "ICC Coupling", 0.50, 0.95, 0.85, units="frac"),
         ]
 
     def default_dt(self) -> float:
@@ -116,14 +119,38 @@ class TAEReactor(ReactorSimulation):
         self.n_B = 3.0e17
         self.icc_signal = 0.0
         self._update_bz_field()
+        self._seed_gas_puff()
 
     def enter_quiescent(self) -> None:
         self._nbi_scale = 0.0
         self._b_scale = max(self._b_scale * 0.35, 0.08)
         self._update_bz_field()
 
+    def discharge_phase_key(self) -> str:
+        return "flat_top"
+
+    def skip_to_discharge_label(self) -> str:
+        return "Skip to flat-top"
+
+    def prepare_skipped_to_discharge(self) -> None:
+        self._b_scale = 1.0
+        self._nbi_scale = 1.0
+        self._update_bz_field()
+        if self.particle_count() < 400:
+            self.seed_particles()
+        i_nbi = self.controls.get("nbi_current", 40.0)
+        b0 = self.controls.get("b0", 1.5)
+        self.T_i_keV = 80.0 + 2.0 * i_nbi + 30.0 * b0
+        self.T_e_keV = 0.35 * self.T_i_keV
+        self.n_e = 3.0e20 * (0.6 + 0.4 * b0 / 5.0)
+        self.n_p = 0.55 * self.n_e
+        self.n_B = 0.09 * self.n_e
+        self._snap_particles_to_temperature()
+
     def on_fire_phase_begin(self, phase_key: str) -> None:
-        if phase_key == "formation" and not self.species:
+        if phase_key == "gas_fill" and self.particle_count() == 0:
+            self._seed_gas_puff()
+        if phase_key == "formation" and self.particle_count() < 400:
             self.seed_particles()
 
     def on_fire_phase_tick(self, phase_key: str, dt: float) -> None:
@@ -131,19 +158,29 @@ class TAEReactor(ReactorSimulation):
             self.n_e = min(self.n_e * (1.0 + dt / 1.0e-6), 8.0e18)
         elif phase_key == "field_ramp":
             self._b_scale = min(self._b_scale + dt / 5.0e-6, 1.0)
+            self.T_i_keV = min(8.0, self.T_i_keV + dt / 1.5e-6)
+            self.T_e_keV = min(3.0, self.T_e_keV + dt / 3.0e-6)
             self._update_bz_field()
         elif phase_key == "formation":
             self._b_scale = min(self._b_scale + dt / 8.0e-6, 0.85)
+            self.T_i_keV = min(25.0, self.T_i_keV + dt / 0.4e-6)
+            self.T_e_keV = min(8.0, self.T_e_keV + dt / 1.0e-6)
             self._update_bz_field()
-            if self.species and self.species["p"].count < 400:
+            if self.particle_count() < 400:
                 self.seed_particles()
         elif phase_key == "nbi_heat":
-            self._nbi_scale = min(self._nbi_scale + dt / 12.0e-6, 1.0)
-            self._b_scale = 1.0
+            sustain = self._sustainment_factor()
+            # Reach full beam drive by end of this 4 µs phase (not 12 µs).
+            self._nbi_scale = min(self._nbi_scale + dt / 4.0e-6, sustain)
+            eff = sustain * self._nbi_scale
+            self._b_scale = min(1.0, 0.2 + 0.8 * eff)
             self._update_bz_field()
         elif phase_key in ("flat_top",):
-            self._b_scale = 1.0
-            self._nbi_scale = 1.0
+            sustain = self._sustainment_factor()
+            if self._nbi_scale < sustain:
+                self._nbi_scale = min(self._nbi_scale + dt / 1.5e-6, sustain)
+            eff = sustain * self._nbi_scale
+            self._b_scale = 0.15 + 0.85 * eff
             self._update_bz_field()
         elif phase_key == "ramp_down":
             self._nbi_scale = max(self._nbi_scale - dt / 8.0e-6, 0.0)
@@ -268,7 +305,106 @@ class TAEReactor(ReactorSimulation):
 
         self.species = {"p": protons, "B": boron, "e": electrons, "alpha": alphas}
 
+    def _seed_gas_puff(self) -> None:
+        """Cold neutral-gas macroparticles visible after Arm / gas-fill."""
+        g = self.grid
+        n = 350
+        cold_i, cold_e = 0.05, 0.05
+        protons = ParticleSpecies(C.PROTON, macro_weight=1.0e12)
+        boron = ParticleSpecies(C.BORON11, macro_weight=1.0e11)
+        electrons = ParticleSpecies(C.ELECTRON, macro_weight=1.0e12)
+        alphas = ParticleSpecies(C.ALPHA, macro_weight=1.0e10)
+        xs = _RNG.uniform(g.x0 + 0.05, g.x0 + g.Lx - 0.30, size=n)
+        ys = self._density_profile_y(n)
+        vth_p = self._thermal_velocity(cold_i, C.PROTON.mass)
+        vth_e = self._thermal_velocity(cold_e, C.ELECTRON.mass)
+        protons.spawn(xs, ys, _RNG.normal(0, vth_p, n), _RNG.normal(0, vth_p, n), np.zeros(n))
+        nb = n // 5
+        boron.spawn(
+            _RNG.uniform(g.x0 + 0.05, g.x0 + g.Lx - 0.30, nb),
+            self._density_profile_y(nb),
+            _RNG.normal(0, vth_p, nb), _RNG.normal(0, vth_p, nb), np.zeros(nb),
+        )
+        electrons.spawn(xs, ys, _RNG.normal(0, vth_e, n), _RNG.normal(0, vth_e, n), np.zeros(n))
+        self.species = {"p": protons, "B": boron, "e": electrons, "alpha": alphas}
+
     # -- dynamics -----------------------------------------------------------
+    def _optimizer_flat_top_state(self) -> dict[str, float]:
+        return {
+            "T_i_keV": 120.0,
+            "T_e_keV": 18.0,
+            "n_e": 2.5e20,
+            "n_p": 1.375e20,
+            "n_B": 2.25e19,
+            "time": 0.0,
+        }
+
+    def plasma_volume_m3(self) -> float:
+        """Effective FRC core volume for 0D power-density normalization."""
+        g = self.grid
+        return float(np.pi * self.Y_S**2 * g.Lx * 0.85)
+
+    def _beam_energy_kev(self) -> float:
+        return float(P.nbi_beam_energy_keV(self.controls.get("nbi_current", 40.0)))
+
+    def _sustainment_factor(self) -> float:
+        """Slider-limited beam sustainment (FRC can hold at this NBI setting)."""
+        return float(
+            P.frc_nbi_sustainment(
+                self.controls.get("nbi_current", 40.0),
+                self.controls.get("b0", 1.5),
+            )
+        )
+
+    def _effective_sustainment(self) -> float:
+        """Live sustainment including the shot ramp ``nbi_scale(t)``."""
+        base = self._sustainment_factor()
+        if self.shot_phase != ShotPhase.FIRING:
+            return base
+        return base * float(np.clip(self._nbi_scale, 0.0, 1.0))
+
+    def _process_powers(self) -> tuple[float, float, float, float]:
+        """TAE system balance: beam-target fusion, ICC recovery, NBI input."""
+        i_nbi = self.controls.get("nbi_current", 40.0)
+        icc_eta = self.controls.get("icc_coupling", 0.85)
+        e_beam = self._beam_energy_kev()
+        sustain = self._effective_sustainment()
+        self.sustainment = sustain
+
+        beam_frac = P.nbi_fast_ion_fraction(i_nbi) * P.frc_beam_overlap(i_nbi) * max(self._nbi_scale, 0.0)
+        n_beam = self.n_p * beam_frac
+        n_thermal_p = max(self.n_p - n_beam, self.n_p * 0.04 * sustain)
+        t_thermal_i = min(self.T_i_keV, 0.22 * e_beam + 15.0) * sustain
+
+        p_beam = float(P.beam_target_fusion_power_density(n_beam, self.n_B, e_beam)) * sustain
+        p_thermal = (
+            float(P.fusion_power_density(n_thermal_p, self.n_B, t_thermal_i)) * 0.12 * (sustain**2)
+        )
+        p_fusion = p_beam + p_thermal
+
+        z_eff = P.z_effective({1: self.n_p, 5: self.n_B}, self.n_e)
+        p_brems = float(P.bremsstrahlung_power_density(z_eff, self.n_e, self.T_e_keV))
+        tau_eff = self.energy_confinement_time() * max(sustain**2, 0.04)
+        p_cond = float(
+            P.frc_transport_loss_density(
+                self.n_e,
+                self.T_e_keV,
+                n_thermal_p,
+                t_thermal_i,
+                tau_eff,
+                sustainment=sustain,
+            )
+        )
+        nbi_frac = float(np.clip(self._nbi_scale, 0.0, 1.0)) if self.shot_phase == ShotPhase.FIRING else 1.0
+        p_nbi = float(P.nbi_input_power_density(i_nbi, e_beam, self.plasma_volume_m3())) * nbi_frac
+        p_icc = float(P.icc_recovery_power_density(p_fusion, icc_eta))
+
+        self.last_p_nbi = p_nbi
+        self.last_p_icc = p_icc
+        self.last_q_plasma = float(P.q_net(p_fusion, p_brems, p_cond))
+        q_sys = float(P.q_system(p_icc, p_nbi + p_brems + p_cond))
+        return p_fusion, p_brems, p_cond, q_sys
+
     def on_controls(self) -> None:
         self._update_bz_field()
 
@@ -326,25 +462,23 @@ class TAEReactor(ReactorSimulation):
                 sp.x = np.minimum(sp.x, x_max)
 
     def _inject_nbi(self, dt: float) -> None:
+        """Neutral-beam injection: add fast protons proportional to NBI current."""
         if self._nbi_scale <= 0.0:
             return
-        """Neutral-beam injection: add fast protons proportional to NBI current."""
         i_nbi = self.controls.get("nbi_current", 40.0) * self._nbi_scale
-        # Number of macroparticles injected this step scales with current.
         n_new = int(i_nbi * 0.05)
         if n_new <= 0:
             return
+        e_beam_j = self._beam_energy_kev() * C.KEV_TO_JOULE
+        v_beam = float(np.sqrt(2.0 * e_beam_j / C.PROTON.mass))
         g = self.grid
         protons = self.species["p"]
         x = _RNG.uniform(g.x0 + 0.05, g.x0 + 0.15, n_new)
         y = _RNG.normal(0.0, self.Y_S, n_new)
-        # Beam directed inward (+x) and fast (tangential drive).
-        v_beam = 1.2e6 + 5.0e3 * i_nbi
         vx = np.full(n_new, v_beam)
-        vy = _RNG.normal(0.0, 2.0e5, n_new)
-        vz = _RNG.normal(0.0, 2.0e5, n_new)
+        vy = _RNG.normal(0.0, 0.08 * v_beam, n_new)
+        vz = _RNG.normal(0.0, 0.08 * v_beam, n_new)
         protons.spawn(x, np.clip(y, g.y0 + 0.02, g.y0 + g.Ly - 0.02), vx, vy, vz)
-        # Cap population to keep the GUI fast.
         self._cap_population("p", 4000)
 
     def _cap_population(self, sym: str, cap: int) -> None:
@@ -387,16 +521,20 @@ class TAEReactor(ReactorSimulation):
     def update_plasma_state(self, dt: float) -> None:
         i_nbi = self.controls.get("nbi_current", 40.0)
         b0 = self.controls.get("b0", 1.5)
-        # Ion temperature rises with NBI drive and confinement (B0), relaxes slowly.
-        t_target = 80.0 + 2.0 * i_nbi + 30.0 * b0
+        e_beam = self._beam_energy_kev()
+        sustain = self._effective_sustainment()
+        self.sustainment = sustain
+        t_target = (40.0 + 0.35 * e_beam + 18.0 * b0) * sustain + 0.8 * (1.0 - sustain)
         self.T_i_keV += (t_target - self.T_i_keV) * min(1.0, dt / 5.0e-7)
-        # Electrons heated by ion-electron collisions; kept cooler (non-thermal FRC).
-        self.T_e_keV += (0.35 * self.T_i_keV - self.T_e_keV) * min(1.0, dt / 1.0e-6)
-        # Peak densities scale weakly with confinement.
-        self.n_e = 3.0e20 * (0.6 + 0.4 * b0 / 5.0)
-        self.n_p = 0.55 * self.n_e
+        t_e_target = min(12.0 + 0.04 * self.T_i_keV, 0.18 * self.T_i_keV)
+        self.T_e_keV += (t_e_target - self.T_e_keV) * min(1.0, dt / 1.0e-6)
+        n_base = 3.0e20 * (0.55 + 0.45 * b0 / 5.0)
+        self.n_e = n_base * (0.25 + 0.75 * sustain)
+        beam_frac = P.nbi_fast_ion_fraction(i_nbi) * P.frc_beam_overlap(i_nbi) * max(self._nbi_scale, 0.0)
+        self.n_p = 0.55 * self.n_e * (1.0 + 0.08 * beam_frac)
         self.n_B = 0.09 * self.n_e
 
     def energy_confinement_time(self) -> float:
-        # Better confinement at higher B0.
-        return 5.0e-4 * (0.5 + self.controls.get("b0", 1.5) / 5.0)
+        b0 = self.controls.get("b0", 1.5)
+        i_nbi = self.controls.get("nbi_current", 40.0)
+        return 6.0e-3 * (b0 / 1.5) ** 2.4 * (1.0 + 0.75 * i_nbi / 120.0) * 18.0

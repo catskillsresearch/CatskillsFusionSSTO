@@ -77,7 +77,9 @@ class ControlPanel(QtWidgets.QWidget):
     resetRequested = QtCore.Signal()
     armRequested = QtCore.Signal()
     fireRequested = QtCore.Signal()
+    skipToDischargeRequested = QtCore.Signal()
     optimizeRequested = QtCore.Signal()
+    recordToggled = QtCore.Signal(bool)
 
     def __init__(self, reactor_names: list[str], parent: QtWidgets.QWidget | None = None) -> None:
         super().__init__(parent)
@@ -121,6 +123,11 @@ class ControlPanel(QtWidgets.QWidget):
         shot_row.addWidget(self.fire_btn)
         root.addLayout(shot_row)
 
+        self.skip_btn = QtWidgets.QPushButton("Skip to flat-top")
+        self.skip_btn.setVisible(False)
+        self.skip_btn.clicked.connect(self.skipToDischargeRequested.emit)
+        root.addWidget(self.skip_btn)
+
         btn_row = QtWidgets.QHBoxLayout()
         self.play_btn = QtWidgets.QPushButton("Play")
         self.play_btn.setCheckable(True)
@@ -130,6 +137,15 @@ class ControlPanel(QtWidgets.QWidget):
         btn_row.addWidget(self.play_btn)
         btn_row.addWidget(self.reset_btn)
         root.addLayout(btn_row)
+
+        self.record_btn = QtWidgets.QPushButton("Record MP4")
+        self.record_btn.setCheckable(True)
+        self.record_btn.setToolTip(
+            "Capture each displayed frame from the plot. Toggle off to save an MP4 "
+            "(requires ffmpeg or imageio+Pillow)."
+        )
+        self.record_btn.toggled.connect(self._on_record)
+        root.addWidget(self.record_btn)
 
         # Optimizer: search this reactor's control space for the best Q_net.
         self.optimize_btn = QtWidgets.QPushButton("Solve for optimal Q_net")
@@ -157,6 +173,16 @@ class ControlPanel(QtWidgets.QWidget):
     def _on_play(self, checked: bool) -> None:
         self.play_btn.setText("Pause" if checked else "Play")
         self.playToggled.emit(checked)
+
+    def _on_record(self, checked: bool) -> None:
+        self.record_btn.setText("Stop & save MP4" if checked else "Record MP4")
+        self.recordToggled.emit(checked)
+
+    def set_recording(self, active: bool) -> None:
+        self.record_btn.blockSignals(True)
+        self.record_btn.setChecked(active)
+        self.record_btn.setText("Stop & save MP4" if active else "Record MP4")
+        self.record_btn.blockSignals(False)
 
     def set_playing(self, playing: bool) -> None:
         self.play_btn.blockSignals(True)
@@ -209,8 +235,16 @@ class ControlPanel(QtWidgets.QWidget):
     def set_shot_status(self, phase: str, callout: str, can_fire: bool) -> None:
         self.arm_btn.setToolTip("Prepare vacuum, fuel, and power systems for the next shot.")
         self.fire_btn.setToolTip(
-            "Run the discharge countdown. Enabled when armed, or after quiescence "
-            "on machines that allow repeat fire without re-arming."
+            "Run the automated discharge sequence. Pre-discharge countdown runs "
+            "fast-forward; flat-top / pulse / pinch play at normal speed."
         )
         self.fire_btn.setText("Fire" if can_fire else "Fire (arm first)")
         self.set_fire_enabled(can_fire)
+
+    def set_skip_to_discharge(self, visible: bool, label: str = "Skip to flat-top") -> None:
+        self.skip_btn.setVisible(visible)
+        self.skip_btn.setText(label)
+        self.skip_btn.setToolTip(
+            "Jump past the countdown straight to the main discharge phase "
+            "(flat-top, laser pulse, or pinch)."
+        )

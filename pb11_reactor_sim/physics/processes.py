@@ -276,16 +276,36 @@ def q_net(
     *,
     floor: float = 1.0e-30,
 ) -> ArrayLike:
-    r"""Net scientific gain ratio.
+    r"""Plasma physics gain (fusion vs radiation + transport).
 
     .. math::
 
-        Q_{net} = \frac{P_{fusion}}{P_{Br} + P_{cond}}
+        Q_{plasma} = \frac{P_{fusion}}{P_{Br} + P_{cond}}
 
     A floor avoids division by zero before the plasma is energized.
     """
     losses = np.asarray(p_brems, dtype=float) + np.asarray(p_conduction, dtype=float)
     return np.asarray(p_fusion, dtype=float) / np.maximum(losses, floor)
+
+
+def q_system(
+    p_recovered: ArrayLike,
+    p_input_and_losses: ArrayLike,
+    *,
+    floor: float = 1.0e-30,
+) -> ArrayLike:
+    r"""Engineering / plant gain (recovered fusion-product power vs all inputs).
+
+    .. math::
+
+        Q_{sys} = \frac{P_{recovered}}{P_{NBI} + P_{Br} + P_{cond}}
+
+    For TAE FRC, ``P_recovered`` is the ICC direct-conversion harvest of charged
+    p-11B alphas.
+    """
+    return np.asarray(p_recovered, dtype=float) / np.maximum(
+        np.asarray(p_input_and_losses, dtype=float), floor
+    )
 
 
 def conduction_loss_density(
@@ -304,3 +324,131 @@ def conduction_loss_density(
     """
     energy_density = 3.0 * np.asarray(n_e, dtype=float) * np.asarray(T_e_keV, dtype=float) * C.KEV_TO_JOULE
     return energy_density / max(tau_energy_s, 1.0e-12)
+
+
+# ---------------------------------------------------------------------------
+# 5. TAE FRC beam-driven & ICC power balance
+# ---------------------------------------------------------------------------
+def nbi_beam_energy_keV(i_nbi: float, *, i_ref: float = 120.0) -> float:
+    """MeV-class NBI energy [keV] from the normalized beam-current slider."""
+    frac = max(float(i_nbi), 0.0) / i_ref
+    return 250.0 + 320.0 * frac**0.85
+
+
+def nbi_fast_ion_fraction(i_nbi: float, *, i_ref: float = 120.0) -> float:
+    """Fraction of protons in the fast beam population (vs thermal bulk)."""
+    frac = max(float(i_nbi), 0.0) / i_ref
+    return min(0.72, 0.10 + 0.62 * frac)
+
+
+def beam_target_fusion_power_density(
+    n_beam: ArrayLike,
+    n_B: ArrayLike,
+    e_beam_keV: ArrayLike,
+    *,
+    e_fusion_J: float = C.PB11_REACTION_ENERGY_J,
+    beam_enhancement: float = 4.5,
+) -> ArrayLike:
+    r"""Beam-on-boron fusion power [W/m^3] using :math:`\langle\sigma v\rangle(E_{beam})`.
+
+    TAE's path relies on fast injected protons reacting with boron before
+    full thermalization — this channel uses the beam energy, not the bulk ``T_i``.
+    ``beam_enhancement`` accounts for non-Maxwellian overlap of the beam with
+    the boron target distribution in the FRC core.
+    """
+    sv = pb11_reactivity(e_beam_keV)
+    return (
+        beam_enhancement
+        * np.asarray(n_beam, dtype=float)
+        * np.asarray(n_B, dtype=float)
+        * sv
+        * e_fusion_J
+    )
+
+
+def nbi_input_power_density(
+    i_nbi: float,
+    e_beam_keV: float,
+    volume_m3: float,
+    *,
+    i_ref: float = 120.0,
+) -> float:
+    """Electrical NBI power deposited per unit FRC plasma volume [W/m^3]."""
+    frac = max(float(i_nbi), 0.0) / i_ref
+    e_scale = max(float(e_beam_keV), 1.0) / 400.0
+    p_total_w = 1.35e5 * (frac**1.35) * e_scale
+    return p_total_w / max(volume_m3, 1.0e-3)
+
+
+def icc_recovery_power_density(p_fusion: ArrayLike, eta_icc: float) -> ArrayLike:
+    """ICC harvest of charged alpha kinetic energy [W/m^3] (p-11B → 3 alphas)."""
+    return float(eta_icc) * np.asarray(p_fusion, dtype=float)
+
+
+def frc_transport_loss_density(
+    n_e: ArrayLike,
+    T_e_keV: ArrayLike,
+    n_i_thermal: ArrayLike,
+    T_i_thermal_keV: ArrayLike,
+    tau_energy_s: float,
+    *,
+    n_loss_cap: float = 4.0e19,
+    sustainment: float = 1.0,
+) -> ArrayLike:
+    r"""FRC end/transport loss on the *thermal* populations only [W/m^3].
+
+    Fast beam ions are excluded from the loss inventory — they fuse before
+    equilibrating. ``n_loss_cap`` limits the loss-region density used in the
+    flux estimate (core peak ``n_e`` can exceed the scrape-off value).
+
+    When ``sustainment < 1`` (under-beamed FRC), end/convection losses rise as
+    the reversed field decays — modeled as excess loss above the confined limit.
+    """
+    n_e_loss = np.minimum(np.asarray(n_e, dtype=float), n_loss_cap)
+    n_i_loss = np.minimum(np.asarray(n_i_thermal, dtype=float), n_loss_cap * 0.55)
+    energy_density = (
+        1.5
+        * C.KEV_TO_JOULE
+        * (
+            n_e_loss * np.asarray(T_e_keV, dtype=float)
+            + n_i_loss * np.asarray(T_i_thermal_keV, dtype=float)
+        )
+    )
+    base = energy_density / max(tau_energy_s, 1.0e-12)
+    s = float(np.clip(sustainment, 0.0, 1.0))
+    # End-loss blow-up as field reversal weakens (tilt / open field lines).
+    end_loss_factor = 1.0 + 12.0 * (1.0 - s) ** 2
+    return base * end_loss_factor
+
+
+def _smooth01(x: float) -> float:
+    """Clamp to [0, 1] with a smoothstep edge."""
+    t = max(0.0, min(1.0, x))
+    return t * t * (3.0 - 2.0 * t)
+
+
+def frc_nbi_sustainment(
+    i_nbi: float,
+    b0: float,
+    *,
+    i_onset_a: float = 30.0,
+    i_full_a: float = 55.0,
+) -> float:
+    r"""Beam-driven FRC sustainment fraction in ``[0, 1]``.
+
+    TAE forms and holds the reversed field with **neutral-beam-driven current**.
+    Below ``i_onset_a`` the FRC cannot maintain reversal; above ``i_full_a`` the
+    beam fully sustains flat-top. External ``B0`` tightens confinement but does
+    **not** replace beam sustainment (NBI-only formation physics).
+    """
+    span = max(i_full_a - i_onset_a, 1.0)
+    beam_hold = _smooth01((float(i_nbi) - i_onset_a) / span)
+    # B0 assists τ_E and density peaking once the FRC exists, not reversal itself.
+    confinement_boost = 0.70 + 0.30 * min(float(b0) / 5.0, 1.0)
+    return beam_hold * confinement_boost
+
+
+def frc_beam_overlap(i_nbi: float, *, i_ref: float = 120.0) -> float:
+    """Effective beam–plasma overlap for beam-target fusion (trapping + density)."""
+    frac = max(float(i_nbi), 0.0) / i_ref
+    return min(1.0, 0.15 + 0.85 * _smooth01((frac - 0.18) / 0.55))

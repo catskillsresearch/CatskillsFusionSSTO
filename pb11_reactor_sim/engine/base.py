@@ -138,6 +138,7 @@ class Diagnostics:
     p_brems: deque[float] = field(default_factory=lambda: deque(maxlen=2000))
     p_cond: deque[float] = field(default_factory=lambda: deque(maxlen=2000))
     q_net: deque[float] = field(default_factory=lambda: deque(maxlen=2000))
+    q_plasma: deque[float] = field(default_factory=lambda: deque(maxlen=2000))
 
     def append(
         self,
@@ -148,6 +149,7 @@ class Diagnostics:
         p_brems: float,
         p_cond: float,
         q_net: float,
+        q_plasma: float | None = None,
     ) -> None:
         self.time.append(t)
         self.T_i.append(T_i)
@@ -156,9 +158,19 @@ class Diagnostics:
         self.p_brems.append(p_brems)
         self.p_cond.append(p_cond)
         self.q_net.append(q_net)
+        self.q_plasma.append(q_plasma if q_plasma is not None else q_net)
 
     def clear(self) -> None:
-        for d in (self.time, self.T_i, self.T_e, self.p_fusion, self.p_brems, self.p_cond, self.q_net):
+        for d in (
+            self.time,
+            self.T_i,
+            self.T_e,
+            self.p_fusion,
+            self.p_brems,
+            self.p_cond,
+            self.q_net,
+            self.q_plasma,
+        ):
             d.clear()
 
 
@@ -221,6 +233,9 @@ class ReactorSimulation(abc.ABC):
         self.last_p_brems: float = 0.0
         self.last_p_cond: float = 0.0
         self.last_q_net: float = 0.0
+        self.last_p_nbi: float = 0.0
+        self.last_p_icc: float = 0.0
+        self.last_q_plasma: float = 0.0
 
         # Shot sequencing (Arm / Fire / quiesce).
         self.shot_phase: ShotPhase = ShotPhase.UNARMED
@@ -334,6 +349,7 @@ class ReactorSimulation(abc.ABC):
         self.last_p_cond = p_cond
         self.last_q_net = q
 
+        q_plasma = getattr(self, "last_q_plasma", q)
         self.diagnostics.append(
             self.time * 1.0e6,  # display time in microseconds
             self.T_i_keV,
@@ -342,6 +358,7 @@ class ReactorSimulation(abc.ABC):
             p_brems,
             p_cond,
             q,
+            q_plasma=q_plasma,
         )
 
     # Overridable physics knobs --------------------------------------------
@@ -363,6 +380,51 @@ class ReactorSimulation(abc.ABC):
             return True
         return False
 
+    def discharge_phase_key(self) -> str:
+        """Shot phase where the main discharge begins (subclasses override)."""
+        return "flat_top"
+
+    def skip_to_discharge_label(self) -> str:
+        """Button text for :meth:`skip_to_discharge`."""
+        return "Skip to flat-top"
+
+    def is_startup_countdown(self) -> bool:
+        """True during fast-forward pre-discharge phases after **Fire**."""
+        if self.shot_phase != ShotPhase.FIRING or not self._active_fire_phases:
+            return False
+        keys = [p.key for p in self._active_fire_phases]
+        target = self.discharge_phase_key()
+        if self._fire_phase_key not in keys or target not in keys:
+            return False
+        return keys.index(self._fire_phase_key) < keys.index(target)
+
+    def can_skip_to_discharge(self) -> bool:
+        return self.is_startup_countdown()
+
+    def prepare_skipped_to_discharge(self) -> None:
+        """Set fields/particles as if pre-discharge countdown phases finished."""
+
+    def skip_to_discharge(self) -> bool:
+        """Jump to the main discharge phase (flat-top / pulse / pinch)."""
+        if not self.can_skip_to_discharge():
+            return False
+        target = self.discharge_phase_key()
+        for i, phase in enumerate(self._active_fire_phases):
+            if phase.key != target:
+                continue
+            self._fire_phase_index = i
+            self._phase_elapsed_s = 0.0
+            self.prepare_skipped_to_discharge()
+            self._fire_phase_key = phase.key
+            self.shot_callout = phase.callout
+            self.on_fire_phase_begin(phase.key)
+            return True
+        return False
+
+    def _snap_particles_to_temperature(self, n_passes: int = 12) -> None:
+        for _ in range(n_passes):
+            self._relax_particle_velocities(self.dt, tau_s=5.0e-9)
+
     def arm_shot(self) -> None:
         """Prepare a new shot (always allowed except while firing)."""
         if self.shot_phase == ShotPhase.FIRING:
@@ -379,6 +441,9 @@ class ReactorSimulation(abc.ABC):
         self.last_p_brems = 0.0
         self.last_p_cond = 0.0
         self.last_q_net = 0.0
+        self.last_p_nbi = 0.0
+        self.last_p_icc = 0.0
+        self.last_q_plasma = 0.0
         self.enter_armed()
         self.build_geometry()
         self.on_controls()
@@ -453,14 +518,54 @@ class ReactorSimulation(abc.ABC):
             "time": 0.0,
         }
 
+    def particle_count(self) -> int:
+        """Total macroparticles across all species."""
+        return sum(sp.count for sp in self.species.values())
+
+    def _should_update_plasma_state(self) -> bool:
+        """Hot discharge model — not during pre-shot standby or scripted ramps."""
+        if self.shot_phase == ShotPhase.FIRING:
+            return self.shot_physics_enabled
+        return False
+
+    def _should_advance_particles(self) -> bool:
+        """PIC push when macroparticles exist (or hot discharge phase)."""
+        if self.shot_phase == ShotPhase.FIRING:
+            if self._fire_phase_key == "gas_fill":
+                return False
+            return self.particle_count() > 0 or self.shot_physics_enabled
+        if self.shot_phase == ShotPhase.QUIESCENT:
+            return self.particle_count() > 0
+        return False
+
+    def _relax_particle_velocities(self, dt: float, tau_s: float = 2.0e-7) -> None:
+        """Relax macroparticle speeds toward the current 0D ``T_i`` / ``T_e``.
+
+        Without this, the scalar temperature can rise while the dots keep their
+        cold launch speeds and barely move on the canvas.
+        """
+        from pb11_reactor_sim.physics import constants as C
+
+        blend = min(1.0, dt / tau_s)
+        if blend <= 0.0 or not self.species:
+            return
+        rng = np.random.default_rng(self.step_index & 0xFFFF)
+        for sym, sp in self.species.items():
+            if sp.count == 0:
+                continue
+            t_kev = max(self.T_e_keV if sym == "e" else self.T_i_keV, 0.02)
+            vth = float(np.sqrt(t_kev * C.KEV_TO_JOULE / sp.species.mass))
+            sp.vx += (rng.normal(0.0, vth, sp.count) - sp.vx) * blend
+            sp.vy += (rng.normal(0.0, vth, sp.count) - sp.vy) * blend
+
     def _tick_quiescent(self, dt: float) -> None:
         """Slow cooldown between shots while paused or waiting for next Fire."""
         if self.shot_phase != ShotPhase.QUIESCENT:
             return
         self.on_fire_phase_tick("quiescent", dt)
-        self.update_plasma_state(dt)
-        if self.shot_physics_enabled:
+        if self._should_advance_particles():
             self.advance_particles(dt)
+            self._relax_particle_velocities(dt)
         self.compute_processes()
         self.time += dt
         self.step_index += 1
@@ -524,9 +629,11 @@ class ReactorSimulation(abc.ABC):
             return
         if self.shot_phase == ShotPhase.FIRING:
             self.on_fire_phase_tick(self._fire_phase_key, self.dt)
-            if self.shot_physics_enabled:
+            if self._should_advance_particles():
                 self.advance_particles(self.dt)
-            self.update_plasma_state(self.dt)
+                self._relax_particle_velocities(self.dt)
+            if self._should_update_plasma_state():
+                self.update_plasma_state(self.dt)
             self.compute_processes()
             self.time += self.dt
             self.step_index += 1
@@ -535,11 +642,8 @@ class ReactorSimulation(abc.ABC):
         if self.shot_phase == ShotPhase.QUIESCENT:
             self._tick_quiescent(self.dt)
             return
-        # ARMED or UNARMED: hold (operator may still move sliders).
-        self.update_plasma_state(self.dt)
-        self.compute_processes()
-        self.time += self.dt
-        self.step_index += 1
+        if self.shot_phase == ShotPhase.ARMED:
+            return  # standby: wait for Fire (Play does not heat an empty chamber)
 
     def reset(self) -> None:
         """Return to unarmed idle (factory / slider defaults)."""

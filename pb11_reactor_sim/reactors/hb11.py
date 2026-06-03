@@ -121,6 +121,26 @@ class HB11Reactor(ReactorSimulation):
         self.T_e_keV = max(self.T_e_keV * 0.5, 0.1)
         self.n_e = max(self.n_e * 0.2, 1.0e18)
 
+    def discharge_phase_key(self) -> str:
+        return "main_pulse"
+
+    def skip_to_discharge_label(self) -> str:
+        return "Skip to laser pulse"
+
+    def prepare_skipped_to_discharge(self) -> None:
+        if "p" not in self.species or self.species["p"].count < 100:
+            if not self.species:
+                self.seed_particles()
+            else:
+                self._spawn_block(600)
+        i_laser = self.controls.get("i_laser", 30.0)
+        self.T_i_keV = 120.0 + 6.0 * i_laser
+        self.T_e_keV = 0.18 * self.T_i_keV
+        self.n_e = 1.0e22
+        self.n_p = 5.0e21
+        self.n_B = 5.0e20
+        self._snap_particles_to_temperature()
+
     def on_fire_phase_begin(self, phase_key: str) -> None:
         if phase_key == "main_pulse" and self.species["p"].count < 100:
             self._spawn_block(600)
