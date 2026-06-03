@@ -27,6 +27,7 @@ import numpy.typing as npt
 
 from pb11_reactor_sim.engine.particles import ParticleSpecies
 from pb11_reactor_sim.engine.poisson import PoissonSolver
+from pb11_reactor_sim.engine.shot_sequence import FirePhase, ShotOps, ShotPhase
 from pb11_reactor_sim.physics import processes as P
 
 FloatArray = npt.NDArray[np.float64]
@@ -92,12 +93,34 @@ class ControlSpec:
 
 @dataclass(frozen=True)
 class StructureLabel:
-    """Persistent text annotation for a structural element on the 2D canvas."""
+    """Persistent text annotation for a structural element on the 2D canvas.
+
+    ``angle`` rotates the text (degrees, CCW) so it can lie flat along a
+    boundary; ``anchor`` is the pyqtgraph text anchor (0..1 in each axis).
+    """
 
     text: str
     x: float
     y: float
     color: tuple[int, int, int] = (235, 235, 235)
+    angle: float = 0.0
+    anchor: tuple[float, float] = (0.5, 0.5)
+
+
+@dataclass(frozen=True)
+class BoundaryShape:
+    """A dashed outline drawn to mark a physical boundary on the 2D canvas.
+
+    ``shape`` is one of ``"circle"``, ``"rect"``, ``"line"``:
+
+    * ``circle`` -- ``coords = (cx, cy, r)``
+    * ``rect``   -- ``coords = (x0, y0, x1, y1)`` (opposite corners)
+    * ``line``   -- ``coords = (x1, y1, x2, y2)``
+    """
+
+    shape: str
+    coords: tuple[float, ...]
+    color: tuple[int, int, int] = (150, 210, 255)
 
 
 # ---------------------------------------------------------------------------
@@ -172,6 +195,7 @@ class ReactorSimulation(abc.ABC):
         self.conductor_potential: FloatArray = grid.zeros()
         self.plasma_mask: BoolArray = np.ones((grid.ny, grid.nx), dtype=bool)
         self.labels: list[StructureLabel] = []
+        self.boundaries: list[BoundaryShape] = []
 
         # Particle species keyed by symbol.
         self.species: dict[str, ParticleSpecies] = {}
@@ -198,8 +222,21 @@ class ReactorSimulation(abc.ABC):
         self.last_p_cond: float = 0.0
         self.last_q_net: float = 0.0
 
+        # Shot sequencing (Arm / Fire / quiesce).
+        self.shot_phase: ShotPhase = ShotPhase.UNARMED
+        self.shot_callout: str = "Unarmed — press Arm shot to prepare."
+        self._fire_phase_index: int = -1
+        self._fire_phase_key: str = ""
+        self._phase_elapsed_s: float = 0.0
+        self._fire_from_quiescent: bool = False
+        self._active_fire_phases: tuple[FirePhase, ...] = ()
+
         self.build_geometry()
-        self.seed_particles()
+        self.enter_unarmed()
+
+        # Q_net optimizer uses hot flat-top 0D scalars, not the cold pre-shot state.
+        self._eval_init_state = self._capture_eval_state()
+        self._eval_init_state.update(self._optimizer_flat_top_state())
 
     # -- abstract hooks -----------------------------------------------------
     @classmethod
@@ -217,7 +254,32 @@ class ReactorSimulation(abc.ABC):
 
     @abc.abstractmethod
     def seed_particles(self) -> None:
-        """Create the initial macroparticle populations in :attr:`species`."""
+        """Create macroparticle populations (used at formation / target load)."""
+
+    @classmethod
+    @abc.abstractmethod
+    def shot_ops(cls) -> ShotOps:
+        """Return this reactor's Arm / Fire operational profile."""
+
+    @abc.abstractmethod
+    def enter_unarmed(self) -> None:
+        """Vacuum / idle: empty chamber, cold scalars, no discharge."""
+
+    @abc.abstractmethod
+    def enter_armed(self) -> None:
+        """Pre-shot ready state (gas fill, bank charged, target loaded, etc.)."""
+
+    @abc.abstractmethod
+    def enter_quiescent(self) -> None:
+        """Post-shot cooldown (particles and energy decaying)."""
+
+    @abc.abstractmethod
+    def on_fire_phase_begin(self, phase_key: str) -> None:
+        """Hook when a Fire countdown phase starts."""
+
+    @abc.abstractmethod
+    def on_fire_phase_tick(self, phase_key: str, dt: float) -> None:
+        """Hook each timestep while a Fire phase is active."""
 
     @abc.abstractmethod
     def advance_particles(self, dt: float) -> None:
@@ -246,21 +308,26 @@ class ReactorSimulation(abc.ABC):
         )
         self.ex, self.ey = self.poisson.electric_field(self.phi)
 
-    def compute_processes(self) -> None:
-        """Evaluate the coupled auxiliary process equations (Step 1).
+    def _process_powers(self) -> tuple[float, float, float, float]:
+        """Evaluate the coupled process equations from the current 0D state.
 
-        Uses the current 0D plasma state to produce representative core power
-        densities and the net gain Q, appending them to diagnostics.
+        Returns ``(p_fusion, p_brems, p_cond, q_net)`` in W/m^3 (and dimensionless
+        for Q). Pure -- no side effects -- so it can be reused by both the live
+        diagnostics loop and the Q-optimizer.
         """
         z_eff = P.z_effective({1: self.n_p, 5: self.n_B}, self.n_e)
         p_brems = float(P.bremsstrahlung_power_density(z_eff, self.n_e, self.T_e_keV))
         p_brems = self.apply_brems_suppression(p_brems)
-
-        p_fusion = float(
-            P.fusion_power_density(self.n_p, self.n_B, self.T_i_keV)
+        p_fusion = float(P.fusion_power_density(self.n_p, self.n_B, self.T_i_keV))
+        p_cond = float(
+            P.conduction_loss_density(self.n_e, self.T_e_keV, self.energy_confinement_time())
         )
-        p_cond = float(P.conduction_loss_density(self.n_e, self.T_e_keV, self.energy_confinement_time()))
         q = float(P.q_net(p_fusion, p_brems, p_cond))
+        return p_fusion, p_brems, p_cond, q
+
+    def compute_processes(self) -> None:
+        """Evaluate the process equations and record them in diagnostics."""
+        p_fusion, p_brems, p_cond, q = self._process_powers()
 
         self.last_p_fusion = p_fusion
         self.last_p_brems = p_brems
@@ -286,28 +353,206 @@ class ReactorSimulation(abc.ABC):
         """Hook for reactor-specific Bremsstrahlung suppression (LPP overrides)."""
         return p_brems
 
+    # -- shot operations (Arm / Fire) ---------------------------------------
+    def can_fire(self) -> bool:
+        """Whether **Fire** is allowed from the current operational state."""
+        ops = self.shot_ops()
+        if self.shot_phase == ShotPhase.ARMED:
+            return True
+        if self.shot_phase == ShotPhase.QUIESCENT and not ops.requires_rearm_between_shots:
+            return True
+        return False
+
+    def arm_shot(self) -> None:
+        """Prepare a new shot (always allowed except while firing)."""
+        if self.shot_phase == ShotPhase.FIRING:
+            return
+        self.time = 0.0
+        self.step_index = 0
+        self.diagnostics.clear()
+        self.species.clear()
+        self.phi = self.grid.zeros()
+        self.ex = self.grid.zeros()
+        self.ey = self.grid.zeros()
+        self.rho = self.grid.zeros()
+        self.last_p_fusion = 0.0
+        self.last_p_brems = 0.0
+        self.last_p_cond = 0.0
+        self.last_q_net = 0.0
+        self.enter_armed()
+        self.build_geometry()
+        self.on_controls()
+        self.shot_phase = ShotPhase.ARMED
+        self.shot_callout = self.shot_ops().arm_callout
+        self._fire_phase_index = -1
+        self._fire_phase_key = ""
+
+    def fire_shot(self) -> bool:
+        """Begin the Fire countdown; returns False if not allowed."""
+        if not self.can_fire():
+            return False
+        ops = self.shot_ops()
+        from_quiescent = self.shot_phase == ShotPhase.QUIESCENT
+        self._fire_from_quiescent = from_quiescent
+        self._active_fire_phases = ops.phases_for_fire(from_quiescent)
+        if not self._active_fire_phases:
+            return False
+        self.time = 0.0
+        self.step_index = 0
+        self.diagnostics.clear()
+        self._fire_phase_index = 0
+        self._phase_elapsed_s = 0.0
+        self._begin_fire_phase(0)
+        self.shot_phase = ShotPhase.FIRING
+        return True
+
+    def _begin_fire_phase(self, index: int) -> None:
+        phase = self._active_fire_phases[index]
+        self._fire_phase_key = phase.key
+        self._phase_elapsed_s = 0.0
+        self.shot_callout = phase.callout
+        self.on_fire_phase_begin(phase.key)
+
+    def _advance_shot_clock(self, dt: float) -> None:
+        if self.shot_phase != ShotPhase.FIRING:
+            return
+        self._phase_elapsed_s += dt
+        phase = self._active_fire_phases[self._fire_phase_index]
+        if self._phase_elapsed_s < phase.duration_s:
+            return
+        next_index = self._fire_phase_index + 1
+        if next_index < len(self._active_fire_phases):
+            self._fire_phase_index = next_index
+            self._begin_fire_phase(next_index)
+            return
+        self._finish_shot()
+
+    def _finish_shot(self) -> None:
+        self.enter_quiescent()
+        self.shot_phase = ShotPhase.QUIESCENT
+        self.shot_callout = self.shot_ops().quiescent_callout
+        self._fire_phase_key = ""
+        self._fire_phase_index = -1
+
+    @property
+    def shot_physics_enabled(self) -> bool:
+        """Full PIC + fusion physics active only during hot discharge phases."""
+        return self._fire_phase_key in self._hot_phase_keys()
+
+    def _hot_phase_keys(self) -> frozenset[str]:
+        return frozenset({"flat_top", "nbi_heat", "main_pulse", "pinch", "pulse"})
+
+    def _optimizer_flat_top_state(self) -> dict[str, float]:
+        """0D state the Q_net search advances from (discharge flat-top, not pre-shot)."""
+        return {
+            "T_i_keV": 50.0,
+            "T_e_keV": 20.0,
+            "n_e": 1.0e20,
+            "n_p": 5.0e19,
+            "n_B": 5.0e18,
+            "time": 0.0,
+        }
+
+    def _tick_quiescent(self, dt: float) -> None:
+        """Slow cooldown between shots while paused or waiting for next Fire."""
+        if self.shot_phase != ShotPhase.QUIESCENT:
+            return
+        self.on_fire_phase_tick("quiescent", dt)
+        self.update_plasma_state(dt)
+        if self.shot_physics_enabled:
+            self.advance_particles(dt)
+        self.compute_processes()
+        self.time += dt
+        self.step_index += 1
+
+    # -- fast Q evaluation (for the optimizer) ------------------------------
+    def _capture_eval_state(self) -> dict[str, float]:
+        """Snapshot the mutable 0D state restored between optimizer trials."""
+        return {
+            "T_i_keV": self.T_i_keV,
+            "T_e_keV": self.T_e_keV,
+            "n_e": self.n_e,
+            "n_p": self.n_p,
+            "n_B": self.n_B,
+            "time": 0.0,
+        }
+
+    def reset_eval_state(self) -> None:
+        """Restore the 0D state to its initial snapshot (subclasses extend)."""
+        for key, value in self._eval_init_state.items():
+            setattr(self, key, value)
+
+    def advance_state_only(self, dt: float) -> None:
+        """Advance only the 0D plasma state (no particles/fields).
+
+        Used by the optimizer to evaluate steady-state Q cheaply. Subclasses
+        with control-driven dynamic state (e.g. LPP's circuit/snowplow) override
+        this to advance that scalar state too.
+        """
+        self.update_plasma_state(dt)
+
+    def evaluate_qnet(self, controls: dict[str, float], max_steps: int = 1600, window: int = 200) -> float:
+        """Return the (windowed-mean) steady-state ``Q_net`` for given controls.
+
+        Resets the 0D state, applies the candidate controls *without* rebuilding
+        geometry, advances the lightweight state model to (quasi-)steady state,
+        and averages Q over the final ``window`` steps. This is fast (scalar
+        math only) and never touches the PIC particles, fields, or backend, so
+        it is safe to call from a worker thread.
+        """
+        self.reset_eval_state()
+        self.controls.update(controls)
+        dt = self.dt
+        q_window: list[float] = []
+        prev_q: float | None = None
+        for i in range(max_steps):
+            self.advance_state_only(dt)
+            self.time += dt
+            _, _, _, q = self._process_powers()
+            q_window.append(q)
+            if len(q_window) > window:
+                q_window.pop(0)
+            if i > window and prev_q is not None and abs(q - prev_q) <= 1.0e-4 * max(abs(q), 1.0e-30):
+                break
+            prev_q = q
+        return float(np.mean(q_window)) if q_window else 0.0
+
     # -- generic loop -------------------------------------------------------
     def step(self) -> None:
         """Advance the simulation by one timestep (generic orchestration)."""
-        self.advance_particles(self.dt)
+        if self.shot_phase == ShotPhase.UNARMED:
+            return
+        if self.shot_phase == ShotPhase.FIRING:
+            self.on_fire_phase_tick(self._fire_phase_key, self.dt)
+            if self.shot_physics_enabled:
+                self.advance_particles(self.dt)
+            self.update_plasma_state(self.dt)
+            self.compute_processes()
+            self.time += self.dt
+            self.step_index += 1
+            self._advance_shot_clock(self.dt)
+            return
+        if self.shot_phase == ShotPhase.QUIESCENT:
+            self._tick_quiescent(self.dt)
+            return
+        # ARMED or UNARMED: hold (operator may still move sliders).
         self.update_plasma_state(self.dt)
         self.compute_processes()
         self.time += self.dt
         self.step_index += 1
 
     def reset(self) -> None:
-        """Reset particles, fields, plasma state, and diagnostics."""
+        """Return to unarmed idle (factory / slider defaults)."""
         self.time = 0.0
         self.step_index = 0
-        self.species.clear()
-        self.phi = self.grid.zeros()
-        self.ex = self.grid.zeros()
-        self.ey = self.grid.zeros()
-        self.bz = self.grid.zeros()
-        self.rho = self.grid.zeros()
         self.diagnostics.clear()
+        self.enter_unarmed()
         self.build_geometry()
-        self.seed_particles()
+        self.on_controls()
+        self.shot_phase = ShotPhase.UNARMED
+        self.shot_callout = "Unarmed — press Arm shot to prepare."
+        self._fire_phase_index = -1
+        self._fire_phase_key = ""
 
     def apply_controls(self, values: dict[str, float]) -> None:
         """Merge new slider values; subclasses may react via :meth:`on_controls`."""
@@ -323,6 +568,14 @@ class ReactorSimulation(abc.ABC):
         if self.display_field_kind == "bz":
             return self.bz, "B_z [T]"
         return self.phi, "Phi [V]"
+
+    def display_field_levels(self) -> tuple[float, float] | None:
+        """Optional fixed ``(lo, hi)`` colour-scale limits for the 2D canvas.
+
+        Returning ``None`` lets the canvas derive limits from the field min/max.
+        Subclasses may override for stable colouring (e.g. symmetric ``±B0``).
+        """
+        return None
 
     def particle_overlay(self) -> dict[str, tuple[FloatArray, FloatArray, tuple[int, int, int]]]:
         """Return ``{symbol: (x, y, rgb)}`` for the scatter overlay."""

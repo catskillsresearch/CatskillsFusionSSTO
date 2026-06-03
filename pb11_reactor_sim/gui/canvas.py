@@ -52,19 +52,27 @@ class ReactorCanvas(QtWidgets.QWidget):
         # (paused) frame is colored deterministically, independent of the
         # ColorBarItem update timing.
         self._cmap = pg.colormap.get("inferno")
-        self._lut = self._cmap.getLookupTable(0.0, 1.0, 256)
+        self._lut = np.asarray(self._cmap.getLookupTable(0.0, 1.0, 256), dtype=np.ubyte)
         self._field_img = pg.ImageItem()
-        self._field_img.setColorMap(self._cmap)
-        self._field_img.setLookupTable(self._lut)
+        self._field_img.setAutoLevels(False)
+        self._field_img.setZValue(0)
         self._plot.addItem(self._field_img)
 
         # Conductor overlay (RGBA, transparent except solid cells).
         self._conductor_img = pg.ImageItem()
+        self._conductor_img.setZValue(1)
         self._plot.addItem(self._conductor_img)
 
-        # Color bar for the field.
-        self._cbar = pg.ColorBarItem(colorMap=pg.colormap.get("inferno"), width=12)
-        self._cbar.setImageItem(self._field_img, insert_in=self._plot)
+        # Color bar is *not* linked to the ImageItem (linking made the bar push
+        # default (0, 1) levels / its own colormap onto the field and produced
+        # the flat light-blue first frame on some Qt backends).
+        self._cbar = pg.ColorBarItem(
+            colorMap=self._cmap, values=(-1.0, 1.0), width=12, interactive=False,
+        )
+        self._cbar_placed = False
+
+        # Dashed boundary outlines (created per reactor).
+        self._boundary_items: list[pg.PlotDataItem] = []
 
         # One scatter item per species (created lazily).
         self._scatters: dict[str, pg.ScatterPlotItem] = {}
@@ -73,6 +81,7 @@ class ReactorCanvas(QtWidgets.QWidget):
         self._label_items: list[pg.TextItem] = []
 
         self._backend_text = pg.TextItem(anchor=(0, 0), color=(150, 255, 200))
+        self._backend_text.setZValue(6)
         self._plot.addItem(self._backend_text)
 
         self._current_reactor: ReactorSimulation | None = None
@@ -84,17 +93,41 @@ class ReactorCanvas(QtWidgets.QWidget):
         g = reactor.grid
         x0, x1, y0, y1 = g.extent
 
-        # Position field + conductor images on the data rect.
-        rect = QtCore.QRectF(x0, y0, g.Lx, g.Ly)
+        self._draw_conductors(reactor)
+        self._rebuild_boundaries(reactor)
+        self._rebuild_scatters(reactor)
+        self._rebuild_labels(reactor, backend_label)
+
+        # Fit the *entire* domain. Setting the full rect (rather than X/Y
+        # ranges separately) lets the aspect-locked view letterbox instead of
+        # clipping, so edge structures (side walls, collectors) stay visible.
+        vb = self._plot.getViewBox()
+        vb.setRange(QtCore.QRectF(x0, y0, g.Lx, g.Ly), padding=0.04)
+        # setImage must run before setRect (pyqtgraph requires an image first).
+        self.refresh()
+        self._sync_image_rect(reactor)
+
+    def showEvent(self, event: QtGui.QShowEvent) -> None:
+        """Re-sync the field after the GL view is first realized (live GUI only)."""
+        super().showEvent(event)
+        QtCore.QTimer.singleShot(0, self._prime_field_display)
+        QtCore.QTimer.singleShot(50, self._prime_field_display)
+
+    def _prime_field_display(self) -> None:
+        """Extra refresh passes so the first visible frame is never flat blue."""
+        if self._current_reactor is None:
+            return
+        self.refresh()
+        self._sync_image_rect(self._current_reactor)
+
+    def _sync_image_rect(self, reactor: ReactorSimulation) -> None:
+        """Map image pixel arrays onto the reactor's physical extent [m]."""
+        if self._field_img.image is None:
+            return
+        g = reactor.grid
+        rect = QtCore.QRectF(g.x0, g.y0, g.Lx, g.Ly)
         self._field_img.setRect(rect)
         self._conductor_img.setRect(rect)
-
-        self._draw_conductors(reactor)
-        self._rebuild_labels(reactor, backend_label)
-        self._rebuild_scatters(reactor)
-
-        self._plot.setXRange(x0, x1, padding=0.02)
-        self._plot.setYRange(y0, y1, padding=0.02)
 
     def _draw_conductors(self, reactor: ReactorSimulation) -> None:
         """Render the conductor mask as a high-contrast cyan-white overlay."""
@@ -105,17 +138,56 @@ class ReactorCanvas(QtWidgets.QWidget):
         rgba[mask] = (180, 230, 255, 235)
         self._conductor_img.setImage(rgba, autoLevels=False)
 
+    def _rebuild_boundaries(self, reactor: ReactorSimulation) -> None:
+        """Draw each physical boundary as a dashed outline."""
+        for item in self._boundary_items:
+            self._plot.removeItem(item)
+        self._boundary_items.clear()
+        for b in reactor.boundaries:
+            x, y = self._boundary_points(b)
+            pen = pg.mkPen(color=b.color, width=2.0, style=QtCore.Qt.PenStyle.DashLine)
+            item = pg.PlotDataItem(x, y, pen=pen, connect="all", antialias=True)
+            item.setZValue(2)
+            self._plot.addItem(item)
+            self._boundary_items.append(item)
+
+    @staticmethod
+    def _boundary_points(b) -> tuple[FloatArray, FloatArray]:
+        if b.shape == "circle":
+            cx, cy, r = b.coords
+            t = np.linspace(0.0, 2.0 * np.pi, 240)
+            return cx + r * np.cos(t), cy + r * np.sin(t)
+        if b.shape == "rect":
+            x0, y0, x1, y1 = b.coords
+            return (
+                np.array([x0, x1, x1, x0, x0]),
+                np.array([y0, y0, y1, y1, y0]),
+            )
+        x1, y1, x2, y2 = b.coords  # line
+        return np.array([x1, x2]), np.array([y1, y2])
+
     def _rebuild_labels(self, reactor: ReactorSimulation, backend_label: str) -> None:
         for item in self._label_items:
             self._plot.removeItem(item)
         self._label_items.clear()
+
+        font = QtGui.QFont()
+        font.setPointSize(10)
+        font.setBold(True)
         for lab in reactor.labels:
-            ti = pg.TextItem(lab.text, color=lab.color, anchor=(0, 0.5))
-            ti.setPos(lab.x, lab.y)
-            font = QtGui.QFont()
-            font.setPointSize(8)
-            font.setBold(True)
+            # A dark semi-opaque fill + colored border gives a high-contrast
+            # "halo" so labels stay readable over bright fields and dense dots.
+            ti = pg.TextItem(
+                lab.text,
+                color=lab.color,
+                anchor=lab.anchor,
+                fill=pg.mkBrush(0, 0, 0, 175),
+                border=pg.mkPen(lab.color, width=1),
+            )
             ti.setFont(font)
+            ti.setPos(lab.x, lab.y)
+            ti.setAngle(lab.angle)
+            ti.setZValue(5)
             self._plot.addItem(ti)
             self._label_items.append(ti)
 
@@ -135,6 +207,7 @@ class ReactorCanvas(QtWidgets.QWidget):
                 brush=pg.mkBrush(*color, 200),
                 name=sp.species.name,
             )
+            scatter.setZValue(3)
             self._plot.addItem(scatter)
             self._scatters[sym] = scatter
 
@@ -146,16 +219,34 @@ class ReactorCanvas(QtWidgets.QWidget):
             return
 
         field, label = reactor.display_field()
+        levels = reactor.display_field_levels()
         finite = np.isfinite(field)
-        if np.any(finite):
+        if levels is None and np.any(finite):
             lo = float(np.min(field[finite]))
             hi = float(np.max(field[finite]))
             if hi <= lo:
                 hi = lo + 1.0e-12
-            self._field_img.setImage(field, autoLevels=False, levels=(lo, hi))
-            self._field_img.setLookupTable(self._lut)
-            self._cbar.setLevels((lo, hi))
-        self._cbar.setLabel("right", label)
+            levels = (lo, hi)
+        if levels is not None and np.any(finite):
+            lo, hi = levels
+            self._field_img.setImage(
+                field,
+                autoLevels=False,
+                levels=(lo, hi),
+                lut=self._lut,
+            )
+            self._field_img.updateImage()
+            if not self._cbar_placed:
+                self._plot.layout.addItem(self._cbar, 2, 5)
+                self._plot.layout.setColumnFixedWidth(4, 5)
+                self._cbar_placed = True
+            self._cbar.setLevels((lo, hi), update_items=False)
+            self._cbar.setLabel("right", label)
+            self._sync_image_rect(reactor)
+
+        # Species are often empty at Arm and populated mid-shot (formation phase).
+        if set(reactor.species.keys()) != set(self._scatters.keys()):
+            self._rebuild_scatters(reactor)
 
         for sym, scatter in self._scatters.items():
             sp = reactor.species.get(sym)

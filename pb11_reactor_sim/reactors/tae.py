@@ -21,7 +21,14 @@ from __future__ import annotations
 
 import numpy as np
 
-from pb11_reactor_sim.engine.base import ControlSpec, Grid, ReactorSimulation, StructureLabel
+from pb11_reactor_sim.engine.base import (
+    BoundaryShape,
+    ControlSpec,
+    Grid,
+    ReactorSimulation,
+    StructureLabel,
+)
+from pb11_reactor_sim.engine.shot_sequence import FirePhase, ShotOps
 from pb11_reactor_sim.engine.particles import ParticleSpecies
 from pb11_reactor_sim.physics import constants as C
 from pb11_reactor_sim.physics import processes as P
@@ -50,6 +57,8 @@ class TAEReactor(ReactorSimulation):
         # ICC running phase accumulator and induced-signal history.
         self._icc_phase = 0.0
         self.icc_signal: float = 0.0
+        self._b_scale: float = 0.0
+        self._nbi_scale: float = 0.0
         super().__init__(grid, field_solver)
 
     # -- declarations -------------------------------------------------------
@@ -62,6 +71,105 @@ class TAEReactor(ReactorSimulation):
 
     def default_dt(self) -> float:
         return 2.0e-9  # 2 ns
+
+    @classmethod
+    def shot_ops(cls) -> ShotOps:
+        return ShotOps(
+            requires_rearm_between_shots=False,
+            arm_callout="ARMED — vacuum pumped, gas puffed, coils standby.",
+            fire_phases=(
+                FirePhase("gas_fill", 0.8e-6, "T−5 s: Gas fill / fuel inventory"),
+                FirePhase("field_ramp", 2.0e-6, "T−3 s: Coil ramp — B_z rising"),
+                FirePhase("formation", 3.0e-6, "T−2 s: FRC formation — plasma appears"),
+                FirePhase("nbi_heat", 4.0e-6, "T−1 s: NBI on — beam heating"),
+                FirePhase("flat_top", 25.0e-6, "T−0: FLAT-TOP — discharge"),
+                FirePhase("ramp_down", 4.0e-6, "Ramp-down — beams off, field falling"),
+            ),
+            refire_phases=(
+                FirePhase("field_ramp", 1.5e-6, "Re-ramp — field restore"),
+                FirePhase("nbi_heat", 3.0e-6, "NBI on — re-heat"),
+                FirePhase("flat_top", 20.0e-6, "FLAT-TOP — repeat discharge"),
+                FirePhase("ramp_down", 3.0e-6, "Ramp-down"),
+            ),
+            quiescent_callout="Quiescent — FRC decaying (Fire again without re-Arm).",
+        )
+
+    def enter_unarmed(self) -> None:
+        self.species.clear()
+        self._b_scale = 0.0
+        self._nbi_scale = 0.0
+        self.T_i_keV = 0.05
+        self.T_e_keV = 0.05
+        self.n_e = 1.0e16
+        self.n_p = 5.0e15
+        self.n_B = 5.0e14
+        self.icc_signal = 0.0
+        self.bz = self.grid.zeros()
+
+    def enter_armed(self) -> None:
+        self._b_scale = 0.12
+        self._nbi_scale = 0.0
+        self.T_i_keV = 0.2
+        self.T_e_keV = 0.15
+        self.n_e = 5.0e18
+        self.n_p = 2.0e18
+        self.n_B = 3.0e17
+        self.icc_signal = 0.0
+        self._update_bz_field()
+
+    def enter_quiescent(self) -> None:
+        self._nbi_scale = 0.0
+        self._b_scale = max(self._b_scale * 0.35, 0.08)
+        self._update_bz_field()
+
+    def on_fire_phase_begin(self, phase_key: str) -> None:
+        if phase_key == "formation" and not self.species:
+            self.seed_particles()
+
+    def on_fire_phase_tick(self, phase_key: str, dt: float) -> None:
+        if phase_key == "gas_fill":
+            self.n_e = min(self.n_e * (1.0 + dt / 1.0e-6), 8.0e18)
+        elif phase_key == "field_ramp":
+            self._b_scale = min(self._b_scale + dt / 5.0e-6, 1.0)
+            self._update_bz_field()
+        elif phase_key == "formation":
+            self._b_scale = min(self._b_scale + dt / 8.0e-6, 0.85)
+            self._update_bz_field()
+            if self.species and self.species["p"].count < 400:
+                self.seed_particles()
+        elif phase_key == "nbi_heat":
+            self._nbi_scale = min(self._nbi_scale + dt / 12.0e-6, 1.0)
+            self._b_scale = 1.0
+            self._update_bz_field()
+        elif phase_key in ("flat_top",):
+            self._b_scale = 1.0
+            self._nbi_scale = 1.0
+            self._update_bz_field()
+        elif phase_key == "ramp_down":
+            self._nbi_scale = max(self._nbi_scale - dt / 8.0e-6, 0.0)
+            self._b_scale = max(self._b_scale - dt / 10.0e-6, 0.15)
+            self._update_bz_field()
+        elif phase_key == "quiescent":
+            self._b_scale = max(self._b_scale - dt / 25.0e-6, 0.05)
+            self.T_i_keV = max(self.T_i_keV - dt / 8.0e-6, 0.5)
+            self.T_e_keV = max(self.T_e_keV - dt / 5.0e-6, 0.2)
+            self._update_bz_field()
+            self._drain_particles(dt)
+
+    def _update_bz_field(self) -> None:
+        _, Y = self.grid.meshgrid()
+        b0 = self.controls.get("b0", 1.5) * self._b_scale
+        self.bz = b0 * np.tanh(Y / self.Y_S)
+
+    def _drain_particles(self, dt: float) -> None:
+        for sp in self.species.values():
+            if sp.count == 0:
+                continue
+            if sp.count > 200 and _RNG.random() < dt / 2.0e-5:
+                drop = _RNG.choice(sp.count, min(40, sp.count // 8), replace=False)
+                keep = np.ones(sp.count, dtype=bool)
+                keep[drop] = False
+                sp.keep(keep)
 
     # -- geometry -----------------------------------------------------------
     def build_geometry(self) -> None:
@@ -86,14 +194,29 @@ class TAEReactor(ReactorSimulation):
         # Plasma occupies the interior.
         self.plasma_mask = ~self.conductor_mask
 
-        # Background FRC magnetic field profile for display + Boris push.
-        self.bz = self.controls.get("b0", 1.5) * np.tanh(Y / self.Y_S)
+        self._update_bz_field()
 
+        y_top = g.y0 + g.Ly - 0.02
+        y_bot = g.y0 + 0.02
+        x_left = g.x0 + 0.02
+        x_icc = g.x0 + g.Lx - 0.04
+        wall_c = (150, 210, 255)
+        icc_c = (170, 200, 255)
+        self.boundaries = [
+            BoundaryShape("line", (x_left, y_top, x_icc, y_top), wall_c),
+            BoundaryShape("line", (x_left, y_bot, x_icc, y_bot), wall_c),
+            BoundaryShape("line", (x_left, y_bot, x_left, y_top), wall_c),
+            BoundaryShape("line", (x_icc, y_bot, x_icc, y_top), icc_c),
+        ]
         self.labels = [
-            StructureLabel("Cylindrical Conducting Wall", g.x0 + 0.02, g.y0 + g.Ly - 0.05),
-            StructureLabel("FRC Plasma (field-reversed core)", -0.05, 0.0, (255, 180, 120)),
-            StructureLabel("ICC Segmented Collector", g.x0 + g.Lx - 0.27, g.y0 + 0.04, (200, 200, 255)),
-            StructureLabel("Field Reversal Plane (B_z=0)", -0.05, 0.02, (180, 255, 180)),
+            StructureLabel("Cylindrical Conducting Wall", x_left + 0.02, y_top - 0.025,
+                           wall_c, angle=0.0, anchor=(0.0, 0.5)),
+            StructureLabel("ICC Segmented Collector", x_icc - 0.018, 0.0,
+                           icc_c, angle=90.0, anchor=(0.5, 0.5)),
+            StructureLabel("Field Reversal Plane (B_z = 0)", -0.02, 0.012,
+                           (210, 255, 210), angle=0.0, anchor=(0.0, 0.5)),
+            StructureLabel("FRC Plasma (field-reversed core)", -0.02, -0.03,
+                           (255, 190, 140), angle=0.0, anchor=(0.0, 0.5)),
         ]
 
     # -- particles ----------------------------------------------------------
@@ -147,9 +270,12 @@ class TAEReactor(ReactorSimulation):
 
     # -- dynamics -----------------------------------------------------------
     def on_controls(self) -> None:
-        # Rebuild the analytic background field when B0 changes.
-        _, Y = self.grid.meshgrid()
-        self.bz = self.controls.get("b0", 1.5) * np.tanh(Y / self.Y_S)
+        self._update_bz_field()
+
+    def display_field_levels(self) -> tuple[float, float]:
+        """Symmetric limits so the FRC reversal plane stays at the colour-map centre."""
+        b0 = float(self.controls.get("b0", 1.5))
+        return (-b0, b0)
 
     def advance_particles(self, dt: float) -> None:
         g = self.grid
@@ -200,8 +326,10 @@ class TAEReactor(ReactorSimulation):
                 sp.x = np.minimum(sp.x, x_max)
 
     def _inject_nbi(self, dt: float) -> None:
+        if self._nbi_scale <= 0.0:
+            return
         """Neutral-beam injection: add fast protons proportional to NBI current."""
-        i_nbi = self.controls.get("nbi_current", 40.0)
+        i_nbi = self.controls.get("nbi_current", 40.0) * self._nbi_scale
         # Number of macroparticles injected this step scales with current.
         n_new = int(i_nbi * 0.05)
         if n_new <= 0:
@@ -229,6 +357,8 @@ class TAEReactor(ReactorSimulation):
 
     def _fusion_alpha_production(self, dt: float) -> None:
         """Spawn alpha macroparticles at a rate set by the fusion power density."""
+        if not self.shot_physics_enabled:
+            return
         rate = self.last_p_fusion
         n_new = int(min(20, rate * 1.0e-4))
         if n_new <= 0:

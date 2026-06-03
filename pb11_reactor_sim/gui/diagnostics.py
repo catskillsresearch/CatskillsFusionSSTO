@@ -65,9 +65,22 @@ class DiagnosticsPanel(QtWidgets.QWidget):
 
         self.setMinimumWidth(360)
 
+    def clear(self) -> None:
+        """Remove all curves (e.g. after Reset)."""
+        for curve in (
+            self.curve_ti,
+            self.curve_te,
+            self.curve_pf,
+            self.curve_pb,
+            self.curve_pc,
+            self.curve_q,
+        ):
+            curve.setData([], [])
+
     def update_from(self, diag: Diagnostics) -> None:
         """Refresh all three plots from the reactor's diagnostic buffers."""
         if not diag.time:
+            self.clear()
             return
         t = np.asarray(diag.time)
         self.curve_ti.setData(t, np.asarray(diag.T_i))

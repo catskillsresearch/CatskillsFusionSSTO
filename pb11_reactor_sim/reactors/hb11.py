@@ -23,7 +23,14 @@ from __future__ import annotations
 
 import numpy as np
 
-from pb11_reactor_sim.engine.base import ControlSpec, Grid, ReactorSimulation, StructureLabel
+from pb11_reactor_sim.engine.base import (
+    BoundaryShape,
+    ControlSpec,
+    Grid,
+    ReactorSimulation,
+    StructureLabel,
+)
+from pb11_reactor_sim.engine.shot_sequence import FirePhase, ShotOps
 from pb11_reactor_sim.engine.particles import ParticleSpecies
 from pb11_reactor_sim.physics import constants as C
 from pb11_reactor_sim.physics import processes as P
@@ -68,6 +75,70 @@ class HB11Reactor(ReactorSimulation):
     def default_dt(self) -> float:
         return 5.0e-12  # 5 ps
 
+    @classmethod
+    def shot_ops(cls) -> ShotOps:
+        return ShotOps(
+            requires_rearm_between_shots=True,
+            arm_callout="ARMED — chamber pumped, grid at V, fresh target loaded.",
+            fire_phases=(
+                FirePhase("grid_charge", 0.002e-6, "Grid at voltage — stand by"),
+                FirePhase("laser_countdown", 0.004e-6, "T−3…2…1 — laser chain armed"),
+                FirePhase("main_pulse", 0.04e-6, "FIRE — main laser pulse"),
+                FirePhase("afterglow", 0.015e-6, "Afterglow — plasma cooling"),
+            ),
+            quiescent_callout="Quiescent — target spent (Arm before next Fire).",
+        )
+
+    def enter_unarmed(self) -> None:
+        self.species.clear()
+        self.collected_charge = 0.0
+        self.collector_current = 0.0
+        self.T_i_keV = 0.05
+        self.T_e_keV = 0.05
+        self.n_e = 1.0e14
+        self.n_p = 5.0e13
+        self.n_B = 5.0e12
+        self.phi = self.grid.zeros()
+
+    def enter_armed(self) -> None:
+        self.collected_charge = 0.0
+        self.collector_current = 0.0
+        self.T_i_keV = 0.1
+        self.T_e_keV = 0.08
+        self.n_e = 1.0e22
+        self.n_p = 5.0e21
+        self.n_B = 5.0e20
+        self.species.clear()
+        protons = ParticleSpecies(C.PROTON, macro_weight=1.0e10)
+        boron = ParticleSpecies(C.BORON11, macro_weight=1.0e9)
+        electrons = ParticleSpecies(C.ELECTRON, macro_weight=1.0e10)
+        alphas = ParticleSpecies(C.ALPHA, macro_weight=1.0e8)
+        self.species = {"p": protons, "B": boron, "e": electrons, "alpha": alphas}
+        self._spawn_block(400)
+
+    def enter_quiescent(self) -> None:
+        self.T_i_keV = max(self.T_i_keV * 0.4, 0.2)
+        self.T_e_keV = max(self.T_e_keV * 0.5, 0.1)
+        self.n_e = max(self.n_e * 0.2, 1.0e18)
+
+    def on_fire_phase_begin(self, phase_key: str) -> None:
+        if phase_key == "main_pulse" and self.species["p"].count < 100:
+            self._spawn_block(600)
+
+    def _hot_phase_keys(self) -> frozenset[str]:
+        return frozenset({"main_pulse", "afterglow"})
+
+    def on_fire_phase_tick(self, phase_key: str, dt: float) -> None:
+        if phase_key == "quiescent":
+            self.T_i_keV = max(self.T_i_keV - dt / 1.5e-6, 0.15)
+            self.T_e_keV = max(self.T_e_keV - dt / 2.0e-6, 0.08)
+            for sym, sp in self.species.items():
+                if sp.count > 80 and _RNG.random() < dt / 3.0e-6:
+                    keep = _RNG.choice(sp.count, max(sp.count // 2, 1), replace=False)
+                    m = np.zeros(sp.count, dtype=bool)
+                    m[keep] = True
+                    sp.keep(m)
+
     # -- geometry -----------------------------------------------------------
     def build_geometry(self) -> None:
         g = self.grid
@@ -103,11 +174,25 @@ class HB11Reactor(ReactorSimulation):
 
         self.plasma_mask = R < self.GRID_RADIUS
 
+        wall_c = (150, 210, 255)
+        grid_c = (255, 220, 150)
+        target_c = (255, 160, 160)
+        self.boundaries = [
+            BoundaryShape("circle", (0.0, 0.0, self.CHAMBER_RADIUS), wall_c),
+            BoundaryShape("circle", (0.0, 0.0, self.GRID_RADIUS), grid_c),
+            BoundaryShape("circle", (0.0, 0.0, self.TARGET_RADIUS), target_c),
+            BoundaryShape("line", (0.0, -self.TARGET_RADIUS, 0.0, -self.CHAMBER_RADIUS), (200, 200, 200)),
+        ]
         self.labels = [
-            StructureLabel("Grounded Spherical Chamber Wall", -0.30, 0.46),
-            StructureLabel("HV Collector Grid", 0.18, 0.30, (255, 220, 150)),
-            StructureLabel("Fuel Target", 0.05, 0.06, (255, 160, 160)),
-            StructureLabel("Target Positioner", 0.02, -0.35, (200, 200, 200)),
+            # Placed at the top of each ring so a horizontal label lies tangent.
+            StructureLabel("Grounded Spherical Chamber Wall", 0.0, self.CHAMBER_RADIUS + 0.03,
+                           wall_c, angle=0.0, anchor=(0.5, 0.5)),
+            StructureLabel("HV Collector Grid", 0.0, self.GRID_RADIUS + 0.025,
+                           grid_c, angle=0.0, anchor=(0.5, 0.5)),
+            StructureLabel("Fuel Target", self.TARGET_RADIUS + 0.015, 0.055,
+                           target_c, angle=0.0, anchor=(0.0, 0.5)),
+            StructureLabel("Target Positioner", 0.012, -self.CHAMBER_RADIUS + 0.10,
+                           (210, 210, 210), angle=90.0, anchor=(0.5, 0.5)),
         ]
         self._build_laser_envelope()
 
@@ -218,6 +303,8 @@ class HB11Reactor(ReactorSimulation):
         self.collector_current = collected_q / max(dt, 1e-18)
 
     def _fusion_alpha_production(self, dt: float) -> None:
+        if not self.shot_physics_enabled:
+            return
         rate = self.last_p_fusion
         n_new = int(min(15, rate * 1.0e-6))
         if n_new <= 0:
@@ -238,8 +325,7 @@ class HB11Reactor(ReactorSimulation):
             m = np.zeros(sp.count, bool)
             m[keep] = True
             sp.keep(m)
-        # Replenish the fuel block so the simulation sustains.
-        if self.species["p"].count < 200:
+        if self.shot_physics_enabled and self.species["p"].count < 200:
             self._spawn_block(400)
 
     def update_plasma_state(self, dt: float) -> None:

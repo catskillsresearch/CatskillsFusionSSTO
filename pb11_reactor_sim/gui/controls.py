@@ -60,6 +60,13 @@ class _LabeledSlider(QtWidgets.QWidget):
     def value(self) -> float:
         return self._to_value(self._slider.value())
 
+    def set_value(self, value: float) -> None:
+        """Move the slider without emitting ``valueChanged``."""
+        self._slider.blockSignals(True)
+        self._slider.setValue(self._to_tick(value))
+        self._slider.blockSignals(False)
+        self._update_header(value)
+
 
 class ControlPanel(QtWidgets.QWidget):
     """Left-hand control column: reactor dropdown, sliders, transport buttons."""
@@ -68,6 +75,9 @@ class ControlPanel(QtWidgets.QWidget):
     controlsChanged = QtCore.Signal(dict)
     playToggled = QtCore.Signal(bool)
     resetRequested = QtCore.Signal()
+    armRequested = QtCore.Signal()
+    fireRequested = QtCore.Signal()
+    optimizeRequested = QtCore.Signal()
 
     def __init__(self, reactor_names: list[str], parent: QtWidgets.QWidget | None = None) -> None:
         super().__init__(parent)
@@ -100,6 +110,17 @@ class ControlPanel(QtWidgets.QWidget):
 
         # Transport buttons.
         root.addWidget(self._section_label("Simulation"))
+        shot_row = QtWidgets.QHBoxLayout()
+        self.arm_btn = QtWidgets.QPushButton("Arm shot")
+        self.arm_btn.setStyleSheet("font-weight: 600;")
+        self.arm_btn.clicked.connect(self.armRequested.emit)
+        self.fire_btn = QtWidgets.QPushButton("Fire")
+        self.fire_btn.setStyleSheet("font-weight: 700; color: #ffcccc;")
+        self.fire_btn.clicked.connect(self.fireRequested.emit)
+        shot_row.addWidget(self.arm_btn)
+        shot_row.addWidget(self.fire_btn)
+        root.addLayout(shot_row)
+
         btn_row = QtWidgets.QHBoxLayout()
         self.play_btn = QtWidgets.QPushButton("Play")
         self.play_btn.setCheckable(True)
@@ -109,6 +130,12 @@ class ControlPanel(QtWidgets.QWidget):
         btn_row.addWidget(self.play_btn)
         btn_row.addWidget(self.reset_btn)
         root.addLayout(btn_row)
+
+        # Optimizer: search this reactor's control space for the best Q_net.
+        self.optimize_btn = QtWidgets.QPushButton("Solve for optimal Q_net")
+        self.optimize_btn.setStyleSheet("font-weight: 600;")
+        self.optimize_btn.clicked.connect(self.optimizeRequested.emit)
+        root.addWidget(self.optimize_btn)
 
         # Status / readout box.
         root.addWidget(self._section_label("Live Readout"))
@@ -161,5 +188,29 @@ class ControlPanel(QtWidgets.QWidget):
     def current_values(self) -> dict[str, float]:
         return dict(self._values)
 
+    def set_values(self, values: dict[str, float]) -> None:
+        """Programmatically move sliders to ``values`` (e.g. optimizer result)."""
+        for slider in self._sliders:
+            if slider.spec.key in values:
+                slider.set_value(values[slider.spec.key])
+                self._values[slider.spec.key] = slider.value()
+
+    def set_optimizing(self, busy: bool) -> None:
+        """Reflect optimizer activity in the button and disable it while busy."""
+        self.optimize_btn.setEnabled(not busy)
+        self.optimize_btn.setText("Optimizing..." if busy else "Solve for optimal Q_net")
+
     def update_readout(self, text: str) -> None:
         self.readout.setText(text)
+
+    def set_fire_enabled(self, enabled: bool) -> None:
+        self.fire_btn.setEnabled(enabled)
+
+    def set_shot_status(self, phase: str, callout: str, can_fire: bool) -> None:
+        self.arm_btn.setToolTip("Prepare vacuum, fuel, and power systems for the next shot.")
+        self.fire_btn.setToolTip(
+            "Run the discharge countdown. Enabled when armed, or after quiescence "
+            "on machines that allow repeat fire without re-arming."
+        )
+        self.fire_btn.setText("Fire" if can_fire else "Fire (arm first)")
+        self.set_fire_enabled(can_fire)

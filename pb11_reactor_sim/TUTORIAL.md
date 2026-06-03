@@ -5,7 +5,35 @@ then a narrative for each of the three reactor concepts (physical architecture,
 control inputs, what the particles are doing, and the output measurements).
 
 > Launch with `./pb11_reactor_sim/run.sh`, pick a reactor from the dropdown,
-> press **Play**, and drag the sliders. **Reset** restarts the active reactor.
+> press **Arm shot** to prepare a discharge, then **Fire** to run the countdown
+> (Play advances time automatically during a shot). **Reset** returns to
+> unarmed idle. **Solve for optimal Q_net** auto-tunes the sliders (see below).
+
+---
+
+## Arm / Fire operations (all reactors)
+
+The simulator no longer starts mid-discharge. At launch the chamber is **unarmed**
+(empty or cold). A real control-room sequence is approximated:
+
+| Button | What it does |
+|--------|----------------|
+| **Arm shot** | Pre-shot prep: pump-down, gas fill, bank charge, target load, coils standby. Clears the diagnostic plots and sets **Ops = armed**. |
+| **Fire** | Runs a scripted **countdown** (status line in Live Readout), then flat-top / pinch / laser pulse physics. **Play** runs automatically until the shot ends in **quiescent**. |
+| **Play / Pause** | Advance time manually while **armed** or **quiescent** (watch cooldown between shots). |
+| **Reset** | Factory idle: default sliders, **unarmed**, empty chamber. |
+
+### Can you Fire more than once per Arm?
+
+| Reactor | Re-Arm required? | Practice |
+|---------|------------------|----------|
+| **TAE FRC** | **No** | After quiescence you may **Fire again** on the same arm (shortened re-heat sequence). Mimics repeated discharges in one experimental day without full vacuum break. |
+| **HB11 Laser** | **Yes** | Each shot consumes the target block; **Arm** loads a fresh target and re-conditions the chamber. |
+| **LPP DPF** | **Yes** | The capacitor bank is depleted after a shot; **Arm** recharges the bank and refills gas. |
+
+Between shots, leave **Play** on during **quiescent** to watch temperatures fall, particles drain, and fields relax before the next **Fire** (or **Arm** on HB11/LPP).
+
+The **Status** line in Live Readout is the operator callout (e.g. `T−1: NBI on`, `PINCH — focus on axis`).
 
 ---
 
@@ -205,6 +233,25 @@ drift toward the +x ICC, where they are collected.
   from alphas crossing the collector segments. This oscillates -- it is your
   direct-conversion output waveform.
 
+### Operational sequence (Arm → Fire → quiesce)
+
+**Arm (pre-shot)**  
+Vacuum vessel, neutral gas puff, coils at standby (`B_z` weak). No macroparticles yet.
+
+**Fire countdown (automatic while Play runs)**
+
+1. Gas fill / fuel inventory  
+2. Coil ramp — `B_z` rises toward slider **Background B0**  
+3. FRC formation — plasma macroparticles appear; separatrix forms  
+4. NBI on — beam heating ramps (`NBI Current` slider)  
+5. **Flat-top** — full discharge; fusion, ICC alphas, diagnostic plots fill  
+6. Ramp-down — beams off, field falls  
+
+**Quiescent (post-shot)**  
+Plasma cools and particles drain. **Fire again without re-Arm** (repeat flat-top with a shorter ramp). Use **Arm** only when you want a full fresh prep (e.g. new gas fill).
+
+**Typical control-room cadence:** *Standby → Arm → … → Fire → flat-top cheers → quiesce → Fire (repeat) → end of day → Reset.*
+
 ---
 
 ## 2. HB11 Laser -- Laser-Driven Block Ignition
@@ -249,6 +296,23 @@ sustains.
 - **`Collected`** -- total DC charge (Coulombs) accumulated on the collector
   grid. This is the direct-conversion energy harvest.
 
+### Operational sequence (Arm → Fire → quiesce)
+
+**Arm (pre-shot)**  
+Chamber pumped, **grid at V_grid**, fresh **fuel target** loaded (cold block on the stalk — green/red/blue dots on the target). No laser power yet.
+
+**Fire countdown**
+
+1. Grid charge — verify high-voltage stand  
+2. Laser countdown — `T−3…2…1` (chain armed)  
+3. **Main pulse** — ponderomotive block ejection + heating (`Laser Intensity` slider)  
+4. Afterglow — plasma cools, collection completes  
+
+**Quiescent**  
+Target is spent. **You must Arm again** before the next Fire (new target + pump-down).
+
+**Typical cadence:** *Arm → laser clear → Fire → shot → Arm (new target) → Fire …*
+
 ---
 
 ## 3. LPP DPF -- Dense Plasma Focus
@@ -290,11 +354,31 @@ cathode radius. Yellow alphas are produced in the dense pinch.
 - **`B_pinch`** -- the peak azimuthal field at the collapsing sheath (Tesla).
   Watch this rise as the sheath radius shrinks toward the anode.
 
+### Operational sequence (Arm → Fire → quiesce)
+
+**Arm (pre-shot)**  
+Gas fill at slider **Gas Pressure**, **capacitor bank charged** (`I(t) ≈ 0`), cold fuel ions in the gap between anode and cathode.
+
+**Fire countdown**
+
+1. Gas fill — confirm inventory in the coaxial gap  
+2. **Trigger** — switch closes; discharge clock starts  
+3. Run-down — snowplow sheath accelerates inward (`I(t)` rises)  
+4. **Pinch** — focus on axis; `B_pinch` peaks; fusion burst  
+5. Disrupt — plasma hits anode; energy release  
+6. Recovery — bank depleted, plasma cooling  
+
+**Quiescent**  
+Bank empty. **Arm again** (recharge + refill) before the next Fire.
+
+**Typical cadence:** *Charge → Arm → 3-2-1 Fire → bang → quiesce → Arm → Fire …*
+
 ---
 
 ## Suggested first experiments
 
-1. **TAE FRC:** start at defaults, press Play, and raise **NBI Current** to ~100 A.
+1. **TAE FRC:** **Arm shot** → **Fire** → watch formation then flat-top; after quiescence,
+   **Fire** again without re-Arm. Then raise **NBI Current** to ~100 A on a new Arm/Fire.
    Watch `T_i` climb on the top plot and red beam ions stream in from the left.
    Then raise **B0** and note the tighter gyro-orbits and improved confinement.
 
@@ -311,3 +395,37 @@ cathode radius. Yellow alphas are produced in the dense pinch.
 In every case, glance at the **`Q_net`** plot. Seeing it sit below the `Q = 1`
 line is the whole point of p-¹¹B research -- this simulator lets you feel, in
 real time, exactly how hard aneutronic breakeven is and which knobs move it.
+
+---
+
+## The "Solve for optimal Q_net" button
+
+If you do not yet have intuition for what the sliders do, press **Solve for
+optimal Q_net**. The optimizer searches *that reactor's own* control space
+(whatever sliders it exposes) for the combination that maximizes the
+steady-state net gain `Q`, then moves the sliders there for you and reports the
+result in the status bar.
+
+How it works:
+- It evaluates only the fast **0D plasma-state model** (the same `T_i`/`T_e`,
+  density, and power-balance equations that drive the `Q_net` plot), so it does
+  **not** need to run the particle simulation -- a full sweep takes ~0.5-5 s.
+- It runs a coarse grid sweep over the slider ranges, then a local refinement
+  pass around the best point, in a **background thread** so the GUI stays
+  responsive (the button shows "Optimizing...").
+- The result is applied to the live sliders, so you can immediately watch the
+  optimized plasma evolve and then hand-tune from there.
+
+Things you will learn from it:
+- **TAE FRC** tends to favor high **B0** (better confinement -> lower `P_cond`)
+  with modest **NBI** (enough `T_i` for fusion without over-driving radiation).
+- **HB11 Laser** is essentially insensitive to **Grid Voltage** for core `Q`
+  (the grid governs *energy collection*, not the fusion balance), and prefers a
+  moderate **Laser Intensity** -- a vivid illustration that hotter is not always
+  better once Bremsstrahlung scales up.
+- **LPP DPF** likes higher **Gas Pressure** (more fuel density) and an
+  intermediate **Capacitor Voltage**.
+
+Because thermal p-¹¹B is fundamentally Rider-limited, the "optimal" `Q` is still
+below 1 -- but the button shows you *where* the best achievable operating point
+lives and how far the controls can push you toward it.

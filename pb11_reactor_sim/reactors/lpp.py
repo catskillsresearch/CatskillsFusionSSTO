@@ -24,7 +24,14 @@ from __future__ import annotations
 
 import numpy as np
 
-from pb11_reactor_sim.engine.base import ControlSpec, Grid, ReactorSimulation, StructureLabel
+from pb11_reactor_sim.engine.base import (
+    BoundaryShape,
+    ControlSpec,
+    Grid,
+    ReactorSimulation,
+    StructureLabel,
+)
+from pb11_reactor_sim.engine.shot_sequence import FirePhase, ShotOps
 from pb11_reactor_sim.engine.particles import ParticleSpecies
 from pb11_reactor_sim.physics import constants as C
 from pb11_reactor_sim.physics import processes as P
@@ -72,6 +79,80 @@ class LPPReactor(ReactorSimulation):
     def default_dt(self) -> float:
         return 1.0e-9  # 1 ns
 
+    @classmethod
+    def shot_ops(cls) -> ShotOps:
+        return ShotOps(
+            requires_rearm_between_shots=True,
+            arm_callout="ARMED — gas fill complete, capacitor bank charged.",
+            fire_phases=(
+                FirePhase("gas_fill", 0.15e-6, "Gas fill — H–B inventory in gap"),
+                FirePhase("trigger", 0.05e-6, "T−1 — switch closes, trigger"),
+                FirePhase("rundown", 0.2e-6, "Run-down — sheath accelerating"),
+                FirePhase("pinch", 0.15e-6, "PINCH — focus on axis"),
+                FirePhase("disrupt", 0.08e-6, "Disrupt — anode hit, energy release"),
+                FirePhase("recovery", 0.25e-6, "Recovery — bank depleted, gas cooling"),
+            ),
+            quiescent_callout="Quiescent — bank empty (Arm to recharge & refill).",
+        )
+
+    def enter_unarmed(self) -> None:
+        self.species.clear()
+        self.current = 0.0
+        self.charge = 0.0
+        self.sheath_r = self.CATHODE_RADIUS
+        self.sheath_v = 0.0
+        self.b_pinch = 0.0
+        self._circuit_phase = 0.0
+        self.T_i_keV = 0.05
+        self.T_e_keV = 0.05
+        self.n_e = 1.0e16
+        self.n_p = 5.0e15
+        self.n_B = 5.0e14
+        self.bz = self.grid.zeros()
+
+    def enter_armed(self) -> None:
+        self.current = 0.0
+        self.charge = 1.0
+        self.sheath_r = self.CATHODE_RADIUS
+        self.sheath_v = 0.0
+        self.b_pinch = 0.0
+        self._circuit_phase = 0.0
+        p0 = self.controls.get("p0", 6.0)
+        self.n_e = 2.0e19 * (p0 / 6.0)
+        self.n_p = 0.6 * self.n_e
+        self.n_B = 0.08 * self.n_e
+        self.T_i_keV = 0.3
+        self.T_e_keV = 0.2
+        self.seed_particles()
+
+    def enter_quiescent(self) -> None:
+        self.current = 0.0
+        self.charge = 0.05
+        self.sheath_r = self.CATHODE_RADIUS
+        self.sheath_v = 0.0
+        self.b_pinch = 0.0
+        self.T_i_keV = max(self.T_i_keV * 0.25, 0.2)
+        self.T_e_keV = max(self.T_e_keV * 0.3, 0.1)
+
+    def on_fire_phase_begin(self, phase_key: str) -> None:
+        if phase_key == "trigger":
+            self._circuit_phase = 0.0
+            self.time = 0.0
+            self.charge = 1.0
+            self.sheath_r = self.CATHODE_RADIUS
+            self.sheath_v = 0.0
+            if not self.species:
+                self.seed_particles()
+
+    def on_fire_phase_tick(self, phase_key: str, dt: float) -> None:
+        if phase_key == "quiescent":
+            self.current = max(self.current - abs(self.current) * dt / 0.2e-6, 0.0)
+            self.T_i_keV = max(self.T_i_keV - dt / 2.0e-6, 0.15)
+            self._update_b_field()
+
+    def _hot_phase_keys(self) -> frozenset[str]:
+        return frozenset({"trigger", "rundown", "pinch", "disrupt"})
+
     # -- geometry -----------------------------------------------------------
     def build_geometry(self) -> None:
         g = self.grid
@@ -99,11 +180,21 @@ class LPPReactor(ReactorSimulation):
 
         self.plasma_mask = (R > self.ANODE_RADIUS) & (R < self.CATHODE_RADIUS)
 
+        anode_c = (255, 200, 150)
+        cathode_c = (180, 200, 255)
+        self.boundaries = [
+            BoundaryShape("circle", (0.0, 0.0, self.ANODE_RADIUS), anode_c),
+            BoundaryShape("circle", (0.0, 0.0, self.CATHODE_RADIUS), cathode_c),
+        ]
         self.labels = [
-            StructureLabel("Hollow Anode (a)", 0.0, 0.0, (255, 200, 150)),
-            StructureLabel("Cathode Rods (b)", 0.12, 0.13, (180, 200, 255)),
-            StructureLabel("Plasma Sheath", -0.16, -0.10, (255, 150, 150)),
-            StructureLabel("Pinch / Focus Region", 0.015, 0.03, (255, 255, 150)),
+            StructureLabel("Hollow Anode (a)", 0.0, self.ANODE_RADIUS + 0.02,
+                           anode_c, angle=0.0, anchor=(0.5, 0.5)),
+            StructureLabel("Cathode Rods (b)", 0.0, self.CATHODE_RADIUS + 0.02,
+                           cathode_c, angle=0.0, anchor=(0.5, 0.5)),
+            StructureLabel("Plasma Sheath", -self.CATHODE_RADIUS + 0.02, -self.CATHODE_RADIUS + 0.03,
+                           (255, 150, 150), angle=0.0, anchor=(0.0, 0.5)),
+            StructureLabel("Pinch / Focus Region", 0.012, 0.025,
+                           (255, 255, 150), angle=0.0, anchor=(0.0, 0.5)),
         ]
         self._update_b_field()
 
@@ -175,11 +266,25 @@ class LPPReactor(ReactorSimulation):
 
         # Peak azimuthal field at the sheath: B = mu0 I / (2 pi r).
         self.b_pinch = C.VACUUM_PERMEABILITY * self.current / (2.0 * np.pi * max(self.sheath_r, self.ANODE_RADIUS))
-        self._update_b_field()
+
+    def advance_state_only(self, dt: float) -> None:
+        # Optimizer hook: advance the scalar circuit/snowplow + 0D state only.
+        self._advance_circuit_and_snowplow(dt)
+        self.update_plasma_state(dt)
+
+    def reset_eval_state(self) -> None:
+        super().reset_eval_state()
+        self.current = 0.0
+        self.charge = 0.0
+        self.sheath_r = self.CATHODE_RADIUS
+        self.sheath_v = 0.0
+        self.b_pinch = 0.0
+        self._circuit_phase = 0.0
 
     def advance_particles(self, dt: float) -> None:
         g = self.grid
         self._advance_circuit_and_snowplow(dt)
+        self._update_b_field()
 
         # Magnetized push under the self-field; ions drift inward with the sheath.
         for sym, sp in self.species.items():
@@ -214,6 +319,8 @@ class LPPReactor(ReactorSimulation):
             sp.keep(r <= self.CATHODE_RADIUS)
 
     def _fusion_alpha_production(self, dt: float) -> None:
+        if not self.shot_physics_enabled:
+            return
         rate = self.last_p_fusion
         n_new = int(min(20, rate * 1.0e-5))
         if n_new <= 0:
