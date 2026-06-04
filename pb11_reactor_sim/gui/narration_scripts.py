@@ -13,8 +13,8 @@ PHASE_NARRATION: dict[str, dict[str, str]] = {
         "field_ramp": "T minus three. Coil ramp. Magnetic field rising.",
         "formation": "T minus two. F R C formation. Plasma appearing in the chamber.",
         "nbi_heat": "T minus one. Neutral beams on. Beam heating begins.",
-        "flat_top": "T zero. Flat-top discharge. Fusion and I C C collection at full power.",
-        "ramp_down": "Ramp-down. Beams off. Field falling.",
+        "flat_top": "T zero. Flat top discharge. Fusion and I C C collection at full power.",
+        "ramp_down": "Ramp down. Beams off. Field falling.",
         "quiescent": "Shot complete. Plasma quiescing.",
     },
     "HB11 Laser": {
@@ -27,7 +27,7 @@ PHASE_NARRATION: dict[str, dict[str, str]] = {
     "LPP DPF": {
         "gas_fill": "Gas fill. Hydrogen and boron inventory in the gap.",
         "trigger": "T minus one. Switch closes. Trigger pulse.",
-        "rundown": "Run-down. Plasma sheath accelerating toward the axis.",
+        "rundown": "Run down. Plasma sheath accelerating toward the axis.",
         "pinch": "Pinch. Focus on axis. Fusion conditions.",
         "disrupt": "Disrupt. Anode hit. Energy release.",
         "recovery": "Recovery. Bank depleted. Gas cooling.",

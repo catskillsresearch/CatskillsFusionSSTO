@@ -23,7 +23,8 @@ from pb11_reactor_sim.gui.audio_synth import (
     synthesize_shot_audio,
     write_wav,
 )
-from pb11_reactor_sim.gui.chattts_narration import build_narration_track, narration_enabled
+from pb11_reactor_sim.gui.chattts_narration import narration_enabled
+from pb11_reactor_sim.gui.export_timeline import BED_DUCK_FACTOR, BED_LEVEL, ExportTimeline, build_export_timeline
 
 FPS = 30.0
 
@@ -95,122 +96,119 @@ class FrameRecorder:
         *,
         parent: QtWidgets.QWidget | None = None,
     ) -> tuple[str | None, str | None]:
-        err = self._write_mp4_imageio(path)
-        if err is None:
-            return self._mux_shot_audio(path, parent=parent)
+        timeline = self._build_export_timeline(parent)
+        frames = timeline.frames if timeline else self._frames
+        meta = timeline.meta if timeline else self._meta
 
         ffmpeg = shutil.which("ffmpeg")
         if ffmpeg:
-            ff_err = self._write_mp4_ffmpeg(path, ffmpeg)
+            ff_err = self._write_mp4_ffmpeg(frames, path, ffmpeg)
             if ff_err is None:
-                return self._mux_shot_audio(path, parent=parent)
+                return self._mux_export_audio(path, timeline, meta, parent=parent)
             err = ff_err
+        else:
+            err = self._write_mp4_imageio(frames, path)
+            if err is None:
+                return self._mux_export_audio(path, timeline, meta, parent=parent)
 
         fallback = self._write_png_sequence(path.with_suffix(".png"))
         return fallback, (
             f"MP4 encode failed ({err}); saved PNG sequence instead:\n{fallback}"
         )
 
-    def _mux_shot_audio(
+    def _build_export_timeline(self, parent: QtWidgets.QWidget | None):
+        if parent is not None:
+            win = parent if isinstance(parent, QtWidgets.QMainWindow) else parent.window()
+            if isinstance(win, QtWidgets.QMainWindow):
+                msg = (
+                    "Building narration timeline (voice, subtitles, holds)…"
+                    if narration_enabled()
+                    else "Building export timeline…"
+                )
+                win.statusBar().showMessage(msg)
+            QtWidgets.QApplication.processEvents()
+        try:
+            return build_export_timeline(
+                self._frames,
+                self._meta,
+                reactor_name=self._reactor_name,
+                fps=FPS,
+            )
+        except Exception as exc:  # noqa: BLE001
+            if parent is not None:
+                win = parent if isinstance(parent, QtWidgets.QMainWindow) else parent.window()
+                if isinstance(win, QtWidgets.QMainWindow):
+                    win.statusBar().showMessage(f"Export timeline failed ({exc}); using raw frames.")
+            return None
+
+    def _mux_export_audio(
         self,
         path: Path,
+        timeline: ExportTimeline | None,
+        meta: list[FrameMeta],
         *,
         parent: QtWidgets.QWidget | None = None,
     ) -> tuple[str | None, str | None]:
-        """Add procedural bed + optional ChatTTS phase narration."""
+        """Mix 2× reactor bed + narration; video length matches audio."""
         ffmpeg = shutil.which("ffmpeg")
-        if not ffmpeg or not self._meta:
+        if not ffmpeg or not meta:
             return str(path), None
         try:
-            if parent is not None and narration_enabled():
+            if parent is not None:
                 win = parent if isinstance(parent, QtWidgets.QMainWindow) else parent.window()
                 if isinstance(win, QtWidgets.QMainWindow):
-                    win.statusBar().showMessage("Synthesizing shot audio…")
+                    win.statusBar().showMessage("Mixing reactor bed and narration…")
                 QtWidgets.QApplication.processEvents()
 
-            bed = synthesize_shot_audio(self._meta, fps=FPS)
-            if bed.size == 0:
-                return str(path), None
-
-            narr, audio_dur_s = build_narration_track(
-                self._meta, reactor_name=self._reactor_name
-            )
-            if narr is not None and parent is not None:
-                win = parent if isinstance(parent, QtWidgets.QMainWindow) else parent.window()
-                if isinstance(win, QtWidgets.QMainWindow):
-                    win.statusBar().showMessage("Generating ChatTTS phase callouts…")
-                QtWidgets.QApplication.processEvents()
-
+            bed = synthesize_shot_audio(meta, fps=FPS)
+            narr = timeline.narration if timeline else None
+            voice_mask = timeline.voice_mask if timeline else None
             n_samples = max(bed.size, narr.size if narr is not None else 0)
             bed = pad_audio(bed, n_samples)
-            mixed = mix_tracks(bed, narr)
-
-            video_dur_s = len(self._meta) / FPS
-            pad_video_s = max(0.0, audio_dur_s - video_dur_s)
+            mixed = mix_tracks(
+                bed,
+                narr,
+                bed_level=BED_LEVEL,
+                duck_with_voice=BED_DUCK_FACTOR,
+                voice_mask=voice_mask,
+            )
 
             with tempfile.TemporaryDirectory(prefix="pb11_mux_") as tmp:
                 td = Path(tmp)
                 wav = td / "shot.wav"
                 out = td / "muxed.mp4"
                 write_wav(wav, mixed)
-                if pad_video_s > 0.05:
-                    cmd = [
-                        ffmpeg,
-                        "-y",
-                        "-i",
-                        str(path),
-                        "-i",
-                        str(wav),
-                        "-filter_complex",
-                        f"[0:v]tpad=stop_mode=clone:stop_duration={pad_video_s:.3f}[v]",
-                        "-map",
-                        "[v]",
-                        "-map",
-                        "1:a",
-                        "-c:v",
-                        "libx264",
-                        "-pix_fmt",
-                        "yuv420p",
-                        "-c:a",
-                        "aac",
-                        "-b:a",
-                        "192k",
-                        str(out),
-                    ]
-                else:
-                    cmd = [
-                        ffmpeg,
-                        "-y",
-                        "-i",
-                        str(path),
-                        "-i",
-                        str(wav),
-                        "-c:v",
-                        "copy",
-                        "-c:a",
-                        "aac",
-                        "-b:a",
-                        "192k",
-                        "-shortest",
-                        str(out),
-                    ]
+                cmd = [
+                    ffmpeg,
+                    "-y",
+                    "-i",
+                    str(path),
+                    "-i",
+                    str(wav),
+                    "-c:v",
+                    "copy",
+                    "-c:a",
+                    "aac",
+                    "-b:a",
+                    "192k",
+                    str(out),
+                ]
                 proc = subprocess.run(cmd, capture_output=True, text=True)
                 if proc.returncode != 0:
                     detail = (proc.stderr or proc.stdout or "").strip()[-400:]
                     return str(path), f"Audio mux skipped ({detail})"
                 out.replace(path)
-
             return str(path), None
         except Exception as exc:  # noqa: BLE001
             return str(path), f"Audio mux skipped ({exc})"
 
-    def _write_mp4_imageio(self, path: Path) -> str | None:
+    def _write_mp4_imageio(self, frames: list[bytes], path: Path) -> str | None:
         try:
             import imageio.v3 as iio  # type: ignore[import-untyped]
             import numpy as np
             from PIL import Image
 
-            imgs = [np.asarray(Image.open(BytesIO(png))) for png in self._frames]
+            imgs = [np.asarray(Image.open(BytesIO(png))) for png in frames]
             iio.imwrite(path, imgs, fps=30, codec="libx264")
             return None
         except ImportError:
@@ -218,10 +216,10 @@ class FrameRecorder:
         except Exception as exc:  # noqa: BLE001
             return f"imageio: {exc}"
 
-    def _write_mp4_ffmpeg(self, path: Path, ffmpeg: str) -> str | None:
+    def _write_mp4_ffmpeg(self, frames: list[bytes], path: Path, ffmpeg: str) -> str | None:
         with tempfile.TemporaryDirectory(prefix="pb11_frames_") as tmp:
             td = Path(tmp)
-            for i, png in enumerate(self._frames):
+            for i, png in enumerate(frames):
                 (td / f"frame_{i:05d}.png").write_bytes(png)
             cmd = [
                 ffmpeg,

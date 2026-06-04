@@ -1,10 +1,8 @@
 """
-ChatTTS voice narration for reactor shot MP4 export.
+ChatTTS voice synthesis for reactor shot MP4 export.
 
-Pattern matches ``scripts/make_core01_build_movie.py``: lazy model load,
-normalized callout text, one spoken line at each new shot phase. Lines are
-scheduled sequentially so callouts never overlap; the audio track (and video,
-if needed) extends to fit.
+Narration timing is owned by :mod:`export_timeline` (synthesize first, then
+extend video). This module handles text cleanup and speech generation.
 """
 from __future__ import annotations
 
@@ -14,16 +12,15 @@ import re
 
 import numpy as np
 
-from pb11_reactor_sim.gui.audio_synth import FPS, SAMPLE_RATE, FrameMeta
-from pb11_reactor_sim.gui.narration_scripts import PHASE_NARRATION
+from pb11_reactor_sim.gui.audio_synth import SAMPLE_RATE
 
 logger = logging.getLogger(__name__)
 
 CHAT_SAMPLE_RATE = 24_000
 CHAT_VOICE_SEED = 1983
 CHAT_SPEED_LEVEL = 1
-#: Silence between consecutive phase callouts [s].
-NARRATION_GAP_S = 0.45
+#: Mandatory pause after each phase callout [s] (8 segments → +12 s minimum).
+POST_PAUSE_S = 1.5
 
 _CHAT_STATE: dict[str, object] = {}
 
@@ -45,7 +42,7 @@ def narration_enabled() -> bool:
     return os.environ.get("PB11_SKIP_NARRATION", "").strip().lower() not in ("1", "true", "yes")
 
 
-def phase_segments(meta: list[FrameMeta]) -> list[tuple[str, int, int]]:
+def phase_segments(meta) -> list[tuple[str, int, int]]:
     """Return ``(phase_key, start_frame, end_frame_exclusive)`` runs."""
     if not meta:
         return []
@@ -61,63 +58,44 @@ def phase_segments(meta: list[FrameMeta]) -> list[tuple[str, int, int]]:
     return out
 
 
-def build_narration_track(
-    meta: list[FrameMeta],
-    *,
-    reactor_name: str,
-    fps: float = FPS,
-    sample_rate: int = SAMPLE_RATE,
-) -> tuple[np.ndarray | None, float]:
-    """Synthesize phase callouts without overlap.
+def sanitize_narration_line(text: str) -> str:
+    """Display/TTS safe line: no hyphens, collapsed whitespace."""
+    t = text.replace("-", " ").replace("_", " ")
+    t = re.sub(r"\s+", " ", t).strip()
+    return t
 
-    Returns ``(mono float32 audio, duration_seconds)``. Each line starts at
-    the later of its phase boundary or the end of the previous callout (+ gap).
-    """
-    if not narration_enabled() or not meta:
-        return None, len(meta) / fps
 
-    scripts = PHASE_NARRATION.get(reactor_name, PHASE_NARRATION["TAE FRC"])
-    video_samples = int(round(len(meta) / fps * sample_rate))
-    if video_samples <= 0:
-        return None, 0.0
+def wrap_subtitle_lines(text: str, *, max_chars: int = 54) -> list[str]:
+    words = text.split()
+    if not words:
+        return []
+    lines: list[str] = []
+    cur: list[str] = []
+    n = 0
+    for w in words:
+        add = len(w) + (1 if cur else 0)
+        if cur and n + add > max_chars:
+            lines.append(" ".join(cur))
+            cur = [w]
+            n = len(w)
+        else:
+            cur.append(w)
+            n += add
+    if cur:
+        lines.append(" ".join(cur))
+    return lines
 
-    clips: list[tuple[int, np.ndarray]] = []
-    cursor_s = 0.0
-    placed = 0
 
-    for phase, start_f, _end_f in phase_segments(meta):
-        line = scripts.get(phase)
-        if not line:
-            continue
-        try:
-            speech = _resample(_synthesize_chattts(line), CHAT_SAMPLE_RATE, sample_rate)
-        except Exception as exc:  # noqa: BLE001
-            logger.warning("ChatTTS skipped for %r: %s", line[:60], exc)
-            continue
-        if speech.size == 0:
-            continue
-        segment_start_s = start_f / fps
-        place_s = max(segment_start_s, cursor_s)
-        offset = int(round(place_s * sample_rate))
-        clips.append((offset, speech))
-        placed += 1
-        cursor_s = place_s + speech.size / sample_rate + NARRATION_GAP_S
-
-    if placed == 0:
-        return None, len(meta) / fps
-
-    total_samples = max(video_samples, int(round(cursor_s * sample_rate)))
-    track = np.zeros(total_samples, dtype=np.float32)
-    for offset, speech in clips:
-        end = min(total_samples, offset + speech.size)
-        n = end - offset
-        if n > 0:
-            track[offset:end] += speech[:n]
-
-    peak = float(np.max(np.abs(track)))
-    if peak > 1e-6:
-        track *= min(1.0, 0.95 / peak)
-    return track, total_samples / sample_rate
+def synthesize_speech(text: str) -> np.ndarray:
+    """Return mono float32 speech at :data:`SAMPLE_RATE` (empty if narration disabled)."""
+    if not narration_enabled():
+        return np.zeros(0, dtype=np.float32)
+    try:
+        raw = _synthesize_chattts(text)
+        return _resample(raw, CHAT_SAMPLE_RATE, SAMPLE_RATE)
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("ChatTTS skipped for %r: %s", text[:60], exc)
+        return np.zeros(0, dtype=np.float32)
 
 
 def _chattts_state() -> dict[str, object]:
@@ -178,7 +156,7 @@ def _int_to_words(n: int) -> str:
 
 
 def _normalize_narration_text(note: str) -> str:
-    txt = note.replace("_", " ")
+    txt = sanitize_narration_line(note)
 
     def repl(m: re.Match[str]) -> str:
         token = m.group(0)

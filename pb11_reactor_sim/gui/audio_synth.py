@@ -253,17 +253,21 @@ def mix_tracks(
     bed: np.ndarray,
     overlay: np.ndarray | None,
     *,
-    bed_level: float = 0.72,
+    bed_level: float = 1.44,
     overlay_level: float = 1.0,
-    duck_with_voice: float = 0.78,
+    duck_with_voice: float = 0.5,
+    voice_mask: np.ndarray | None = None,
 ) -> np.ndarray:
-    """Mix procedural bed with voice on top; light duck so reactor sound stays audible."""
+    """Mix procedural bed (2× level) with voice; duck bed to ~1× during callouts."""
     if overlay is None or overlay.size == 0:
-        return _normalize(bed, peak=0.92)
+        return _normalize(bed * bed_level, peak=0.92)
     n = max(bed.size, overlay.size)
     b = pad_audio(np.asarray(bed, dtype=np.float32), n)
     o = pad_audio(np.asarray(overlay, dtype=np.float32), n)
-    voice = np.abs(o) > 1e-3
+    if voice_mask is not None and voice_mask.size >= n:
+        voice = voice_mask[:n] > 0.5
+    else:
+        voice = np.abs(o) > 1e-3
     duck = np.where(voice, duck_with_voice, 1.0).astype(np.float32)
     mixed = b * bed_level * duck + o * overlay_level
     return _normalize(mixed, peak=0.92)

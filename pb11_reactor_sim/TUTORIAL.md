@@ -496,14 +496,11 @@ advancing 35× more simulation time per tick.
 
 **Record MP4** (control panel): captures the **spatial canvas plus the three
 right-hand graphs** (temperature, power balance, Q). Control panel is excluded.
-On save, a **procedural audio track** plus **ChatTTS phase callouts** (same
-voice stack as ``scripts/make_core01_build_movie.py``) are muxed in. Set
-``PB11_SKIP_NARRATION=1`` to export bed-only audio. Requires **ffmpeg** on PATH.
-
-**ChatTTS setup:** use the Poetry env (``./pb11_reactor_sim/run.sh`` already does).
-There is no separate ChatTTS shell wrapper — ``torchaudio`` must match ``torch``
-(e.g. both **2.10.x**; see ``pyproject.toml``). After ``poetry install``, verify with
-``./scripts/check_chattts.sh``. First run downloads models from Hugging Face (~1 min).
+On save, export runs **narration-first**: ChatTTS callouts are synthesized, then each
+phase is **held** for at least ``speech + 1.5 s`` so nothing is cut off. White
+**subtitles** show the callout text. Reactor bed audio is **2× louder**, ducked to
+the prior level during voice. Set ``PB11_SKIP_NARRATION=1`` for bed-only export.
+Requires **ffmpeg** on PATH.
 Recommended workflow (keeps optimized sliders — no Reset needed):
 
 1. **Solve for optimal Q_net**
