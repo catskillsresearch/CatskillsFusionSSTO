@@ -489,13 +489,30 @@ alphas are born near the core and drift **+x**; many are collected at the ICC se
 ### On-screen HUD and MP4 export
 
 The plot shows a **bold black frame counter** (top-left of the canvas):
-**`Frame N [FF×35 140 substeps/frame]`** during the pre-flat-top fast-forward, then
-**`[1× 4 substeps/frame]`** at normal flat-top speed. Use it to see when the GUI is
+**`Frame N [FF×35 …]`** during the pre-flat-top countdown, **`[FF×10 …]`** during
+the long flat-top hold, **`[FF×4 …]`** during ramp-down, then **`[1× …]`** for any
+1× segments. Use it to see when the GUI is compressing sim time vs running in real time.
 advancing 35× more simulation time per tick.
 
-**Record MP4** (control panel): toggle on before **Fire**, toggle off to save. Captures
-each displayed plot frame; writes `.mp4` via **ffmpeg** or **imageio** if available,
-otherwise a numbered PNG sequence. For presentations, record through Arm → Fire → flat-top.
+**Record MP4** (control panel): captures the **spatial canvas plus the three
+right-hand graphs** (temperature, power balance, Q). Control panel is excluded.
+On save, a **procedural audio track** plus **ChatTTS phase callouts** (same
+voice stack as ``scripts/make_core01_build_movie.py``) are muxed in. Set
+``PB11_SKIP_NARRATION=1`` to export bed-only audio. Requires **ffmpeg** on PATH.
+
+**ChatTTS setup:** use the Poetry env (``./pb11_reactor_sim/run.sh`` already does).
+There is no separate ChatTTS shell wrapper — ``torchaudio`` must match ``torch``
+(e.g. both **2.10.x**; see ``pyproject.toml``). After ``poetry install``, verify with
+``./scripts/check_chattts.sh``. First run downloads models from Hugging Face (~1 min).
+Recommended workflow (keeps optimized sliders — no Reset needed):
+
+1. **Solve for optimal Q_net**
+2. **Record ON**
+3. **Arm shot**
+4. **Fire** (Play starts automatically; recording captures from here)
+5. **Record OFF** → save dialog
+
+Toggle recording before Fire is fine — pre-Fire idle frames are **not** captured, and the buffer **clears at Fire** so the MP4 is just the discharge. **Reset** restores factory slider defaults; skip it if you want to keep the optimized settings.
 
 ### Operational sequence (Arm → Fire → quiesce)
 

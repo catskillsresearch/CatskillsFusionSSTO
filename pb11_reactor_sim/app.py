@@ -19,13 +19,17 @@ from pb11_reactor_sim.engine.pic_backend import FieldSolveBackend, make_backend
 from pb11_reactor_sim.gui.canvas import ReactorCanvas
 from pb11_reactor_sim.gui.controls import ControlPanel
 from pb11_reactor_sim.gui.diagnostics import DiagnosticsPanel
-from pb11_reactor_sim.gui.recorder import FrameRecorder
+from pb11_reactor_sim.gui.recorder import FrameRecorder, compose_png_horizontal
 from pb11_reactor_sim.reactors import REACTOR_REGISTRY
 
 #: Physics substeps advanced per GUI frame.
 _SUBSTEPS_PER_FRAME = 4
 #: Extra substeps while fast-forwarding pre-discharge countdown after Fire.
 _STARTUP_SUBSTEP_MULT = 35
+#: Extra substeps during the long flat-top / main-pulse hold (sim physics unchanged).
+_PLATEAU_SUBSTEP_MULT = 10
+#: Extra substeps during ramp-down / recovery (shorter than plateau).
+_TAIL_SUBSTEP_MULT = 4
 #: GUI refresh interval [ms].
 _FRAME_INTERVAL_MS = 33
 
@@ -124,6 +128,14 @@ class PlasmaSimApp(QtWidgets.QMainWindow):
         self.diagnostics.clear()
         self._frame = 0
         self.canvas.attach(self._reactor, self.backend.label)
+        self.canvas.update_hud(
+            gui_frame=0,
+            substeps=_SUBSTEPS_PER_FRAME,
+            speed_mode="idle",
+            sim_time_us=0.0,
+            ops=self._reactor.shot_phase.value,
+            idle=True,
+        )
         self._sync_shot_ui()
         self._update_readout()
 
@@ -134,20 +146,39 @@ class PlasmaSimApp(QtWidgets.QMainWindow):
         self.controls.set_playing(False)
         self._reactor.apply_controls(self.controls.current_values())
         self._reactor.arm_shot()
-        self.canvas.attach(self._reactor, self.backend.label)
         self.diagnostics.clear()
+        self._frame = 0
+        self.canvas.attach(self._reactor, self.backend.label)
+        self.canvas.update_hud(
+            gui_frame=0,
+            substeps=_SUBSTEPS_PER_FRAME,
+            speed_mode="idle",
+            sim_time_us=0.0,
+            ops=self._reactor.shot_phase.value,
+            idle=True,
+        )
         self._sync_shot_ui()
         self._update_readout()
         self.statusBar().showMessage(self._reactor.shot_callout)
 
+    def _recorder_reactor_name(self) -> str:
+        return type(self._reactor).display_name if self._reactor is not None else ""
+
     def _on_fire(self) -> None:
         if self._reactor is None or not self._reactor.fire_shot():
             return
+        self._frame = 0
+        if self._recorder.active:
+            # Fresh buffer from discharge start (skip any idle pre-Fire frames).
+            self._recorder.start(reactor_name=self._recorder_reactor_name())
         self._auto_paused_after_shot = False
         self.controls.set_playing(True)
         self._on_play_toggled(True)
         self._sync_shot_ui()
-        self.statusBar().showMessage(self._reactor.shot_callout)
+        msg = self._reactor.shot_callout
+        if self._recorder.active:
+            msg += "  |  Recording shot… toggle Record off to save MP4."
+        self.statusBar().showMessage(msg)
 
     def _sync_shot_ui(self) -> None:
         r = self._reactor
@@ -158,9 +189,37 @@ class PlasmaSimApp(QtWidgets.QMainWindow):
 
     def _substeps_per_frame(self) -> int:
         r = self._reactor
-        if r is not None and r.is_startup_countdown():
+        if r is None:
+            return _SUBSTEPS_PER_FRAME
+        if r.is_startup_countdown():
             return _SUBSTEPS_PER_FRAME * _STARTUP_SUBSTEP_MULT
+        if r.is_plateau_fast_forward():
+            return _SUBSTEPS_PER_FRAME * _PLATEAU_SUBSTEP_MULT
+        if r.is_tail_fast_forward():
+            return _SUBSTEPS_PER_FRAME * _TAIL_SUBSTEP_MULT
         return _SUBSTEPS_PER_FRAME
+
+    def _hud_speed_mode(self) -> str:
+        r = self._reactor
+        if r is None:
+            return "1×"
+        if r.is_startup_countdown():
+            return f"FF×{_STARTUP_SUBSTEP_MULT}"
+        if r.is_plateau_fast_forward():
+            return f"FF×{_PLATEAU_SUBSTEP_MULT}"
+        if r.is_tail_fast_forward():
+            return f"FF×{_TAIL_SUBSTEP_MULT}"
+        return "1×"
+
+    def _is_fast_gui_frame(self) -> bool:
+        r = self._reactor
+        if r is None:
+            return False
+        return (
+            r.is_startup_countdown()
+            or r.is_plateau_fast_forward()
+            or r.is_tail_fast_forward()
+        )
 
     def _on_skip_to_discharge(self) -> None:
         if self._reactor is None or not self._reactor.skip_to_discharge():
@@ -235,7 +294,8 @@ class PlasmaSimApp(QtWidgets.QMainWindow):
         pretty = ", ".join(f"{k}={v:.3g}" for k, v in result.controls.items())
         self.statusBar().showMessage(
             f"Optimal Q_net = {result.q_net:.3e}  at  {pretty}   "
-            f"({result.n_evaluations} evaluations)  |  Engine: {self.backend.label}"
+            f"({result.n_evaluations} evaluations)  |  "
+            f"Next: Record → Arm → Fire → Record off  |  Engine: {self.backend.label}"
         )
 
     @QtCore.Slot(str)
@@ -243,15 +303,39 @@ class PlasmaSimApp(QtWidgets.QMainWindow):
         self._teardown_opt_thread()
         self.statusBar().showMessage(f"Optimization failed: {message}")
 
+    def _grab_recording_png(self) -> bytes | None:
+        """Canvas + right-hand diagnostic charts (excludes control panel)."""
+        return compose_png_horizontal(
+            self.canvas.grab_frame_png(),
+            self.diagnostics.grab_frame_png(),
+        )
+
+    def _recording_default_name(self) -> str:
+        r = self._reactor
+        if r is None:
+            return "pb11_reactor_shot.mp4"
+        slug = type(r).display_name.replace(" ", "_")
+        return f"pb11_reactor_shot_{slug}.mp4"
+
     def _on_record_toggled(self, recording: bool) -> None:
         if recording:
-            self._recorder.start()
-            self.statusBar().showMessage("Recording frames from plot… toggle again to save MP4.")
+            self._recorder.start(reactor_name=self._recorder_reactor_name())
+            if self._reactor and self._reactor.shot_phase in (ShotPhase.UNARMED, ShotPhase.ARMED):
+                self.statusBar().showMessage(
+                    "Recording… Arm → Fire first, or you will capture idle frames (t stays 0)."
+                )
+            else:
+                self.statusBar().showMessage(
+                    "Recording canvas + diagnostics + phase audio… toggle again to save MP4."
+                )
             return
-        saved = self._recorder.stop(self)
+        saved = self._recorder.stop(self, default_name=self._recording_default_name())
         self.controls.set_recording(False)
-        if saved:
-            self.statusBar().showMessage(f"Recording saved: {saved}")
+        if saved[0] and not saved[1]:
+            self.statusBar().showMessage(f"Recording saved (audio + narration): {saved[0]}")
+        elif saved[0] and saved[1]:
+            QtWidgets.QMessageBox.warning(self, "MP4 encode", saved[1])
+            self.statusBar().showMessage(f"Saved fallback: {saved[0]}")
         else:
             self.statusBar().showMessage("Recording cancelled (no frames captured).")
 
@@ -259,24 +343,55 @@ class PlasmaSimApp(QtWidgets.QMainWindow):
     def _on_tick(self) -> None:
         if self._reactor is None:
             return
-        prev_phase = self._reactor.shot_phase
+        r = self._reactor
         substeps = self._substeps_per_frame()
-        ff = self._reactor.is_startup_countdown()
+
+        # Play does not advance physics while unarmed / armed (by design).
+        if r.shot_phase in (ShotPhase.UNARMED, ShotPhase.ARMED):
+            self.canvas.refresh()
+            self.canvas.update_hud(
+                gui_frame=self._frame,
+                substeps=substeps,
+                speed_mode="idle",
+                sim_time_us=r.time * 1.0e6,
+                ops=r.shot_phase.value,
+                idle=True,
+            )
+            if self._playing:
+                self._on_play_toggled(False)
+                self.controls.set_playing(False)
+                self.statusBar().showMessage(
+                    f"{r.shot_callout}  —  Press Fire to run the shot."
+                )
+            return
+
+        prev_phase = r.shot_phase
+        speed_mode = self._hud_speed_mode()
+        ff = self._is_fast_gui_frame()
         for _ in range(substeps):
-            self._reactor.step()
+            r.step()
         self.canvas.refresh()
         self.canvas.update_hud(
             gui_frame=self._frame,
             substeps=substeps,
-            fast_forward=ff,
-            sim_time_us=self._reactor.time * 1.0e6,
+            speed_mode=speed_mode,
+            sim_time_us=r.time * 1.0e6,
+            ops=r.shot_phase.value,
         )
+        self.diagnostics.update_from(r.diagnostics)
         if self._recorder.active:
-            self._recorder.add_png(self.canvas.grab_frame_png())
-        self.diagnostics.update_from(self._reactor.diagnostics)
-        if self._reactor.shot_phase == ShotPhase.FIRING:
-            self.statusBar().showMessage(self._reactor.shot_callout)
-        if prev_phase == ShotPhase.FIRING and self._reactor.shot_phase == ShotPhase.QUIESCENT:
+            phase = r._fire_phase_key if r.shot_phase == ShotPhase.FIRING else r.shot_phase.value
+            nbi = float(getattr(r, "_nbi_scale", 0.0))
+            intensity = nbi if nbi > 0 else min(1.0, max(0.0, r.last_q_net / 1.8))
+            self._recorder.add_frame(
+                self._grab_recording_png(),
+                phase=phase,
+                fast_forward=ff,
+                intensity=intensity,
+            )
+        if r.shot_phase == ShotPhase.FIRING:
+            self.statusBar().showMessage(r.shot_callout)
+        if prev_phase == ShotPhase.FIRING and r.shot_phase == ShotPhase.QUIESCENT:
             self._on_play_toggled(False)
             self.controls.set_playing(False)
             self._auto_paused_after_shot = True

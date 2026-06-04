@@ -322,18 +322,22 @@ class ReactorCanvas(QtWidgets.QWidget):
         *,
         gui_frame: int,
         substeps: int,
-        fast_forward: bool,
+        speed_mode: str = "1×",
         sim_time_us: float,
+        ops: str = "",
+        idle: bool = False,
     ) -> None:
-        """Bold overlay: GUI frame index and whether we are in 35× fast-forward."""
+        """Bold overlay: GUI frame index and playback speed (1× or FF×N)."""
         reactor = self._current_reactor
         if reactor is None:
             return
         g = reactor.grid
-        mode = f"FF×{_STARTUP_MULT_LABEL}" if fast_forward else "1×"
+        if idle:
+            line2 = f"Ops: {ops}  —  press Fire to run"
+        else:
+            line2 = f"t = {sim_time_us:.3f} µs"
         self._hud_text.setText(
-            f"Frame {gui_frame}   [{mode}  {substeps} substeps/frame]\n"
-            f"t = {sim_time_us:.3f} µs"
+            f"Frame {gui_frame}   [{speed_mode}  {substeps} substeps/frame]\n{line2}"
         )
         self._hud_text.setPos(g.x0 + 0.012 * g.Lx, g.y0 + g.Ly - 0.11 * g.Ly)
         self._hud_text.setColor((0, 0, 0))
@@ -350,7 +354,3 @@ class ReactorCanvas(QtWidgets.QWidget):
         buf.open(QtCore.QIODevice.OpenModeFlag.WriteOnly)
         pix.save(buf, "PNG")
         return bytes(buf.data())
-
-
-# Displayed in HUD during countdown fast-forward (matches app._STARTUP_SUBSTEP_MULT).
-_STARTUP_MULT_LABEL = 35

@@ -38,6 +38,9 @@ beautifulsoup4 = "^4.14"
 pylatexenc = "^2.10"
 pytest = "^9.0.3"
 chattts = {extras = ["ui"], version = "^0.2.5"}
+# Must match the installed torch wheel (e.g. 2.10.0+cu128). Unpinned torchaudio 2.11
+# breaks ChatTTS with "_torchaudio.abi3.so" / libcudart load errors.
+torchaudio = "2.10.0"
 omegaconf = "^2.3.0"
 pyqtgraph = "^0.14.0"
 

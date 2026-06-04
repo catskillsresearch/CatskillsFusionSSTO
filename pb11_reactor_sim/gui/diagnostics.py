@@ -100,3 +100,15 @@ class DiagnosticsPanel(QtWidgets.QWidget):
 
         self.curve_q.setData(t, np.maximum(np.asarray(diag.q_net), eps))
         self.curve_q_plasma.setData(t, np.maximum(np.asarray(diag.q_plasma), eps))
+
+    def grab_frame_png(self) -> bytes | None:
+        """Return a PNG snapshot of the diagnostic charts (for MP4 export)."""
+        from PySide6 import QtCore
+
+        pix = self.grab()
+        if pix.isNull():
+            return None
+        buf = QtCore.QBuffer()
+        buf.open(QtCore.QIODevice.OpenModeFlag.WriteOnly)
+        pix.save(buf, "PNG")
+        return bytes(buf.data())

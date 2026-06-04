@@ -133,6 +133,10 @@ class ControlPanel(QtWidgets.QWidget):
         self.play_btn.setCheckable(True)
         self.play_btn.toggled.connect(self._on_play)
         self.reset_btn = QtWidgets.QPushButton("Reset")
+        self.reset_btn.setToolTip(
+            "Factory defaults and empty chamber. Does NOT keep optimized sliders — "
+            "use Arm → Fire again instead to re-run with current settings."
+        )
         self.reset_btn.clicked.connect(self.resetRequested.emit)
         btn_row.addWidget(self.play_btn)
         btn_row.addWidget(self.reset_btn)
@@ -141,8 +145,9 @@ class ControlPanel(QtWidgets.QWidget):
         self.record_btn = QtWidgets.QPushButton("Record MP4")
         self.record_btn.setCheckable(True)
         self.record_btn.setToolTip(
-            "Capture each displayed frame from the plot. Toggle off to save an MP4 "
-            "(requires ffmpeg or imageio+Pillow)."
+            "Presentation capture (spatial view + graphs + facility audio + ChatTTS callouts). "
+            "Recommended: Optimize → Record ON → Arm → Fire → "
+            "Record OFF to save MP4. Idle frames before Fire are not recorded."
         )
         self.record_btn.toggled.connect(self._on_record)
         root.addWidget(self.record_btn)

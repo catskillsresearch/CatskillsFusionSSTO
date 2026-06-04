@@ -398,6 +398,26 @@ class ReactorSimulation(abc.ABC):
             return False
         return keys.index(self._fire_phase_key) < keys.index(target)
 
+    def plateau_phase_keys(self) -> frozenset[str]:
+        """Long hold phases (flat-top / main pulse) that may be GUI fast-forwarded."""
+        return frozenset({self.discharge_phase_key()})
+
+    def tail_fast_phase_keys(self) -> frozenset[str]:
+        """Short cooldown phases after the main discharge."""
+        return frozenset({"ramp_down", "recovery", "afterglow"})
+
+    def is_plateau_fast_forward(self) -> bool:
+        return (
+            self.shot_phase == ShotPhase.FIRING
+            and self._fire_phase_key in self.plateau_phase_keys()
+        )
+
+    def is_tail_fast_forward(self) -> bool:
+        return (
+            self.shot_phase == ShotPhase.FIRING
+            and self._fire_phase_key in self.tail_fast_phase_keys()
+        )
+
     def can_skip_to_discharge(self) -> bool:
         return self.is_startup_countdown()
 
