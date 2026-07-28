@@ -8,49 +8,71 @@ var title = "Cue card";
 
 if (path == "Cuecards/ascent_nominal.png")
 	{
-	size = [217, 549];
-	title = "Ascent ADI - Nominal";
+	size = [455, 520];
+	title = "Ascent — Plan A";
 	}
 
 else if (path == "Cuecards/contingency_abort.png")
 	{
-	size = [659, 650];
+	size = [455, 520];
 	title = "Contingency Aborts";
 	}
 else if (path == "Cuecards/rtls_contingency.png")
 	{
-	size = [692, 666];
-	title = "RTLS Contingency";
+	size = [423, 400];
+	title = "CHARM SCRAM";
 	}
 else if (path == "Cuecards/rtls_cdr.png")
 	{
-	size = [450, 673];
-	title = "RTLS Commander";
+	size = [455, 480];
+	title = "Abort — Early";
 	}
 else if (path == "Cuecards/rtls_plt.png")
 	{
-	size = [470, 727];
-	title = "RTLS Pilot";
+	size = [455, 480];
+	title = "Abort — Late";
 	}
 else if (path == "Cuecards/tal_redesignation_zza.png")
 	{
-	size = [632, 500];
-	title = "ZZA TAL Redesignation";
+	size = [455, 420];
+	title = "Divert / KEDW";
+	}
+else if (path == "Cuecards/charm_startup.png")
+	{
+	size = [455, 520];
+	title = "CHARM Startup";
+	}
+else if (path == "Cuecards/charm_scram.png")
+	{
+	size = [423, 400];
+	title = "CHARM SCRAM";
+	}
+else if (path == "Cuecards/engine_sigma.png")
+	{
+	size = [455, 400];
+	title = "Engine σ1 / σ2 / σ3";
+	}
+else if (path == "Cuecards/rcs_green.png")
+	{
+	size = [455, 400];
+	title = "RCS LMP-103S";
 	}
 else if (path == "Cuecards/oms_part1.png")
 	{
-	size = [455, 513];
-	title = "OMS Burn Part 1";
+	path = "Cuecards/charm_startup.png";
+	size = [455, 520];
+	title = "CHARM Startup";
 	}
 else if (path == "Cuecards/oms_part2.png")
 	{
-	size = [423, 377];
-	title = "OMS Burn Part 2";
+	path = "Cuecards/engine_sigma.png";
+	size = [455, 400];
+	title = "Engine σ1 / σ2 / σ3";
 	}
 else if (path == "Cuecards/entry_nominal.png")
 	{
-	size = [214, 550];
-	title = "Entry Alpha";
+	size = [455, 520];
+	title = "Entry / Glide — Plan A";
 	}
 
 var window = canvas.Window.new(size,"dialog").set("title", title);

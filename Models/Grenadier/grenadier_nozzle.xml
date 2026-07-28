@@ -7,16 +7,18 @@
     <inherits-from>Aircraft/CatskillsFusionSSTO/Models/Effects/shuttle-main</inherits-from>
     <object-name>grenadier-aft-fairing</object-name>
     <object-name>grenadier-aft-bulkhead</object-name>
-    <object-name>grenadier-aft-stub-plate</object-name>
-    <object-name>grenadier-stub-blank-C</object-name>
-    <object-name>grenadier-stub-blank-L</object-name>
-    <object-name>grenadier-stub-blank-R</object-name>
+    <object-name>grenadier-stub-can-U</object-name>
+    <object-name>grenadier-stub-can-L</object-name>
+    <object-name>grenadier-stub-can-R</object-name>
+    <object-name>grenadier-throat-bulkhead</object-name>
+    <object-name>grenadier-throat-bulkhead-face</object-name>
     <object-name>grenadier-nozzle-outer</object-name>
     <object-name>grenadier-nozzle-inner</object-name>
     <object-name>grenadier-nozzle-lip</object-name>
     <object-name>grenadier-nozzle-throat-tube</object-name>
     <object-name>grenadier-nozzle-throat-ring</object-name>
     <object-name>grenadier-nozzle-collar</object-name>
+    <object-name>grenadier-nozzle-label</object-name>
   </effect>
   <effect>
     <inherits-from>Aircraft/CatskillsFusionSSTO/Models/Effects/shuttle-main</inherits-from>

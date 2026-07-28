@@ -2945,7 +2945,7 @@
       </item>
 
       <item>
-       <label>Ascent ADI nominal</label>
+       <label>Ascent profile (Plan A)</label>
        <binding>
         <command>nasal</command>
         <script>SpaceShuttle.show_cue_card("Cuecards/ascent_nominal.png")</script>
@@ -2953,7 +2953,7 @@
       </item>
 
       <item>
-       <label>RTLS Commander</label>
+       <label>Abort — early</label>
        <binding>
         <command>nasal</command>
         <script>SpaceShuttle.show_cue_card("Cuecards/rtls_cdr.png")</script>
@@ -2961,7 +2961,7 @@
       </item>
 
       <item>
-       <label>RTLS Pilot</label>
+       <label>Abort — late / ditch</label>
        <binding>
         <command>nasal</command>
         <script>SpaceShuttle.show_cue_card("Cuecards/rtls_plt.png")</script>
@@ -2969,7 +2969,7 @@
       </item>
 
       <item>
-       <label>Contingency Aborts</label>
+       <label>Contingency aborts</label>
        <binding>
         <command>nasal</command>
         <script>SpaceShuttle.show_cue_card("Cuecards/contingency_abort.png")</script>
@@ -2977,7 +2977,7 @@
       </item>
 
       <item>
-       <label>RTLS Contingency</label>
+       <label>CHARM SCRAM</label>
        <binding>
         <command>nasal</command>
         <script>SpaceShuttle.show_cue_card("Cuecards/rtls_contingency.png")</script>
@@ -2985,7 +2985,7 @@
       </item>
 
       <item>
-       <label>ZZA TAL</label>
+       <label>Divert / KEDW</label>
        <binding>
         <command>nasal</command>
         <script>SpaceShuttle.show_cue_card("Cuecards/tal_redesignation_zza.png")</script>
@@ -2993,23 +2993,39 @@
       </item>
 
       <item>
-       <label>OMS Part 1</label>
+       <label>CHARM startup</label>
        <binding>
         <command>nasal</command>
-        <script>SpaceShuttle.show_cue_card("Cuecards/oms_part1.png")</script>
+        <script>SpaceShuttle.show_cue_card("Cuecards/charm_startup.png")</script>
        </binding>
       </item>
 
       <item>
-       <label>OMS Part 2</label>
+       <label>CHARM SCRAM card</label>
        <binding>
         <command>nasal</command>
-        <script>SpaceShuttle.show_cue_card("Cuecards/oms_part2.png")</script>
+        <script>SpaceShuttle.show_cue_card("Cuecards/charm_scram.png")</script>
        </binding>
       </item>
 
       <item>
-       <label>Entry ADI Nominal</label>
+       <label>Engine σ1/σ2/σ3</label>
+       <binding>
+        <command>nasal</command>
+        <script>SpaceShuttle.show_cue_card("Cuecards/engine_sigma.png")</script>
+       </binding>
+      </item>
+
+      <item>
+       <label>RCS LMP-103S</label>
+       <binding>
+        <command>nasal</command>
+        <script>SpaceShuttle.show_cue_card("Cuecards/rcs_green.png")</script>
+       </binding>
+      </item>
+
+      <item>
+       <label>Entry / glide (Plan A)</label>
        <binding>
         <command>nasal</command>
         <script>SpaceShuttle.show_cue_card("Cuecards/entry_nominal.png")</script>

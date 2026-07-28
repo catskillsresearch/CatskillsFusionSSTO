@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<!-- Green RCS LMP-103S tankage / manifolds / bank markers -->
+<PropertyList>
+  <path>Aircraft/CatskillsFusionSSTO/Models/Grenadier/grenadier_rcs.ac</path>
+  <effect>
+    <inherits-from>Aircraft/CatskillsFusionSSTO/Models/Effects/shuttle-main</inherits-from>
+    <object-name>grenadier-rcs-tank-L</object-name>
+    <object-name>grenadier-rcs-tank-L-label</object-name>
+    <object-name>grenadier-rcs-press-L</object-name>
+    <object-name>grenadier-rcs-press-L-label</object-name>
+    <object-name>grenadier-rcs-manifold-L</object-name>
+    <object-name>grenadier-rcs-manifold-L-label</object-name>
+    <object-name>grenadier-rcs-primary-L</object-name>
+    <object-name>grenadier-rcs-primary-L-label</object-name>
+    <object-name>grenadier-rcs-vernier-L</object-name>
+    <object-name>grenadier-rcs-vernier-L-label</object-name>
+    <object-name>grenadier-rcs-tank-R</object-name>
+    <object-name>grenadier-rcs-tank-R-label</object-name>
+    <object-name>grenadier-rcs-press-R</object-name>
+    <object-name>grenadier-rcs-press-R-label</object-name>
+    <object-name>grenadier-rcs-manifold-R</object-name>
+    <object-name>grenadier-rcs-manifold-R-label</object-name>
+    <object-name>grenadier-rcs-primary-R</object-name>
+    <object-name>grenadier-rcs-primary-R-label</object-name>
+    <object-name>grenadier-rcs-vernier-R</object-name>
+    <object-name>grenadier-rcs-vernier-R-label</object-name>
+    <object-name>grenadier-rcs-tank-FWD</object-name>
+    <object-name>grenadier-rcs-tank-FWD-label</object-name>
+    <object-name>grenadier-rcs-press-FWD</object-name>
+    <object-name>grenadier-rcs-press-FWD-label</object-name>
+    <object-name>grenadier-rcs-manifold-FWD</object-name>
+    <object-name>grenadier-rcs-manifold-FWD-label</object-name>
+    <object-name>grenadier-rcs-primary-FWD</object-name>
+    <object-name>grenadier-rcs-primary-FWD-label</object-name>
+    <object-name>grenadier-rcs-vernier-FWD</object-name>
+    <object-name>grenadier-rcs-vernier-FWD-label</object-name>
+  </effect>
+</PropertyList>

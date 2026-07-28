@@ -1,10 +1,10 @@
-# Plan A FDM pack (JSBSim)
+# Plan A FDM pack (JSBSim) + visual wing stretch
 
-Makes the **simulator** see Plan A size/weight. Visual mesh is still heritage Shuttle.
+Makes the **simulator** see Plan A size/weight, and the **exterior mesh** show Plan A wings.
 
-Source: `arxiv.md` §1.2b. File: `shuttle.xml`.
+Source: `arxiv.md` §1.2b. Files: `shuttle.xml`, `Models/shuttle_o2_plan_a.ac`.
 
-## Scaled metrics
+## Scaled metrics (FDM)
 
 | Quantity | Heritage | Plan A |
 |----------|----------|--------|
@@ -15,6 +15,18 @@ Source: `arxiv.md` §1.2b. File: `shuttle.xml`.
 | Ixx / Iyy / Izz | stock | × ~4.07 (`m_ratio × size²`) |
 | CG / AERORP x | 2.70 m | **3.77 m** (×1.396 length) |
 
+## Visual wing (`shuttle_o2_plan_a.ac`)
+
+Built by `Models/Grenadier/build_plan_a_wings.py` from `shuttle_o2_heritage.ac`:
+
+- Span ×**1.387** (tip-to-tip ≈ **33 m**) — continuous map outboard of fuselage wall (|Z|≳3.6 m)
+- Chord ×**1.385** about root LE (x≈−1.5 m) on wing-weighted verts
+- Objects: `fuselage`, `heatshield`, elevons, gear doors
+- Fuselage length / bay width **not** stretched (packaging deferred)
+- Elevon hinges, wingtip vortices, wing-strike points updated in `SpaceShuttle.xml`
+
+Rebuild: `python3 Models/Grenadier/build_plan_a_wings.py`
+
 ## Gear
 
 - Nose x **−20.94 m**, mains x **5.03 m**, track y **±5.82 m**
@@ -24,11 +36,12 @@ Source: `arxiv.md` §1.2b. File: `shuttle.xml`.
 ## What is *not* changed
 
 - Aero **coefficient** tables (Shuttle CL/CD/Cm) — first-order flyability only
-- Exterior AC mesh — still looks stock-sized
+- Fuselage packaging length (still heritage visual length; FDM CG uses Plan A length scale)
 - Grenadier thrust model — same peak force → lower T/W at Plan A mass (expected)
 
 ## How to sniff-test
 
-1. `./fs.sh` → KEDW 22L, cold level park  
-2. Check `/fdm/jsbsim/metrics/Sw-sqft` ≈ 5167, `/fdm/jsbsim/inertia/empty-weight-lbs` ≈ 378534  
-3. Bring plant up, roll / rotate / climb — judge wing loading and inertia feel vs stock OV
+1. `./fs.sh` → KEDW 22, cold level park
+2. Top-down view: wings should read clearly wider than stock OV (~33 m tip-to-tip)
+3. Check `/fdm/jsbsim/metrics/Sw-sqft` ≈ 5167, `/fdm/jsbsim/inertia/empty-weight-lbs` ≈ 378534
+4. Bring plant up, roll / rotate / climb — wing loading and inertia vs stock OV

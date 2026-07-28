@@ -1,13 +1,19 @@
 <?xml version="1.0"?>
-<!-- CATSKILLS-SSTO-TA-GRENADIER: 3-cycle internals visible through the shared nozzle. -->
+<!-- 3-cycle jammed aft/OMS -->
 <PropertyList>
   <path>Aircraft/CatskillsFusionSSTO/Models/Grenadier/grenadier_internals.ac</path>
-
   <effect>
     <inherits-from>Aircraft/CatskillsFusionSSTO/Models/Effects/shuttle-main</inherits-from>
-    <object-name>grenadier-skid-rail-L</object-name>
-    <object-name>grenadier-skid-rail-R</object-name>
+    <object-name>grenadier-eng-rail-L</object-name>
+    <object-name>grenadier-eng-rail-L-label</object-name>
+    <object-name>grenadier-eng-rail-R</object-name>
+    <object-name>grenadier-eng-rail-R-label</object-name>
+    <object-name>grenadier-bus-coupler</object-name>
+    <object-name>grenadier-bus-coupler-label</object-name>
+    <object-name>grenadier-bus-cable</object-name>
+    <object-name>grenadier-bus-cable-label</object-name>
     <object-name>grenadier-edf-duct</object-name>
+    <object-name>grenadier-edf-duct-label</object-name>
     <object-name>grenadier-edf-hub</object-name>
     <object-name>grenadier-edf-blade-0</object-name>
     <object-name>grenadier-edf-blade-1</object-name>
@@ -22,17 +28,7 @@
     <object-name>grenadier-edf-blade-10</object-name>
     <object-name>grenadier-edf-blade-11</object-name>
     <object-name>grenadier-edf-face</object-name>
-    <object-name>grenadier-mw-rack</object-name>
-    <object-name>grenadier-mw-magnetron-0</object-name>
-    <object-name>grenadier-mw-magnetron-1</object-name>
-    <object-name>grenadier-mw-magnetron-2</object-name>
-    <object-name>grenadier-plasma-duct</object-name>
-    <object-name>grenadier-plasma-glow</object-name>
-    <object-name>grenadier-vaporizer</object-name>
-    <object-name>grenadier-water-accumulator</object-name>
-    <object-name>grenadier-water-feed-run</object-name>
-    <object-name>grenadier-bus-coupler</object-name>
-    <object-name>grenadier-bus-cable</object-name>
+    <object-name>grenadier-edf-label</object-name>
     <object-name>grenadier-stator-0</object-name>
     <object-name>grenadier-stator-1</object-name>
     <object-name>grenadier-stator-2</object-name>
@@ -43,8 +39,24 @@
     <object-name>grenadier-stator-7</object-name>
     <object-name>grenadier-stator-8</object-name>
     <object-name>grenadier-stator-9</object-name>
+    <object-name>grenadier-stator-label</object-name>
+    <object-name>grenadier-mw-core-0</object-name>
+    <object-name>grenadier-mw-core-0-label</object-name>
+    <object-name>grenadier-mw-core-1</object-name>
+    <object-name>grenadier-mw-core-1-label</object-name>
+    <object-name>grenadier-mw-core-2</object-name>
+    <object-name>grenadier-mw-core-2-label</object-name>
+    <object-name>grenadier-mw-applicator</object-name>
+    <object-name>grenadier-mw-applicator-label</object-name>
+    <object-name>grenadier-water-injector</object-name>
+    <object-name>grenadier-water-injector-label</object-name>
+    <object-name>grenadier-water-feed</object-name>
+    <object-name>grenadier-water-feed-label</object-name>
+    <object-name>grenadier-vaporizer</object-name>
+    <object-name>grenadier-vaporizer-label</object-name>
+    <object-name>grenadier-stage3-plasma</object-name>
+    <object-name>grenadier-stage3-plasma-label</object-name>
   </effect>
-
   <animation>
     <type>rotate</type>
     <object-name>grenadier-edf-hub</object-name>
@@ -62,13 +74,7 @@
     <object-name>grenadier-edf-blade-11</object-name>
     <object-name>grenadier-edf-face</object-name>
     <property>/fdm/jsbsim/systems/grenadier/engine/fan-spin-deg</property>
-    <center>
-      <x-m>13.12</x-m>
-      <y-m>0.0</y-m>
-      <z-m>-2.45</z-m>
-    </center>
-    <axis>
-      <x>1</x><y>0</y><z>0</z>
-    </axis>
+    <center><x-m>13.12</x-m><y-m>0.0</y-m><z-m>-2.45</z-m></center>
+    <axis><x>1</x><y>0</y><z>0</z></axis>
   </animation>
 </PropertyList>

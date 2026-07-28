@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<!-- Plan A: flush wing TE skins to elevon hinge (not clamp bars). -->
+<PropertyList>
+  <path>Aircraft/CatskillsFusionSSTO/Models/Grenadier/grenadier_wing_te_closeout.ac</path>
+  <effect>
+    <inherits-from>Aircraft/CatskillsFusionSSTO/Models/Effects/shuttle-main</inherits-from>
+    <object-name>grenadier-wing-te-L-upper</object-name>
+    <object-name>grenadier-wing-te-L-lower</object-name>
+    <object-name>grenadier-wing-te-R-upper</object-name>
+    <object-name>grenadier-wing-te-R-lower</object-name>
+  </effect>
+</PropertyList>

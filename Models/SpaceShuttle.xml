@@ -1,5 +1,6 @@
 <PropertyList>
-	<path>shuttle_o2.ac</path>
+	<!-- Plan A wing stretch (b≈33 m, S≈480 m²). Heritage: shuttle_o2_heritage.ac -->
+	<path>shuttle_o2_plan_a.ac</path>
 
    <!-- heat shield glow -->
 
@@ -119,6 +120,24 @@
   </model>
   <model>
     <path>Aircraft/CatskillsFusionSSTO/Models/Grenadier/grenadier_scoop.xml</path>
+    <condition>
+      <property>/sim/model/grenadier/enabled</property>
+    </condition>
+  </model>
+  <model>
+    <path>Aircraft/CatskillsFusionSSTO/Models/Grenadier/grenadier_wing_te_closeout.xml</path>
+    <condition>
+      <property>/sim/model/grenadier/enabled</property>
+    </condition>
+  </model>
+  <model>
+    <path>Aircraft/CatskillsFusionSSTO/Models/Grenadier/grenadier_bay_plant.xml</path>
+    <condition>
+      <property>/sim/model/grenadier/enabled</property>
+    </condition>
+  </model>
+  <model>
+    <path>Aircraft/CatskillsFusionSSTO/Models/Grenadier/grenadier_rcs.xml</path>
     <condition>
       <property>/sim/model/grenadier/enabled</property>
     </condition>
@@ -2163,6 +2182,7 @@
 
 <!-- elevon movement -->
 
+ <!-- Elevon hinges: Plan A wing (span×1.387, chord×1.385). -->
  <animation>
 	<object-name>inboard-elevon-left</object-name>
 	<type>rotate</type>
@@ -2170,11 +2190,11 @@
   	<factor>1.0</factor>
 	<offset-deg>0.0</offset-deg>
   	<axis>   
-   		<x1-m> 9.2</x1-m>
+   		<x1-m> 13.32</x1-m>
    		<y1-m> 0.0</y1-m>
    		<z1-m>-4.1</z1-m>
-   		<x2-m> 8.5</x2-m>
-   		<y2-m> 10.0</y2-m>
+   		<x2-m> 12.35</x2-m>
+   		<y2-m> 13.55</y2-m>
    		<z2-m>-4.1</z2-m>
   	</axis>
  </animation>
@@ -2186,11 +2206,11 @@
   	<factor>1.0</factor>
 	<offset-deg>0.0</offset-deg>
   	<axis>   
-   		<x1-m> 9.2</x1-m>
+   		<x1-m> 13.32</x1-m>
    		<y1-m> 0.0</y1-m>
    		<z1-m>-4.1</z1-m>
-   		<x2-m> 8.5</x2-m>
-   		<y2-m> 10.0</y2-m>
+   		<x2-m> 12.35</x2-m>
+   		<y2-m> 13.55</y2-m>
    		<z2-m>-4.1</z2-m>
   	</axis>
  </animation>
@@ -2202,11 +2222,11 @@
   	<factor>-1.0</factor>
 	<offset-deg>0.0</offset-deg>
   	<axis>   
-   		<x1-m> 9.2</x1-m>
+   		<x1-m> 13.32</x1-m>
    		<y1-m> 0.0</y1-m>
    		<z1-m>-4.1</z1-m>
-   		<x2-m> 8.5</x2-m>
-   		<y2-m> -10.0</y2-m>
+   		<x2-m> 12.35</x2-m>
+   		<y2-m> -13.55</y2-m>
    		<z2-m>-4.1</z2-m>
   	</axis>
  </animation>
@@ -2218,11 +2238,11 @@
   	<factor>-1.0</factor>
 	<offset-deg>0.0</offset-deg>
   	<axis>   
-   		<x1-m> 9.2</x1-m>
+   		<x1-m> 13.32</x1-m>
    		<y1-m> 0.0</y1-m>
    		<z1-m>-4.1</z1-m>
-   		<x2-m> 8.5</x2-m>
-   		<y2-m> -10.0</y2-m>
+   		<x2-m> 12.35</x2-m>
+   		<y2-m> -13.55</y2-m>
    		<z2-m>-4.1</z2-m>
   	</axis>
  </animation>
@@ -2474,8 +2494,8 @@
   <name>right-strake-vortex</name>
   <path>Aircraft/CatskillsFusionSSTO/Models/Effects/strake-vortex-new.xml</path>
   <offsets>
-  <x-m>9.55</x-m>
-	<y-m> 11.7</y-m>
+  <x-m>13.80</x-m>
+	<y-m> 16.19</y-m>
 	<z-m>-4.46</z-m>
   </offsets>
   <condition>
@@ -2503,8 +2523,8 @@
   <name>left-strake-vortex</name>
   <path>Aircraft/CatskillsFusionSSTO/Models/Effects/strake-vortex-new.xml</path>
   <offsets>
-  <x-m>9.55</x-m>
-	<y-m>-11.7</y-m>
+  <x-m>13.80</x-m>
+	<y-m>-16.19</y-m>
 	<z-m>-4.46</z-m>
   </offsets>
   <condition>
@@ -2657,8 +2677,8 @@
 		<name>left-wing-strike</name>
 		<path>Effects/ground/wingstrike/left-wing-strike.xml</path>
 		<offsets>
-		  <x-m> 11.35 </x-m>
-		  <y-m> -11.99 </y-m>
+		  <x-m> 16.29 </x-m>
+		  <y-m> -16.64 </y-m>
 		  <z-m> -4.51 </z-m>
 		</offsets>
 	</model>
@@ -2667,8 +2687,8 @@
 		<name>right-wing-strike</name>
 		<path>Effects/ground/wingstrike/right-wing-strike.xml</path>
 		<offsets>
-		  <x-m> 11.35 </x-m>
-		  <y-m>  11.99 </y-m>
+		  <x-m> 16.29 </x-m>
+		  <y-m>  16.64 </y-m>
 		  <z-m> -4.51 </z-m>
 		</offsets>
 	</model>

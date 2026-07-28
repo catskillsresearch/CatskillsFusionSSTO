@@ -31,7 +31,7 @@ Also: SSME-right controller A = **vacuum ready** (needed for go-fuel), not SCRAM
 | OMS (except arm→σ) | OMS TVC CWS, etc. | Vacuum Δv from σ3 / RCS |
 | APU / HYD (as hydraulics) | APU fuel, hyd pumps (aliases only on operate/ctrl) | No SSME TVC hyd story |
 | **Fuel cells** | `fuel-cell-reac-vlv*`, FC CWS | CHARM bus + flight battery; **inert** |
-| Hypergol He for OMS/RCS | OMS He on MEDS | Green mono + e-pump later |
+| Hypergol He for OMS/RCS | OMS He on MEDS | **LMP-103S** + Bradford/ECAPS-class HPGP (locked) |
 
 ## Repurpose (v1 bindings — implemented)
 
