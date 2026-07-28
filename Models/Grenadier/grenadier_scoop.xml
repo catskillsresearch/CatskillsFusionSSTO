@@ -22,8 +22,10 @@
     <object-name>grenadier-scoop-R-duct-label</object-name>
     <object-name>grenadier-scoop-plenum</object-name>
     <object-name>grenadier-scoop-plenum-label</object-name>
-    <object-name>grenadier-precompressor</object-name>
-    <object-name>grenadier-precompressor-label</object-name>
+    <object-name>grenadier-precompressor-L</object-name>
+    <object-name>grenadier-precompressor-L-label</object-name>
+    <object-name>grenadier-precompressor-R</object-name>
+    <object-name>grenadier-precompressor-R-label</object-name>
     <object-name>grenadier-mw-pod-L-0</object-name>
     <object-name>grenadier-mw-pod-L-0-label</object-name>
     <object-name>grenadier-mw-pod-L-1</object-name>
@@ -37,9 +39,9 @@
     <object-name>grenadier-mw-pod-R-2</object-name>
     <object-name>grenadier-mw-pod-R-2-label</object-name>
     <object-name>grenadier-oms-blank-L</object-name>
-    <object-name>grenadier-oms-blank-L-under</object-name>
+    <object-name>grenadier-oms-blank-L-face</object-name>
     <object-name>grenadier-oms-blank-R</object-name>
-    <object-name>grenadier-oms-blank-R-under</object-name>
+    <object-name>grenadier-oms-blank-R-face</object-name>
   </effect>
   <animation>
     <type>translate</type>

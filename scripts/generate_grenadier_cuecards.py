@@ -76,7 +76,7 @@ POWERED: list[tuple[tuple[str, list[str]], tuple[str, list[str]]]] = [
         ("VEHICLE ID", ["CATSKILLS-SSTO-TA-GRENADIER", "", "CHARM + 3-cycle electric", "OMS engines deleted", "Full Shuttle RCS nozzles", "LMP-103S green mono"]),
     ),
     (
-        ("PLANT SERVICES", ["## APU row = pad/plant", "APU1 ground cart ONLINE", "APU2 flight battery ONLINE", "APU3 cryo ENABLE", "", "APU ctrl1 Magnet ARM", "APU ctrl2 Fuel ENABLE", "APU ctrl3 RF ENABLE"]),
+        ("PLANT SERVICES", ["## APU row = pad/plant", "APU2 flight battery ONLINE", "APU3 cryo ENABLE", "APU1 ground cart = optional GSE", "", "APU ctrl1 Magnet ARM", "APU ctrl2 Fuel ENABLE", "APU ctrl3 RF ENABLE"]),
         ("PLANT SERVICES (2)", ["SSME-right A = Vacuum READY", "OMS L/R = σ − / σ +", "Throttle = engine throttle", "Main Eng Limit→Enable = SCRAM", "", "Fuel cells = inert"]),
     ),
     (
@@ -96,8 +96,8 @@ POWERED: list[tuple[tuple[str, list[str]], tuple[str, list[str]]]] = [
         ("BATTERY", ["√ battery-kwh ≥ min", "ONLINE before light-off", "Space restart budget"]),
     ),
     (
-        ("CHARM PRECOND", ["mode OFF / scram=0", "√ inventories", "Ground cart available", "Bay doors as ops require"]),
-        ("CHARM POWER PATH", ["source = CART (Earth)", "cart-tied = 1", "√ aux-bus-v", "battery ONLINE"]),
+        ("CHARM PRECOND", ["mode OFF / scram=0", "√ inventories", "Battery charged (stage 7)", "Bay doors as ops require"]),
+        ("CHARM POWER PATH", ["source = BATTERY", "√ battery ONLINE", "√ aux-bus-v", "Cart optional (pad GSE)"]),
     ),
     (
         ("CHARM CRYO", ["Cryo ENABLE → √ go-cryo", "Magnet ARM → √ I≥0.95", "Mode → CRYO"]),
@@ -105,7 +105,7 @@ POWERED: list[tuple[tuple[str, list[str]], tuple[str, list[str]]]] = [
     ),
     (
         ("CHARM LIGHT", ["RF ENABLE", "CHARM LIGHT", "√ plasma-proxy", "Mode → LIGHT"]),
-        ("CHARM POWER", ["DEC ONLINE", "√ bus-mw", "Mode → POWER", "Detie cart"]),
+        ("CHARM POWER", ["DEC ONLINE", "√ bus-mw", "Mode → POWER", "Cart stays Off on scramble"]),
     ),
     (
         ("CHARM SCRAM", ["Limit Shutdown → Enable", "mode SCRAM latched", "Inhibit RF/mag/fuel"]),
@@ -241,11 +241,11 @@ def main() -> None:
         "CHARM STARTUP",
         [
             "## OFF → CRYO → ARM → LIGHT → POWER",
-            "0 √ inventories / battery / scram=0",
-            "1 Cart ONLINE + tied; batt ONLINE",
+            "0 √ inventories / battery charged / scram=0",
+            "1 Flight battery ONLINE (no cart)",
             "2 Cryo ENABLE; Magnet ARM → CRYO",
             "3 Fuel ENABLE; Vac READY → ARM",
-            "4 RF; LIGHT; DEC → POWER; detie",
+            "4 RF; LIGHT; DEC → POWER",
         ],
     )
     save_png(

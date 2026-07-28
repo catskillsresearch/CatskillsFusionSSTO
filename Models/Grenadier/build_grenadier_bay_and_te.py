@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
-"""Plan A wing TE closeout + bay plant from assembly.json (heritage FG scale).
+"""Bay plant from assembly.json (heritage FG scale).
 
-1) grenadier_wing_te_closeout.ac — wing TE skins to elevons.
+Wing TE: pulled to the elevon flap line inside build_plan_a_wings.py
+(no overlay closeout / "scotch tape").
+
+Was:
+1) grenadier_wing_te_closeout.ac — retired; do not reload in FG.
 2) grenadier_bay_plant.ac — fusion plant skid contents only (battery, water,
    fuel, CHARM chamber string + racks). No assembly-name boxes. No fake
    engine poke — 3-cycle lives in nozzle/OMS; aft bulkhead gets a bus hole.
@@ -160,39 +164,20 @@ class ACBuilder:
 
 
 def build_wing_te_closeout():
-    """Extend the *wing* aft to the elevon LE — flush skin, not clamp bars."""
-    b = ACBuilder()
-    mat_upper = b.add_mat("wing-te-upper", (0.78, 0.79, 0.80), amb=0.45, spec=0.18, shi=20)
-    mat_lower = b.add_mat("wing-te-lower", (0.10, 0.10, 0.11), amb=0.3, spec=0.08, shi=12)
+    """Retired: overlay TE skins looked like scotch tape.
 
-    sides = [("L", +1.0), ("R", -1.0)]
-    hinge = [
-        (2.65, 13.35),
-        (6.50, 13.55),
-        (10.50, 13.85),
-        (13.50, 13.95),
-        (16.54, 14.05),
-    ]
-
-    def skin(name, y, mat, sign):
-        verts = []
-        for z, x_le in hinge:
-            verts.append(_v(x_le + 0.06, y, sign * z))
-        for z, x_le in hinge:
-            verts.append(_v(x_le - 2.60, y, sign * z))
-        n = len(hinge)
-        faces = []
-        for i in range(n - 1):
-            a, b_i = i, i + 1
-            c, d = n + i + 1, n + i
-            faces.append((a, b_i, c, d))
-        b.add_mesh(name, verts, faces, mat=mat, twosided=True)
-
-    for side, sign in sides:
-        skin(f"grenadier-wing-te-{side}-upper", -4.25, mat_upper, sign)
-        skin(f"grenadier-wing-te-{side}-lower", -5.00, mat_lower, sign)
-
-    b.write(OUT / "grenadier_wing_te_closeout.ac")
+    Wing TE is corrected in build_plan_a_wings.pull_wing_te_to_flap_line().
+    Writes an empty world so stale XML cannot resurrect the patches.
+    """
+    path = OUT / "grenadier_wing_te_closeout.ac"
+    path.write_text(
+        "AC3Db\n"
+        "MATERIAL \"empty\" rgb 0.5 0.5 0.5  amb 0.2 0.2 0.2  emis 0 0 0  "
+        "spec 0.1 0.1 0.1  shi 10  trans 0\n"
+        "OBJECT world\n"
+        "kids 0\n"
+    )
+    print(f"wrote empty {path.name} (TE closeout retired)")
 
 
 def build_bay_plant():

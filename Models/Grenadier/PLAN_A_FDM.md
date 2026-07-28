@@ -24,6 +24,7 @@ Built by `Models/Grenadier/build_plan_a_wings.py` from `shuttle_o2_heritage.ac`:
 - Objects: `fuselage`, `heatshield`, elevons, gear doors
 - Fuselage length / bay width **not** stretched (packaging deferred)
 - Elevon hinges, wingtip vortices, wing-strike points updated in `SpaceShuttle.xml`
+- After stretch, wing TE verts are pulled aft onto the elevon LE (straight flap line) — no TE overlay patches
 
 Rebuild: `python3 Models/Grenadier/build_plan_a_wings.py`
 

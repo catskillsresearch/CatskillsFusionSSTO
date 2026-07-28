@@ -4,7 +4,7 @@ MATERIAL "Material.001" rgb 0.7000 0.6800 0.6500  amb 0.1500 0.1500 0.1500  emis
 MATERIAL "FlatGrey" rgb 0.1193 0.1193 0.1193  amb 0.1000 0.1000 0.1000  emis 0.0000 0.0000 0.0000  spec 0.0716 0.0716 0.0716  shi 50 trans 0.0000
 OBJECT world
 name "Blender_export__OMSPods.ac"
-kids 26
+kids 2
 OBJECT poly
 name "omsLeft"
 loc -0.5764390 1.5317400 -0.0000010
@@ -1711,7 +1711,7 @@ refs 4
 215 0 0
 213 0 0
 212 0 0
-kids 13
+kids 12
 OBJECT poly
 name "rcsL1A"
 numvert 48
@@ -6056,7 +6056,7 @@ refs 4
 212 0 0
 213 0 0
 215 0 0
-kids 13
+kids 12
 OBJECT poly
 name "rcsR1A"
 numvert 48

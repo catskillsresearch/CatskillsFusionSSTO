@@ -8,9 +8,9 @@ CHARM mode `OFF → CRYO → ARM → LIGHT → POWER` is **derived**. You do **n
 
 | What you need | Heritage object (hover name) | Where on the flightdeck |
 |---------------|------------------------------|-------------------------|
-| Ground cart | `apu-operate-1` → **Ground cart** | **Right wall** (PLT), APU operate row |
-| Flight battery | `apu-operate-2` → **Flight battery** | same row |
+| Flight battery | `apu-operate-2` → **Flight battery** | **Right wall** (PLT), APU operate row |
 | Cryo | `apu-operate-3` → **Cryo enable** | same row |
+| Ground cart (optional) | `apu-operate-1` → **Ground cart** | same row — pad GSE only; not required for scramble |
 | Magnet | `apu-ctrl-pwr-1` → **Magnet arm** | **Right wall**, APU controller row |
 | Fuel | `apu-ctrl-pwr-2` → **Fuel enable** | same |
 | RF | `apu-ctrl-pwr-3` → **RF enable** | same |
@@ -42,16 +42,20 @@ Do **not** use DPS Fuel Cells or APU/HYD DISPs (titles blanked; heritage wallpap
 2. Open Cue cards → **CHARM startup** (menu) if you want the same steps as a popup.
 
 ### 1. Plant to POWER (right wall + CHARM CRT)
-1. Ground cart → Online (and keep cart tied on pad if your checklist expects it).
-2. Flight battery → Online.
-3. Cryo enable → Enable. Wait until CHARM page shows cryo/magnet temperature going cold.
-4. Magnet arm → Arm. Wait magnet current high (go-magnet).
-5. Fuel enable → Enable.
-6. Vacuum ready → Ready.
-7. RF enable → Enable.
-8. CHARM LIGHT → On.
-9. DEC online → On.
-10. Confirm **CHARM CRT mode = POWER** and bus MW rising.
+
+Stage 7 pads with a **charged flight battery** (~500 kWh). Scramble on battery alone — **no ground cart**.
+
+1. Flight battery → Online (`apu-operate-2`).
+2. Cryo enable → Enable. Wait until CHARM page shows cryo/magnet temperature going cold.
+3. Magnet arm → Arm. Wait magnet current high (go-magnet).
+4. Fuel enable → Enable.
+5. Vacuum ready → Ready.
+6. RF enable → Enable.
+7. CHARM LIGHT → On.
+8. DEC online → On.
+9. Confirm **CHARM CRT mode = POWER** and bus MW rising.
+
+*(Ground cart / `apu-operate-1` stays Off unless you want pad-tied GSE for a long hold.)*
 
 ### 2. Engine (center)
 1. Stage = 1 (OMS L/R = Stage − / +).

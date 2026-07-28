@@ -199,18 +199,8 @@ def hinge_report() -> None:
         )
 
 
-def close_elevon_seams(path: Path) -> None:
-    """Pull elevon LE forward onto wing TE where stretch left a gap (IB root ~0.3 m)."""
-    lines = path.read_text(errors="ignore").splitlines(keepends=True)
-    # Parse elevon LE targets and wing TE after stretch is already in file.
-    elev_names = {
-        "inboard-elevon-left",
-        "inboard-elevon-right",
-        "outboard-elevon-left",
-        "outboard-elevon-right",
-    }
-    # First pass: collect wing TE candidates from fuselage+heatshield
-    wing_verts = []
+def _parse_named_verts(lines: list[str], names: set[str]) -> dict[str, list[tuple[float, float, float]]]:
+    out: dict[str, list[tuple[float, float, float]]] = {n: [] for n in names}
     obj = None
     collecting = False
     left = 0
@@ -219,7 +209,7 @@ def close_elevon_seams(path: Path) -> None:
             obj = line.split('"')[1] if '"' in line else line.split()[1]
             collecting = False
             continue
-        if line.startswith("numvert") and obj in ("fuselage", "heatshield"):
+        if line.startswith("numvert") and obj in names:
             left = int(line.split()[1])
             collecting = True
             continue
@@ -227,40 +217,115 @@ def close_elevon_seams(path: Path) -> None:
             parts = line.split()
             if len(parts) >= 3:
                 try:
-                    wing_verts.append(tuple(map(float, parts[:3])))
+                    out[obj].append(tuple(map(float, parts[:3])))  # type: ignore[arg-type]
                 except ValueError:
                     pass
             left -= 1
             if left == 0:
                 collecting = False
+    return out
 
-    def wing_te_x(z: float, y: float) -> float | None:
-        cands = [
-            w
-            for w in wing_verts
-            if abs(w[2] - z) < 0.45 and abs(w[1] - y) < 1.2 and w[1] < -2.0
-        ]
-        if not cands:
-            cands = [w for w in wing_verts if abs(w[2] - z) < 0.6 and w[1] < -2.5]
-        if not cands:
-            return None
-        # Prefer verts near elevon hinge station (x ~ 12–15 after stretch)
-        near = [w for w in cands if 12.0 < w[0] < 15.5]
-        pool = near if near else cands
-        return max(w[0] for w in pool)
 
-    out = []
+def _elevon_le_samples(elev_verts: dict[str, list[tuple[float, float, float]]]) -> list[tuple[float, float]]:
+    """(|z|, x_le) samples along both elevons — flap hinge line."""
+    samples: list[tuple[float, float]] = []
+    for verts in elev_verts.values():
+        if not verts:
+            continue
+        xs = [v[0] for v in verts]
+        xmin, xmax = min(xs), max(xs)
+        thr = xmin + 0.18 * (xmax - xmin)
+        for x, _y, z in verts:
+            if x <= thr:
+                samples.append((abs(z), x))
+    samples.sort()
+    # Bin by |z| and keep min x (true LE) per bin
+    bins: dict[float, float] = {}
+    for az, x in samples:
+        key = round(az * 4.0) / 4.0
+        bins[key] = x if key not in bins else min(bins[key], x)
+    return sorted(bins.items())
+
+
+def _interp_le(samples: list[tuple[float, float]], az: float) -> float | None:
+    if not samples:
+        return None
+    if az <= samples[0][0]:
+        return samples[0][1]
+    if az >= samples[-1][0]:
+        return samples[-1][1]
+    for (z0, x0), (z1, x1) in zip(samples, samples[1:]):
+        if z0 <= az <= z1:
+            t = 0.0 if z1 <= z0 else (az - z0) / (z1 - z0)
+            return x0 + t * (x1 - x0)
+    return None
+
+
+def pull_wing_te_to_flap_line(path: Path) -> None:
+    """Pull wing TE aft to a straight elevon-LE flap line (no overlay 'tape').
+
+    Plan A chord stretch leaves the TE short/curved inboard of the tip; the old
+    fix laid scotch-tape skins over the gap. Instead, move the wing mesh's own
+    trailing-edge verts aft onto the elevon leading-edge line.
+    """
+    lines = path.read_text(errors="ignore").splitlines(keepends=True)
+    elev_names = {
+        "inboard-elevon-left",
+        "inboard-elevon-right",
+        "outboard-elevon-left",
+        "outboard-elevon-right",
+    }
+    wing_names = {"fuselage", "heatshield"}
+    elev = _parse_named_verts(lines, elev_names)
+    wing = _parse_named_verts(lines, wing_names)
+    samples = _elevon_le_samples(elev)
+    if len(samples) < 2:
+        print("pull_wing_te_to_flap_line: no elevon LE samples — skipped")
+        return
+
+    # Per-|z| bin: aft-most x and chord. Keep bins that look like a real wing
+    # section (decent aft TE, or enough chord that the aft lip is a cutout edge).
+    bin_xs: dict[float, list[float]] = {}
+    for verts in wing.values():
+        for x, y, z in verts:
+            az = abs(z)
+            if az < 2.55 or az > 16.7:
+                continue
+            if y > -3.70 or y < -5.45:
+                continue
+            key = round(az * 4.0) / 4.0
+            bin_xs.setdefault(key, []).append(x)
+    local_te: dict[float, float] = {}
+    for key, xs in bin_xs.items():
+        te, x0 = max(xs), min(xs)
+        chord = te - x0
+        if te >= 4.0 or (chord >= 1.5 and te >= 0.8):
+            local_te[key] = te
+
+    def near_local_te(x: float, az: float) -> float | None:
+        """Return local TE x if this vert sits on the TE lip."""
+        best = None
+        best_dz = 0.40
+        for key, te in local_te.items():
+            dz = abs(key - az)
+            if dz <= best_dz and x >= te - 0.40:
+                best_dz = dz
+                best = te
+        return best
+
+    out: list[str] = []
     obj = None
     collecting = False
     left = 0
     n_fix = 0
+    max_pull = 0.0
     for line in lines:
         if line.startswith("name "):
             obj = line.split('"')[1] if '"' in line else line.split()[1]
             collecting = False
             out.append(line)
             continue
-        if line.startswith("numvert") and obj in elev_names:
+        if line.startswith("numvert") and obj in wing_names:
             left = int(line.split()[1])
             collecting = True
             out.append(line)
@@ -270,16 +335,24 @@ def close_elevon_seams(path: Path) -> None:
             if len(parts) >= 3:
                 try:
                     x, y, z = float(parts[0]), float(parts[1]), float(parts[2])
-                    # LE-ish: forward half of this elevon (smaller x)
-                    # Pull forward if wing TE is ahead of elevon (gap)
-                    te = wing_te_x(z, y)
-                    if te is not None and x > te + 0.05:
-                        # Only adjust verts that are on the LE (not TE of elevon)
-                        # Heuristic: if x is within 0.4 of the object's min we'll
-                        # handle via comparing to local — use absolute: LE < 15.2
-                        if x < 15.2:
-                            x = te - 0.04  # slight overlap onto wing
-                            n_fix += 1
+                    az = abs(z)
+                    tgt = _interp_le(samples, az)
+                    if (
+                        tgt is not None
+                        and 2.55 <= az <= 16.7
+                        and -5.45 <= y <= -3.70
+                        and x >= 0.5
+                    ):
+                        te = near_local_te(x, az)
+                        # Only pull TE lip verts that fall short of the flap line.
+                        if te is not None and x < tgt - 0.02:
+                            new_x = tgt - 0.03
+                            pull = new_x - x
+                            # Real shortfalls are ~0.5–13 m (inboard cutout → flap).
+                            if 0.02 < pull <= 13.0:
+                                x = new_x
+                                n_fix += 1
+                                max_pull = max(max_pull, pull)
                     rest = " ".join(parts[3:])
                     nl = "\n" if line.endswith("\n") else ""
                     line = f"{x:.6f} {y:.6f} {z:.6f}" + (f" {rest}" if rest else "") + nl
@@ -293,13 +366,18 @@ def close_elevon_seams(path: Path) -> None:
         out.append(line)
 
     path.write_text("".join(out))
-    print(f"elevon seam close: adjusted {n_fix} LE verts in {path.name}")
+    z0, x0 = samples[0]
+    z1, x1 = samples[-1]
+    print(
+        f"wing TE → flap line: moved {n_fix} TE verts (max pull {max_pull:.2f} m); "
+        f"LE line |z|={z0:.2f}→{z1:.2f} x={x0:.2f}→{x1:.2f}"
+    )
 
 
 def main() -> None:
     src = ensure_heritage()
     rewrite(src, DST)
-    close_elevon_seams(DST)
+    pull_wing_te_to_flap_line(DST)
     hinge_report()
     print(f"heritage={SRC.name}  plan_a={DST.name}")
 

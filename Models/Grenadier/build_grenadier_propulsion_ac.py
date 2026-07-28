@@ -382,8 +382,12 @@ def build_scoop():
 
     b.labeled_box("grenadier-scoop-plenum", "PLENUM", 12.40, 13.80, -0.95, 0.0, -0.45, 0.45, mat_duct, L, tex_dir)
 
+    # Precomp mirrored into both OMS pod volumes (L = +Z / aircraft right).
     b.labeled_box(
-        "grenadier-precompressor", "PRECOMP", 12.6, 14.2, -1.70, -0.85, 1.55, 2.45, mat_pre, L, tex_dir
+        "grenadier-precompressor-L", "PRECOMP L", 12.6, 14.2, -1.70, -0.85, 1.55, 2.45, mat_pre, L, tex_dir
+    )
+    b.labeled_box(
+        "grenadier-precompressor-R", "PRECOMP R", 12.6, 14.2, -1.70, -0.85, -2.45, -1.55, mat_pre, L, tex_dir
     )
     for i, zc in enumerate((1.95, 2.25, 1.70)):
         b.labeled_box(
@@ -394,13 +398,15 @@ def build_scoop():
             f"grenadier-mw-pod-R-{i}", f"MW R{i}", 12.9, 14.1, -1.55, -0.95, zc - 0.18, zc + 0.18, mat_mw, L, tex_dir
         )
 
+    # Plug the heritage OMS engine apertures (bells stripped). Prior disks were
+    # undersized (r=0.55 vs hole ~0.74) so MW/precomp teal showed through aft.
     mat_oms_blank = b.add_mat("oms-engine-blank", (0.16, 0.16, 0.17), amb=0.3, spec=0.12, shi=18)
     for name, cy_i, cz_i in (
-        ("grenadier-oms-blank-L", -1.35, 2.03),
-        ("grenadier-oms-blank-R", -1.35, -2.03),
+        ("grenadier-oms-blank-L", -1.22, 2.085),
+        ("grenadier-oms-blank-R", -1.22, -2.085),
     ):
-        b.disk(name, 0.55, 14.52, 28, mat_oms_blank, normal="+x", cy=cy_i, cz=cz_i)
-        b.disk(f"{name}-under", 0.48, 14.40, 28, mat_oms_blank, normal="+x", cy=cy_i, cz=cz_i)
+        b.solid_cylinder(name, 14.35, 15.05, 0.82, 28, mat_oms_blank, cy=cy_i, cz=cz_i)
+        b.disk(f"{name}-face", 0.82, 15.05, 28, mat_oms_blank, normal="+x", cy=cy_i, cz=cz_i, twosided=True)
 
     b.write(OUT / "grenadier_scoop.ac")
 
@@ -634,14 +640,16 @@ def build_rcs():
         )
         names.append(f"grenadier-rcs-vernier-{side}-label")
 
-    # Forward nose module (near heritage nose RCS)
+    # Forward nose module — must stay *inside* the heritage nose shell.
+    # Outer skin at X≈-16 tops out near Y=-1.3; prior boxes sat at Y≈-0.5…-1.5
+    # and poked through as exterior junk under the cockpit.
     b.labeled_box(
         track("grenadier-rcs-tank-FWD"),
         "LMP FWD",
-        -16.2,
-        -15.2,
-        -1.55,
-        -0.85,
+        -16.35,
+        -15.55,
+        -3.35,
+        -2.55,
         -0.35,
         0.35,
         mat_tank,
@@ -652,10 +660,10 @@ def build_rcs():
     b.labeled_box(
         track("grenadier-rcs-press-FWD"),
         "He FWD",
-        -15.9,
-        -15.4,
-        -0.85,
-        -0.55,
+        -16.15,
+        -15.75,
+        -2.55,
+        -2.25,
         -0.25,
         0.25,
         mat_he,
@@ -666,10 +674,10 @@ def build_rcs():
     b.labeled_box(
         track("grenadier-rcs-manifold-FWD"),
         "RCS MAN FWD",
-        -15.5,
-        -14.9,
-        -1.70,
-        -1.35,
+        -15.70,
+        -15.20,
+        -3.50,
+        -3.10,
         -0.30,
         0.30,
         mat_man,
@@ -680,12 +688,12 @@ def build_rcs():
     b.labeled_box(
         track("grenadier-rcs-primary-FWD"),
         "PRI FWD",
-        -17.05,
-        -16.75,
-        -1.40,
-        -0.90,
-        -0.45,
-        0.45,
+        -16.90,
+        -16.55,
+        -3.20,
+        -2.70,
+        -0.35,
+        0.35,
         mat_bank,
         L,
         tex_dir,
@@ -694,12 +702,12 @@ def build_rcs():
     b.labeled_box(
         track("grenadier-rcs-vernier-FWD"),
         "VER FWD",
-        -16.70,
-        -16.45,
-        -0.70,
-        -0.45,
-        -0.25,
-        0.25,
+        -16.50,
+        -16.20,
+        -2.70,
+        -2.45,
+        -0.22,
+        0.22,
         mat_bank,
         L,
         tex_dir,

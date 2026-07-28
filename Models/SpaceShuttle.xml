@@ -124,12 +124,8 @@
       <property>/sim/model/grenadier/enabled</property>
     </condition>
   </model>
-  <model>
-    <path>Aircraft/CatskillsFusionSSTO/Models/Grenadier/grenadier_wing_te_closeout.xml</path>
-    <condition>
-      <property>/sim/model/grenadier/enabled</property>
-    </condition>
-  </model>
+  <!-- Plan A wing TE is pulled to the elevon LE in shuttle_o2_plan_a.ac
+       (build_plan_a_wings.py) — no overlay closeout / "scotch tape". -->
   <model>
     <path>Aircraft/CatskillsFusionSSTO/Models/Grenadier/grenadier_bay_plant.xml</path>
     <condition>
