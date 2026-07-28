@@ -3367,7 +3367,7 @@ Note that devlopment is ongoing and not all features are documented.
     <path>/sim/model/panel/cover/A1-covers-visible</path>
     <path>/sim/config/shuttle/mdu-update-speed</path>
     <path>/fdm/jsbsim/systems/adi/quality-level</path>
-    <path>/sim/config/shuttle/detailed-flightdeck</path>
+    <!-- Grenadier: do not archive detailed-flightdeck — saved 0 hid CDR/PLT seats. -->
     <path>/sim/config/shuttle/srb-shake</path>
     <path>/sim/config/shuttle/hud-filter</path>
     <path>/sim/config/shuttle/place-gantry</path>

@@ -17,7 +17,6 @@
     <stage type="int">7</stage>
   </presets>
   <startup>
-    <!-- Temporary: approach still until runway-gear splash art exists -->
     <splash-texture>Aircraft/CatskillsFusionSSTO/CatskillsFusionSSTO-grenadier-splash.png</splash-texture>
   </startup>
     <previews>

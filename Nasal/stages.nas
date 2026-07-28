@@ -3184,12 +3184,17 @@ setprop("/environment/aircraft-effects/splash-vector-z", 0.0);
 
 if (stage == 7)
 	{
-	# Grenadier runway: retract pad/SRB structure contacts (units 3–5). If left at
-	# z≈-14 m they stab through the runway and flip the orbiter onto its back
-	# (black TPS up — looks “dark”).
-	setprop("/fdm/jsbsim/contact/unit[3]/z-position", 0.0);
-	setprop("/fdm/jsbsim/contact/unit[4]/z-position", 0.0);
-	setprop("/fdm/jsbsim/contact/unit[5]/z-position", 0.0);
+	# Grenadier runway: sit level on gear. Structure contacts (pad/SRB 3–5,
+	# body-flap 6–7, wing/nose 8–10) must not touch the runway — body-flap WOW
+	# props the tail and pitches the nose up past the 14° tailscrape limit.
+	var i = 3;
+	while (i <= 10) {
+		setprop("/fdm/jsbsim/contact/unit[" ~ i ~ "]/z-position", 20.0);
+		i += 1;
+	}
+	# Match nose bogey length to mains so three-point contact is near pitch 0
+	# (stock nose is ~1.1 m shorter → wheelie on mains only).
+	setprop("/fdm/jsbsim/contact/unit[0]/z-position", -7.97);
 
 	setprop("/orientation/pitch-deg", 0.0);
 	setprop("/orientation/roll-deg", 0.0);
@@ -3199,17 +3204,25 @@ if (stage == 7)
 	setprop("/velocities/speed-north-fps", 0.0);
 	setprop("/velocities/speed-east-fps", 0.0);
 	setprop("/velocities/speed-down-fps", 0.0);
+	setprop("/orientation/pitch-rate-degps", 0.0);
+	setprop("/orientation/roll-rate-degps", 0.0);
+	setprop("/orientation/yaw-rate-degps", 0.0);
 
-	# Sit on gear: nudge to a few feet AGL so JSBSim settles onto bogeys
-	var agl = getprop("/position/altitude-agl-ft");
-	if (agl != nil and agl < 20)
-		setprop("/position/altitude-ft", getprop("/position/altitude-ft") + (12.0 - agl));
+	setprop("/controls/flight/elevator", 0.0);
+	setprop("/controls/flight/aileron", 0.0);
+	setprop("/controls/flight/rudder", 0.0);
+	setprop("/controls/flight/elevator-trim", 0.0);
+	setprop("/controls/flight/speedbrake", 0.0);
+	setprop("/fdm/jsbsim/systems/fcs/speedbrake-cmd-norm", 0.0);
+	setprop("/controls/gear/brake-left", 1.0);
+	setprop("/controls/gear/brake-right", 1.0);
+	setprop("/controls/gear/brake-parking", 1);
 
 	setprop("/fdm/jsbsim/systems/thermal/entry-flame-alpha", 0.0);
 	setprop("/fdm/jsbsim/systems/fcs/control-mode",29);
 	setprop("/controls/shuttle/control-system-string", "Aerojet");
 	setprop("/controls/shuttle/hud-mode",3);
-	settimer( func SpaceShuttle.light_manager.set_theme("LANDING"), 2.0);
+	settimer( func SpaceShuttle.light_manager.set_theme("RUNWAY"), 2.0);
 	}
 
 if (stage == 0)
@@ -3820,30 +3833,47 @@ if (getprop("/sim/presets/stage") == 5) # we start in a gliding test
 if (getprop("/sim/presets/stage") == 7) # Grenadier: runway, gear down, no stack, cold engines
 	{
 	SRB_message_flag = 2;
-	# Retract pad contacts immediately (before first FDM settle) and again with set_speed
-	setprop("/fdm/jsbsim/contact/unit[3]/z-position", 0.0);
-	setprop("/fdm/jsbsim/contact/unit[4]/z-position", 0.0);
-	setprop("/fdm/jsbsim/contact/unit[5]/z-position", 0.0);
-	settimer(set_speed, 0.5);
-	settimer(func {
-		setprop("/fdm/jsbsim/contact/unit[3]/z-position", 0.0);
-		setprop("/fdm/jsbsim/contact/unit[4]/z-position", 0.0);
-		setprop("/fdm/jsbsim/contact/unit[5]/z-position", 0.0);
+	# Park ALL non-gear structure contacts above the airframe; equalize nose bogey.
+	var _park_structure_contacts = func {
+		var i = 3;
+		while (i <= 10) {
+			setprop("/fdm/jsbsim/contact/unit[" ~ i ~ "]/z-position", 20.0);
+			i += 1;
+		}
+		setprop("/fdm/jsbsim/contact/unit[0]/z-position", -7.97);
+	};
+	var _level_on_gear = func {
+		_park_structure_contacts();
+		setprop("/fdm/jsbsim/gear/gear-pos-norm", 1);
 		setprop("/orientation/roll-deg", 0.0);
 		setprop("/orientation/pitch-deg", 0.0);
-	}, 1.5);
-	SRB_separate_silent();
-	external_tank_separate_silent();
-	setprop("/controls/shuttle/SRB-attach", 0);
-	setprop("/controls/shuttle/ET-static-model", 0);
-	setprop("/controls/shuttle/SRB-static-model", 0);
-
-	# gear DOWN on runway (not gear-up — that plants the nose)
+		setprop("/velocities/uBody-fps", 0.0);
+		setprop("/velocities/vBody-fps", 0.0);
+		setprop("/velocities/wBody-fps", 0.0);
+		setprop("/controls/flight/elevator", 0.0);
+		setprop("/controls/flight/aileron", 0.0);
+		setprop("/controls/flight/rudder", 0.0);
+		setprop("/controls/gear/brake-left", 1.0);
+		setprop("/controls/gear/brake-right", 1.0);
+		setprop("/controls/gear/brake-parking", 1);
+	};
+	# Gear down BEFORE first FDM settle so we never rest on body-flap contacts
 	setprop("/fdm/jsbsim/systems/landing/landing-gear-arm-cmd", 1);
 	setprop("/controls/gear/gear-down-cmd", 1);
 	setprop("/controls/gear/gear-down", 1);
 	setprop("/controls/shuttle/gear-string", "down");
 	setprop("/fdm/jsbsim/gear/gear-cmd-norm", 1);
+	setprop("/fdm/jsbsim/gear/gear-pos-norm", 1);
+	_park_structure_contacts();
+	settimer(set_speed, 0.5);
+	settimer(_level_on_gear, 1.5);
+	settimer(_level_on_gear, 3.0);
+	settimer(_level_on_gear, 5.0);
+	SRB_separate_silent();
+	external_tank_separate_silent();
+	setprop("/controls/shuttle/SRB-attach", 0);
+	setprop("/controls/shuttle/ET-static-model", 0);
+	setprop("/controls/shuttle/SRB-static-model", 0);
 
 	# payload bay closed
 	setprop("/fdm/jsbsim/systems/mechanical/pb-door-left-cmd", 0);

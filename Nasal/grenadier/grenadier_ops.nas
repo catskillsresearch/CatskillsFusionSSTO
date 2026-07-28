@@ -26,6 +26,9 @@ var init_defaults = func {
     _set(S ~ "enabled", 1);
     _set(S ~ "aircraft-id", "CATSKILLS-SSTO-TA-GRENADIER");
 
+    # CDR/PLT meshes live in cockpit-detailed.ac; aircraft-data used to force this to 0.
+    _set("/sim/config/shuttle/detailed-flightdeck", 1);
+
     _set(C ~ "mode", "OFF");
     _set(C ~ "mode-index", 0);
     _set(C ~ "fuel-b11-kg", 120.0);
