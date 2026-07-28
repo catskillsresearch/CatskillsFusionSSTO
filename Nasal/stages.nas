@@ -3977,6 +3977,7 @@ if (getprop("/sim/presets/stage") == 7) # Grenadier: runway, gear down, no stack
 	setprop("/controls/engines/engine[1]/ignited-hud", " ");
 	setprop("/controls/engines/engine[2]/ignited-hud", " ");
 	print("Grenadier stage 7: KEDW runway, level park, cold plant (battery available), no drag chute");
+	print("Plan A FDM: Sw≈5167 ft2, b≈108 ft, empty≈378534 lb (~172 t dry)");
 	}
 
 if (getprop("/sim/presets/stage") == 6) # we're in high orbit

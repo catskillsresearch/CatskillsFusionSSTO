@@ -19,17 +19,25 @@
 
 
 
+ <!--
+  Plan A FDM pack (CATSKILLS-SSTO-TA-GRENADIER, arxiv.md §1.2b):
+  Heritage Shuttle aero *coefficients* retained; geometric metrics + mass
+  scaled so JSBSim sees Plan A size/weight for runway flyability.
+    length ×1.396 (37.24→52 m), span ×1.387 (23.79→33 m),
+    S ×1.921 (249.9→480 m²), empty ≈171.7 t dry (no cargo).
+  Visual mesh is still heritage-sized — FDM-only stretch for now.
+ -->
  <metrics>
-   <wingarea  unit="FT2"> 2691.25 </wingarea>
-   <wingspan  unit="FT" >   78.06 </wingspan>
+   <wingarea  unit="FT2"> 5166.68 </wingarea>
+   <wingspan  unit="FT" >  108.27 </wingspan>
    <wing_incidence>          2.00 </wing_incidence>
-   <chord     unit="FT" >   34.48 </chord>
-   <htailarea unit="FT2">  672.81 </htailarea>
-   <htailarm  unit="FT" >   54.98 </htailarm>
-   <vtailarea unit="FT2">  538.25 </vtailarea>
-   <vtailarm  unit="FT" >   54.98 </vtailarm>
+   <chord     unit="FT" >   47.74 </chord>
+   <htailarea unit="FT2"> 1292.31 </htailarea>
+   <htailarm  unit="FT" >   76.77 </htailarm>
+   <vtailarea unit="FT2"> 1033.85 </vtailarea>
+   <vtailarm  unit="FT" >   76.77 </vtailarm>
    <location name="AERORP" unit="M">
-     <x>   2.70 </x>
+     <x>   3.77 </x>
      <y>   0.00 </y>
      <z>  -2.70 </z>
    </location>
@@ -45,24 +53,21 @@
    </location>
  </metrics>
 
- <!--changing some values: ixx from  425779 to 2025779
-                           izz from 2475373 to 4575373
-                        emtywt from  172000 to  180000
-                    location z from     1.0 to     5.0-->
+ <!-- Plan A mass: emptywt ≈ 171.7 t dry (no cargo). Inertias × (m_ratio × size²). -->
  <mass_balance>
-   <ixx unit="SLUG*FT2">   3025779 </ixx>
-   <iyy unit="SLUG*FT2">   5162623 </iyy>
-   <izz unit="SLUG*FT2">   5575373 </izz>
-   <emptywt unit="LBS" >    180000 </emptywt>
+   <ixx unit="SLUG*FT2">  12324872 </ixx>
+   <iyy unit="SLUG*FT2">  21028855 </iyy>
+   <izz unit="SLUG*FT2">  22710105 </izz>
+   <emptywt unit="LBS" >   378534 </emptywt>
    <location name="CG" unit="M">
-     <x>   2.70 </x>
+     <x>   3.77 </x>
      <y>   0.00 </y>
      <z>  -2.70 </z>
    </location>
         <pointmass name="Equipment">
-            <weight unit="LBS"> 5000 </weight>
+            <weight unit="LBS"> 0 </weight>
             <location name="POINTMASS" unit="M">
-                <x>  2.7 </x>
+                <x>  3.77 </x>
                 <y>  0.0 </y>
                 <z> -2.7 </z>
             </location>
@@ -132,9 +137,11 @@
 
  <ground_reactions>
 
+	<!-- Plan A: gear X×1.396, track Y×1.387; z kept (−7.97 m) for level park.
+	     Spring/damping × mass ratio (~2.10) for ~172 t dry. -->
 	<contact type="BOGEY" name="NOSE">
 		<location unit="M">
-			<x> -15.00 </x>
+			<x> -20.94 </x>
 			<y> 0.00 </y>
 			<!-- Match mains (−7.97 m) so runway three-point sits near pitch 0 (Grenadier). -->
 			<z> -7.97 </z>
@@ -142,9 +149,8 @@
 		<static_friction> 0.40 </static_friction>
 		<dynamic_friction> 0.10 </dynamic_friction>
 		<rolling_friction> 0.02 </rolling_friction>
-		<!-- Stiffer + more damped nose: soft 90k vs 550k mains caused runway pitch bounce. -->
-		<spring_coeff unit="LBS/FT"> 350000.00 </spring_coeff>
-		<damping_coeff unit="LBS/FT/SEC"> 120000.00 </damping_coeff>
+		<spring_coeff unit="LBS/FT"> 736000.00 </spring_coeff>
+		<damping_coeff unit="LBS/FT/SEC"> 252000.00 </damping_coeff>
 		<max_steer unit="DEG"> 15.00 </max_steer>
 		<brake_group>NONE</brake_group>
 		<retractable>1</retractable>
@@ -152,15 +158,15 @@
 
 <contact type="BOGEY" name="LEFT_MAIN">
 		<location unit="M">
-		<x> 3.60 </x>
-		<y> -4.2 </y>
+		<x> 5.03 </x>
+		<y> -5.82 </y>
 		<z>-7.97 </z>
 		</location>
 		<static_friction> 0.40 </static_friction>
 		<dynamic_friction> 0.10 </dynamic_friction>
 		<rolling_friction> 0.02 </rolling_friction>
-		<spring_coeff unit="LBS/FT"> 550000.00 </spring_coeff>
-		<damping_coeff unit="LBS/FT/SEC"> 180000.00 </damping_coeff>
+		<spring_coeff unit="LBS/FT"> 1157000.00 </spring_coeff>
+		<damping_coeff unit="LBS/FT/SEC"> 378000.00 </damping_coeff>
 		<max_steer unit="DEG">0</max_steer>
 		<brake_group>LEFT</brake_group>
 		<retractable>1</retractable>
@@ -168,26 +174,25 @@
 
 	<contact type="BOGEY" name="RIGHT_MAIN">
 		<location unit="M">
-		<x> 3.60 </x>
-		<y> 4.2 </y>
+		<x> 5.03 </x>
+		<y> 5.82 </y>
 		<z>-7.97 </z>
 		</location>
 		<static_friction> 0.40 </static_friction>
 		<dynamic_friction> 0.10 </dynamic_friction>
 		<rolling_friction> 0.02 </rolling_friction>
-		<spring_coeff unit="LBS/FT"> 550000.00 </spring_coeff>
-		<damping_coeff unit="LBS/FT/SEC"> 180000.00 </damping_coeff>
+		<spring_coeff unit="LBS/FT"> 1157000.00 </spring_coeff>
+		<damping_coeff unit="LBS/FT/SEC"> 378000.00 </damping_coeff>
 		<max_steer unit="DEG">0</max_steer>
 		<brake_group>RIGHT</brake_group>
 		<retractable>1</retractable>
 	</contact>
 
-	<!-- Grenadier: no pad/SRB/tailscrape structure contacts on runway.
-	     Stock z values prop the tail and pitch the nose ~40° up. -->
+	<!-- Grenadier: structure contacts parked at z=20 (XY scaled for Plan A). -->
 	<contact type="STRUCTURE" name="LEFT_SRB">
 		<location unit="M">
-		<x> 18.28 </x>
-		<y> -4.2 </y>
+		<x> 25.52 </x>
+		<y> -5.82 </y>
 		<z> 20.0 </z>
 		</location>
 		<static_friction> 0.90 </static_friction>
@@ -199,8 +204,8 @@
 
 	<contact type="STRUCTURE" name="RIGHT_SRB">
 		<location unit="M">
-		<x> 18.28 </x>
-		<y> 4.2 </y>
+		<x> 25.52 </x>
+		<y> 5.82 </y>
 		<z> 20.0 </z>
 		</location>
 		<static_friction> 0.90 </static_friction>
@@ -212,7 +217,7 @@
 
 	<contact type="STRUCTURE" name="FICTIONAL CENTER">
 		<location unit="M">
-		<x> 18.48 </x>
+		<x> 25.80 </x>
 		<y> 0.0 </y>
 		<z> 20.0 </z>
 		</location>
@@ -226,8 +231,8 @@
 	<!-- contact points 6, 7-->
 	<contact type="STRUCTURE" name="LEFT_BODY_FLAP">
 		<location unit="M">
-		<x> 15.45 </x>
-		<y> -2.27 </y>
+		<x> 21.57 </x>
+		<y> -3.15 </y>
 		<z> 20.0 </z>
 		</location>
 		<static_friction> 0.90 </static_friction>
@@ -239,8 +244,8 @@
 
 	<contact type="STRUCTURE" name="RIGHT_BODY_FLAP">
 		<location unit="M">
-		<x> 15.45 </x>
-		<y> 2.27 </y>
+		<x> 21.57 </x>
+		<y> 3.15 </y>
 		<z> 20.0 </z>
 		</location>
 		<static_friction> 0.90 </static_friction>
@@ -253,8 +258,8 @@
 	<!-- contact points 8, 9, 10-->
 	<contact type="STRUCTURE" name="LEFT_WING_TIP">
 		<location unit="M">
-		<x> 11.35 </x>
-		<y> -11.99 </y>
+		<x> 15.84 </x>
+		<y> -16.63 </y>
 		<z> 20.0 </z>
 		</location>
 		<static_friction> 0.90 </static_friction>
@@ -266,8 +271,8 @@
 
 	<contact type="STRUCTURE" name="RIGHT_WING_TIP">
 		<location unit="M">
-		<x> 11.35 </x>
-		<y> 11.99 </y>
+		<x> 15.84 </x>
+		<y> 16.63 </y>
 		<z> 20.0 </z>
 		</location>
 		<static_friction> 0.90 </static_friction>
@@ -279,7 +284,7 @@
 
 	<contact type="STRUCTURE" name="NOSE_CONE">
 		<location unit="M">
-		<x> -18.92 </x>
+		<x> -26.41 </x>
 		<y> 0.0 </y>
 		<z> 20.0 </z>
 		</location>
