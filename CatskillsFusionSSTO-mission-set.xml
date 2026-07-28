@@ -16,28 +16,23 @@
 	<stage type="int">6</stage>
   </presets>
   <startup>
-    <splash-texture>Aircraft/CatskillsFusionSSTO/CatskillsFusionSSTO-orbit-splash.png</splash-texture>
+    <splash-texture>Aircraft/CatskillsFusionSSTO/CatskillsFusionSSTO-grenadier-splash.png</splash-texture>
   </startup>
- <previews>
+   <previews>
       <preview>
         <type>exterior</type>
         <splash type="bool">true</splash>
-        <path>Pics/iss-splash01.png</path>
+        <path>Pics/grenadier-splash-01.png</path>
       </preview>
       <preview>
         <type>exterior</type>
         <splash type="bool">true</splash>
-        <path>Pics/mission-splash01.png</path>
-      </preview>
-      <preview>
-        <type>interior</type>
-        <splash type="bool">true</splash>
-        <path>Pics/iss-splash02.png</path>
+        <path>Pics/grenadier-splash-02.png</path>
       </preview>
       <preview>
         <type>exterior</type>
         <splash type="bool">true</splash>
-        <path>Pics/iss-splash03.png</path>
+        <path>Pics/grenadier-splash-03.png</path>
       </preview>
   </previews>
   <config>

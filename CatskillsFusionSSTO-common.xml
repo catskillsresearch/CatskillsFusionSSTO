@@ -2412,7 +2412,7 @@
    </multiplay>
 
    <startup>
-    <splash-texture>Aircraft/CatskillsFusionSSTO/CatskillsFusionSSTO-splash.png</splash-texture>
+    <splash-texture>Aircraft/CatskillsFusionSSTO/CatskillsFusionSSTO-grenadier-splash.png</splash-texture>
    </startup>
 
    <approach-trainer>

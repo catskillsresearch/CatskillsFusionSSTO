@@ -17,13 +17,23 @@
 	<stage type="int">3</stage>
   </presets>
   <startup>
-    <splash-texture>Aircraft/CatskillsFusionSSTO/CatskillsFusionSSTO-TAEM-splash.png</splash-texture>
+    <splash-texture>Aircraft/CatskillsFusionSSTO/CatskillsFusionSSTO-grenadier-splash.png</splash-texture>
   </startup>
- <previews>
+   <previews>
       <preview>
         <type>exterior</type>
         <splash type="bool">true</splash>
-        <path>Pics/taem-splash01.png</path>
+        <path>Pics/grenadier-splash-01.png</path>
+      </preview>
+      <preview>
+        <type>exterior</type>
+        <splash type="bool">true</splash>
+        <path>Pics/grenadier-splash-02.png</path>
+      </preview>
+      <preview>
+        <type>exterior</type>
+        <splash type="bool">true</splash>
+        <path>Pics/grenadier-splash-03.png</path>
       </preview>
   </previews>
   <config>
