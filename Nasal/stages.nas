@@ -3802,7 +3802,7 @@ if (getprop("/sim/presets/stage") == 5) # we start in a gliding test
 	setprop("/controls/shuttle/hud-mode",3);
 	}
 
-if (getprop("/sim/presets/stage") == 7) # Grenadier: runway, gear down, no stack
+if (getprop("/sim/presets/stage") == 7) # Grenadier: runway, gear down, no stack, cold engines
 	{
 	SRB_message_flag = 2;
 	settimer(set_speed, 0.5);
@@ -3835,8 +3835,24 @@ if (getprop("/sim/presets/stage") == 7) # Grenadier: runway, gear down, no stack
 	setprop("/controls/shuttle/control-system-string", "Aerojet");
 	setprop("/controls/shuttle/hud-mode",3);
 
+	# Cold start: no SSME/pad flames (prelaunch-flag drives flame meshes even at zero thrust)
 	setprop("/sim/config/shuttle/prelaunch-flag", 0);
-	print("Grenadier stage 7: runway start, gear down, ET/SRB removed");
+	setprop("/controls/shuttle/spark-flag", 0);
+	var _zero_ssme_vfx = func (suffix) {
+		setprop("/fdm/jsbsim/systems/various/ssme-ignition-density-target" ~ suffix, 0.0);
+		setprop("/fdm/jsbsim/systems/various/ssme-flame-base-density-target" ~ suffix, 0.0);
+		setprop("/fdm/jsbsim/systems/various/ssme-noise-strength-target" ~ suffix, 0.0);
+	};
+	_zero_ssme_vfx("");
+	_zero_ssme_vfx("1");
+	_zero_ssme_vfx("2");
+	setprop("/controls/engines/engine[0]/throttle", 0);
+	setprop("/controls/engines/engine[1]/throttle", 0);
+	setprop("/controls/engines/engine[2]/throttle", 0);
+	setprop("/controls/engines/engine[0]/ignited-hud", " ");
+	setprop("/controls/engines/engine[1]/ignited-hud", " ");
+	setprop("/controls/engines/engine[2]/ignited-hud", " ");
+	print("Grenadier stage 7: runway start, gear down, ET/SRB removed, cold engines");
 	}
 
 if (getprop("/sim/presets/stage") == 6) # we're in high orbit

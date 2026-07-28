@@ -66,10 +66,14 @@
         </condition>
     </model>
 
-  <!-- SSME Motors Placements -->
-
+  <!-- SSME cluster: heritage only. Grenadier TA uses a single combined-cycle nozzle (added later). -->
   <model>
     <path>Aircraft/CatskillsFusionSSTO/Models/SSME1.xml</path>
+    <condition>
+      <not>
+        <property>/sim/model/grenadier/enabled</property>
+      </not>
+    </condition>
   </model>
 
   <model>
@@ -79,6 +83,11 @@
       <y-m> -1.5 </y-m>
       <z-m> -2.5 </z-m>
     </offsets>
+    <condition>
+      <not>
+        <property>/sim/model/grenadier/enabled</property>
+      </not>
+    </condition>
   </model>
 
   <model>
@@ -88,6 +97,11 @@
       <y-m> 1.5 </y-m>
       <z-m> -2.5 </z-m>
     </offsets>
+    <condition>
+      <not>
+        <property>/sim/model/grenadier/enabled</property>
+      </not>
+    </condition>
   </model>
 
 <!-- Enterprise air data boom -->
