@@ -6,10 +6,10 @@
 <sim>
   <description>CATSKILLS-SSTO-TA-GRENADIER (runway)</description>
   <long-description>
-    CATSKILLS-SSTO-TA-GRENADIER is a single-stage-to-orbit test article (Grenadier): Shuttle-derived airframe with CHARM plant and 3-cycle electric engine. Default start is on the runway at KSVH — gear down, payload bay closed, no external tank or boosters.
+    CATSKILLS-SSTO-TA-GRENADIER is a single-stage-to-orbit test article (Grenadier): Shuttle-derived airframe with CHARM plant and 3-cycle electric engine. Plan A: no cargo; home field KEDW (Edwards, 15,000 ft class). Default start is on the runway — gear down, bay closed, no external tank or boosters.
   </long-description>
   <presets>
-    <airport-id type="string">KSVH</airport-id>
+    <airport-id type="string">KEDW</airport-id>
     <on-ground type="bool">true</on-ground>
     <airspeed-kt type="double">0</airspeed-kt>
     <pitch-deg type="double">0</pitch-deg>
