@@ -3184,17 +3184,32 @@ setprop("/environment/aircraft-effects/splash-vector-z", 0.0);
 
 if (stage == 7)
 	{
-	# Grenadier runway: keep FG airport/on-ground placement; level attitude, zero body rates
+	# Grenadier runway: retract pad/SRB structure contacts (units 3–5). If left at
+	# z≈-14 m they stab through the runway and flip the orbiter onto its back
+	# (black TPS up — looks “dark”).
+	setprop("/fdm/jsbsim/contact/unit[3]/z-position", 0.0);
+	setprop("/fdm/jsbsim/contact/unit[4]/z-position", 0.0);
+	setprop("/fdm/jsbsim/contact/unit[5]/z-position", 0.0);
+
 	setprop("/orientation/pitch-deg", 0.0);
 	setprop("/orientation/roll-deg", 0.0);
 	setprop("/velocities/uBody-fps", 0.0);
 	setprop("/velocities/vBody-fps", 0.0);
 	setprop("/velocities/wBody-fps", 0.0);
+	setprop("/velocities/speed-north-fps", 0.0);
+	setprop("/velocities/speed-east-fps", 0.0);
+	setprop("/velocities/speed-down-fps", 0.0);
 
+	# Sit on gear: nudge to a few feet AGL so JSBSim settles onto bogeys
+	var agl = getprop("/position/altitude-agl-ft");
+	if (agl != nil and agl < 20)
+		setprop("/position/altitude-ft", getprop("/position/altitude-ft") + (12.0 - agl));
+
+	setprop("/fdm/jsbsim/systems/thermal/entry-flame-alpha", 0.0);
 	setprop("/fdm/jsbsim/systems/fcs/control-mode",29);
 	setprop("/controls/shuttle/control-system-string", "Aerojet");
 	setprop("/controls/shuttle/hud-mode",3);
-	settimer( func SpaceShuttle.light_manager.set_theme("LANDING"), 5.0);
+	settimer( func SpaceShuttle.light_manager.set_theme("LANDING"), 2.0);
 	}
 
 if (stage == 0)
@@ -3805,7 +3820,18 @@ if (getprop("/sim/presets/stage") == 5) # we start in a gliding test
 if (getprop("/sim/presets/stage") == 7) # Grenadier: runway, gear down, no stack, cold engines
 	{
 	SRB_message_flag = 2;
+	# Retract pad contacts immediately (before first FDM settle) and again with set_speed
+	setprop("/fdm/jsbsim/contact/unit[3]/z-position", 0.0);
+	setprop("/fdm/jsbsim/contact/unit[4]/z-position", 0.0);
+	setprop("/fdm/jsbsim/contact/unit[5]/z-position", 0.0);
 	settimer(set_speed, 0.5);
+	settimer(func {
+		setprop("/fdm/jsbsim/contact/unit[3]/z-position", 0.0);
+		setprop("/fdm/jsbsim/contact/unit[4]/z-position", 0.0);
+		setprop("/fdm/jsbsim/contact/unit[5]/z-position", 0.0);
+		setprop("/orientation/roll-deg", 0.0);
+		setprop("/orientation/pitch-deg", 0.0);
+	}, 1.5);
 	SRB_separate_silent();
 	external_tank_separate_silent();
 	setprop("/controls/shuttle/SRB-attach", 0);
@@ -3817,6 +3843,7 @@ if (getprop("/sim/presets/stage") == 7) # Grenadier: runway, gear down, no stack
 	setprop("/controls/gear/gear-down-cmd", 1);
 	setprop("/controls/gear/gear-down", 1);
 	setprop("/controls/shuttle/gear-string", "down");
+	setprop("/fdm/jsbsim/gear/gear-cmd-norm", 1);
 
 	# payload bay closed
 	setprop("/fdm/jsbsim/systems/mechanical/pb-door-left-cmd", 0);
