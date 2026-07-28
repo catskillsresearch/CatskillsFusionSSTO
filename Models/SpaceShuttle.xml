@@ -2809,14 +2809,8 @@
 		</offsets>
 	</model>
 
-    <animation>
-        <type>material</type>
-        <object-name>et_all.lay_et</object-name>
-        <property-base>sim/model/livery/</property-base>
-        <texture-prop>texture</texture-prop>
-        <texture>etall.png</texture>
-    </animation>
-    
+    <!-- Grenadier: ET livery animation removed with external-fuel-tank model (object et_all.lay_et no longer loaded). -->
+
 <effect>
  <inherits-from>Aircraft/CatskillsFusionSSTO/Models/Effects/shuttle-main</inherits-from>
  <object-name>spaceshutt_spstob_3</object-name>
