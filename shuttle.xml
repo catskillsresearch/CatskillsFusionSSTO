@@ -136,13 +136,15 @@
 		<location unit="M">
 			<x> -15.00 </x>
 			<y> 0.00 </y>
-			<z> -6.87 </z>
+			<!-- Match mains (−7.97 m) so runway three-point sits near pitch 0 (Grenadier). -->
+			<z> -7.97 </z>
 		</location>
 		<static_friction> 0.40 </static_friction>
 		<dynamic_friction> 0.10 </dynamic_friction>
 		<rolling_friction> 0.02 </rolling_friction>
-		<spring_coeff unit="LBS/FT"> 90000.00 </spring_coeff>
-		<damping_coeff unit="LBS/FT/SEC"> 30000.00 </damping_coeff>
+		<!-- Stiffer + more damped nose: soft 90k vs 550k mains caused runway pitch bounce. -->
+		<spring_coeff unit="LBS/FT"> 350000.00 </spring_coeff>
+		<damping_coeff unit="LBS/FT/SEC"> 120000.00 </damping_coeff>
 		<max_steer unit="DEG"> 15.00 </max_steer>
 		<brake_group>NONE</brake_group>
 		<retractable>1</retractable>
@@ -158,7 +160,7 @@
 		<dynamic_friction> 0.10 </dynamic_friction>
 		<rolling_friction> 0.02 </rolling_friction>
 		<spring_coeff unit="LBS/FT"> 550000.00 </spring_coeff>
-		<damping_coeff unit="LBS/FT/SEC"> 110000.00 </damping_coeff>
+		<damping_coeff unit="LBS/FT/SEC"> 180000.00 </damping_coeff>
 		<max_steer unit="DEG">0</max_steer>
 		<brake_group>LEFT</brake_group>
 		<retractable>1</retractable>
@@ -174,17 +176,19 @@
 		<dynamic_friction> 0.10 </dynamic_friction>
 		<rolling_friction> 0.02 </rolling_friction>
 		<spring_coeff unit="LBS/FT"> 550000.00 </spring_coeff>
-		<damping_coeff unit="LBS/FT/SEC"> 210000.00 </damping_coeff>
+		<damping_coeff unit="LBS/FT/SEC"> 180000.00 </damping_coeff>
 		<max_steer unit="DEG">0</max_steer>
 		<brake_group>RIGHT</brake_group>
 		<retractable>1</retractable>
 	</contact>
 
+	<!-- Grenadier: no pad/SRB/tailscrape structure contacts on runway.
+	     Stock z values prop the tail and pitch the nose ~40° up. -->
 	<contact type="STRUCTURE" name="LEFT_SRB">
 		<location unit="M">
 		<x> 18.28 </x>
 		<y> -4.2 </y>
-		<z>-14.6 </z>
+		<z> 20.0 </z>
 		</location>
 		<static_friction> 0.90 </static_friction>
 		<dynamic_friction> 0.60 </dynamic_friction>
@@ -197,7 +201,7 @@
 		<location unit="M">
 		<x> 18.28 </x>
 		<y> 4.2 </y>
-		<z>-14.6 </z>
+		<z> 20.0 </z>
 		</location>
 		<static_friction> 0.90 </static_friction>
 		<dynamic_friction> 0.60 </dynamic_friction>
@@ -210,7 +214,7 @@
 		<location unit="M">
 		<x> 18.48 </x>
 		<y> 0.0 </y>
-		<z> 4.0 </z>
+		<z> 20.0 </z>
 		</location>
 		<static_friction> 0.80 </static_friction>
 		<dynamic_friction> 0.20 </dynamic_friction>
@@ -224,7 +228,7 @@
 		<location unit="M">
 		<x> 15.45 </x>
 		<y> -2.27 </y>
-		<z> -4.80 </z>
+		<z> 20.0 </z>
 		</location>
 		<static_friction> 0.90 </static_friction>
 		<dynamic_friction> 0.60 </dynamic_friction>
@@ -237,7 +241,7 @@
 		<location unit="M">
 		<x> 15.45 </x>
 		<y> 2.27 </y>
-		<z> -4.80 </z>
+		<z> 20.0 </z>
 		</location>
 		<static_friction> 0.90 </static_friction>
 		<dynamic_friction> 0.60 </dynamic_friction>
@@ -251,7 +255,7 @@
 		<location unit="M">
 		<x> 11.35 </x>
 		<y> -11.99 </y>
-		<z> -4.81 </z>
+		<z> 20.0 </z>
 		</location>
 		<static_friction> 0.90 </static_friction>
 		<dynamic_friction> 0.60 </dynamic_friction>
@@ -264,7 +268,7 @@
 		<location unit="M">
 		<x> 11.35 </x>
 		<y> 11.99 </y>
-		<z> -4.81 </z>
+		<z> 20.0 </z>
 		</location>
 		<static_friction> 0.90 </static_friction>
 		<dynamic_friction> 0.60 </dynamic_friction>
@@ -277,7 +281,7 @@
 		<location unit="M">
 		<x> -18.92 </x>
 		<y> 0.0 </y>
-		<z> -4.90 </z>
+		<z> 20.0 </z>
 		</location>
 		<static_friction> 0.90 </static_friction>
 		<dynamic_friction> 0.60 </dynamic_friction>
@@ -5389,14 +5393,30 @@
     </direction>
   </force>
 
-
-
-
+  <!-- Grenadier combined-cycle thrust: BODY +X is aft on this airframe, so
+       force direction −X is forward (along the runway when level). Magnitude
+       is written by Nasal from CHARM plant × engine cycle × throttle. -->
+  <force name="grenadier_thrust" frame="BODY">
+    <function>
+      <property>systems/grenadier/engine/thrust-lbf</property>
+    </function>
+    <location unit="M">
+      <x>15.5</x>
+      <y>0.0</y>
+      <z>-1.0</z>
+    </location>
+    <direction>
+      <x>-1</x>
+      <y>0</y>
+      <z>0</z>
+    </direction>
+  </force>
 
  </external_reactions> 
 
 
  <system file="orbital_parameters"></system>
+ <system file="grenadier_propulsion.xml"></system>
  <system file="pointing"></system>
  <system file="apu_hydraulics.xml"></system>
  <system file="electrical_power.xml"></system>

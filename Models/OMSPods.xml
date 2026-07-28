@@ -11,13 +11,44 @@
 	<object-name>omsLeft</object-name>
 	<object-name>omsRightBase</object-name>
 	<object-name>omsRight</object-name>
-	<object-name>omsRight.001</object-name>		
+	<object-name>omsRight.001</object-name>
+	<!-- Full aft RCS (the "4 dots" on each pod outboard face + other jets) -->
 	<object-name>rcsL1A</object-name>
+	<object-name>rcsL1L</object-name>
+	<object-name>rcsL1U</object-name>
+	<object-name>rcsL2D</object-name>
+	<object-name>rcsL2L</object-name>
+	<object-name>rcsL2U</object-name>
+	<object-name>rcsL3A</object-name>
+	<object-name>rcsL3D</object-name>
+	<object-name>rcsL3L</object-name>
+	<object-name>rcsL4D</object-name>
+	<object-name>rcsL4L</object-name>
+	<object-name>rcsL4U</object-name>
+	<object-name>rcsR1A</object-name>
 	<object-name>rcsR1R</object-name>
 	<object-name>rcsR1U</object-name>
 	<object-name>rcsR2D</object-name>
-	<object-name>rcsL4U</object-name>
+	<object-name>rcsR2R</object-name>
+	<object-name>rcsR2U</object-name>
+	<object-name>rcsR3A</object-name>
+	<object-name>rcsR3D</object-name>
+	<object-name>rcsR3R</object-name>
+	<object-name>rcsR4D</object-name>
+	<object-name>rcsR4R</object-name>
 	<object-name>rcsR4U</object-name>
  </effect>
+
+  <!-- Grenadier: keep OMS pod shells + all RCS nozzles; hide only OMS engine bells. -->
+  <animation>
+    <type>select</type>
+    <object-name>omsLeft.001</object-name>
+    <object-name>omsRight.001</object-name>
+    <condition>
+      <not>
+        <property>/sim/model/grenadier/enabled</property>
+      </not>
+    </condition>
+  </animation>
 
 </PropertyList>

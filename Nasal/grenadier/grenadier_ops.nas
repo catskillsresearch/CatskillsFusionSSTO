@@ -1,6 +1,10 @@
 # CATSKILLS-SSTO-TA-GRENADIER operator model
 # Property bus + mode machine + panel aliases + stage gates.
-# Coupled JSBSim thrust comes later; this layer is the ops SSOT for screens/checklists.
+#
+# Dual-control thrust (plant × engine):
+#   CHARM must be POWER (bus live, not scrammed)  AND
+#   engine cycle (sigma) must be stage-go with throttle demand.
+# Either side alone produces zero JSBSim force.
 
 var G = "/fdm/jsbsim/systems/grenadier/";
 var C = G ~ "charm/";
@@ -68,13 +72,33 @@ var init_defaults = func {
     _set(E ~ "inlet-sealed", 0);
     _set(E ~ "throttle", 0.0);
     _set(E ~ "thrust-kn", 0.0);
+    _set(E ~ "thrust-lbf", 0.0);
     _set(E ~ "power-draw-mw", 0.0);
+    _set(E ~ "fan-spin-deg", 0.0);
     _set(E ~ "water-kg", 44000.0);
     _set(E ~ "water-flow-kgps", 0.0);
     _set(E ~ "alt-ft", 0.0);
     _set(E ~ "q-psf", 0.0);
     _set(E ~ "stage-go", 0);
     _set(E ~ "plant-ok", 0);
+    _set(E ~ "coupled-ok", 0);
+    _set(E ~ "bus-frac", 0.0);
+    # Peak thrust by cycle at throttle=1 with full bus (kN → also published as lbf)
+    _set(E ~ "thrust-peak-kn-sigma1", 400.0);
+    _set(E ~ "thrust-peak-kn-sigma2", 800.0);
+    _set(E ~ "thrust-peak-kn-sigma3", 1200.0);
+
+    # Exhaust VFX bus (tiny flame → big plasma plume)
+    var V = G ~ "vfx/";
+    _set(V ~ "plume-norm", 0.0);
+    _set(V ~ "flame-scale", 0.0);
+    _set(V ~ "core-size-m", 0.2);
+    _set(V ~ "plume-size-m", 0.4);
+    _set(V ~ "core-rate", 0.0);
+    _set(V ~ "plume-rate", 0.0);
+    _set(V ~ "exhaust-speed-mps", 40.0);
+    _set(V ~ "show-flame", 0);
+    _set(V ~ "show-plume", 0);
 };
 
 var _set_mode = func (name) {
@@ -191,12 +215,37 @@ var _update_charm = func (dt) {
     }
 };
 
+# Keep heritage SSME/OMS cold while Grenadier owns propulsion.
+# Note: controls/engines/engine[0]/throttle is reused as Grenadier thrust demand — do not zero it.
+var _hold_heritage_engines_cold = func {
+    if (!_num(S ~ "enabled", 0)) return;
+    var i = 0;
+    while (i < 3) {
+        setprop("/fdm/jsbsim/systems/mps/engine[" ~ i ~ "]/run-cmd", 0);
+        setprop("/controls/engines/engine[" ~ i ~ "]/ap-throttle-cmd", 0);
+        i += 1;
+    }
+    # Side/center SSME levers unused; leave engine[0] for Grenadier demand
+    setprop("/controls/engines/engine[1]/throttle", 0);
+    setprop("/controls/engines/engine[2]/throttle", 0);
+    # OMS engines are indices 5/6 in the Shuttle kit
+    setprop("/controls/engines/engine[5]/throttle", 0);
+    setprop("/controls/engines/engine[6]/throttle", 0);
+};
+
 var _update_engine = func (dt) {
     var alt = _num("/position/altitude-ft", 0);
     var q = _num("/velocities/dynamic-pressure-psf", 0);
     _set(E ~ "alt-ft", alt);
     _set(E ~ "q-psf", q);
 
+    # --- Power system (CHARM) ---
+    var plant_ok = (getprop(C ~ "mode") == "POWER") and (_num(C ~ "scram", 0) == 0);
+    var bus = _num(C ~ "bus-mw", 0);
+    if (!plant_ok) bus = 0;
+    _set(E ~ "plant-ok", plant_ok ? 1 : 0);
+
+    # --- Engine system (cycle + throttle demand) ---
     var a2 = _num(E ~ "sigma2-alt-ft", 25000);
     var a3 = _num(E ~ "sigma3-alt-ft", 120000);
     var rec = 1;
@@ -204,9 +253,7 @@ var _update_engine = func (dt) {
     if (alt >= a3) rec = 3;
     _set(E ~ "sigma-recommended", rec);
 
-    var plant_ok = (getprop(C ~ "mode") == "POWER") and (_num(C ~ "scram", 0) == 0);
-    _set(E ~ "plant-ok", plant_ok);
-
+    # Cycle allow depends on sensors; plant must also be up for any stage-go
     var allowed = 0;
     if (plant_ok) {
         allowed = 1;
@@ -221,46 +268,127 @@ var _update_engine = func (dt) {
     var sig = int(_num(E ~ "sigma", 1));
     if (sig < 1) sig = 1;
     if (sig > 3) sig = 3;
-
-    # Soft inhibit: clamp if hard constraints fail
     if (sig == 3 and (_num(E ~ "water-kg", 0) <= 10 or !_num(E ~ "inlet-sealed", 0)))
         sig = (allowed >= 2) ? 2 : 1;
-    if (!plant_ok)
-        sig = 1;
     _set(E ~ "sigma", sig);
-    _set(E ~ "stage-go", plant_ok and (sig <= allowed or (sig == 3 and _num(E ~ "inlet-sealed", 0))));
 
-    var thr = _num(E ~ "throttle", 0);
+    var stage_go = plant_ok and (sig <= allowed);
+    if (sig == 3)
+        stage_go = plant_ok and _num(E ~ "inlet-sealed", 0) and (_num(E ~ "water-kg", 0) > 10);
+    _set(E ~ "stage-go", stage_go ? 1 : 0);
+
+    # Throttle demand SSOT: pilot lever (controls/engines/engine[0]/throttle).
+    # Canvas THR± writes that same prop. Not an SSME run command — heritage run-cmd stays 0.
+    var thr = _num("/controls/engines/engine[0]/throttle", 0);
     if (thr < 0) thr = 0;
     if (thr > 1) thr = 1;
     _set(E ~ "throttle", thr);
 
+    # --- Couple: both systems required ---
+    var coupled = plant_ok and stage_go and (thr > 0.01) and (bus > 1.0);
+    _set(E ~ "coupled-ok", coupled ? 1 : 0);
+
     var pdraw = 0.0;
-    var thrust = 0.0;
+    var thrust_kn = 0.0;
     var wflow = 0.0;
-    if (plant_ok and thr > 0.01) {
-        if (sig == 1) { pdraw = 200.0 * thr; thrust = 400.0 * thr; }
-        elsif (sig == 2) { pdraw = 600.0 * thr; thrust = 800.0 * thr; }
+    var bus_frac = 0.0;
+
+    if (coupled) {
+        var peak = _num(E ~ "thrust-peak-kn-sigma1", 400);
+        if (sig == 1) { pdraw = 200.0 * thr; peak = _num(E ~ "thrust-peak-kn-sigma1", 400); }
+        elsif (sig == 2) { pdraw = 600.0 * thr; peak = _num(E ~ "thrust-peak-kn-sigma2", 800); }
         else {
             pdraw = 900.0 * thr;
-            thrust = 1200.0 * thr;
+            peak = _num(E ~ "thrust-peak-kn-sigma3", 1200);
             wflow = 80.0 * thr;
         }
-        # Bus limit
-        var bus = _num(C ~ "bus-mw", 0);
+        thrust_kn = peak * thr;
+        # Power cable limit: engine cannot exceed CHARM bus
         if (pdraw > bus and bus > 1) {
-            var s = bus / pdraw;
-            pdraw *= s; thrust *= s; wflow *= s;
+            bus_frac = bus / pdraw;
+            pdraw *= bus_frac;
+            thrust_kn *= bus_frac;
+            wflow *= bus_frac;
+        } else {
+            bus_frac = 1.0;
         }
+    } else {
+        # Explicit zeros when either control set is not ready
+        pdraw = 0.0;
+        thrust_kn = 0.0;
+        wflow = 0.0;
+        bus_frac = 0.0;
     }
+
+    _set(E ~ "bus-frac", bus_frac);
     _set(E ~ "power-draw-mw", pdraw);
-    _set(E ~ "thrust-kn", thrust);
+    _set(E ~ "thrust-kn", thrust_kn);
+    # JSBSim external_reactions reads lbf
+    _set(E ~ "thrust-lbf", thrust_kn * 224.808943);
     _set(E ~ "water-flow-kgps", wflow);
     if (wflow > 0) {
         var w = _num(E ~ "water-kg", 0) - wflow * dt;
         if (w < 0) w = 0;
         _set(E ~ "water-kg", w);
     }
+
+    _hold_heritage_engines_cold();
+
+    # Visual: spin σ1 EDF when coupled in air-breathing
+    var spin = _num(E ~ "fan-spin-deg", 0);
+    if (coupled and sig == 1)
+        spin += dt * (720.0 * thr);
+    elsif (coupled)
+        spin += dt * (180.0 * thr);
+    while (spin > 360.0) spin -= 360.0;
+    _set(E ~ "fan-spin-deg", spin);
+
+    _update_exhaust_vfx(thrust_kn, sig, coupled);
+};
+
+# Map thrust → tiny nozzle glow vs big plasma plume
+var _update_exhaust_vfx = func (thrust_kn, sig, coupled) {
+    var V = G ~ "vfx/";
+    var peak = _num(E ~ "thrust-peak-kn-sigma1", 400);
+    if (sig == 2) peak = _num(E ~ "thrust-peak-kn-sigma2", 800);
+    if (sig == 3) peak = _num(E ~ "thrust-peak-kn-sigma3", 1200);
+    if (peak < 1) peak = 1;
+
+    var n = 0.0;
+    if (coupled and thrust_kn > 0.05)
+        n = thrust_kn / peak;
+    if (n < 0) n = 0;
+    if (n > 1) n = 1;
+
+    # Slightly punchier visual curve so mid throttle already reads as plasma
+    var n2 = n * n;
+    var show_flame = (n > 0.008) ? 1 : 0;
+    # Plume kicks in once we're past "idle spit"
+    var show_plume = (n > 0.12) ? 1 : 0;
+
+    # Mesh flame scale: tiny at idle → large at full (σ2/σ3 a bit fatter)
+    var flame_scale = 0.35 + 3.2 * n + (sig >= 2 ? 0.6 * n : 0);
+    var core_size = 0.15 + 1.8 * n + 1.2 * n2;
+    var plume_size = 0.35 + 4.5 * n + 3.5 * n2;
+    var core_rate = 80.0 * n + 220.0 * n2;
+    var plume_rate = 40.0 * n + 280.0 * n2;
+    var speed = 60.0 + 420.0 * n + 200.0 * n2;
+    if (sig == 3) {
+        # Water-plasma: denser, brighter plume
+        plume_size *= 1.25;
+        plume_rate *= 1.35;
+        core_size *= 1.15;
+    }
+
+    _set(V ~ "plume-norm", n);
+    _set(V ~ "flame-scale", flame_scale);
+    _set(V ~ "core-size-m", core_size);
+    _set(V ~ "plume-size-m", plume_size);
+    _set(V ~ "core-rate", core_rate);
+    _set(V ~ "plume-rate", plume_rate);
+    _set(V ~ "exhaust-speed-mps", speed);
+    _set(V ~ "show-flame", show_flame);
+    _set(V ~ "show-plume", show_plume);
 };
 
 # Panel aliases: listen to Shuttle APU/MPS/OMS props when grenadier enabled
@@ -339,6 +467,7 @@ var start = func {
     setprop("/controls/shuttle/ET-static-model", 0);
     setprop("/controls/shuttle/SRB-static-model", 0);
     setprop("/controls/shuttle/SRB-attach", 0);
+    _hold_heritage_engines_cold();
     # Convenience: cart tied when cart on
     setlistener(C ~ "ground-cart", func {
         if (_num(C ~ "ground-cart", 0))
@@ -346,7 +475,7 @@ var start = func {
     }, 0, 0);
     _wire_panel_aliases();
     _loop();
-    print("Grenadier ops: CATSKILLS-SSTO-TA-GRENADIER operator model running");
+    print("Grenadier ops: dual-control thrust (CHARM plant × engine cycle) coupled to JSBSim");
 };
 
 setlistener("/sim/signals/fdm-initialized", func {

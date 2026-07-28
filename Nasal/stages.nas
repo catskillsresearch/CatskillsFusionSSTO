@@ -3192,9 +3192,9 @@ if (stage == 7)
 		setprop("/fdm/jsbsim/contact/unit[" ~ i ~ "]/z-position", 20.0);
 		i += 1;
 	}
-	# Match nose bogey length to mains so three-point contact is near pitch 0
-	# (stock nose is ~1.1 m shorter → wheelie on mains only).
-	setprop("/fdm/jsbsim/contact/unit[0]/z-position", -7.97);
+	# Match nose bogey to mains. Gear z-position is INCHES (−7.97 m = −313.78 in).
+	# Never write that value to contact/unit[0] — wrong unit, causes tail-strike flip.
+	setprop("/fdm/jsbsim/gear/unit[0]/z-position", -313.779528);
 
 	setprop("/orientation/pitch-deg", 0.0);
 	setprop("/orientation/roll-deg", 0.0);
@@ -3840,22 +3840,34 @@ if (getprop("/sim/presets/stage") == 7) # Grenadier: runway, gear down, no stack
 			setprop("/fdm/jsbsim/contact/unit[" ~ i ~ "]/z-position", 20.0);
 			i += 1;
 		}
-		setprop("/fdm/jsbsim/contact/unit[0]/z-position", -7.97);
+		# gear/unit z is INCHES (failures.xml). Do NOT write inches into contact/unit[0]
+		# (that path is meters/feet and -313 flips the orbiter onto its tail).
+		setprop("/fdm/jsbsim/gear/unit[0]/z-position", -313.779528);
 	};
 	var _level_on_gear = func {
 		_park_structure_contacts();
 		setprop("/fdm/jsbsim/gear/gear-pos-norm", 1);
-		setprop("/orientation/roll-deg", 0.0);
-		setprop("/orientation/pitch-deg", 0.0);
+		# Only kill rates — do NOT repeatedly force pitch=0 (fights soft springs → bounce).
 		setprop("/velocities/uBody-fps", 0.0);
 		setprop("/velocities/vBody-fps", 0.0);
 		setprop("/velocities/wBody-fps", 0.0);
+		setprop("/orientation/pitch-rate-degps", 0.0);
+		setprop("/orientation/roll-rate-degps", 0.0);
+		setprop("/orientation/yaw-rate-degps", 0.0);
 		setprop("/controls/flight/elevator", 0.0);
 		setprop("/controls/flight/aileron", 0.0);
 		setprop("/controls/flight/rudder", 0.0);
 		setprop("/controls/gear/brake-left", 1.0);
 		setprop("/controls/gear/brake-right", 1.0);
 		setprop("/controls/gear/brake-parking", 1);
+	};
+	var _settle_attitude_once = func {
+		_park_structure_contacts();
+		setprop("/orientation/roll-deg", 0.0);
+		setprop("/orientation/pitch-deg", 0.0);
+		setprop("/velocities/uBody-fps", 0.0);
+		setprop("/velocities/vBody-fps", 0.0);
+		setprop("/velocities/wBody-fps", 0.0);
 	};
 	# Gear down BEFORE first FDM settle so we never rest on body-flap contacts
 	setprop("/fdm/jsbsim/systems/landing/landing-gear-arm-cmd", 1);
@@ -3866,9 +3878,11 @@ if (getprop("/sim/presets/stage") == 7) # Grenadier: runway, gear down, no stack
 	setprop("/fdm/jsbsim/gear/gear-pos-norm", 1);
 	_park_structure_contacts();
 	settimer(set_speed, 0.5);
-	settimer(_level_on_gear, 1.5);
-	settimer(_level_on_gear, 3.0);
-	settimer(_level_on_gear, 5.0);
+	settimer(_settle_attitude_once, 1.0);
+	settimer(_level_on_gear, 2.0);
+	settimer(_level_on_gear, 4.0);
+	settimer(_park_structure_contacts, 6.0);
+	settimer(_park_structure_contacts, 10.0);
 	SRB_separate_silent();
 	external_tank_separate_silent();
 	setprop("/controls/shuttle/SRB-attach", 0);

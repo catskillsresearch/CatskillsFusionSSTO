@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<!--
+  Grenadier dual-control propulsion bridge (JSBSim).
+  Thrust force is driven by Nasal ops bus:
+    systems/grenadier/engine/thrust-lbf
+  which is ZERO unless BOTH:
+    - CHARM plant is POWER (plant-ok, bus available)
+    - Engine cycle is selected + stage-go + throttle demand
+  Heritage SSME/OMS rockets are not used for Grenadier thrust.
+-->
+<system name="grenadier_propulsion">
+  <property value="0.0">systems/grenadier/engine/thrust-lbf</property>
+  <property value="0.0">systems/grenadier/engine/throttle</property>
+  <property value="0">systems/grenadier/engine/plant-ok</property>
+  <property value="0">systems/grenadier/engine/stage-go</property>
+  <property value="1">systems/grenadier/engine/sigma</property>
+  <property value="0">systems/grenadier/engine/coupled-ok</property>
+</system>

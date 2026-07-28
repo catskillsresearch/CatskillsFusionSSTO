@@ -78,14 +78,15 @@
 	<!-- contact point position adjustment for damaged gear struts and blown tire-->
 
 		<switch name="systems/failures/gearstrut-nose-position">
+			<!-- Inches. Default matched to mains (−7.97 m = −313.78 in) for level runway park. -->
 			<!--<default value="gear/unit[0]/z-position"/>-->
-			<default value="-270.47244"/>
-				<test value="-265">
+			<default value="-313.779528"/>
+				<test value="-309">
 					systems/failures/tire-nose-condition LT 0.5
 					systems/failures/gear/gearstrut-nose-condition GT 0.0
           systems/failures/shuttle-destroyed EQ 0
 				</test>
-				<test value="-242.0">
+				<test value="-250">
 					systems/failures/gear/gearstrut-nose-condition == 0.0
           systems/failures/shuttle-destroyed EQ 0
 				</test>
@@ -140,7 +141,8 @@
     <!-- contact point position adjustment for damaged shuttle (right wing gone) or destroyed-->
 
 		<switch name="systems/failures/left-wing-position">
-			<default value="-4.81"/>
+			<!-- Parked high: Grenadier has no runway wing-tip contacts. -->
+			<default value="20.0"/>
         <test value="157.48">
           systems/failures/shuttle-destroyed EQ 1
 			  </test>
@@ -148,7 +150,7 @@
 		</switch>
 
 		<switch name="systems/failures/right-wing-position">
-			<default value="-4.81"/>
+			<default value="20.0"/>
 				<test value="157.48">
           systems/failures/shuttle-destroyed EQ 1
 				</test>

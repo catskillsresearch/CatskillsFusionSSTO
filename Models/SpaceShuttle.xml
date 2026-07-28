@@ -104,6 +104,26 @@
     </condition>
   </model>
 
+  <!-- Grenadier: single combined-cycle nozzle + 3-cycle internals + belly scoop -->
+  <model>
+    <path>Aircraft/CatskillsFusionSSTO/Models/Grenadier/grenadier_nozzle.xml</path>
+    <condition>
+      <property>/sim/model/grenadier/enabled</property>
+    </condition>
+  </model>
+  <model>
+    <path>Aircraft/CatskillsFusionSSTO/Models/Grenadier/grenadier_internals.xml</path>
+    <condition>
+      <property>/sim/model/grenadier/enabled</property>
+    </condition>
+  </model>
+  <model>
+    <path>Aircraft/CatskillsFusionSSTO/Models/Grenadier/grenadier_scoop.xml</path>
+    <condition>
+      <property>/sim/model/grenadier/enabled</property>
+    </condition>
+  </model>
+
 <!-- Enterprise air data boom -->
 
     
@@ -2754,7 +2774,7 @@
 		<offsets>
 		  <x-m> -16.22 </x-m>
 		  <y-m>   0.00 </y-m>
-		  <z-m>  -6.87 </z-m>
+		  <z-m>  -7.97 </z-m>
 		</offsets>
 	</model>
 

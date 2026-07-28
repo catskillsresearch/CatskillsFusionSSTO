@@ -48,7 +48,8 @@ var cdlg_grenadier_engine = {
             setprop(p, getprop(p) ? 0 : 1);
         });
         me._btn(360, 440, 60, 28, "THR+", func {
-            var p = "/fdm/jsbsim/systems/grenadier/engine/throttle";
+            # Pilot lever is SSOT for thrust demand
+            var p = "/controls/engines/engine[0]/throttle";
             var t = getprop(p);
             if (t == nil) t = 0;
             t += 0.1;
@@ -56,7 +57,7 @@ var cdlg_grenadier_engine = {
             setprop(p, t);
         });
         me._btn(430, 440, 60, 28, "THR-", func {
-            var p = "/fdm/jsbsim/systems/grenadier/engine/throttle";
+            var p = "/controls/engines/engine[0]/throttle";
             var t = getprop(p);
             if (t == nil) t = 0;
             t -= 0.1;
@@ -104,12 +105,14 @@ var cdlg_grenadier_engine = {
         me.lines[4].setText(sprintf("Gates σ2≥%s ft  σ3≥%s ft", me._gf("sigma2-alt-ft", "%.0f"), me._gf("sigma3-alt-ft", "%.0f")));
         me.lines[5].setText(sprintf("Inlet sealed    %s", me._g("inlet-sealed")));
         me.lines[6].setText(sprintf("Water           %s kg   flow %s kg/s", me._gf("water-kg", "%.0f"), me._gf("water-flow-kgps", "%.1f")));
-        me.lines[7].setText(sprintf("Throttle        %s", me._gf("throttle", "%.2f")));
-        me.lines[8].setText(sprintf("Thrust          %s kN   power %s MW", me._gf("thrust-kn", "%.0f"), me._gf("power-draw-mw", "%.0f")));
-        me.lines[9].setText(sprintf("Plant OK        %s   stage-go %s", me._g("plant-ok"), me._g("stage-go")));
-        me.lines[10].setText("");
-        me.lines[11].setText("OMS L/R arm switches: σ− / σ+ (when Grenadier enabled)");
-        me.lines[12].setText("σ3 requires seal + water; bus limits thrust");
-        me.lines[13].setText("");
+        me.lines[7].setText(sprintf("Throttle        %s   (pilot lever or THR±)", me._gf("throttle", "%.2f")));
+        me.lines[8].setText(sprintf("Thrust          %s kN  (%s lbf)  draw %s MW",
+            me._gf("thrust-kn", "%.0f"), me._gf("thrust-lbf", "%.0f"), me._gf("power-draw-mw", "%.0f")));
+        me.lines[9].setText(sprintf("Plant OK        %s   stage-go %s   coupled %s",
+            me._g("plant-ok"), me._g("stage-go"), me._g("coupled-ok")));
+        me.lines[10].setText(sprintf("Bus fraction    %s   (CHARM cable limit)", me._gf("bus-frac", "%.2f")));
+        me.lines[11].setText("DUAL CONTROL: CHARM→POWER  AND  σ cycle + throttle");
+        me.lines[12].setText("Either alone → zero JSBSim thrust; σ3 needs seal+water");
+        me.lines[13].setText("OMS L/R arm: σ− / σ+");
     },
 };

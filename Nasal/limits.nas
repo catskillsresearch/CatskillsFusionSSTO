@@ -751,9 +751,11 @@ if (vspeed < -9.0)
 	}
 
 # derotation should not be faster than 2 deg/s
+# Skip while parked / taxi crawl (Grenadier runway settle used to false-trigger this).
+var _as_kt = airspeed;
+if (_as_kt == nil) _as_kt = 0;
 
-
-if ((pitch_rate < -2.0) and (getprop("/gear/gear[0]/wow") == 1))
+if ((pitch_rate < -2.0) and (getprop("/gear/gear[0]/wow") == 1) and (_as_kt > 40.0))
 	{
 	#setprop("/sim/messages/copilot", "Derotation exceeds nose wheel structural limits!");
 	SpaceShuttle.callout.make("Derotation exceeds nose wheel structural limits!", "failure");
