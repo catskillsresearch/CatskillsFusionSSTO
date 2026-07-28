@@ -1,4 +1,179 @@
  <PropertyList>
+  <!-- Grenadier CHARM / engine checklists (also CatskillsGrenadier-reactor-checklists.xml) -->
+  <checklist>
+    <title>Grenadier — CHARM startup</title>
+
+    <item>
+      <name>Aircraft ID CATSKILLS-SSTO-TA-GRENADIER</name>
+      <condition>
+        <equals>
+          <property>/sim/model/grenadier/aircraft-id</property>
+          <value>CATSKILLS-SSTO-TA-GRENADIER</value>
+        </equals>
+      </condition>
+    </item>
+    <item>
+      <name>√ Water / fuel / battery inventories</name>
+      <value>NOTED</value>
+    </item>
+    <item>
+      <name>√ Flight battery ≥ min reserve</name>
+      <condition>
+        <greater-than-equals>
+          <property>/fdm/jsbsim/systems/grenadier/charm/battery-kwh</property>
+          <property>/fdm/jsbsim/systems/grenadier/charm/battery-min-kwh</property>
+        </greater-than-equals>
+      </condition>
+    </item>
+    <item>
+      <name>Ground cart ONLINE</name>
+      <value>ON</value>
+      <condition>
+        <equals>
+          <property>/fdm/jsbsim/systems/grenadier/charm/ground-cart</property>
+          <value>1</value>
+        </equals>
+      </condition>
+    </item>
+    <item>
+      <name>Cart tied / aux bus live</name>
+      <condition>
+        <and>
+          <equals>
+            <property>/fdm/jsbsim/systems/grenadier/charm/cart-tied</property>
+            <value>1</value>
+          </equals>
+          <greater-than>
+            <property>/fdm/jsbsim/systems/grenadier/charm/aux-bus-v</property>
+            <value>200</value>
+          </greater-than>
+        </and>
+      </condition>
+    </item>
+    <item>
+      <name>Battery ONLINE</name>
+      <condition>
+        <equals>
+          <property>/fdm/jsbsim/systems/grenadier/charm/battery-online</property>
+          <value>1</value>
+        </equals>
+      </condition>
+    </item>
+    <item>
+      <name>Cryo ENABLE + √ go-cryo</name>
+      <condition>
+        <and>
+          <equals>
+            <property>/fdm/jsbsim/systems/grenadier/charm/cryo-enable</property>
+            <value>1</value>
+          </equals>
+          <equals>
+            <property>/fdm/jsbsim/systems/grenadier/charm/go-cryo</property>
+            <value>1</value>
+          </equals>
+        </and>
+      </condition>
+    </item>
+    <item>
+      <name>Magnet ARM + √ go-magnet</name>
+      <condition>
+        <and>
+          <equals>
+            <property>/fdm/jsbsim/systems/grenadier/charm/magnet-arm</property>
+            <value>1</value>
+          </equals>
+          <equals>
+            <property>/fdm/jsbsim/systems/grenadier/charm/go-magnet</property>
+            <value>1</value>
+          </equals>
+        </and>
+      </condition>
+    </item>
+    <item>
+      <name>Fuel ENABLE + vacuum READY (go-fuel)</name>
+      <condition>
+        <equals>
+          <property>/fdm/jsbsim/systems/grenadier/charm/go-fuel</property>
+          <value>1</value>
+        </equals>
+      </condition>
+    </item>
+    <item>
+      <name>RF ENABLE + CHARM LIGHT + DEC ONLINE</name>
+      <condition>
+        <and>
+          <equals>
+            <property>/fdm/jsbsim/systems/grenadier/charm/rf-enable</property>
+            <value>1</value>
+          </equals>
+          <equals>
+            <property>/fdm/jsbsim/systems/grenadier/charm/light-cmd</property>
+            <value>1</value>
+          </equals>
+          <equals>
+            <property>/fdm/jsbsim/systems/grenadier/charm/dec-online</property>
+            <value>1</value>
+          </equals>
+        </and>
+      </condition>
+    </item>
+    <item>
+      <name>√ Mode POWER / go-bus</name>
+      <condition>
+        <and>
+          <equals>
+            <property>/fdm/jsbsim/systems/grenadier/charm/mode</property>
+            <value>POWER</value>
+          </equals>
+          <equals>
+            <property>/fdm/jsbsim/systems/grenadier/charm/go-bus</property>
+            <value>1</value>
+          </equals>
+        </and>
+      </condition>
+    </item>
+  </checklist>
+
+  <checklist>
+    <title>Grenadier — Engine stage</title>
+    <item>
+      <name>√ Plant OK</name>
+      <condition>
+        <equals>
+          <property>/fdm/jsbsim/systems/grenadier/engine/plant-ok</property>
+          <value>1</value>
+        </equals>
+      </condition>
+    </item>
+    <item>
+      <name>√ Altimeter / recommended σ</name>
+      <value>NOTED</value>
+    </item>
+    <item>
+      <name>Select stage σ1/σ2/σ3</name>
+      <value>SET</value>
+    </item>
+    <item>
+      <name>σ3 inlet SEALED (if σ=3)</name>
+      <condition>
+        <or>
+          <less-than>
+            <property>/fdm/jsbsim/systems/grenadier/engine/sigma</property>
+            <value>3</value>
+          </less-than>
+          <equals>
+            <property>/fdm/jsbsim/systems/grenadier/engine/inlet-sealed</property>
+            <value>1</value>
+          </equals>
+        </or>
+      </condition>
+    </item>
+    <item>
+      <name>Throttle as required</name>
+      <value>SET</value>
+    </item>
+  </checklist>
+
   <checklist>
     <title>Pre-launch</title>  
 

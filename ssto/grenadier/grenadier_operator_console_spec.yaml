@@ -1,0 +1,34 @@
+# CATSKILLS-SSTO-TA-GRENADIER — operator console property SSOT
+aircraft_id: CATSKILLS-SSTO-TA-GRENADIER
+enabled_prop: /sim/model/grenadier/enabled
+
+charm:
+  prefix: /fdm/jsbsim/systems/grenadier/charm/
+  modes: [OFF, CRYO, ARM, LIGHT, POWER, SCRAM]
+  tanks: [fuel-b11-kg, fuel-proton-kg, battery-kwh]
+  go_lamps: [go-fuel, go-cryo, go-magnet, go-bus]
+
+engine:
+  prefix: /fdm/jsbsim/systems/grenadier/engine/
+  stages: [1, 2, 3]
+  primary_sensor: alt-ft
+  defaults:
+    sigma2-alt-ft: 25000
+    sigma3-alt-ft: 120000
+
+panel_aliases:
+  - { shuttle: /fdm/jsbsim/systems/apu/apu/apu-operate, grenadier: ground-cart }
+  - { shuttle: /fdm/jsbsim/systems/apu/apu[1]/apu-operate, grenadier: battery-online }
+  - { shuttle: /fdm/jsbsim/systems/apu/apu[2]/apu-operate, grenadier: cryo-enable }
+  - { shuttle: /fdm/jsbsim/systems/apu/apu/apu-controller-power, grenadier: magnet-arm }
+  - { shuttle: /fdm/jsbsim/systems/apu/apu[1]/apu-controller-power, grenadier: fuel-enable }
+  - { shuttle: /fdm/jsbsim/systems/apu/apu[2]/apu-controller-power, grenadier: rf-enable }
+  - { shuttle: /fdm/jsbsim/systems/mps/engine/controller-A-power-switch-status, grenadier: light-cmd }
+  - { shuttle: /fdm/jsbsim/systems/mps/engine[2]/controller-A-power-switch-status, grenadier: dec-online }
+  - { shuttle: /fdm/jsbsim/systems/mps/engine[1]/controller-A-power-switch-status, grenadier: scram }
+  - { shuttle: /fdm/jsbsim/systems/oms-hardware/engine-left-arm-cmd, grenadier: sigma-dec }
+  - { shuttle: /fdm/jsbsim/systems/oms-hardware/engine-right-arm-cmd, grenadier: sigma-inc }
+
+screens:
+  - cdlg_grenadier_reactor
+  - cdlg_grenadier_engine

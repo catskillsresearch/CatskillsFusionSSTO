@@ -1,0 +1,69 @@
+{{DEFAULTSORT:Checklists}}
+[[File:Spacetripready.png]][[File:Checklistready.png]]
+{{Space Shuttle navigation}}
+
+Here you will find all the materials/condensed checklist that you need for the differents phases of flight.
+
+You can find the real one here, called Flight Data Files (FDF) [https://web.archive.org/web/20211020173004/https://www.nasa.gov/centers/johnson/news/flightdatafiles/index.html]
+
+Here are my annotated FDF:
+
+'''Ascent Checklist'''   [https://drive.google.com/open?id=1SUS7354nYi34BRrxQ4upMqqvTYAMI0Ot Ascent Checklist Annotated]
+<br />
+'''Post insertion Checklist'''    [https://drive.google.com/open?id=0ByWr8dBBzTv3VWFldkpfSTZ6dFU Post Insertion Checklist Annotated]<br />
+'''Deorbit Preparation Checklist'''  [https://drive.google.com/open?id=0ByWr8dBBzTv3TlFjbkx5cHRESHM Deorbit Preparation Checklist Annotated]<br />
+'''Entry Checklist'''     [https://drive.google.com/open?id=0ByWr8dBBzTv3UEFTZTFoUGVWRTA Entry Checklist Annotated]<br />
+'''TAL Checklist'''        [https://drive.google.com/open?id=1O-W9DkF_FL-rMSKTkKiKbVhRU6hWIuKk TAL Checklist Annotated]
+
+
+The Caution and Warning System fault messages annotated file contain all the fault messages.
+
+'''Caution and Warning System Fault Messages'''        [https://drive.google.com/file/d/1jGN9hUCghZFc1HAo67Ys9LurQoJKul8J/view?usp=drive_link CWS Fault Messages]
+
+'''DPS Dictionnary System Management limit indicators'''        [https://drive.google.com/file/d/1S-twHAqNxY3eKt7vRJCdzaBLKH1GFsfv/view?usp=drive_link DPS Dictionnary SM Indicators]
+   
+
+
+From 230 pages for ascent FDF, we go to less than 30 pages. A huge amount of datas of those FDF are for non-normal situations. It was important to have a quick look to know what to do in case of Engine failure for example.
+Ascent checklist is pretty straight forward, reading from up to bottom with time of actions, where to look ( panels R2, L2, O 14 etc), and what to do.
+
+Sometimes, a square root  √  is preceding an item. It means " check that ( monitor)". For example,  ''√ Evap out=60°'' means Check that the evap out of the Freon is around 60°.
+
+
+A special note for Post insertion and Deorbit Preparation Checklists. It's a bit different than previous one.
+In this one, Commander, Pilot, Mission Specialist  are supposed to do differents things in the cockpit, so the checks can be a bit weird to read at first glance.
+Here some hints:  
+
+
+On the left, there is the timeline of the mission, in Mission Elapsed Time since lift off. Panel where to look is also shown ( R2, O12, etc)
+
+Also, C P or MS is used to define who will do the actions ( Captain, Pilot, Specialist). Obviously here, it's gonna be us
+  
+[[File:WWDMhj.png|1000px|thumbnail|none]]
+
+
+
+
+<br />
+You see for example at Star Tracker activation, there is a rectangle with a number ( 12) and a page number 1-6
+It's gonna be where you have to look to have the full procedure, we are at page 1-7 so we have to go back one page before to have the procedure for Star Tracker activation.
+Same logic for almost all the others actions with a rectangle and page reference at the right of the line.
+
+[[File:WWDMhj.png|1000px|thumbnail|none]]
+
+
+All those checklists contain a lot of informations and actions that are not critical for flight safety.
+The ones to perform absolutely are present in game via Help menu and Checklist.
+
+
+
+
+
+
+
+Some very usefull Screens, sum up of all shortcuts to navigate in differents parts of the GPC GNC and SM functions
+
+[[File:DPS1.png|1000px|thumbnail|none]]
+
+
+[[File:DPS2.png|1000px|thumbnail|none]]

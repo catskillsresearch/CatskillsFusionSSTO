@@ -4,9 +4,11 @@
 
 <PropertyList include="CatskillsFusionSSTO-common.xml">
 <sim>
-  <description>Catskills Fusion SSTO Atlantis in orbit</description>
+  <description>CATSKILLS-SSTO-TA-GRENADIER in orbit</description>
   <long-description>
-     The Space Shuttle was a partially re-usable low orbit spacecraft operated by NASA from 1981 to 2011. In this mission phase, the Shuttle is on the periapsis of an eccentric orbit right after main engine cutoff and needs to be prepared for orbital insertion next.
+     
+     CATSKILLS-SSTO-TA-GRENADIER is a single-stage-to-orbit test article (Grenadier): Shuttle-derived airframe with CHARM plant and 3-cycle electric engine. This phase starts near periapsis of an eccentric post-insertion orbit for orbital ops preparation.
+  
   </long-description>
   <variant-of>CatskillsFusionSSTO</variant-of>
   <presets>

@@ -4,9 +4,11 @@
 
 <PropertyList include="CatskillsFusionSSTO-common.xml">
 <sim>
-  <description>Catskills Fusion SSTO Atlantis in a free-fly test</description>
+  <description>CATSKILLS-SSTO-TA-GRENADIER in a free-fly test</description>
   <long-description>
-     The Space Shuttle was a partially re-usable low orbit spacecraft operated by NASA from 1981 to 2011. Prior to the spaceflight program, NASA conducted a series of free-fly tests with the Shuttle dropped from the back of a 747  - this scenario simulates such a test with the altitude worth about five minutes of flight.
+     
+     CATSKILLS-SSTO-TA-GRENADIER is a single-stage-to-orbit test article (Grenadier): Shuttle-derived airframe with CHARM plant and 3-cycle electric engine. This free-fly / approach-energy test places the vehicle at an altitude worth about five minutes of gliding flight.
+  
   </long-description>
   <variant-of>CatskillsFusionSSTO</variant-of>
   <presets>

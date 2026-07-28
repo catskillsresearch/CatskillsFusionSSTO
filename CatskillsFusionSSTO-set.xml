@@ -4,9 +4,9 @@
 
 <PropertyList include="CatskillsFusionSSTO-common.xml">
 <sim>
-  <description>Catskills Fusion SSTO in launch position</description>
+  <description>CATSKILLS-SSTO-TA-GRENADIER (pad)</description>
   <long-description>
-    Catskills Fusion SSTO is an evolution of the Space Shuttle which was a partially re-usable low orbit spacecraft operated by NASA from 1981 to 2011. In this mission phase, the Shuttle is on the pad, about five minutes to launch, ready to go into space.
+    CATSKILLS-SSTO-TA-GRENADIER is a single-stage-to-orbit test article (Grenadier): Shuttle-derived airframe with CHARM plant and 3-cycle electric engine. In this mission phase, the Shuttle is on the pad, about five minutes to launch, ready to go into space.
   </long-description>
   <presets>
 	<altitude-ft>10000.0</altitude-ft>	

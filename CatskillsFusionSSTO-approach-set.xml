@@ -4,9 +4,11 @@
 
 <PropertyList include="CatskillsFusionSSTO-common.xml">
 <sim>
-  <description>Catskills Fusion SSTO Atlantis on final</description>
+  <description>CATSKILLS-SSTO-TA-GRENADIER on final</description>
   <long-description>
-     The Space Shuttle was a partially re-usable low orbit spacecraft operated by NASA from 1981 to 2011. This mission phase finds the Shuttle at 12.000 ft in final approach to the runway with about a minute of flight to go to touchdown. There is an approach trainer provided which evaluates the landing and allows to re-set the scenario.
+     
+     CATSKILLS-SSTO-TA-GRENADIER is a single-stage-to-orbit test article (Grenadier): Shuttle-derived airframe with CHARM plant and 3-cycle electric engine. This phase places the vehicle on final approach (~12,000 ft) with about a minute to touchdown; approach trainer evaluates the landing.
+  
   </long-description>
   <variant-of>CatskillsFusionSSTO</variant-of>
   <presets>

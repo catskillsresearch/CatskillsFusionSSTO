@@ -4,9 +4,11 @@
 
 <PropertyList include="CatskillsFusionSSTO-common.xml">
 <sim>
-  <description>Catskills Fusion SSTO Atlantis on TAEM</description>
+  <description>CATSKILLS-SSTO-TA-GRENADIER on TAEM</description>
   <long-description>
-     The Space Shuttle was a partially re-usable low orbit spacecraft operated by NASA from 1981 to 2011. In the Terminal Area Energy Management (TAEM) phase, the Shuttle is at about 80.000 ft some 60 miles to the landing site at around Mach 3, ready for its last six minutes of flight as a glider.
+     
+     CATSKILLS-SSTO-TA-GRENADIER is a single-stage-to-orbit test article (Grenadier): Shuttle-derived airframe with CHARM plant and 3-cycle electric engine. TAEM phase: ~80,000 ft, ~60 nm to landing site, ~Mach 3, last minutes as a glider.
+  
   </long-description>
   <variant-of>CatskillsFusionSSTO</variant-of>
   <presets>

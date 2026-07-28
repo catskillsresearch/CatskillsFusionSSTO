@@ -2299,7 +2299,7 @@
  </lighting>
 
   <sim>
-   <description>NASA Space Shuttle Atlantis</description>
+   <description>CATSKILLS-SSTO-TA-GRENADIER</description>
    <flight-model>jsb</flight-model>
    <aero>shuttle</aero>
    <author>Thorsten Renk (flight dynamics), Richard Harrison (cockpit and avionics), Gijs de Rooy (avionics), Chris Kuhn (cockpit), NASA, Jorge Pareja, Wayne Bragg and Herbert Wagner (3D)</author>
@@ -2425,6 +2425,10 @@
     <livery>
       <name type="string">Orange Foam ET</name>
     </livery>
+    <grenadier>
+      <enabled type="bool">true</enabled>
+      <aircraft-id type="string">CATSKILLS-SSTO-TA-GRENADIER</aircraft-id>
+    </grenadier>
     <shuttle>
      <controls>
       <PFD>
@@ -2664,8 +2668,28 @@
     <default>
      <menu n="50">
         
-      <label>Space Shuttle</label>
+      <label>CATSKILLS-SSTO-TA-GRENADIER</label>
             
+      <item>
+       <label>--- Grenadier ---</label>
+       <enabled>false</enabled>
+      </item>
+
+      <item>
+       <label>CHARM Reactor Screens</label>
+       <binding>
+        <command>nasal</command>
+        <script>SpaceShuttle.cdlg_grenadier_reactor.init()</script>
+       </binding>
+      </item>
+      <item>
+       <label>3-Cycle Engine Screens</label>
+       <binding>
+        <command>nasal</command>
+        <script>SpaceShuttle.cdlg_grenadier_engine.init()</script>
+       </binding>
+      </item>
+
       <item>
        <label>--- Systems ---</label>
        <enabled>false</enabled>
@@ -3083,7 +3107,7 @@
    <chase-distance-m type="double" archive="y">-65.0</chase-distance-m>
 
    <help>
-    <title>Space Shuttle</title>
+    <title>CATSKILLS-SSTO-TA-GRENADIER</title>
 
     <key>
      <name>Ctrl-q</name>
@@ -3216,7 +3240,9 @@
     </key>
     <text>
 
-A short in-sim help text can not explain how to operate a machine as complex as the Space Shuttle. The ultimate resource is the NASA 'Space Shuttle Crew Operations Manual' (SCOM, USA007587) which is in public domain. A copy of this is in the Shuttle's Documentation/ folder and browsing through the SCOM is highly recommended if you want to get most out of the Shuttle experience.
+This aircraft is presented as CATSKILLS-SSTO-TA-GRENADIER — a single-stage-to-orbit test article on a Shuttle-derived airframe. Open the menu CATSKILLS-SSTO-TA-GRENADIER for CHARM reactor and 3-cycle engine operator screens. Grenadier checklists and Documentation/grenadier/ cover plant startup; heritage Shuttle systems remain for cockpit geometry and unused switches.
+
+Heritage note: a short in-sim help text can not explain how to operate a machine as complex as the original Space Shuttle. The ultimate resource is the NASA 'Space Shuttle Crew Operations Manual' (SCOM, USA007587) which is in public domain. A copy of this is in the Documentation/ folder and browsing through the SCOM is highly recommended for panel geography and avionics context.
 
 Specifically for the avionics and the meaning of all displayed parameters, the original NASA DPS Dictionary is also available in the Documentation/ folder as reference. Since the SCOM and the DPS Dictionary are the primary documents which have been used to model the Shuttle's systems, they're fairly accurate for the simulated version as well. The same holds for other NASA resources which can be obtained from the NASA document server, for instance mission-specific cue card sets (as long as your mission design adheres to the original).
 
@@ -3439,6 +3465,7 @@ Note that devlopment is ongoing and not all features are documented.
    <file>Aircraft/CatskillsFusionSSTO/Nasal/lambert_manager.nas</file>
    <file>Aircraft/CatskillsFusionSSTO/Nasal/eileen.nas</file>
    <file>Aircraft/CatskillsFusionSSTO/Nasal/payload_manager.nas</file>
+   <file>Aircraft/CatskillsFusionSSTO/Nasal/grenadier/grenadier_ops.nas</file>
    <file>Nasal/PFD/PFD_main.nas</file>
    <file>Nasal/HUD/HUD_main.nas</file>
    <file>Nasal/canvas/canvas_dialogs.nas</file>

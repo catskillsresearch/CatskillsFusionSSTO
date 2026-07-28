@@ -4,9 +4,11 @@
 
 <PropertyList include="CatskillsFusionSSTO-common.xml">
 <sim>
-  <description>Catskills Fusion SSTO Atlantis ready for a mission</description>
+  <description>CATSKILLS-SSTO-TA-GRENADIER ready for a mission</description>
   <long-description>
-     The Space Shuttle was a partially re-usable low orbit spacecraft operated by NASA from 1981 to 2011. This mission phase puts the Shuttle into a 320 km orbit with all systems configured for orbital operations.
+     
+     CATSKILLS-SSTO-TA-GRENADIER is a single-stage-to-orbit test article (Grenadier): Shuttle-derived airframe with CHARM plant and 3-cycle electric engine. This phase places the vehicle in a ~320 km orbit with systems configured for orbital operations.
+  
   </long-description>
   <variant-of>CatskillsFusionSSTO</variant-of>
   <presets>

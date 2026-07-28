@@ -24,6 +24,8 @@ io.include("cdlg_cuecards.nas");
 io.include("cdlg_scenario.nas");
 io.include("cdlg_training.nas");
 io.include("cdlg_notepad.nas");
+io.include("cdlg_grenadier_reactor.nas");
+io.include("cdlg_grenadier_engine.nas");
 
 
 
