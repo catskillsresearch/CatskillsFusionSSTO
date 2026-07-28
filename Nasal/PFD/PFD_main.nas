@@ -782,8 +782,8 @@ var MDU_Device =
 		#me.PFD.p_main.addMenuItem(5, "VIDEO", "select_video");
 
         me.PFD.p_subsys.addMenuItem(0, "UP", me.PFD.p_main);
-        me.PFD.p_subsys.addMenuItem(1, "OMS/\n MPS", me.PFD.p_meds_oms_mps);
-        me.PFD.p_subsys.addMenuItem(2, "HYD/\n APU", me.PFD.p_meds_apu);
+        me.PFD.p_subsys.addMenuItem(1, "STAGE", me.PFD.p_meds_oms_mps);
+        me.PFD.p_subsys.addMenuItem(2, "CHARM", me.PFD.p_meds_apu);
         me.PFD.p_subsys.addMenuItem(3, "SPI", me.PFD.p_meds_spi);
 	me.PFD.p_subsys.addMenuAction(4, " PORT\nSELECT", "select_port");
         me.PFD.p_subsys.addMenuAction(5, " MEDS\nMSG ACK", "meds_fault_ack");
@@ -937,22 +937,22 @@ var MDU_Device =
         me.PFD.p_dps_bfs_override.addMenuAction(5, " MEDS\nMSG ACK", "meds_fault_ack");
 
         me.PFD.p_meds_oms_mps.addMenuItem(0, "UP", me.PFD.p_main);
-        me.PFD.p_meds_oms_mps.addMenuItem(1, "OMS/\n MPS", me.PFD.p_meds_oms_mps);
-        me.PFD.p_meds_oms_mps.addMenuItem(2, "HYD/\n APU", me.PFD.p_meds_apu);
+        me.PFD.p_meds_oms_mps.addMenuItem(1, "STAGE", me.PFD.p_meds_oms_mps);
+        me.PFD.p_meds_oms_mps.addMenuItem(2, "CHARM", me.PFD.p_meds_apu);
         me.PFD.p_meds_oms_mps.addMenuItem(3, "SPI", me.PFD.p_meds_spi);
 	me.PFD.p_meds_oms_mps.addMenuAction(4, " PORT\nSELECT", "select_port");
         me.PFD.p_meds_oms_mps.addMenuAction(5, " MEDS\nMSG ACK", "meds_fault_ack");
 
        	me.PFD.p_meds_apu.addMenuItem(0, "UP", me.PFD.p_main);
-        me.PFD.p_meds_apu.addMenuItem(1, "OMS/\n MPS", me.PFD.p_meds_oms_mps);
-        me.PFD.p_meds_apu.addMenuItem(2, "HYD/\n APU", me.PFD.p_meds_apu);
+        me.PFD.p_meds_apu.addMenuItem(1, "STAGE", me.PFD.p_meds_oms_mps);
+        me.PFD.p_meds_apu.addMenuItem(2, "CHARM", me.PFD.p_meds_apu);
         me.PFD.p_meds_apu.addMenuItem(3, "SPI", me.PFD.p_meds_spi);
 	me.PFD.p_meds_apu.addMenuAction(4, " PORT\nSELECT", "select_port");
         me.PFD.p_meds_apu.addMenuAction(5, " MEDS\nMSG ACK", "meds_fault_ack");
 
        	me.PFD.p_meds_spi.addMenuItem(0, "UP", me.PFD.p_main);
-        me.PFD.p_meds_spi.addMenuItem(1, "OMS/\n MPS", me.PFD.p_meds_oms_mps);
-        me.PFD.p_meds_spi.addMenuItem(2, "HYD/\n APU", me.PFD.p_meds_apu);
+        me.PFD.p_meds_spi.addMenuItem(1, "STAGE", me.PFD.p_meds_oms_mps);
+        me.PFD.p_meds_spi.addMenuItem(2, "CHARM", me.PFD.p_meds_apu);
         me.PFD.p_meds_spi.addMenuItem(3, "SPI", me.PFD.p_meds_spi);
 	me.PFD.p_meds_spi.addMenuAction(4, " PORT\nSELECT", "select_port");
         me.PFD.p_meds_spi.addMenuAction(5, " MEDS\nMSG ACK", "meds_fault_ack");

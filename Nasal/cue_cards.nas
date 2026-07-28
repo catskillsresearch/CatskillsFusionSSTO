@@ -9,7 +9,7 @@ var title = "Cue card";
 if (path == "Cuecards/ascent_nominal.png")
 	{
 	size = [455, 520];
-	title = "Ascent — Plan A";
+	title = "Ascent - Plan A";
 	}
 
 else if (path == "Cuecards/contingency_abort.png")
@@ -25,12 +25,12 @@ else if (path == "Cuecards/rtls_contingency.png")
 else if (path == "Cuecards/rtls_cdr.png")
 	{
 	size = [455, 480];
-	title = "Abort — Early";
+	title = "Abort - Early";
 	}
 else if (path == "Cuecards/rtls_plt.png")
 	{
 	size = [455, 480];
-	title = "Abort — Late";
+	title = "Abort - Late";
 	}
 else if (path == "Cuecards/tal_redesignation_zza.png")
 	{
@@ -50,7 +50,7 @@ else if (path == "Cuecards/charm_scram.png")
 else if (path == "Cuecards/engine_sigma.png")
 	{
 	size = [455, 400];
-	title = "Engine σ1 / σ2 / σ3";
+	title = "Engine Stage 1 / 2 / 3";
 	}
 else if (path == "Cuecards/rcs_green.png")
 	{
@@ -67,12 +67,12 @@ else if (path == "Cuecards/oms_part2.png")
 	{
 	path = "Cuecards/engine_sigma.png";
 	size = [455, 400];
-	title = "Engine σ1 / σ2 / σ3";
+	title = "Engine Stage 1 / 2 / 3";
 	}
 else if (path == "Cuecards/entry_nominal.png")
 	{
 	size = [455, 520];
-	title = "Entry / Glide — Plan A";
+	title = "Entry / Glide - Plan A";
 	}
 
 var window = canvas.Window.new(size,"dialog").set("title", title);

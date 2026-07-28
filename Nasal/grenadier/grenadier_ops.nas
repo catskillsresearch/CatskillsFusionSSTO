@@ -88,6 +88,14 @@ var init_defaults = func {
     _set(E ~ "thrust-peak-kn-sigma2", 800.0);
     _set(E ~ "thrust-peak-kn-sigma3", 1200.0);
 
+    # Inert props for unwired heritage switches (fuel-cell valves, etc.)
+    _set(G ~ "inert/fuel-cell-valve-1", 0);
+    _set(G ~ "inert/fuel-cell-valve-2", 0);
+    _set(G ~ "inert/fuel-cell-valve-3", 0);
+    _set(G ~ "inert/fuel-cell-valve-1-pos", 0.5);
+    _set(G ~ "inert/fuel-cell-valve-2-pos", 0.5);
+    _set(G ~ "inert/fuel-cell-valve-3-pos", 0.5);
+
     # Exhaust VFX bus (tiny flame → big plasma plume)
     var V = G ~ "vfx/";
     _set(V ~ "plume-norm", 0.0);

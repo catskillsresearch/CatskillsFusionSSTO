@@ -15390,7 +15390,7 @@
     <animation>
         <type>knob</type>
         <object-name>fuel-cell-reac-vlv1</object-name>
-        <property>/fdm/jsbsim/systems/electrical/fc/reactant-valve-status</property>
+        <property>/fdm/jsbsim/systems/grenadier/inert/fuel-cell-valve-1</property>
         <factor>-45</factor>
         <offset-deg>40</offset-deg>
         <center>
@@ -15406,7 +15406,7 @@
         <action>
             <binding>
                 <command>property-adjust</command>
-                <property>/fdm/jsbsim/systems/electrical/fc/reactant-valve-status</property>
+                <property>/fdm/jsbsim/systems/grenadier/inert/fuel-cell-valve-1</property>
                 <factor>1</factor>
                 <min>0</min>
                 <max>1</max>
@@ -15421,8 +15421,8 @@
             <binding>
                 <command>set-tooltip</command>
                 <tooltip-id>fuel-cell-reac-vlv1</tooltip-id>
-                <label>Fuel Cell Reac Valve 1: %s</label>
-                <property>/fdm/jsbsim/systems/electrical/fc/reactant-valve-status</property>
+                <label></label>
+                <property>/fdm/jsbsim/systems/grenadier/inert/fuel-cell-valve-1</property>
                 <mapping>nasal</mapping>
                 <script>
                     var modes = ['Close', 'Open'];
@@ -15436,7 +15436,7 @@
     <animation>
         <type>knob</type>
         <object-name>fuel-cell-reac-vlv2</object-name>
-        <property>/fdm/jsbsim/systems/electrical/fc[1]/reactant-valve-status</property>
+        <property>/fdm/jsbsim/systems/grenadier/inert/fuel-cell-valve-2</property>
         <factor>-45</factor>
         <offset-deg>40</offset-deg>
         <center>
@@ -15452,7 +15452,7 @@
         <action>
             <binding>
                 <command>property-adjust</command>
-                <property>/fdm/jsbsim/systems/electrical/fc[1]/reactant-valve-status</property>
+                <property>/fdm/jsbsim/systems/grenadier/inert/fuel-cell-valve-2</property>
                 <factor>1</factor>
                 <min>0</min>
                 <max>1</max>
@@ -15467,8 +15467,8 @@
             <binding>
                 <command>set-tooltip</command>
                 <tooltip-id>fuel-cell-reac-vlv2</tooltip-id>
-                <label>Fuel Cell Reac Valve 2: %s</label>
-                <property>/fdm/jsbsim/systems/electrical/fc[1]/reactant-valve-status</property>
+                <label></label>
+                <property>/fdm/jsbsim/systems/grenadier/inert/fuel-cell-valve-2</property>
                 <mapping>nasal</mapping>
                 <script>
                     var modes = ['Close', 'Open'];
@@ -15482,7 +15482,7 @@
     <animation>
         <type>knob</type>
         <object-name>fuel-cell-reac-vlv3</object-name>
-        <property>/fdm/jsbsim/systems/electrical/fc[2]/reactant-valve-status</property>
+        <property>/fdm/jsbsim/systems/grenadier/inert/fuel-cell-valve-3</property>
         <factor>-45</factor>
         <offset-deg>40</offset-deg>
         <center>
@@ -15498,7 +15498,7 @@
         <action>
             <binding>
                 <command>property-adjust</command>
-                <property>/fdm/jsbsim/systems/electrical/fc[2]/reactant-valve-status</property>
+                <property>/fdm/jsbsim/systems/grenadier/inert/fuel-cell-valve-3</property>
                 <factor>1</factor>
                 <min>0</min>
                 <max>1</max>
@@ -15513,8 +15513,8 @@
             <binding>
                 <command>set-tooltip</command>
                 <tooltip-id>fuel-cell-reac-vlv3</tooltip-id>
-                <label>Fuel Cell Reac Valve 3: %s</label>
-                <property>/fdm/jsbsim/systems/electrical/fc[2]/reactant-valve-status</property>
+                <label></label>
+                <property>/fdm/jsbsim/systems/grenadier/inert/fuel-cell-valve-3</property>
                 <mapping>nasal</mapping>
                 <script>
                     var modes = ['Close', 'Open'];
@@ -15843,11 +15843,11 @@
             <binding>
                 <command>set-tooltip</command>
                 <tooltip-id>main-eng-limit-shut-dn</tooltip-id>
-                <label>Main Engine Limit Shutdown: %s</label>
+                <label>CHARM SCRAM: %s</label>
                 <property>/fdm/jsbsim/systems/mps/limit-shutdown-enable</property>
                 <mapping>nasal</mapping>
                 <script>
-                    var modes = ['Inhibit', 'Auto', 'Enable'];
+                    var modes = ['Inhibit', 'Auto', 'SCRAM Enable'];
                     return modes[arg[0]];
                 </script>
             </binding>
@@ -15897,11 +15897,11 @@
             <binding>
                 <command>set-tooltip</command>
                 <tooltip-id>oms-eng-left</tooltip-id>
-                <label>LefOMS Engine Arm: %s</label>
+                <label>Stage -: %s</label>
                 <property>/fdm/jsbsim/systems/oms-hardware/engine-left-arm-cmd</property>
                 <mapping>nasal</mapping>
                 <script>
-                    var modes = ['OFF', 'ARM/PRESS', 'ARM'];
+                    var modes = ['Off', 'Arm', 'Stage-'];
                     return modes[arg[0]];
                 </script>
             </binding>
@@ -15951,11 +15951,11 @@
             <binding>
                 <command>set-tooltip</command>
                 <tooltip-id>oms-eng-right</tooltip-id>
-                <label>Right OMS Engine Arm: %s</label>
+                <label>Stage +: %s</label>
                 <property>/fdm/jsbsim/systems/oms-hardware/engine-right-arm-cmd</property>
                 <mapping>nasal</mapping>
                 <script>
-                    var modes = ['OFF', 'ARM/PRESS', 'ARM'];
+                    var modes = ['Off', 'Arm', 'Stage+'];
                     return modes[arg[0]];
                 </script>
             </binding>
@@ -17675,7 +17675,7 @@
             <binding>
                 <command>set-tooltip</command>
                 <tooltip-id>srb-sep</tooltip-id>
-                <label>SRB Separation Mode: %s</label>
+                <label></label>
                 <property>/controls/shuttle/srb-separation-mode</property>
                 <mapping>nasal</mapping>
                 <script>
@@ -17733,7 +17733,7 @@
             <binding>
                 <command>set-tooltip</command>
                 <tooltip-id>button_srb_sep</tooltip-id>
-                <label>Separate SRB's</label>
+                <label></label>
             </binding>
         </hovered>
     </animation>
@@ -17789,7 +17789,7 @@
             <binding>
                 <command>set-tooltip</command>
                 <tooltip-id>et-sep</tooltip-id>
-                <label>ET Separation Mode: %s</label>
+                <label></label>
                 <property>/controls/shuttle/et-separation-mode</property>
                 <mapping>nasal</mapping>
                 <script>
@@ -18170,7 +18170,7 @@
             <binding>
                 <command>set-tooltip</command>
                 <tooltip-id>srb-sep-cvr</tooltip-id>
-                <label>Remove Cover</label>
+                <label></label>
                 <property>/sim/model/panel/cover/srb-sep-cvr</property>
             </binding>
         </hovered>
@@ -18211,7 +18211,7 @@
             <binding>
                 <command>set-tooltip</command>
                 <tooltip-id>et-sep-cvr</tooltip-id>
-                <label>Remove Cover</label>
+                <label></label>
                 <property>/sim/model/panel/cover/et-sep-cvr</property>
             </binding>
         </hovered>
@@ -25519,7 +25519,7 @@
     <animation>
         <type>knob</type>
         <object-name>fc0-valve</object-name>
-        <property>/fdm/jsbsim/systems/electrical/fc/reactant-valve-status-pos</property>
+        <property>/fdm/jsbsim/systems/grenadier/inert/fuel-cell-valve-1-pos</property>
         <factor>-25</factor>
         <offset-deg>20</offset-deg>
         <center>
@@ -25535,7 +25535,7 @@
         <action>
             <binding>
                 <command>property-adjust</command>
-                <property>/fdm/jsbsim/systems/electrical/fc/reactant-valve-status-pos</property>
+                <property>/fdm/jsbsim/systems/grenadier/inert/fuel-cell-valve-1-pos</property>
                 <factor>0.5</factor>
                 <min>0</min>
                 <max>1</max>
@@ -25544,16 +25544,16 @@
             <binding>
                 <command>nasal</command>
                 <script>
-            var switch_pos = getprop("/fdm/jsbsim/systems/electrical/fc/reactant-valve-status-pos");
+            var switch_pos = getprop("/fdm/jsbsim/systems/grenadier/inert/fuel-cell-valve-1-pos");
 		    if (switch_pos == 1)
 			{
-			setprop("/fdm/jsbsim/systems/electrical/fc/reactant-valve-status", 1);
-			settimer ( func {setprop("/fdm/jsbsim/systems/electrical/fc/reactant-valve-status-pos", 0.5);}, 0.5);
+			setprop("/fdm/jsbsim/systems/grenadier/inert/fuel-cell-valve-1", 1);
+			settimer ( func {setprop("/fdm/jsbsim/systems/grenadier/inert/fuel-cell-valve-1-pos", 0.5);}, 0.5);
 			}
             else if (switch_pos == 0)
             {
-			setprop("/fdm/jsbsim/systems/electrical/fc/reactant-valve-status", 0);
-			settimer ( func {setprop("/fdm/jsbsim/systems/electrical/fc/reactant-valve-status-pos", 0.5);}, 0.5);
+			setprop("/fdm/jsbsim/systems/grenadier/inert/fuel-cell-valve-1", 0);
+			settimer ( func {setprop("/fdm/jsbsim/systems/grenadier/inert/fuel-cell-valve-1-pos", 0.5);}, 0.5);
 			}
                 </script>
             </binding>
@@ -25562,9 +25562,9 @@
             <binding>
                 <command>set-tooltip</command>
                 <tooltip-id>fc0-valve</tooltip-id>
-                <label>FC1 Reactant Valve: %s</label>
+                <label></label>
                 <mapping>on-off</mapping>
-                <property>/fdm/jsbsim/systems/electrical/fc/reactant-valve-status</property>
+                <property>/fdm/jsbsim/systems/grenadier/inert/fuel-cell-valve-1</property>
             </binding>
         </hovered>
     </animation>
@@ -25573,7 +25573,7 @@
     <animation>
         <type>knob</type>
         <object-name>fc1-valve</object-name>
-        <property>/fdm/jsbsim/systems/electrical/fc[1]/reactant-valve-status-pos</property>
+        <property>/fdm/jsbsim/systems/grenadier/inert/fuel-cell-valve-2-pos</property>
         <factor>-25</factor>
         <offset-deg>20</offset-deg>
         <center>
@@ -25589,7 +25589,7 @@
         <action>
             <binding>
                 <command>property-adjust</command>
-                <property>/fdm/jsbsim/systems/electrical/fc[1]/reactant-valve-status-pos</property>
+                <property>/fdm/jsbsim/systems/grenadier/inert/fuel-cell-valve-2-pos</property>
                 <factor>0.5</factor>
                 <min>0</min>
                 <max>1</max>
@@ -25598,16 +25598,16 @@
             <binding>
                 <command>nasal</command>
                 <script>
-            var switch_pos = getprop("/fdm/jsbsim/systems/electrical/fc[1]/reactant-valve-status-pos");
+            var switch_pos = getprop("/fdm/jsbsim/systems/grenadier/inert/fuel-cell-valve-2-pos");
 		    if (switch_pos == 1)
 			{
-			setprop("/fdm/jsbsim/systems/electrical/fc[1]/reactant-valve-status", 1);
-			settimer ( func {setprop("/fdm/jsbsim/systems/electrical/fc[1]/reactant-valve-status-pos", 0.5);}, 0.5);
+			setprop("/fdm/jsbsim/systems/grenadier/inert/fuel-cell-valve-2", 1);
+			settimer ( func {setprop("/fdm/jsbsim/systems/grenadier/inert/fuel-cell-valve-2-pos", 0.5);}, 0.5);
 			}
             else if (switch_pos == 0)
             {
-			setprop("/fdm/jsbsim/systems/electrical/fc[1]/reactant-valve-status", 0);
-			settimer ( func {setprop("/fdm/jsbsim/systems/electrical/fc[1]/reactant-valve-status-pos", 0.5);}, 0.5);
+			setprop("/fdm/jsbsim/systems/grenadier/inert/fuel-cell-valve-2", 0);
+			settimer ( func {setprop("/fdm/jsbsim/systems/grenadier/inert/fuel-cell-valve-2-pos", 0.5);}, 0.5);
 			}
                 </script>
             </binding>
@@ -25616,9 +25616,9 @@
             <binding>
                 <command>set-tooltip</command>
                 <tooltip-id>fc1-valve</tooltip-id>
-                <label>FC2 Reactant Valve: %s</label>
+                <label></label>
                 <mapping>on-off</mapping>
-                <property>/fdm/jsbsim/systems/electrical/fc[1]/reactant-valve-status</property>
+                <property>/fdm/jsbsim/systems/grenadier/inert/fuel-cell-valve-2</property>
             </binding>
         </hovered>
     </animation>
@@ -25627,7 +25627,7 @@
     <animation>
         <type>knob</type>
         <object-name>fc2-valve</object-name>
-        <property>/fdm/jsbsim/systems/electrical/fc[2]/reactant-valve-status-pos</property>
+        <property>/fdm/jsbsim/systems/grenadier/inert/fuel-cell-valve-3-pos</property>
         <factor>-25</factor>
         <offset-deg>20</offset-deg>
         <center>
@@ -25643,7 +25643,7 @@
         <action>
             <binding>
                 <command>property-adjust</command>
-                <property>/fdm/jsbsim/systems/electrical/fc[2]/reactant-valve-status-pos</property>
+                <property>/fdm/jsbsim/systems/grenadier/inert/fuel-cell-valve-3-pos</property>
                 <factor>0.5</factor>
                 <min>0</min>
                 <max>1</max>
@@ -25652,16 +25652,16 @@
             <binding>
                 <command>nasal</command>
                 <script>
-            var switch_pos = getprop("/fdm/jsbsim/systems/electrical/fc[2]/reactant-valve-status-pos");
+            var switch_pos = getprop("/fdm/jsbsim/systems/grenadier/inert/fuel-cell-valve-3-pos");
 		    if (switch_pos == 1)
 			{
-			setprop("/fdm/jsbsim/systems/electrical/fc[2]/reactant-valve-status", 1);
-			settimer ( func {setprop("/fdm/jsbsim/systems/electrical/fc[2]/reactant-valve-status-pos", 0.5);}, 0.5);
+			setprop("/fdm/jsbsim/systems/grenadier/inert/fuel-cell-valve-3", 1);
+			settimer ( func {setprop("/fdm/jsbsim/systems/grenadier/inert/fuel-cell-valve-3-pos", 0.5);}, 0.5);
 			}
             else if (switch_pos == 0)
             {
-			setprop("/fdm/jsbsim/systems/electrical/fc[2]/reactant-valve-status", 0);
-			settimer ( func {setprop("/fdm/jsbsim/systems/electrical/fc[2]/reactant-valve-status-pos", 0.5);}, 0.5);
+			setprop("/fdm/jsbsim/systems/grenadier/inert/fuel-cell-valve-3", 0);
+			settimer ( func {setprop("/fdm/jsbsim/systems/grenadier/inert/fuel-cell-valve-3-pos", 0.5);}, 0.5);
 			}    
                 </script>
             </binding>
@@ -25670,9 +25670,9 @@
             <binding>
                 <command>set-tooltip</command>
                 <tooltip-id>fc2-valve</tooltip-id>
-                <label>FC3 Reactant Valve: %s</label>
+                <label></label>
                 <mapping>on-off</mapping>
-                <property>/fdm/jsbsim/systems/electrical/fc[2]/reactant-valve-status</property>
+                <property>/fdm/jsbsim/systems/grenadier/inert/fuel-cell-valve-3</property>
             </binding>
         </hovered>
     </animation>
@@ -25683,7 +25683,7 @@
         <type>select</type>
         <object-name>fc0-reac-o2-op</object-name>
         <condition>
-            <property>/fdm/jsbsim/systems/electrical/fc/reactant-valve-status</property>
+            <property>/fdm/jsbsim/systems/grenadier/inert/fuel-cell-valve-1</property>
         </condition>
     </animation>
     <animation>
@@ -25691,7 +25691,7 @@
         <object-name>fc0-reac-o2-cl</object-name>
         <condition>
             <not>
-                <property>/fdm/jsbsim/systems/electrical/fc/reactant-valve-status</property>
+                <property>/fdm/jsbsim/systems/grenadier/inert/fuel-cell-valve-1</property>
             </not>
         </condition>
     </animation>
@@ -25700,7 +25700,7 @@
         <type>select</type>
         <object-name>fc0-reac-h2-op</object-name>
         <condition>
-            <property>/fdm/jsbsim/systems/electrical/fc/reactant-valve-status</property>
+            <property>/fdm/jsbsim/systems/grenadier/inert/fuel-cell-valve-1</property>
         </condition>
     </animation>
     <animation>
@@ -25708,7 +25708,7 @@
         <object-name>fc0-reac-h2-cl</object-name>
         <condition>
             <not>
-                <property>/fdm/jsbsim/systems/electrical/fc/reactant-valve-status</property>
+                <property>/fdm/jsbsim/systems/grenadier/inert/fuel-cell-valve-1</property>
             </not>
         </condition>
     </animation>
@@ -25718,7 +25718,7 @@
         <type>select</type>
         <object-name>fc1-reac-o2-op</object-name>
         <condition>
-            <property>/fdm/jsbsim/systems/electrical/fc[1]/reactant-valve-status</property>
+            <property>/fdm/jsbsim/systems/grenadier/inert/fuel-cell-valve-2</property>
         </condition>
     </animation>
     <animation>
@@ -25726,7 +25726,7 @@
         <object-name>fc1-reac-o2-cl</object-name>
         <condition>
             <not>
-                <property>/fdm/jsbsim/systems/electrical/fc[1]/reactant-valve-status</property>
+                <property>/fdm/jsbsim/systems/grenadier/inert/fuel-cell-valve-2</property>
             </not>
         </condition>
     </animation>
@@ -25735,7 +25735,7 @@
         <type>select</type>
         <object-name>fc1-reac-h2-op</object-name>
         <condition>
-            <property>/fdm/jsbsim/systems/electrical/fc[1]/reactant-valve-status</property>
+            <property>/fdm/jsbsim/systems/grenadier/inert/fuel-cell-valve-2</property>
         </condition>
     </animation>
     <animation>
@@ -25743,7 +25743,7 @@
         <object-name>fc1-reac-h2-cl</object-name>
         <condition>
             <not>
-                <property>/fdm/jsbsim/systems/electrical/fc[1]/reactant-valve-status</property>
+                <property>/fdm/jsbsim/systems/grenadier/inert/fuel-cell-valve-2</property>
             </not>
         </condition>
     </animation>
@@ -25753,7 +25753,7 @@
         <type>select</type>
         <object-name>fc2-reac-o2-op</object-name>
         <condition>
-            <property>/fdm/jsbsim/systems/electrical/fc[2]/reactant-valve-status</property>
+            <property>/fdm/jsbsim/systems/grenadier/inert/fuel-cell-valve-3</property>
         </condition>
     </animation>
     <animation>
@@ -25761,7 +25761,7 @@
         <object-name>fc2-reac-o2-cl</object-name>
         <condition>
             <not>
-                <property>/fdm/jsbsim/systems/electrical/fc[2]/reactant-valve-status</property>
+                <property>/fdm/jsbsim/systems/grenadier/inert/fuel-cell-valve-3</property>
             </not>
         </condition>
     </animation>
@@ -25770,7 +25770,7 @@
         <type>select</type>
         <object-name>fc2-reac-h2-op</object-name>
         <condition>
-            <property>/fdm/jsbsim/systems/electrical/fc[2]/reactant-valve-status</property>
+            <property>/fdm/jsbsim/systems/grenadier/inert/fuel-cell-valve-3</property>
         </condition>
     </animation>
     <animation>
@@ -25778,7 +25778,7 @@
         <object-name>fc2-reac-h2-cl</object-name>
         <condition>
             <not>
-                <property>/fdm/jsbsim/systems/electrical/fc[2]/reactant-valve-status</property>
+                <property>/fdm/jsbsim/systems/grenadier/inert/fuel-cell-valve-3</property>
             </not>
         </condition>
     </animation>
@@ -29241,7 +29241,7 @@
             <binding>
                 <command>set-tooltip</command>
                 <tooltip-id>prplt-dump-bkup-lh2-vlv</tooltip-id>
-                <label>Backup LH2 Valve: %s</label>
+                <label></label>
                 <property>/fdm/jsbsim/systems/mps/backup-LH2-valve-status</property>
                 <mapping>nasal</mapping>
                 <script>
@@ -29287,7 +29287,7 @@
             <binding>
                 <command>set-tooltip</command>
                 <tooltip-id>ctrl-pwr-sys-a-ac2-left</tooltip-id>
-                <label>Sys A AC2 (Left): %s</label>
+                <label>CHARM LIGHT: %s</label>
                 <property>/fdm/jsbsim/systems/mps/engine/controller-A-power-switch-status</property>
                 <mapping>nasal</mapping>
                 <script>
@@ -29333,7 +29333,7 @@
             <binding>
                 <command>set-tooltip</command>
                 <tooltip-id>ctrl-pwr-sys-a-ac1-ctr</tooltip-id>
-                <label>Sys A AC1 (Ctr): %s</label>
+                <label>DEC online: %s</label>
                 <property>/fdm/jsbsim/systems/mps/engine[2]/controller-A-power-switch-status</property>
                 <mapping>nasal</mapping>
                 <script>
@@ -29379,11 +29379,11 @@
             <binding>
                 <command>set-tooltip</command>
                 <tooltip-id>ctrl-pwr-sys-a-ac3-right</tooltip-id>
-                <label>Sys A AC3 (Right): %s</label>
+                <label>Vacuum ready: %s</label>
                 <property>/fdm/jsbsim/systems/mps/engine[1]/controller-A-power-switch-status</property>
                 <mapping>nasal</mapping>
                 <script>
-                    var modes = ['Off', 'On'];
+                    var modes = ['Off', 'Ready'];
                     return modes[arg[0]];
                 </script>
             </binding>
@@ -29563,7 +29563,7 @@
             <binding>
                 <command>set-tooltip</command>
                 <tooltip-id>he-isol-a-left</tooltip-id>
-                <label>He Isolation Valve A (Left): %s</label>
+                <label></label>
                 <property>/fdm/jsbsim/systems/mps/engine/helium-isolation-valve-A-status</property>
                 <mapping>nasal</mapping>
                 <script>
@@ -29609,7 +29609,7 @@
             <binding>
                 <command>set-tooltip</command>
                 <tooltip-id>he-isol-a-ctr</tooltip-id>
-                <label>He Isolation Valve A (Center): %s</label>
+                <label></label>
                 <property>/fdm/jsbsim/systems/mps/engine[2]/helium-isolation-valve-A-status</property>
                 <mapping>nasal</mapping>
                 <script>
@@ -29655,7 +29655,7 @@
             <binding>
                 <command>set-tooltip</command>
                 <tooltip-id>he-isol-a-right</tooltip-id>
-                <label>He Isolation Valve A (Right): %s</label>
+                <label></label>
                 <property>/fdm/jsbsim/systems/mps/engine[1]/helium-isolation-valve-A-status</property>
                 <mapping>nasal</mapping>
                 <script>
@@ -29701,7 +29701,7 @@
             <binding>
                 <command>set-tooltip</command>
                 <tooltip-id>he-isol-b-left</tooltip-id>
-                <label>He Isolation Valve B (Left): %s</label>
+                <label></label>
                 <property>/fdm/jsbsim/systems/mps/engine/helium-isolation-valve-B-status</property>
                 <mapping>nasal</mapping>
                 <script>
@@ -29747,7 +29747,7 @@
             <binding>
                 <command>set-tooltip</command>
                 <tooltip-id>he-isol-b-ctr</tooltip-id>
-                <label>He Isolation Valve B (Center): %s</label>
+                <label></label>
                 <property>/fdm/jsbsim/systems/mps/engine[2]/helium-isolation-valve-B-status</property>
                 <mapping>nasal</mapping>
                 <script>
@@ -29793,7 +29793,7 @@
             <binding>
                 <command>set-tooltip</command>
                 <tooltip-id>he-isol-b-right</tooltip-id>
-                <label>He Isolation Valve B (Right): %s</label>
+                <label></label>
                 <property>/fdm/jsbsim/systems/mps/engine[1]/helium-isolation-valve-B-status</property>
                 <mapping>nasal</mapping>
                 <script>
@@ -29839,7 +29839,7 @@
             <binding>
                 <command>set-tooltip</command>
                 <tooltip-id>he-xovr</tooltip-id>
-                <label>He XOVR: %s</label>
+                <label></label>
                 <property>/fdm/jsbsim/systems/mps/helium-isolation-valve-Px-status</property>
                 <mapping>nasal</mapping>
                 <script>
@@ -29885,7 +29885,7 @@
             <binding>
                 <command>set-tooltip</command>
                 <tooltip-id>he-isol</tooltip-id>
-                <label>He Isolation: %s</label>
+                <label></label>
                 <property>/fdm/jsbsim/systems/mps/helium-isolation-valve-P-status</property>
                 <mapping>nasal</mapping>
                 <script>
@@ -29931,7 +29931,7 @@
             <binding>
                 <command>set-tooltip</command>
                 <tooltip-id>he-inter-cnct-left</tooltip-id>
-                <label>He Interconnect (Left): %s</label>
+                <label></label>
                 <property>/fdm/jsbsim/systems/mps/engine[0]/helium-interconnect-valve-status</property>
                 <mapping>nasal</mapping>
                 <script>
@@ -29977,7 +29977,7 @@
             <binding>
                 <command>set-tooltip</command>
                 <tooltip-id>he-inter-cnct-ctr</tooltip-id>
-                <label>He Interconnect (Center): %s</label>
+                <label></label>
                 <property>/fdm/jsbsim/systems/mps/engine[2]/helium-interconnect-valve-status</property>
                 <mapping>nasal</mapping>
                 <script>
@@ -30023,7 +30023,7 @@
             <binding>
                 <command>set-tooltip</command>
                 <tooltip-id>he-inter-cnct-right</tooltip-id>
-                <label>He Interconnect (Right): %s</label>
+                <label></label>
                 <property>/fdm/jsbsim/systems/mps/engine[1]/helium-interconnect-valve-status</property>
                 <mapping>nasal</mapping>
                 <script>
@@ -30076,11 +30076,11 @@
             <binding>
                 <command>set-tooltip</command>
                 <tooltip-id>apu-operate-1</tooltip-id>
-                <label>APU Operate(Left): %s</label>
+                <label>Ground cart: %s</label>
                 <property>/fdm/jsbsim/systems/apu/apu/apu-operate</property>
                 <mapping>nasal</mapping>
                 <script>
-                    var modes = ['Off', 'Start/Run', 'Injector Cool'];
+                    var modes = ['Off', 'Online', 'Online'];
                     return modes[arg[0]];
                 </script>
             </binding>
@@ -30129,11 +30129,11 @@
             <binding>
                 <command>set-tooltip</command>
                 <tooltip-id>apu-operate-2</tooltip-id>
-                <label>APU Operate(Center): %s</label>
+                <label>Flight battery: %s</label>
                 <property>/fdm/jsbsim/systems/apu/apu[1]/apu-operate</property>
                 <mapping>nasal</mapping>
                 <script>
-                    var modes = ['Off', 'Start/Run', 'Injector Cool'];
+                    var modes = ['Off', 'Online', 'Online'];
                     return modes[arg[0]];
                 </script>
             </binding>
@@ -30182,11 +30182,11 @@
             <binding>
                 <command>set-tooltip</command>
                 <tooltip-id>apu-operate-3</tooltip-id>
-                <label>APU Operate(Right): %s</label>
+                <label>Cryo enable: %s</label>
                 <property>/fdm/jsbsim/systems/apu/apu[2]/apu-operate</property>
                 <mapping>nasal</mapping>
                 <script>
-                    var modes = ['Off', 'Start/Run', 'Injector Cool'];
+                    var modes = ['Off', 'Enable', 'Enable'];
                     return modes[arg[0]];
                 </script>
             </binding>
@@ -30264,7 +30264,7 @@
             <binding>
                 <command>set-tooltip</command>
                 <tooltip-id>apu-speed-sel-1</tooltip-id>
-                <label>APU Speed Select 1: %s</label>
+                <label></label>
                 <property>/fdm/jsbsim/systems/apu/apu/apu-speed-select</property>
                 <mapping>nasal</mapping>
                 <script>
@@ -30310,7 +30310,7 @@
             <binding>
                 <command>set-tooltip</command>
                 <tooltip-id>apu-speed-sel-2</tooltip-id>
-                <label>APU Speed Select 2: %s</label>
+                <label></label>
                 <property>/fdm/jsbsim/systems/apu/apu[1]/apu-speed-select</property>
                 <mapping>nasal</mapping>
                 <script>
@@ -30356,7 +30356,7 @@
             <binding>
                 <command>set-tooltip</command>
                 <tooltip-id>apu-speed-sel-3</tooltip-id>
-                <label>APU Speed Select 3: %s</label>
+                <label></label>
                 <property>/fdm/jsbsim/systems/apu/apu[2]/apu-speed-select</property>
                 <mapping>nasal</mapping>
                 <script>
@@ -30402,7 +30402,7 @@
             <binding>
                 <command>set-tooltip</command>
                 <tooltip-id>hyd-main-pump-press-1</tooltip-id>
-                <label>Hydraulic Pressure Select 1: %s</label>
+                <label></label>
                 <property>/fdm/jsbsim/systems/apu/apu/hyd-pump-pressure-select</property>
                 <mapping>nasal</mapping>
                 <script>
@@ -30448,7 +30448,7 @@
             <binding>
                 <command>set-tooltip</command>
                 <tooltip-id>hyd-main-pump-press-2</tooltip-id>
-                <label>Hydraulic Pressure Select 2: %s</label>
+                <label></label>
                 <property>/fdm/jsbsim/systems/apu/apu[1]/hyd-pump-pressure-select</property>
                 <mapping>nasal</mapping>
                 <script>
@@ -30494,7 +30494,7 @@
             <binding>
                 <command>set-tooltip</command>
                 <tooltip-id>hyd-main-pump-press-3</tooltip-id>
-                <label>Hydraulic Pressure Select 3: %s</label>
+                <label></label>
                 <property>/fdm/jsbsim/systems/apu/apu[2]/hyd-pump-pressure-select</property>
                 <mapping>nasal</mapping>
                 <script>
@@ -30547,11 +30547,11 @@
             <binding>
                 <command>set-tooltip</command>
                 <tooltip-id>apu-ctrl-pwr-1</tooltip-id>
-                <label>APU Controller Pwr 1: %s</label>
+                <label>Magnet arm: %s</label>
                 <property>/fdm/jsbsim/systems/apu/apu/apu-controller-power</property>
                 <mapping>nasal</mapping>
                 <script>
-                    var modes = ['Off', 'On'];
+                    var modes = ['Off', 'Arm'];
                     return modes[arg[0]];
                 </script>
             </binding>
@@ -30600,11 +30600,11 @@
             <binding>
                 <command>set-tooltip</command>
                 <tooltip-id>apu-ctrl-pwr-2</tooltip-id>
-                <label>APU Controller pwr 2: %s</label>
+                <label>Fuel enable: %s</label>
                 <property>/fdm/jsbsim/systems/apu/apu[1]/apu-controller-power</property>
                 <mapping>nasal</mapping>
                 <script>
-                    var modes = ['Off', 'On'];
+                    var modes = ['Off', 'Enable'];
                     return modes[arg[0]];
                 </script>
             </binding>
@@ -30653,11 +30653,11 @@
             <binding>
                 <command>set-tooltip</command>
                 <tooltip-id>apu-ctrl-pwr-3</tooltip-id>
-                <label>APU Controller Pwr 3: %s</label>
+                <label>RF enable: %s</label>
                 <property>/fdm/jsbsim/systems/apu/apu[2]/apu-controller-power</property>
                 <mapping>nasal</mapping>
                 <script>
-                    var modes = ['Off', 'On'];
+                    var modes = ['Off', 'Enable'];
                     return modes[arg[0]];
                 </script>
             </binding>
@@ -30705,7 +30705,7 @@
             <binding>
                 <command>set-tooltip</command>
                 <tooltip-id>hyd-circ-pump-1</tooltip-id>
-                <label>Hydraulic Circ Pump 1: %s</label>
+                <label></label>
                 <property>/fdm/jsbsim/systems/apu/apu/hyd-circ-pump-cmd</property>
                 <mapping>nasal</mapping>
                 <script>
@@ -30757,7 +30757,7 @@
             <binding>
                 <command>set-tooltip</command>
                 <tooltip-id>hyd-circ-pump-2</tooltip-id>
-                <label>Hydraulic Circ Pump 2: %s</label>
+                <label></label>
                 <property>/fdm/jsbsim/systems/apu/apu[1]/hyd-circ-pump-cmd</property>
                 <mapping>nasal</mapping>
                 <script>
@@ -30809,7 +30809,7 @@
             <binding>
                 <command>set-tooltip</command>
                 <tooltip-id>hyd-circ-pump-3</tooltip-id>
-                <label>Hydraulic Circ Pump 3: %s</label>
+                <label></label>
                 <property>/fdm/jsbsim/systems/apu/apu[2]/hyd-circ-pump-cmd</property>
                 <mapping>nasal</mapping>
                 <script>
@@ -30855,7 +30855,7 @@
             <binding>
                 <command>set-tooltip</command>
                 <tooltip-id>apu-fuel-tk-vlv-1</tooltip-id>
-                <label>APU Fuel Tank Valve 1: %s</label>
+                <label></label>
                 <property>/fdm/jsbsim/systems/apu/apu/fuel-valve-status</property>
                 <mapping>nasal</mapping>
                 <script>
@@ -30901,7 +30901,7 @@
             <binding>
                 <command>set-tooltip</command>
                 <tooltip-id>apu-fuel-tk-vlv-2</tooltip-id>
-                <label>APU Fuel Tank Valve 2: %s</label>
+                <label></label>
                 <property>/fdm/jsbsim/systems/apu/apu[1]/fuel-valve-status</property>
                 <mapping>nasal</mapping>
                 <script>
@@ -30947,7 +30947,7 @@
             <binding>
                 <command>set-tooltip</command>
                 <tooltip-id>apu-fuel-tk-vlv-3</tooltip-id>
-                <label>APU Fuel Tank Valve 3: %s</label>
+                <label></label>
                 <property>/fdm/jsbsim/systems/apu/apu[2]/fuel-valve-status</property>
                 <mapping>nasal</mapping>
                 <script>
@@ -30993,7 +30993,7 @@
             <binding>
                 <command>set-tooltip</command>
                 <tooltip-id>boiler-cntrl-htr-1</tooltip-id>
-                <label>APU Boiler Controller Heater 1: %s</label>
+                <label></label>
                 <property>/fdm/jsbsim/systems/apu/apu/boiler-heater-status</property>
                 <mapping>nasal</mapping>
                 <script>
@@ -31039,7 +31039,7 @@
             <binding>
                 <command>set-tooltip</command>
                 <tooltip-id>boiler-cntrl-htr-2</tooltip-id>
-                <label>APU Boiler Controller Heater 2: %s</label>
+                <label></label>
                 <property>/fdm/jsbsim/systems/apu/apu[1]/boiler-heater-status</property>
                 <mapping>nasal</mapping>
                 <script>
@@ -31085,7 +31085,7 @@
             <binding>
                 <command>set-tooltip</command>
                 <tooltip-id>boiler-cntrl-htr-3</tooltip-id>
-                <label>APU Boiler Controller Heater 3: %s</label>
+                <label></label>
                 <property>/fdm/jsbsim/systems/apu/apu[2]/boiler-heater-status</property>
                 <mapping>nasal</mapping>
                 <script>
@@ -31131,7 +31131,7 @@
             <binding>
                 <command>set-tooltip</command>
                 <tooltip-id>boiler-cntrl-pwr-1</tooltip-id>
-                <label>APU Boiler Controller Power 1: %s</label>
+                <label></label>
                 <property>/fdm/jsbsim/systems/apu/apu/boiler-power-status</property>
                 <mapping>nasal</mapping>
                 <script>
@@ -31177,7 +31177,7 @@
             <binding>
                 <command>set-tooltip</command>
                 <tooltip-id>boiler-cntrl-pwr-2</tooltip-id>
-                <label>APU Boiler Controller Power 2: %s</label>
+                <label></label>
                 <property>/fdm/jsbsim/systems/apu/apu[1]/boiler-power-status</property>
                 <mapping>nasal</mapping>
                 <script>
@@ -31223,7 +31223,7 @@
             <binding>
                 <command>set-tooltip</command>
                 <tooltip-id>boiler-cntrl-pwr-3</tooltip-id>
-                <label>APU Boiler Controller Power 3: %s</label>
+                <label></label>
                 <property>/fdm/jsbsim/systems/apu/apu[2]/boiler-power-status</property>
                 <mapping>nasal</mapping>
                 <script>
@@ -31269,7 +31269,7 @@
             <binding>
                 <command>set-tooltip</command>
                 <tooltip-id>boiler-n2-supply-1</tooltip-id>
-                <label>APU Boiler N2 Supply 1: %s</label>
+                <label></label>
                 <property>/fdm/jsbsim/systems/apu/apu/boiler-N2-valve-status</property>
                 <mapping>nasal</mapping>
                 <script>
@@ -31315,7 +31315,7 @@
             <binding>
                 <command>set-tooltip</command>
                 <tooltip-id>boiler-n2-supply-2</tooltip-id>
-                <label>APU Boiler N2 Supply 2: %s</label>
+                <label></label>
                 <property>/fdm/jsbsim/systems/apu/apu[1]/boiler-N2-valve-status</property>
                 <mapping>nasal</mapping>
                 <script>
@@ -31361,7 +31361,7 @@
             <binding>
                 <command>set-tooltip</command>
                 <tooltip-id>boiler-n2-supply-3</tooltip-id>
-                <label>APU Boiler N2 Supply 3: %s</label>
+                <label></label>
                 <property>/fdm/jsbsim/systems/apu/apu[2]/boiler-N2-valve-status</property>
                 <mapping>nasal</mapping>
                 <script>
@@ -31407,7 +31407,7 @@
             <binding>
                 <command>set-tooltip</command>
                 <tooltip-id>et-umbilical-door-mode-switch</tooltip-id>
-                <label>ET Umbilical Door Mode: %s</label>
+                <label></label>
                 <property>/fdm/jsbsim/systems/mechanical/et-umbilical-door-mode</property>
                 <mapping>nasal</mapping>
                 <script>
@@ -31453,7 +31453,7 @@
             <binding>
                 <command>set-tooltip</command>
                 <tooltip-id>et-umbilical-door-centerline</tooltip-id>
-                <label>ET Umbilical Door Centerline Latch: %s</label>
+                <label></label>
                 <property>/fdm/jsbsim/systems/mechanical/et-door-cl-latch-cmd</property>
                 <mapping>nasal</mapping>
                 <script>
@@ -31499,7 +31499,7 @@
             <binding>
                 <command>set-tooltip</command>
                 <tooltip-id>et-umbilical-door-left</tooltip-id>
-                <label>ET Umbilical Door Left: %s</label>
+                <label></label>
                 <property>/fdm/jsbsim/systems/mechanical/et-door-left-cmd</property>
                 <mapping>nasal</mapping>
                 <script>
@@ -31545,7 +31545,7 @@
             <binding>
                 <command>set-tooltip</command>
                 <tooltip-id>et-umbilical-latch-left</tooltip-id>
-                <label>ET Umbilical Door Latch Left: %s</label>
+                <label></label>
                 <property>/fdm/jsbsim/systems/mechanical/et-door-left-latch-cmd</property>
                 <mapping>nasal</mapping>
                 <script>
@@ -31591,7 +31591,7 @@
             <binding>
                 <command>set-tooltip</command>
                 <tooltip-id>et-umbilical-door-right</tooltip-id>
-                <label>ET Umbilical Door Right: %s</label>
+                <label></label>
                 <property>/fdm/jsbsim/systems/mechanical/et-door-right-cmd</property>
                 <mapping>nasal</mapping>
                 <script>
@@ -31637,7 +31637,7 @@
             <binding>
                 <command>set-tooltip</command>
                 <tooltip-id>et-umbilical-latch-right</tooltip-id>
-                <label>ET Umbilical Door Latch Right: %s</label>
+                <label></label>
                 <property>/fdm/jsbsim/systems/mechanical/et-door-right-latch-cmd</property>
                 <mapping>nasal</mapping>
                 <script>
@@ -32202,7 +32202,7 @@
             <binding>
                 <command>set-tooltip</command>
                 <tooltip-id>lh2-man-press</tooltip-id>
-                <label>MPS Manifold Press Valve Cntrl LH2: %s</label>
+                <label></label>
                 <property>/fdm/jsbsim/systems/mps/LH2-manifold-valve-status</property>
                 <mapping>nasal</mapping>
                 <script>
@@ -32248,7 +32248,7 @@
             <binding>
                 <command>set-tooltip</command>
                 <tooltip-id>lo2-man-press</tooltip-id>
-                <label>MPS Manifold Press Valve Cntrl LO2: %s</label>
+                <label></label>
                 <property>/fdm/jsbsim/systems/mps/LO2-manifold-valve-status</property>
                 <mapping>nasal</mapping>
                 <script>
@@ -32294,7 +32294,7 @@
             <binding>
                 <command>set-tooltip</command>
                 <tooltip-id>lo2-outboard</tooltip-id>
-                <label>Prop F/D Valves LO2 Outboard: %s</label>
+                <label></label>
                 <property>/fdm/jsbsim/systems/propellant/LO2-outboard-status</property>
                 <mapping>nasal</mapping>
                 <script>
@@ -32340,7 +32340,7 @@
             <binding>
                 <command>set-tooltip</command>
                 <tooltip-id>lo2-inboard</tooltip-id>
-                <label>Prop F/D Valves LO2 Inboard: %s</label>
+                <label></label>
                 <property>/fdm/jsbsim/systems/propellant/LO2-inboard-status</property>
                 <mapping>nasal</mapping>
                 <script>
@@ -32386,7 +32386,7 @@
             <binding>
                 <command>set-tooltip</command>
                 <tooltip-id>lh2-outboard</tooltip-id>
-                <label>Prop F/D Valves LH2 Outboard: %s</label>
+                <label></label>
                 <property>/fdm/jsbsim/systems/propellant/LH2-outboard-status</property>
                 <mapping>nasal</mapping>
                 <script>
@@ -32432,7 +32432,7 @@
             <binding>
                 <command>set-tooltip</command>
                 <tooltip-id>lh2-inboard</tooltip-id>
-                <label>Prop F/D Valves LH2 Inboard: %s</label>
+                <label></label>
                 <property>/fdm/jsbsim/systems/propellant/LH2-inboard-status</property>
                 <mapping>nasal</mapping>
                 <script>
@@ -32478,7 +32478,7 @@
             <binding>
                 <command>set-tooltip</command>
                 <tooltip-id>lo2-left-prevlv</tooltip-id>
-                <label>LO2 Left Prevalve: %s</label>
+                <label></label>
                 <property>/fdm/jsbsim/systems/propellant/LO2-left-prevalve-status</property>
                 <mapping>nasal</mapping>
                 <script>
@@ -32524,7 +32524,7 @@
             <binding>
                 <command>set-tooltip</command>
                 <tooltip-id>lo2-center-prevlv</tooltip-id>
-                <label>LO2 Center Prevalve: %s</label>
+                <label></label>
                 <property>/fdm/jsbsim/systems/propellant/LO2-center-prevalve-status</property>
                 <mapping>nasal</mapping>
                 <script>
@@ -32570,7 +32570,7 @@
             <binding>
                 <command>set-tooltip</command>
                 <tooltip-id>lo2-right-prevlv</tooltip-id>
-                <label>LO2 Right Prevalve: %s</label>
+                <label></label>
                 <property>/fdm/jsbsim/systems/propellant/LO2-right-prevalve-status</property>
                 <mapping>nasal</mapping>
                 <script>
@@ -32616,7 +32616,7 @@
             <binding>
                 <command>set-tooltip</command>
                 <tooltip-id>lh2-left-prevlv</tooltip-id>
-                <label>LH2 Left Prevalve: %s</label>
+                <label></label>
                 <property>/fdm/jsbsim/systems/propellant/LH2-left-prevalve-status</property>
                 <mapping>nasal</mapping>
                 <script>
@@ -32662,7 +32662,7 @@
             <binding>
                 <command>set-tooltip</command>
                 <tooltip-id>lh2-center-prevlv</tooltip-id>
-                <label>LH2 Center Prevalve: %s</label>
+                <label></label>
                 <property>/fdm/jsbsim/systems/propellant/LH2-center-prevalve-status</property>
                 <mapping>nasal</mapping>
                 <script>
@@ -32708,7 +32708,7 @@
             <binding>
                 <command>set-tooltip</command>
                 <tooltip-id>lh2-right-prevlv</tooltip-id>
-                <label>LH2 Right Prevalve: %s</label>
+                <label></label>
                 <property>/fdm/jsbsim/systems/propellant/LH2-right-prevalve-status</property>
                 <mapping>nasal</mapping>
                 <script>

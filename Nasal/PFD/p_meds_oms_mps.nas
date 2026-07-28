@@ -122,239 +122,127 @@ var PFD_addpage_p_meds_oms_mps = func(device)
         device.MEDS_menu_title.setText("    SUBSYSTEM MENU");
 	p_meds_oms_mps.menu_item.setColor(1.0, 1.0, 1.0);
 	p_meds_oms_mps.menu_item_frame.setColor(1.0, 1.0, 1.0);
+	p_meds_oms_mps.OMS_label.setText("STAGE");
+	p_meds_oms_mps.MPS_label.setText("ENGINE");
     
 
     }
     
     p_meds_oms_mps.update = func
     {
-
-	var oms_left_N2_pressure = getprop("/fdm/jsbsim/systems/oms-hardware/n2-left-oms-pressure-psia");
-	var oms_right_N2_pressure = getprop("/fdm/jsbsim/systems/oms-hardware/n2-left-oms-pressure-psia");
-
-	var oms_left_He_pressure = getprop("/fdm/jsbsim/systems/oms-hardware/helium-left-oms-pressure-psia");
-	var oms_right_He_pressure = getprop("/fdm/jsbsim/systems/oms-hardware/helium-right-oms-pressure-psia");
-
-	var mps_left_He_pressure = getprop("/fdm/jsbsim/systems/mps/helium/pressure-psia");
-	var mps_right_He_pressure = getprop("/fdm/jsbsim/systems/mps/helium[1]/pressure-psia");
-	var mps_center_He_pressure = getprop("/fdm/jsbsim/systems/mps/helium[2]/pressure-psia");
-	var mps_pneu_He_pressure = getprop("/fdm/jsbsim/systems/mps/helium[3]/pressure-psia");
-
-	p_meds_oms_mps.He_Tk_left.updateText(sprintf("%04d", mps_left_He_pressure));
-    	p_meds_oms_mps.He_Tk_right.updateText(sprintf("%04d", mps_right_He_pressure));
-	p_meds_oms_mps.He_Tk_center.updateText(sprintf("%04d", mps_center_He_pressure));
-	p_meds_oms_mps.He_Tk_pneu.updateText(sprintf("%04d", mps_pneu_He_pressure));
-
-	p_meds_oms_mps.He_Tk_oleft.updateText(sprintf("%04d", oms_left_He_pressure));
-	p_meds_oms_mps.He_Tk_oright.updateText(sprintf("%04d", oms_right_He_pressure));
-
-	var p_He_left_display = (mps_left_He_pressure - 1000.0)/4000.0;
-	var p_He_right_display = (mps_right_He_pressure - 1000.0)/4000.0;
-	var p_He_center_display = (mps_center_He_pressure - 1000.0)/4000.0;
-	var p_He_pneu_display = (mps_pneu_He_pressure - 3000.0)/2000.0;
-
-	var p_He_oleft_display = oms_left_He_pressure/5000.0;
-	var p_He_oright_display = oms_right_He_pressure/5000.0;
-
-	if (p_He_left_display < 0.0) {p_He_left_display = 0.0;}
-	if (p_He_right_display < 0.0) {p_He_right_display = 0.0;}
-	if (p_He_center_display < 0.0) {p_He_center_display = 0.0;}
-	if (p_He_pneu_display < 0.0) {p_He_pneu_display = 0.0;}
-
-	p_meds_oms_mps.tape_TkP_left.setScale(1.0, p_He_left_display);
-	p_meds_oms_mps.tape_TkP_left.setTranslation(0.0, (1.0-p_He_left_display) * (49.4 + 175));
-
-	p_meds_oms_mps.tape_TkP_right.setScale(1.0, p_He_right_display);
-	p_meds_oms_mps.tape_TkP_right.setTranslation(0.0, (1.0-p_He_right_display) * (49.4 + 175));
-
-	p_meds_oms_mps.tape_TkP_center.setScale(1.0, p_He_center_display);
-	p_meds_oms_mps.tape_TkP_center.setTranslation(0.0, (1.0-p_He_center_display) * (49.4 + 175));
-
-	p_meds_oms_mps.tape_TkP_pneu.setScale(1.0, p_He_pneu_display);
-	p_meds_oms_mps.tape_TkP_pneu.setTranslation(0.0, (1.0-p_He_pneu_display) * (49.4 + 175));
-
-	p_meds_oms_mps.tape_HeTkP_oleft.setScale(1.0, p_He_oleft_display);
-	p_meds_oms_mps.tape_HeTkP_oleft.setTranslation(0.0, (1.0-p_He_oleft_display) * (49.5 + 175.6));
-
-	p_meds_oms_mps.tape_HeTkP_oright.setScale(1.0, p_He_oright_display);
-	p_meds_oms_mps.tape_HeTkP_oright.setTranslation(0.0, (1.0-p_He_oright_display) * (49.5 + 175.6));
-
-	if (mps_left_He_pressure < 1150.0)
-		{p_meds_oms_mps.tape_TkP_left.setColorFill(1.0, 0.0, 0.0);}
-	else {p_meds_oms_mps.tape_TkP_left.setColorFill(0.0, 1.0, 0.0);}
-
-	if (mps_right_He_pressure < 1150.0)
-		{p_meds_oms_mps.tape_TkP_right.setColorFill(1.0, 0.0, 0.0);}
-	else {p_meds_oms_mps.tape_TkP_right.setColorFill(0.0, 1.0, 0.0);}
-
-	if (mps_center_He_pressure < 1150.0)
-		{p_meds_oms_mps.tape_TkP_center.setColorFill(1.0, 0.0, 0.0);}
-	else {p_meds_oms_mps.tape_TkP_center.setColorFill(0.0, 1.0, 0.0);}
-
-	if (mps_pneu_He_pressure < 3800.0)
-		{p_meds_oms_mps.tape_TkP_pneu.setColorFill(1.0, 0.0, 0.0);}
-	else {p_meds_oms_mps.tape_TkP_pneu.setColorFill(0.0, 1.0, 0.0);}
-
-
-	if (oms_left_He_pressure < 1500.0)
-		{p_meds_oms_mps.tape_HeTkP_oleft.setColorFill(1.0, 0.0, 0.0);}
-	else {p_meds_oms_mps.tape_HeTkP_oleft.setColorFill(0.0, 1.0, 0.0);}
-
-	if (oms_right_He_pressure < 1500.0)
-		{p_meds_oms_mps.tape_HeTkP_oright.setColorFill(1.0, 0.0, 0.0);}
-	else {p_meds_oms_mps.tape_HeTkP_oright.setColorFill(0.0, 1.0, 0.0);}
-
-
-	var reg_left_He_pressure = getprop("/fdm/jsbsim/systems/mps/helium/reg-pressure-psia");
-	var reg_right_He_pressure = getprop("/fdm/jsbsim/systems/mps/helium[1]/reg-pressure-psia");
-	var reg_center_He_pressure = getprop("/fdm/jsbsim/systems/mps/helium[2]/reg-pressure-psia");
-	var reg_pneu_He_pressure = getprop("/fdm/jsbsim/systems/mps/helium[3]/reg-pressure-psia");
-
-	p_meds_oms_mps.He_reg_left.updateText(sprintf("%04d", reg_left_He_pressure));
-    	p_meds_oms_mps.He_reg_right.updateText(sprintf("%04d", reg_right_He_pressure));
-	p_meds_oms_mps.He_reg_center.updateText(sprintf("%04d", reg_center_He_pressure));
-	p_meds_oms_mps.He_reg_pneu.updateText(sprintf("%04d", reg_pneu_He_pressure));
-
-	var reg_left_He_display = (reg_left_He_pressure - 600.0) / 300.0;
-	var reg_right_He_display = (reg_right_He_pressure - 600.0) / 300.0;
-	var reg_center_He_display = (reg_center_He_pressure - 600.0) / 300.0;
-	var reg_pneu_He_display = (reg_pneu_He_pressure - 600.0) / 300.0;
-
-	if (reg_left_He_display <0.0) {reg_left_He_display = 0.0;}
-	if (reg_right_He_display <0.0) {reg_right_He_display = 0.0;}
-	if (reg_center_He_display <0.0) {reg_center_He_display = 0.0;}
-	if (reg_pneu_He_display <0.0) {reg_pneu_He_display = 0.0;}
-
-	p_meds_oms_mps.tape_regP_left.setScale(1.0, reg_left_He_display);
-	p_meds_oms_mps.tape_regP_left.setTranslation(0.0, (1.0-reg_left_He_display) * (49.4 + 270.8));
-
-	p_meds_oms_mps.tape_regP_right.setScale(1.0, reg_right_He_display);
-	p_meds_oms_mps.tape_regP_right.setTranslation(0.0, (1.0-reg_right_He_display) * (49.4 + 270.8));
-
-	p_meds_oms_mps.tape_regP_center.setScale(1.0, reg_center_He_display);
-	p_meds_oms_mps.tape_regP_center.setTranslation(0.0, (1.0-reg_center_He_display) * (49.4 + 270.8));
-
-	p_meds_oms_mps.tape_regP_pneu.setScale(1.0, reg_pneu_He_display);
-	p_meds_oms_mps.tape_regP_pneu.setTranslation(0.0, (1.0-reg_pneu_He_display) * (49.4 + 270.8));
-
-        var oms_Pc_left = getprop("/fdm/jsbsim/fcs/throttle-pos-norm[5]");
-        var oms_Pc_right = getprop("/fdm/jsbsim/fcs/throttle-pos-norm[6]");
-
-	oms_Pc_disp_left = oms_Pc_left / 1.2;
-	oms_Pc_disp_right = oms_Pc_right  / 1.2;
-
-
-	p_meds_oms_mps.tape_Pc_oleft.setScale(1.0, oms_Pc_disp_left);
-	p_meds_oms_mps.tape_Pc_oleft.setTranslation(0.0, (1.0-oms_Pc_disp_left) * (80.4 + 366));
-
-	if (oms_Pc_left < 0.80)
-		{p_meds_oms_mps.tape_Pc_oleft.setColorFill(1.0, 0.0, 0.0);}
-	else {p_meds_oms_mps.tape_Pc_oleft.setColorFill(1.0, 1.0, 1.0);}
-
-	p_meds_oms_mps.tape_Pc_oright.setScale(1.0, oms_Pc_disp_right);
-	p_meds_oms_mps.tape_Pc_oright.setTranslation(0.0, (1.0-oms_Pc_disp_right) * (80.4 + 366));
-
-	if (oms_Pc_right < 0.80)
-		{p_meds_oms_mps.tape_Pc_oright.setColorFill(1.0, 0.0, 0.0);}
-	else {p_meds_oms_mps.tape_Pc_oright.setColorFill(1.0, 1.0, 1.0);}
-
-	p_meds_oms_mps.Pc_oleft.updateText(sprintf("%03d",  oms_Pc_left * 100.0));
-	p_meds_oms_mps.Pc_oright.updateText(sprintf("%03d",  oms_Pc_right * 100.0));
-
-
-
-
-
-
-
-	p_meds_oms_mps.N2_Tk_oleft.updateText(sprintf("%04d", oms_left_N2_pressure));
-	p_meds_oms_mps.N2_Tk_oright.updateText(sprintf("%04d", oms_right_N2_pressure));
-
-	oms_left_N2_disp = oms_left_N2_pressure/ 3000.0;
-	oms_right_N2_disp = oms_right_N2_pressure/ 3000.0;
-
-	p_meds_oms_mps.tape_N2TkP_oleft.setScale(1.0, oms_left_N2_disp);
-	p_meds_oms_mps.tape_N2TkP_oleft.setTranslation(0.0, (1.0-oms_left_N2_disp) * (49.5 + 270.8));
-
-	p_meds_oms_mps.tape_N2TkP_oright.setScale(1.0, oms_right_N2_disp);
-	p_meds_oms_mps.tape_N2TkP_oright.setTranslation(0.0, (1.0-oms_right_N2_disp) * (49.5 + 270.8));
-
-	if (oms_left_N2_pressure < 1200.0)
-		{p_meds_oms_mps.tape_N2TkP_oleft.setColorFill(1.0, 0.0, 0.0);}
-	else {p_meds_oms_mps.tape_N2TkP_oleft.setColorFill(0.0, 1.0, 0.0);}
-
-	if (oms_right_N2_pressure < 1200.0)
-		{p_meds_oms_mps.tape_N2TkP_oright.setColorFill(1.0, 0.0, 0.0);}
-	else {p_meds_oms_mps.tape_N2TkP_oright.setColorFill(0.0, 1.0, 0.0);}
-
-	var Pc_left = getprop("/fdm/jsbsim/fcs/throttle-pos-norm[0]");
-	var Pc_right = getprop("/fdm/jsbsim/fcs/throttle-pos-norm[1]");
-	var Pc_center = getprop("/fdm/jsbsim/fcs/throttle-pos-norm[2]");
-
-	if (SpaceShuttle.ssme_array[0].data_path != 1) {Pc_left = 0.0;}
-	if (SpaceShuttle.ssme_array[1].data_path != 1) {Pc_right = 0.0;}
-	if (SpaceShuttle.ssme_array[2].data_path != 1) {Pc_center = 0.0;}
-	
-
-	#New Rectangle, width from 64.2 to 82.5  
-
-	Pc_disp_left = (Pc_left - 0.27) / (1.09-0.27);
-	Pc_disp_right = (Pc_right - 0.27) / (1.09-0.27);
-	Pc_disp_center = (Pc_center - 0.27) / (1.09-0.27);
-
-	if (Pc_disp_left < 0.0) {Pc_disp_left = 0.0;}
-	if (Pc_disp_right < 0.0) {Pc_disp_right = 0.0;}
-	if (Pc_disp_center < 0.0) {Pc_disp_center = 0.0;}
-	
-
-	p_meds_oms_mps.tape_Pc_left.setScale(1.0, Pc_disp_left);
-	p_meds_oms_mps.tape_Pc_left.setTranslation(0.0, (1.0-Pc_disp_left) * (82.5 + 364.8));
-
-	p_meds_oms_mps.tape_Pc_right.setScale(1.0, Pc_disp_right);
-	p_meds_oms_mps.tape_Pc_right.setTranslation(0.0, (1.0-Pc_disp_right) * (82.5 + 364.8));
-
-	p_meds_oms_mps.tape_Pc_center.setScale(1.0, Pc_disp_center);
-	p_meds_oms_mps.tape_Pc_center.setTranslation(0.0, (1.0-Pc_disp_center) * (82.5 + 364.8));
-
-	if (Pc_left < 0.65)
-		{p_meds_oms_mps.tape_Pc_left.setColorFill(1.0, 0.0, 0.0);}
-	else {p_meds_oms_mps.tape_Pc_left.setColorFill(1.0, 1.0, 1.0);}
-
-	if (Pc_right < 0.65)
-		{p_meds_oms_mps.tape_Pc_right.setColorFill(1.0, 0.0, 0.0);}
-	else {p_meds_oms_mps.tape_Pc_right.setColorFill(1.0, 1.0, 1.0);}
-
-	if (Pc_center < 0.65)
-		{p_meds_oms_mps.tape_Pc_center.setColorFill(1.0, 0.0, 0.0);}
-	else {p_meds_oms_mps.tape_Pc_center.setColorFill(1.0, 1.0, 1.0);}
-	
-
-	Pc_left = Pc_left * 100.0;
-	Pc_right = Pc_right * 100.0;
-	Pc_center = Pc_center * 100.0;
-
-
-
-	p_meds_oms_mps.Pc_right.updateText(sprintf("%03d", Pc_right));
-	p_meds_oms_mps.Pc_left.updateText(sprintf("%03d", Pc_left));
-	p_meds_oms_mps.Pc_center.updateText(sprintf("%03d", Pc_center));
-
-
-
-	var eng_mnf_LO2 = getprop("/fdm/jsbsim/systems/mps/lo2-manifold-pressure-psia");
-	var eng_mnf_LH2 = getprop("/fdm/jsbsim/systems/mps/lh2-manifold-pressure-psia");
-
-	p_meds_oms_mps.LH2.updateText(sprintf("%03d", eng_mnf_LH2));
-	p_meds_oms_mps.LO2.updateText(sprintf("%03d", eng_mnf_LO2));
-
-	eng_mnf_LO2 = eng_mnf_LO2 / 300;
-	eng_mnf_LH2 = eng_mnf_LH2 / 100;
-
-	p_meds_oms_mps.tape_LO2.setScale(1.0, eng_mnf_LO2);
-	p_meds_oms_mps.tape_LO2.setTranslation(0.0, (1.0-eng_mnf_LO2) * (49.0 + 384.0));
-
-	p_meds_oms_mps.tape_LH2.setScale(1.0, eng_mnf_LH2);
-	p_meds_oms_mps.tape_LH2.setTranslation(0.0, (1.0-eng_mnf_LH2) * (49.0 + 384.0));
+	# Grenadier Stage / engine — reuse OMS/MPS tape layout.
+	var E = "/fdm/jsbsim/systems/grenadier/engine/";
+	var C = "/fdm/jsbsim/systems/grenadier/charm/";
+	var sig = getprop(E ~ "sigma"); if (sig == nil) sig = 1;
+	var rec = getprop(E ~ "sigma-recommended"); if (rec == nil) rec = 1;
+	var allw = getprop(E ~ "sigma-allowed"); if (allw == nil) allw = 0;
+	var thr = getprop(E ~ "throttle"); if (thr == nil) thr = 0;
+	var sealed = getprop(E ~ "inlet-sealed"); if (sealed == nil) sealed = 0;
+	var water = getprop(E ~ "water-kg"); if (water == nil) water = 0;
+	var thrust = getprop(E ~ "thrust-kn"); if (thrust == nil) thrust = 0;
+	var busf = getprop(E ~ "bus-frac"); if (busf == nil) busf = 0;
+	var pdraw = getprop(E ~ "power-draw-mw"); if (pdraw == nil) pdraw = 0;
+	var plant = getprop(E ~ "plant-ok"); if (plant == nil) plant = 0;
+	var stage_go = getprop(E ~ "stage-go"); if (stage_go == nil) stage_go = 0;
+	var coupled = getprop(E ~ "coupled-ok"); if (coupled == nil) coupled = 0;
+	var bus = getprop(C ~ "bus-mw"); if (bus == nil) bus = 0;
+	var mode = getprop(C ~ "mode"); if (mode == nil) mode = "OFF";
+
+	var water_frac = water / 44000.0;
+	if (water_frac > 1.0) water_frac = 1.0;
+	var peak = 400.0;
+	if (sig == 2) peak = 800.0;
+	if (sig == 3) peak = 1200.0;
+	var thrust_frac = 0.0;
+	if (peak > 1) thrust_frac = thrust / peak;
+	if (thrust_frac > 1.0) thrust_frac = 1.0;
+
+	# Left OMS-like column: stage cmd / allowed / recommended
+	p_meds_oms_mps.He_Tk_oleft.updateText(sprintf("%04d", sig * 1000));
+	p_meds_oms_mps.He_Tk_oright.updateText(sprintf("%04d", allw * 1000));
+	p_meds_oms_mps.N2_Tk_oleft.updateText(sprintf("%04d", rec * 1000));
+	p_meds_oms_mps.N2_Tk_oright.updateText(sprintf("%04d", sealed * 1000));
+	p_meds_oms_mps.tape_HeTkP_oleft.setScale(1.0, sig / 3.0);
+	p_meds_oms_mps.tape_HeTkP_oleft.setTranslation(0.0, (1.0 - sig / 3.0) * (49.5 + 175.6));
+	p_meds_oms_mps.tape_HeTkP_oright.setScale(1.0, allw / 3.0);
+	p_meds_oms_mps.tape_HeTkP_oright.setTranslation(0.0, (1.0 - allw / 3.0) * (49.5 + 175.6));
+	p_meds_oms_mps.tape_N2TkP_oleft.setScale(1.0, rec / 3.0);
+	p_meds_oms_mps.tape_N2TkP_oleft.setTranslation(0.0, (1.0 - rec / 3.0) * (49.5 + 270.8));
+	p_meds_oms_mps.tape_N2TkP_oright.setScale(1.0, sealed);
+	p_meds_oms_mps.tape_N2TkP_oright.setTranslation(0.0, (1.0 - sealed) * (49.5 + 270.8));
+	p_meds_oms_mps.tape_HeTkP_oleft.setColorFill(0.0, 1.0, 0.0);
+	p_meds_oms_mps.tape_HeTkP_oright.setColorFill(0.0, 1.0, 0.0);
+	p_meds_oms_mps.tape_N2TkP_oleft.setColorFill(0.0, 1.0, 0.0);
+	if (sealed) {p_meds_oms_mps.tape_N2TkP_oright.setColorFill(0.0, 1.0, 0.0);} else {p_meds_oms_mps.tape_N2TkP_oright.setColorFill(1.0, 0.0, 0.0);}
+
+	# Stage "Pc" OMS side = throttle / plant-ok
+	p_meds_oms_mps.Pc_oleft.updateText(sprintf("%03d", thr * 100.0));
+	p_meds_oms_mps.Pc_oright.updateText(sprintf("%03d", plant * 100.0));
+	p_meds_oms_mps.tape_Pc_oleft.setScale(1.0, thr);
+	p_meds_oms_mps.tape_Pc_oleft.setTranslation(0.0, (1.0 - thr) * (80.4 + 366));
+	p_meds_oms_mps.tape_Pc_oright.setScale(1.0, plant);
+	p_meds_oms_mps.tape_Pc_oright.setTranslation(0.0, (1.0 - plant) * (80.4 + 366));
+	p_meds_oms_mps.tape_Pc_oleft.setColorFill(1.0, 1.0, 1.0);
+	if (plant) {p_meds_oms_mps.tape_Pc_oright.setColorFill(1.0, 1.0, 1.0);} else {p_meds_oms_mps.tape_Pc_oright.setColorFill(1.0, 0.0, 0.0);}
+
+	# MPS-like He tanks: water frac, bus MW, thrust frac, bus-frac
+	p_meds_oms_mps.He_Tk_left.updateText(sprintf("%04d", water_frac * 1000));
+	p_meds_oms_mps.He_Tk_center.updateText(sprintf("%04d", bus));
+	p_meds_oms_mps.He_Tk_right.updateText(sprintf("%04d", thrust));
+	p_meds_oms_mps.He_Tk_pneu.updateText(sprintf("%04d", busf * 1000));
+	p_meds_oms_mps.tape_TkP_left.setScale(1.0, water_frac);
+	p_meds_oms_mps.tape_TkP_left.setTranslation(0.0, (1.0 - water_frac) * (49.4 + 175));
+	p_meds_oms_mps.tape_TkP_center.setScale(1.0, bus / 1000.0);
+	p_meds_oms_mps.tape_TkP_center.setTranslation(0.0, (1.0 - bus / 1000.0) * (49.4 + 175));
+	p_meds_oms_mps.tape_TkP_right.setScale(1.0, thrust_frac);
+	p_meds_oms_mps.tape_TkP_right.setTranslation(0.0, (1.0 - thrust_frac) * (49.4 + 175));
+	p_meds_oms_mps.tape_TkP_pneu.setScale(1.0, busf);
+	p_meds_oms_mps.tape_TkP_pneu.setTranslation(0.0, (1.0 - busf) * (49.4 + 175));
+	p_meds_oms_mps.tape_TkP_left.setColorFill(0.0, 1.0, 0.0);
+	p_meds_oms_mps.tape_TkP_center.setColorFill(0.0, 1.0, 0.0);
+	p_meds_oms_mps.tape_TkP_right.setColorFill(0.0, 1.0, 0.0);
+	p_meds_oms_mps.tape_TkP_pneu.setColorFill(0.0, 1.0, 0.0);
+
+	# Reg tapes: stage-go / coupled / power-draw / mode-index proxy
+	var midx = getprop(C ~ "mode-index"); if (midx == nil) midx = 0;
+	p_meds_oms_mps.He_reg_left.updateText(sprintf("%04d", stage_go * 1000));
+	p_meds_oms_mps.He_reg_center.updateText(sprintf("%04d", coupled * 1000));
+	p_meds_oms_mps.He_reg_right.updateText(sprintf("%04d", pdraw));
+	p_meds_oms_mps.He_reg_pneu.updateText(sprintf("%04d", midx * 200));
+	p_meds_oms_mps.tape_regP_left.setScale(1.0, stage_go);
+	p_meds_oms_mps.tape_regP_left.setTranslation(0.0, (1.0 - stage_go) * (49.4 + 270.8));
+	p_meds_oms_mps.tape_regP_center.setScale(1.0, coupled);
+	p_meds_oms_mps.tape_regP_center.setTranslation(0.0, (1.0 - coupled) * (49.4 + 270.8));
+	p_meds_oms_mps.tape_regP_right.setScale(1.0, pdraw / 1000.0);
+	p_meds_oms_mps.tape_regP_right.setTranslation(0.0, (1.0 - pdraw / 1000.0) * (49.4 + 270.8));
+	p_meds_oms_mps.tape_regP_pneu.setScale(1.0, midx / 5.0);
+	p_meds_oms_mps.tape_regP_pneu.setTranslation(0.0, (1.0 - midx / 5.0) * (49.4 + 270.8));
+
+	# Main Pc L/C/R = Stage 1/2/3 active fraction
+	var s1 = 0.0; var s2 = 0.0; var s3 = 0.0;
+	if (sig == 1) s1 = thr;
+	if (sig == 2) s2 = thr;
+	if (sig == 3) s3 = thr;
+	p_meds_oms_mps.Pc_left.updateText(sprintf("%03d", s1 * 100));
+	p_meds_oms_mps.Pc_center.updateText(sprintf("%03d", s2 * 100));
+	p_meds_oms_mps.Pc_right.updateText(sprintf("%03d", s3 * 100));
+	p_meds_oms_mps.tape_Pc_left.setScale(1.0, s1);
+	p_meds_oms_mps.tape_Pc_left.setTranslation(0.0, (1.0 - s1) * (82.5 + 364.8));
+	p_meds_oms_mps.tape_Pc_center.setScale(1.0, s2);
+	p_meds_oms_mps.tape_Pc_center.setTranslation(0.0, (1.0 - s2) * (82.5 + 364.8));
+	p_meds_oms_mps.tape_Pc_right.setScale(1.0, s3);
+	p_meds_oms_mps.tape_Pc_right.setTranslation(0.0, (1.0 - s3) * (82.5 + 364.8));
+	p_meds_oms_mps.tape_Pc_left.setColorFill(1.0, 1.0, 1.0);
+	p_meds_oms_mps.tape_Pc_center.setColorFill(1.0, 1.0, 1.0);
+	p_meds_oms_mps.tape_Pc_right.setColorFill(1.0, 1.0, 1.0);
+
+	# LO2/LH2 manifolds → water remaining % and inlet seal code
+	p_meds_oms_mps.LO2.updateText(sprintf("%03d", water_frac * 100));
+	p_meds_oms_mps.LH2.updateText(sprintf("%03d", sealed * 100));
+	p_meds_oms_mps.tape_LO2.setScale(1.0, water_frac);
+	p_meds_oms_mps.tape_LO2.setTranslation(0.0, (1.0 - water_frac) * (49.0 + 384.0));
+	p_meds_oms_mps.tape_LH2.setScale(1.0, sealed);
+	p_meds_oms_mps.tape_LH2.setTranslation(0.0, (1.0 - sealed) * (49.0 + 384.0));
 
     }
 

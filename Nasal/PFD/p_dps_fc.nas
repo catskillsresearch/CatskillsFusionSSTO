@@ -234,7 +234,7 @@ var PFD_addpage_p_dps_fc = func(device)
     
     p_dps_fc.ondisplay = func
     {
-        device.DPS_menu_title.setText("                 FUEL CELLS");
+        device.DPS_menu_title.setText("");
         device.MEDS_menu_title.setText("      DPS MENU");
     
         var major_mode = getprop("/fdm/jsbsim/systems/dps/major-mode-sm");

@@ -82,6 +82,8 @@ var PFD_addpage_p_meds_apu = func(device)
         device.MEDS_menu_title.setText("    SUBSYSTEM MENU");
 	p_meds_apu.menu_item.setColor(1.0, 1.0, 1.0);
 	p_meds_apu.menu_item_frame.setColor(1.0, 1.0, 1.0);
+	p_meds_apu.APU_label.setText("CHARM");
+	p_meds_apu.HYD_label.setText("PLANT");
 
 
 
@@ -89,140 +91,96 @@ var PFD_addpage_p_meds_apu = func(device)
     
     p_meds_apu.update = func
     {
-	
-	# water tanks for spray boilers
-	
-	var h2o_qty1 = getprop("/fdm/jsbsim/propulsion/tank[20]/contents-lbs") / 142.0 ;
-	var h2o_qty2 = getprop("/fdm/jsbsim/propulsion/tank[21]/contents-lbs") / 142.0 ;
-	var h2o_qty3 = getprop("/fdm/jsbsim/propulsion/tank[22]/contents-lbs") / 142.0 ;
+	# Grenadier CHARM / plant services — reuse APU/HYD tape layout.
+	var C = "/fdm/jsbsim/systems/grenadier/charm/";
+	var E = "/fdm/jsbsim/systems/grenadier/engine/";
+	var mode = getprop(C ~ "mode");
+	if (mode == nil) mode = "OFF";
 
-	p_meds_apu.h2o_qty1.setText(sprintf("%03d", h2o_qty1 * 100.0));
-	p_meds_apu.h2o_qty2.setText(sprintf("%03d", h2o_qty2 * 100.0));
-	p_meds_apu.h2o_qty3.setText(sprintf("%03d", h2o_qty3 * 100.0));
+	var cart = getprop(C ~ "ground-cart"); if (cart == nil) cart = 0;
+	var batt = getprop(C ~ "battery-online"); if (batt == nil) batt = 0;
+	var cryo = getprop(C ~ "cryo-enable"); if (cryo == nil) cryo = 0;
+	var mag = getprop(C ~ "magnet-arm"); if (mag == nil) mag = 0;
+	var fuel = getprop(C ~ "fuel-enable"); if (fuel == nil) fuel = 0;
+	var rf = getprop(C ~ "rf-enable"); if (rf == nil) rf = 0;
+	var light = getprop(C ~ "light-cmd"); if (light == nil) light = 0;
+	var dec = getprop(C ~ "dec-online"); if (dec == nil) dec = 0;
+	var vac = getprop(C ~ "vacuum-ready"); if (vac == nil) vac = 0;
 
-	set_tape(p_meds_apu.tape_h2o_qty1, h2o_qty1, 60.7 + 170.4);
-	set_tape(p_meds_apu.tape_h2o_qty2, h2o_qty2, 60.7 + 170.4);
-	set_tape(p_meds_apu.tape_h2o_qty3, h2o_qty3, 60.7 + 170.4);
+	var batt_frac = getprop(C ~ "battery-kwh"); if (batt_frac == nil) batt_frac = 0;
+	batt_frac = batt_frac / 500.0;
+	if (batt_frac > 1) batt_frac = 1;
+	var mi = getprop(C ~ "magnet-i-frac"); if (mi == nil) mi = 0;
+	var pp = getprop(C ~ "plasma-proxy"); if (pp == nil) pp = 0;
+	var bus = getprop(C ~ "bus-mw"); if (bus == nil) bus = 0;
+	var aux = getprop(C ~ "aux-bus-v"); if (aux == nil) aux = 0;
+	var tk = getprop(C ~ "magnet-t-k"); if (tk == nil) tk = 80;
+	var water = getprop(E ~ "water-kg"); if (water == nil) water = 0;
+	var water_frac = water / 44000.0;
+	if (water_frac > 1) water_frac = 1;
 
-	if (h2o_qty1 < 0.4) 
-		{p_meds_apu.tape_h2o_qty1.setColorFill(1.0, 0.0, 0.0);}
-	else {p_meds_apu.tape_h2o_qty1.setColorFill(0.0, 1.0, 0.0);}
+	# Row: "fuel qty" tapes → batt / magnet I / plasma
+	p_meds_apu.fuel_qty1.setText(sprintf("%03d", batt_frac * 100.0));
+	p_meds_apu.fuel_qty2.setText(sprintf("%03d", mi * 100.0));
+	p_meds_apu.fuel_qty3.setText(sprintf("%03d", pp * 100.0));
+	set_tape(p_meds_apu.tape_fuel_qty1, batt_frac, 63.7+60.7);
+	set_tape(p_meds_apu.tape_fuel_qty2, mi, 63.7+60.7);
+	set_tape(p_meds_apu.tape_fuel_qty3, pp, 63.7+60.7);
+	if (batt_frac < 0.6) {p_meds_apu.tape_fuel_qty1.setColorFill(1.0, 0.0, 0.0);} else {p_meds_apu.tape_fuel_qty1.setColorFill(0.0, 1.0, 0.0);}
+	if (mi < 0.95) {p_meds_apu.tape_fuel_qty2.setColorFill(1.0, 0.0, 0.0);} else {p_meds_apu.tape_fuel_qty2.setColorFill(0.0, 1.0, 0.0);}
+	p_meds_apu.tape_fuel_qty3.setColorFill(0.0, 1.0, 0.0);
 
-	if (h2o_qty2 < 0.4) 
-		{p_meds_apu.tape_h2o_qty2.setColorFill(1.0, 0.0, 0.0);}
-	else {p_meds_apu.tape_h2o_qty2.setColorFill(0.0, 1.0, 0.0);}
+	# "fuel P" → aux V, bus MW/10, mode index*100
+	var midx = getprop(C ~ "mode-index"); if (midx == nil) midx = 0;
+	p_meds_apu.fuelP1.setText(sprintf("%04d", aux));
+	p_meds_apu.fuelP2.setText(sprintf("%04d", bus / 10.0));
+	p_meds_apu.fuelP3.setText(sprintf("%04d", midx * 100));
+	set_tape(p_meds_apu.tape_fuelP1, aux / 300.0, 60.7 + 63.7);
+	set_tape(p_meds_apu.tape_fuelP2, (bus / 1000.0), 60.7 + 63.7);
+	set_tape(p_meds_apu.tape_fuelP3, midx / 5.0, 60.7 + 63.7);
 
-	if (h2o_qty3 < 0.4) 
-		{p_meds_apu.tape_h2o_qty3.setColorFill(1.0, 0.0, 0.0);}
-	else {p_meds_apu.tape_h2o_qty3.setColorFill(0.0, 1.0, 0.0);}
+	# "h2o qty" → cart / batt / cryo as 0/100
+	p_meds_apu.h2o_qty1.setText(sprintf("%03d", cart * 100));
+	p_meds_apu.h2o_qty2.setText(sprintf("%03d", batt * 100));
+	p_meds_apu.h2o_qty3.setText(sprintf("%03d", cryo * 100));
+	set_tape(p_meds_apu.tape_h2o_qty1, cart, 60.7 + 170.4);
+	set_tape(p_meds_apu.tape_h2o_qty2, batt, 60.7 + 170.4);
+	set_tape(p_meds_apu.tape_h2o_qty3, cryo, 60.7 + 170.4);
+	p_meds_apu.tape_h2o_qty1.setColorFill(0.0, 1.0, 0.0);
+	p_meds_apu.tape_h2o_qty2.setColorFill(0.0, 1.0, 0.0);
+	p_meds_apu.tape_h2o_qty3.setColorFill(0.0, 1.0, 0.0);
 
-	# APU hydrazine fuel
+	# "oil T" → magnet T K, RF, LIGHT as coded ints
+	p_meds_apu.oilT1.setText(sprintf("%04d", tk));
+	p_meds_apu.oilT2.setText(sprintf("%04d", rf * 1000 + light * 100));
+	p_meds_apu.oilT3.setText(sprintf("%04d", dec * 1000 + vac * 100));
+	set_tape(p_meds_apu.tape_oilT1, (80.0 - tk) / 80.0, 170.4+60.7);
+	var oil2 = 0.2; if (rf and light) oil2 = 1.0;
+	var oil3 = 0.2; if (dec and vac) oil3 = 1.0;
+	set_tape(p_meds_apu.tape_oilT2, oil2, 170.4+60.7);
+	set_tape(p_meds_apu.tape_oilT3, oil3, 170.4+60.7);
 
-	var fuel_qty1 = getprop("/fdm/jsbsim/propulsion/tank[14]/contents-lbs") / 350.0 ;
-	var fuel_qty2 = getprop("/fdm/jsbsim/propulsion/tank[15]/contents-lbs") / 350.0 ;
-	var fuel_qty3 = getprop("/fdm/jsbsim/propulsion/tank[16]/contents-lbs") / 350.0 ;
+	# "hyd qty" → mag / fuel / water inventory
+	p_meds_apu.hyd_qty1.setText(sprintf("%03d", mag * 100));
+	p_meds_apu.hyd_qty2.setText(sprintf("%03d", fuel * 100));
+	p_meds_apu.hyd_qty3.setText(sprintf("%03d", water_frac * 100));
+	set_tape(p_meds_apu.tape_hyd_qty1, mag, 60.7 + 295.8);
+	set_tape(p_meds_apu.tape_hyd_qty2, fuel, 60.7 + 295.8);
+	set_tape(p_meds_apu.tape_hyd_qty3, water_frac, 60.7 + 295.8);
 
-	p_meds_apu.fuel_qty1.setText(sprintf("%03d", fuel_qty1 * 100.0));
-	p_meds_apu.fuel_qty2.setText(sprintf("%03d", fuel_qty2 * 100.0));
-	p_meds_apu.fuel_qty3.setText(sprintf("%03d", fuel_qty3 * 100.0));
-
-	set_tape(p_meds_apu.tape_fuel_qty1, fuel_qty1, 63.7+60.7);
-	set_tape(p_meds_apu.tape_fuel_qty2, fuel_qty2, 63.7+60.7);
-	set_tape(p_meds_apu.tape_fuel_qty3, fuel_qty3, 63.7+60.7);
-
-	if (fuel_qty1 < 0.2) 
-		{p_meds_apu.tape_fuel_qty1.setColorFill(1.0, 0.0, 0.0);}
-	else {p_meds_apu.tape_fuel_qty1.setColorFill(0.0, 1.0, 0.0);}
-
-	if (fuel_qty2 < 0.2) 
-		{p_meds_apu.tape_fuel_qty2.setColorFill(1.0, 0.0, 0.0);}
-	else {p_meds_apu.tape_fuel_qty2.setColorFill(0.0, 1.0, 0.0);}
-
-	if (fuel_qty3 < 0.2) 
-		{p_meds_apu.tape_fuel_qty3.setColorFill(1.0, 0.0, 0.0);}
-	else {p_meds_apu.tape_fuel_qty3.setColorFill(0.0, 1.0, 0.0);}
-
-	# APU hydrazine fuel pressure
-
-	var fuel_p1 = 350.0 * 0.2/ (1.2 -fuel_qty1);
-	var fuel_p2 = 350.0 * 0.2/ (1.2 -fuel_qty2);
-	var fuel_p3 = 350.0 * 0.2/ (1.2 -fuel_qty3);
-
-	p_meds_apu.fuelP1.setText(sprintf("%04d", fuel_p1));
-	p_meds_apu.fuelP2.setText(sprintf("%04d", fuel_p2));
-	p_meds_apu.fuelP3.setText(sprintf("%04d", fuel_p3));
-
-	set_tape(p_meds_apu.tape_fuelP1, fuel_p1/500.0, 60.7 + 63.7);
-	set_tape(p_meds_apu.tape_fuelP2, fuel_p2/500.0, 60.7 + 63.7);
-	set_tape(p_meds_apu.tape_fuelP3, fuel_p3/500.0, 60.7 + 63.7);
-
-
-	# hydraulic pressure
-
-	var hyd_p1 = getprop("/fdm/jsbsim/systems/apu/apu/hyd-pressure-psia");
-	var hyd_p2 = getprop("/fdm/jsbsim/systems/apu/apu[1]/hyd-pressure-psia");
-	var hyd_p3 = getprop("/fdm/jsbsim/systems/apu/apu[2]/hyd-pressure-psia");
-
-	p_meds_apu.hyd_p1.setText(sprintf("%04d", hyd_p1 ));
-	p_meds_apu.hyd_p2.setText(sprintf("%04d", hyd_p2 ));
-	p_meds_apu.hyd_p3.setText(sprintf("%04d", hyd_p3 ));
-
-	set_tape(p_meds_apu.tape_hyd_p1, hyd_p1/4000.0, 60.7 + 295.8);
-	set_tape(p_meds_apu.tape_hyd_p2, hyd_p2/4000.0, 60.7 + 295.8);
-	set_tape(p_meds_apu.tape_hyd_p3, hyd_p3/4000.0, 60.7 + 295.8);
-	
-	if ((hyd_p1 < 500.0) or ((hyd_p1 > 1000.0) and (hyd_p1 < 2400.0)))
-		{p_meds_apu.tape_hyd_p1.setColorFill(1.0, 0.0, 0.0);}
-	else	{p_meds_apu.tape_hyd_p1.setColorFill(0.0, 1.0, 0.0);}
-
-	if ((hyd_p2 < 500.0) or ((hyd_p2 > 1000.0) and (hyd_p2 < 2400.0)))
-		{p_meds_apu.tape_hyd_p2.setColorFill(1.0, 0.0, 0.0);}
-	else	{p_meds_apu.tape_hyd_p2.setColorFill(0.0, 1.0, 0.0);}
-
-	if ((hyd_p3 < 500.0) or ((hyd_p3 > 1000.0) and (hyd_p3 < 2400.0)))
-		{p_meds_apu.tape_hyd_p3.setColorFill(1.0, 0.0, 0.0);}
-	else	{p_meds_apu.tape_hyd_p3.setColorFill(0.0, 1.0, 0.0);}
-
-	# APU oil in temperature
-
-	var oil_in_T1 = K_to_F(getprop("/fdm/jsbsim/systems/apu/apu/oil-in-T-K"));
-	var oil_in_T2 = K_to_F(getprop("/fdm/jsbsim/systems/apu/apu[1]/oil-in-T-K"));
-	var oil_in_T3 = K_to_F(getprop("/fdm/jsbsim/systems/apu/apu[2]/oil-in-T-K"));
-
-	p_meds_apu.oilT1.setText(sprintf("%04d", oil_in_T1 ));
-	p_meds_apu.oilT2.setText(sprintf("%04d", oil_in_T2 ));
-	p_meds_apu.oilT3.setText(sprintf("%04d", oil_in_T3 ));
-
-	set_tape(p_meds_apu.tape_oilT1, oil_in_T1/500.0, 170.4+60.7);
-	set_tape(p_meds_apu.tape_oilT2, oil_in_T2/500.0, 170.4+60.7);
-	set_tape(p_meds_apu.tape_oilT3, oil_in_T3/500.0, 170.4+60.7);
-
-	if ((oil_in_T1 < 45.0) or (oil_in_T1 > 290.0))
-		{p_meds_apu.tape_oilT1.setColorFill(1.0, 0.0, 0.0);}
-	else {p_meds_apu.tape_oilT1.setColorFill(0.0, 1.0, 0.0);}
-
-	if ((oil_in_T2 < 45.0) or (oil_in_T2 > 290.0))
-		{p_meds_apu.tape_oilT2.setColorFill(1.0, 0.0, 0.0);}
-	else {p_meds_apu.tape_oilT2.setColorFill(0.0, 1.0, 0.0);}
-
-	if ((oil_in_T3 < 45.0) or (oil_in_T3 > 290.0))
-		{p_meds_apu.tape_oilT3.setColorFill(1.0, 0.0, 0.0);}
-	else {p_meds_apu.tape_oilT3.setColorFill(0.0, 1.0, 0.0);}
-
-	# hydraulic fluid decreases with MET
-
-	var mission_time = getprop("/fdm/jsbsim/systems/timer/delta-MET") + getprop("/sim/time/elapsed-sec");
-	var qty = (1.0 - 0.4 * (mission_time/(86400.0 * 12.0))) * 100.0;
-	if (qty < 3.0) {qty = 3.0;}
-
-	p_meds_apu.hyd_qty1.setText(sprintf("%03d", int(qty)-1));
-	p_meds_apu.hyd_qty2.setText(sprintf("%03d", int(qty)));
-	p_meds_apu.hyd_qty3.setText(sprintf("%03d", int(qty)-3 ));
-
-	set_tape(p_meds_apu.tape_hyd_qty1, qty/100.0, 60.7 + 295.8);
-	set_tape(p_meds_apu.tape_hyd_qty2, qty/100.0, 60.7 + 295.8);
-	set_tape(p_meds_apu.tape_hyd_qty3, qty/100.0, 60.7 + 295.8);
-
+	# "hyd press" → go-magnet / go-fuel / go-bus as 0 or 3000
+	var gm = getprop(C ~ "go-magnet"); if (gm == nil) gm = 0;
+	var gf = getprop(C ~ "go-fuel"); if (gf == nil) gf = 0;
+	var gb = getprop(C ~ "go-bus"); if (gb == nil) gb = 0;
+	p_meds_apu.hyd_p1.setText(sprintf("%04d", gm * 3000));
+	p_meds_apu.hyd_p2.setText(sprintf("%04d", gf * 3000));
+	p_meds_apu.hyd_p3.setText(sprintf("%04d", gb * 3000));
+	set_tape(p_meds_apu.tape_hyd_p1, gm, 60.7 + 295.8);
+	set_tape(p_meds_apu.tape_hyd_p2, gf, 60.7 + 295.8);
+	set_tape(p_meds_apu.tape_hyd_p3, gb, 60.7 + 295.8);
+	if (gm) {p_meds_apu.tape_hyd_p1.setColorFill(0.0, 1.0, 0.0);} else {p_meds_apu.tape_hyd_p1.setColorFill(1.0, 0.0, 0.0);}
+	if (gf) {p_meds_apu.tape_hyd_p2.setColorFill(0.0, 1.0, 0.0);} else {p_meds_apu.tape_hyd_p2.setColorFill(1.0, 0.0, 0.0);}
+	if (gb) {p_meds_apu.tape_hyd_p3.setColorFill(0.0, 1.0, 0.0);} else {p_meds_apu.tape_hyd_p3.setColorFill(1.0, 0.0, 0.0);}
 
     }
 

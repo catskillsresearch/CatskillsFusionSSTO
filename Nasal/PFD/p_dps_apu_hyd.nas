@@ -289,7 +289,7 @@ var PFD_addpage_p_dps_apu_hyd = func(device)
     
     p_dps_apu_hyd.ondisplay = func
     {
-        device.DPS_menu_title.setText("                     APU/HYD");
+        device.DPS_menu_title.setText("");
         device.MEDS_menu_title.setText("      DPS MENU");
     
         var major_mode = getprop("/fdm/jsbsim/systems/dps/major-mode-sm");

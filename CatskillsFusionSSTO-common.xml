@@ -2945,6 +2945,22 @@
       </item>
 
       <item>
+       <label>CHARM startup</label>
+       <binding>
+        <command>nasal</command>
+        <script>SpaceShuttle.show_cue_card("Cuecards/charm_startup.png")</script>
+       </binding>
+      </item>
+
+      <item>
+       <label>Engine Stage 1/2/3</label>
+       <binding>
+        <command>nasal</command>
+        <script>SpaceShuttle.show_cue_card("Cuecards/engine_sigma.png")</script>
+       </binding>
+      </item>
+
+      <item>
        <label>Ascent profile (Plan A)</label>
        <binding>
         <command>nasal</command>
@@ -2953,7 +2969,15 @@
       </item>
 
       <item>
-       <label>Abort — early</label>
+       <label>RCS LMP-103S</label>
+       <binding>
+        <command>nasal</command>
+        <script>SpaceShuttle.show_cue_card("Cuecards/rcs_green.png")</script>
+       </binding>
+      </item>
+
+      <item>
+       <label>Abort - early</label>
        <binding>
         <command>nasal</command>
         <script>SpaceShuttle.show_cue_card("Cuecards/rtls_cdr.png")</script>
@@ -2961,7 +2985,7 @@
       </item>
 
       <item>
-       <label>Abort — late / ditch</label>
+       <label>Abort - late / ditch</label>
        <binding>
         <command>nasal</command>
         <script>SpaceShuttle.show_cue_card("Cuecards/rtls_plt.png")</script>
@@ -2985,22 +3009,6 @@
       </item>
 
       <item>
-       <label>Divert / KEDW</label>
-       <binding>
-        <command>nasal</command>
-        <script>SpaceShuttle.show_cue_card("Cuecards/tal_redesignation_zza.png")</script>
-       </binding>
-      </item>
-
-      <item>
-       <label>CHARM startup</label>
-       <binding>
-        <command>nasal</command>
-        <script>SpaceShuttle.show_cue_card("Cuecards/charm_startup.png")</script>
-       </binding>
-      </item>
-
-      <item>
        <label>CHARM SCRAM card</label>
        <binding>
         <command>nasal</command>
@@ -3009,18 +3017,10 @@
       </item>
 
       <item>
-       <label>Engine σ1/σ2/σ3</label>
+       <label>Divert / KEDW</label>
        <binding>
         <command>nasal</command>
-        <script>SpaceShuttle.show_cue_card("Cuecards/engine_sigma.png")</script>
-       </binding>
-      </item>
-
-      <item>
-       <label>RCS LMP-103S</label>
-       <binding>
-        <command>nasal</command>
-        <script>SpaceShuttle.show_cue_card("Cuecards/rcs_green.png")</script>
+        <script>SpaceShuttle.show_cue_card("Cuecards/tal_redesignation_zza.png")</script>
        </binding>
       </item>
 

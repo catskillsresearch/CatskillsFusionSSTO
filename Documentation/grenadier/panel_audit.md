@@ -50,4 +50,6 @@ Also: SSME-right controller A = **vacuum ready** (needed for go-fuel), not SCRAM
 | `oms-eng-left` / `oms-eng-right` | σ − / σ + | `engine/sigma` |
 | Throttle axis | Engine throttle | `engine/throttle` (preferred) |
 
-Tooltips are not re-engraved on the 3D mesh yet; operator screens carry Grenadier labels.
+Tooltips for remapped switches are Grenadier-named (see [control_map.md](control_map.md)).
+MEDS softkeys: STAGE / CHARM. Physical text-map engraving still Shuttle until UV pass.
+Fuel-cell reactant valves are unwired to inert props.
