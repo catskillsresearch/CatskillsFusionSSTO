@@ -3182,6 +3182,21 @@ setprop("/environment/aircraft-effects/splash-vector-x", 1.0);
 setprop("/environment/aircraft-effects/splash-vector-y", 0.0);
 setprop("/environment/aircraft-effects/splash-vector-z", 0.0);
 
+if (stage == 7)
+	{
+	# Grenadier runway: keep FG airport/on-ground placement; level attitude, zero body rates
+	setprop("/orientation/pitch-deg", 0.0);
+	setprop("/orientation/roll-deg", 0.0);
+	setprop("/velocities/uBody-fps", 0.0);
+	setprop("/velocities/vBody-fps", 0.0);
+	setprop("/velocities/wBody-fps", 0.0);
+
+	setprop("/fdm/jsbsim/systems/fcs/control-mode",29);
+	setprop("/controls/shuttle/control-system-string", "Aerojet");
+	setprop("/controls/shuttle/hud-mode",3);
+	settimer( func SpaceShuttle.light_manager.set_theme("LANDING"), 5.0);
+	}
+
 if (stage == 0)
 	{
 	var alt = getprop("/position/altitude-ft");
@@ -3785,6 +3800,43 @@ if (getprop("/sim/presets/stage") == 5) # we start in a gliding test
 	setprop("/fdm/jsbsim/systems/fcs/control-mode",29);
 	setprop("/controls/shuttle/control-system-string", "Aerojet");
 	setprop("/controls/shuttle/hud-mode",3);
+	}
+
+if (getprop("/sim/presets/stage") == 7) # Grenadier: runway, gear down, no stack
+	{
+	SRB_message_flag = 2;
+	settimer(set_speed, 0.5);
+	SRB_separate_silent();
+	external_tank_separate_silent();
+	setprop("/controls/shuttle/SRB-attach", 0);
+	setprop("/controls/shuttle/ET-static-model", 0);
+	setprop("/controls/shuttle/SRB-static-model", 0);
+
+	# gear DOWN on runway (not gear-up — that plants the nose)
+	setprop("/fdm/jsbsim/systems/landing/landing-gear-arm-cmd", 1);
+	setprop("/controls/gear/gear-down-cmd", 1);
+	setprop("/controls/gear/gear-down", 1);
+	setprop("/controls/shuttle/gear-string", "down");
+
+	# payload bay closed
+	setprop("/fdm/jsbsim/systems/mechanical/pb-door-left-cmd", 0);
+	setprop("/fdm/jsbsim/systems/mechanical/pb-door-right-cmd", 0);
+	setprop("/fdm/jsbsim/systems/mechanical/vdoor-cmd", 0);
+
+	setprop("/consumables/fuel/tank[0]/level-lbs",0.0);
+	setprop("/consumables/fuel/tank[1]/level-lbs",0.0);
+	setprop("/consumables/fuel/tank[2]/level-lbs",0.0);
+	setprop("/consumables/fuel/tank[3]/level-lbs",0.0);
+
+	hydraulics_on();
+	et_umbilical_door_close();
+
+	setprop("/fdm/jsbsim/systems/fcs/control-mode",29);
+	setprop("/controls/shuttle/control-system-string", "Aerojet");
+	setprop("/controls/shuttle/hud-mode",3);
+
+	setprop("/sim/config/shuttle/prelaunch-flag", 0);
+	print("Grenadier stage 7: runway start, gear down, ET/SRB removed");
 	}
 
 if (getprop("/sim/presets/stage") == 6) # we're in high orbit

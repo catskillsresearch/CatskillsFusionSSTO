@@ -1,41 +1,45 @@
 <?xml version="1.0"?>
 
-<!-- this puts the Shuttle onto the launch pad -->
+<!-- CATSKILLS-SSTO-TA-GRENADIER default: on runway, gear down, no ET/SRB -->
 
 <PropertyList include="CatskillsFusionSSTO-common.xml">
 <sim>
-  <description>CATSKILLS-SSTO-TA-GRENADIER (pad)</description>
+  <description>CATSKILLS-SSTO-TA-GRENADIER (runway)</description>
   <long-description>
-    CATSKILLS-SSTO-TA-GRENADIER is a single-stage-to-orbit test article (Grenadier): Shuttle-derived airframe with CHARM plant and 3-cycle electric engine. In this mission phase, the Shuttle is on the pad, about five minutes to launch, ready to go into space.
+    CATSKILLS-SSTO-TA-GRENADIER is a single-stage-to-orbit test article (Grenadier): Shuttle-derived airframe with CHARM plant and 3-cycle electric engine. Default start is on the runway at KSVH — gear down, payload bay closed, no external tank or boosters.
   </long-description>
   <presets>
-	<altitude-ft>10000.0</altitude-ft>	
-	<pitch-deg>90.0</pitch-deg>
-	<stage type="int">0</stage>
+    <airport-id type="string">KSVH</airport-id>
+    <on-ground type="bool">true</on-ground>
+    <airspeed-kt type="double">0</airspeed-kt>
+    <pitch-deg type="double">0</pitch-deg>
+    <altitude-ft type="double">0</altitude-ft>
+    <stage type="int">7</stage>
   </presets>
   <startup>
-    <splash-texture>Aircraft/CatskillsFusionSSTO/CatskillsFusionSSTO-launch-splash.png</splash-texture>
+    <!-- Temporary: approach still until runway-gear splash art exists -->
+    <splash-texture>Aircraft/CatskillsFusionSSTO/CatskillsFusionSSTO-approach-splash.png</splash-texture>
   </startup>
   <previews>
       <preview>
         <type>exterior</type>
         <splash type="bool">true</splash>
-        <path>Pics/launch-splash01.png</path>
+        <path>Pics/approach-splash01.png</path>
       </preview>
       <preview>
         <type>exterior</type>
         <splash type="bool">true</splash>
-        <path>Pics/launch-splash02.png</path>
+        <path>Pics/approach-splash02.jpg</path>
       </preview>
       <preview>
         <type>exterior</type>
         <splash type="bool">true</splash>
-        <path>Pics/launch-splash03.png</path>
+        <path>Pics/glide-splash01.jpg</path>
       </preview>
   </previews>
   <config>
     <shuttle>
-      <prelaunch-flag type="int">1</prelaunch-flag>
+      <prelaunch-flag type="int">0</prelaunch-flag>
     </shuttle>
   </config>
   <menubar>
@@ -87,14 +91,24 @@
   </menubar>
 </sim>
 
+<controls>
+  <shuttle>
+    <ET-static-model type="bool">false</ET-static-model>
+    <SRB-static-model type="bool">false</SRB-static-model>
+  </shuttle>
+  <gear>
+    <gear-down type="bool">true</gear-down>
+  </gear>
+</controls>
+
 <fdm>
    <jsbsim>
 	<systems>
 	   <dps>
-		<ops type="int">1</ops>
-		<major-mode type="int">101</major-mode>
-		<ops-bfs type="int">1</ops-bfs>
-		<major-mode-bfs type="int">101</major-mode-bfs>
+		<ops type="int">3</ops>
+		<major-mode type="int">305</major-mode>
+		<ops-bfs type="int">3</ops-bfs>
+		<major-mode-bfs type="int">305</major-mode-bfs>
 	   </dps>
 	</systems>
    </jsbsim>

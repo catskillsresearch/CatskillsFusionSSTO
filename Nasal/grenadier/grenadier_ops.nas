@@ -332,6 +332,10 @@ var _loop = func {
 
 var start = func {
     init_defaults();
+    # Never show heritage stack
+    setprop("/controls/shuttle/ET-static-model", 0);
+    setprop("/controls/shuttle/SRB-static-model", 0);
+    setprop("/controls/shuttle/SRB-attach", 0);
     # Convenience: cart tied when cart on
     setlistener(C ~ "ground-cart", func {
         if (_num(C ~ "ground-cart", 0))
