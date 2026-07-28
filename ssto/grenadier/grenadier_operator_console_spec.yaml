@@ -25,7 +25,8 @@ panel_aliases:
   - { shuttle: /fdm/jsbsim/systems/apu/apu[2]/apu-controller-power, grenadier: rf-enable }
   - { shuttle: /fdm/jsbsim/systems/mps/engine/controller-A-power-switch-status, grenadier: light-cmd }
   - { shuttle: /fdm/jsbsim/systems/mps/engine[2]/controller-A-power-switch-status, grenadier: dec-online }
-  - { shuttle: /fdm/jsbsim/systems/mps/engine[1]/controller-A-power-switch-status, grenadier: scram }
+  - { shuttle: /fdm/jsbsim/systems/mps/engine[1]/controller-A-power-switch-status, grenadier: vacuum-ready }
+  - { shuttle: /fdm/jsbsim/systems/mps/limit-shutdown-enable, grenadier: scram }
   - { shuttle: /fdm/jsbsim/systems/oms-hardware/engine-left-arm-cmd, grenadier: sigma-dec }
   - { shuttle: /fdm/jsbsim/systems/oms-hardware/engine-right-arm-cmd, grenadier: sigma-inc }
 

@@ -117,9 +117,9 @@ var cdlg_grenadier_reactor = {
             me.lines[7].setText(sprintf("7 Bus             %s MW   recirc %s MW",
                 me._gf("charm/bus-mw", "%.1f"), me._gf("charm/recirc-mw", "%.1f")));
             me.lines[8].setText("");
-            me.lines[9].setText("Panel aliases: APU1 cart  APU2 batt  APU3 cryo");
-            me.lines[10].setText("APU ctrl pwr → magnet / fuel / RF");
-            me.lines[11].setText("SSME ctrl A L/C/R → light / DEC / SCRAM");
+            me.lines[9].setText("Panel: APU1 cart  APU2 batt  APU3 cryo");
+            me.lines[10].setText("APU ctrl → magnet / fuel / RF; SSME L/C/R → light / DEC / vac");
+            me.lines[11].setText("Main Eng Limit Shutdown → Enable = SCRAM");
             for (var i = 12; i < 18; i += 1) me.lines[i].setText("");
         }
     },

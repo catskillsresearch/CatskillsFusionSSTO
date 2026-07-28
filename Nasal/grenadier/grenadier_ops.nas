@@ -286,15 +286,22 @@ var _wire_panel_aliases = func {
         if (_num("/fdm/jsbsim/systems/mps/engine/controller-A-power-switch-status", 0) > 0.5)
             _set(C ~ "light-cmd", 1);
     }, 0, 0);
-    # cockpit maps ctr switch → engine[2], right → engine[1] (Shuttle indexing quirk)
+    # cockpit maps ctr switch → engine[2] (Shuttle indexing quirk)
     setlistener("/fdm/jsbsim/systems/mps/engine[2]/controller-A-power-switch-status", func {
         if (!_num(S ~ "enabled", 0)) return;
         if (_num("/fdm/jsbsim/systems/mps/engine[2]/controller-A-power-switch-status", 0) > 0.5)
             _set(C ~ "dec-online", 1);
     }, 0, 0);
+    # SSME-right controller → vacuum ready (not SCRAM — too easy to fat-finger next to LIGHT/DEC)
     setlistener("/fdm/jsbsim/systems/mps/engine[1]/controller-A-power-switch-status", func {
         if (!_num(S ~ "enabled", 0)) return;
-        if (_num("/fdm/jsbsim/systems/mps/engine[1]/controller-A-power-switch-status", 0) > 0.5)
+        _set(C ~ "vacuum-ready",
+            (_num("/fdm/jsbsim/systems/mps/engine[1]/controller-A-power-switch-status", 0) > 0.5) ? 1 : 0);
+    }, 0, 0);
+    # Main Engine Limit Shutdown → SCRAM when Enable (index 2)
+    setlistener("/fdm/jsbsim/systems/mps/limit-shutdown-enable", func {
+        if (!_num(S ~ "enabled", 0)) return;
+        if (_num("/fdm/jsbsim/systems/mps/limit-shutdown-enable", 0) >= 2)
             scram();
     }, 0, 0);
 
@@ -329,11 +336,6 @@ var start = func {
     setlistener(C ~ "ground-cart", func {
         if (_num(C ~ "ground-cart", 0))
             _set(C ~ "cart-tied", 1);
-    }, 0, 0);
-    # Auto vacuum-ready once ARM path fuel enabled (stub)
-    setlistener(C ~ "fuel-enable", func {
-        if (_num(C ~ "fuel-enable", 0))
-            _set(C ~ "vacuum-ready", 1);
     }, 0, 0);
     _wire_panel_aliases();
     _loop();
