@@ -10,7 +10,8 @@
   </long-description>
   <presets>
     <airport-id type="string">KEDW</airport-id>
-    <runway type="string">22L</runway>
+    <!-- FG apt.dat: paved long strip is 04/22 (not real-world 22L). -->
+    <runway type="string">22</runway>
     <on-ground type="bool">true</on-ground>
     <airspeed-kt type="double">0</airspeed-kt>
     <pitch-deg type="double">0</pitch-deg>
