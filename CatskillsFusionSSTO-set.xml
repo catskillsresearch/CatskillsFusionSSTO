@@ -10,6 +10,7 @@
   </long-description>
   <presets>
     <airport-id type="string">KEDW</airport-id>
+    <runway type="string">22L</runway>
     <on-ground type="bool">true</on-ground>
     <airspeed-kt type="double">0</airspeed-kt>
     <pitch-deg type="double">0</pitch-deg>

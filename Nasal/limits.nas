@@ -711,6 +711,16 @@ var check_limits_touchdown = func {
 
 var fail_flag = 0;
 
+# Grenadier Plan A: no Shuttle landing choreography while parked / slow taxi.
+# Spawn settle used to false-trigger Tailscrape! / vertical-speed / chute-vs-engine.
+if (getprop("/sim/model/grenadier/enabled"))
+	{
+	var _as = getprop("/velocities/airspeed-kt");
+	if (_as == nil) { _as = 0; }
+	if ((getprop("/sim/model/grenadier/park-settle") == 1) or (_as < 40.0))
+		{ return; }
+	}
+
 # tailscrape angle is 15 degrees
 
 var pitch = getprop("/orientation/pitch-deg");
@@ -763,9 +773,10 @@ if ((pitch_rate < -2.0) and (getprop("/gear/gear[0]/wow") == 1) and (_as_kt > 40
 	}
 
 # drag chute pin fails for airspeed > 230 kt upon deployment
+# Grenadier: no drag chute (long runway + brakes only).
 
 
-if ((airspeed > 230.0) and (getprop("/controls/shuttle/parachute") >0 ) and (chute_warn == 0))
+if ((!getprop("/sim/model/grenadier/enabled")) and (airspeed > 230.0) and (getprop("/controls/shuttle/parachute") >0 ) and (chute_warn == 0))
 	{
 	#setprop("/sim/messages/copilot", "Above drag chute deployment speed!");
 	SpaceShuttle.callout.make("Above drag chute deployment speed!", "failure");
@@ -781,7 +792,7 @@ if ((airspeed > 230.0) and (getprop("/controls/shuttle/parachute") >0 ) and (chu
 var chute_out = getprop("/controls/shuttle/parachute");
 var chute_state = getprop("/controls/shuttle/drag-chute-jettison");
 
-if ((chute_out > 0) and (chute_state == 0) and (airspeed < 20.0))
+if ((!getprop("/sim/model/grenadier/enabled")) and (chute_out > 0) and (chute_state == 0) and (airspeed < 20.0))
 	{
 	#setprop("/sim/messages/copilot", "Engine damaged by drag chute!");
 	SpaceShuttle.callout.make("Engine damaged by drag chute!", "failure");

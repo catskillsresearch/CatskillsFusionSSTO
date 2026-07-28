@@ -2463,6 +2463,12 @@ var ssme_lockup = func (n) {
 
 var arm_drag_chute = func {
 
+    # Grenadier: no drag chute — long runway + brakes only.
+    if (getprop("/sim/model/grenadier/enabled")) {
+	SpaceShuttle.callout.make("No drag chute on this article — brakes only.", "help");
+	return;
+    }
+
     var state = getprop("/controls/shuttle/drag-chute-arm");
     
     if (state == 0) {state = 1;}
@@ -2472,6 +2478,8 @@ var arm_drag_chute = func {
 }
 
 var jettison_drag_chute = func {
+
+    if (getprop("/sim/model/grenadier/enabled")) { return; }
 
     # don't jettison undeployed chute
     if (getprop("/controls/shuttle/drag-chute-deploy-timer") == 0) {return;}
@@ -2486,6 +2494,11 @@ var jettison_drag_chute = func {
 }
 
 var deploy_chute = func {
+
+    if (getprop("/sim/model/grenadier/enabled")) {
+	SpaceShuttle.callout.make("No drag chute on this article — brakes only.", "help");
+	return;
+    }
 
     var state_sys1 = getprop("/fdm/jsbsim/systems/circuit-breakers/drag-chute-sys1");
     var state_sys2 = getprop("/fdm/jsbsim/systems/circuit-breakers/drag-chute-sys2");
@@ -3218,6 +3231,12 @@ if (stage == 7)
 	setprop("/controls/gear/brake-right", 1.0);
 	setprop("/controls/gear/brake-parking", 1);
 
+	# No chute; cold plant
+	setprop("/controls/shuttle/parachute", 0);
+	setprop("/controls/shuttle/drag-chute-deploy-timer", 0);
+	setprop("/controls/shuttle/drag-chute-jettison", 1);
+	setprop("/controls/shuttle/drag-chute-string", "removed");
+
 	setprop("/fdm/jsbsim/systems/thermal/entry-flame-alpha", 0.0);
 	setprop("/fdm/jsbsim/systems/fcs/control-mode",29);
 	setprop("/controls/shuttle/control-system-string", "Aerojet");
@@ -3833,6 +3852,9 @@ if (getprop("/sim/presets/stage") == 5) # we start in a gliding test
 if (getprop("/sim/presets/stage") == 7) # Grenadier: runway, gear down, no stack, cold engines
 	{
 	SRB_message_flag = 2;
+	# Suppress false Tailscrape! / vspeed / chute callouts while FDM settles on the gear.
+	setprop("/sim/model/grenadier/park-settle", 1);
+	setprop("/sim/model/grenadier/enabled", 1);
 	# Park ALL non-gear structure contacts above the airframe; equalize nose bogey.
 	var _park_structure_contacts = func {
 		var i = 3;
@@ -3844,30 +3866,60 @@ if (getprop("/sim/presets/stage") == 7) # Grenadier: runway, gear down, no stack
 		# (that path is meters/feet and -313 flips the orbiter onto its tail).
 		setprop("/fdm/jsbsim/gear/unit[0]/z-position", -313.779528);
 	};
-	var _level_on_gear = func {
+	var _cold_powered_down = func {
+		# Completely cold: CHARM OFF, throttle 0, onboard battery charged for later bring-up.
+		setprop("/fdm/jsbsim/systems/grenadier/charm/mode", "OFF");
+		setprop("/fdm/jsbsim/systems/grenadier/charm/mode-index", 0);
+		setprop("/fdm/jsbsim/systems/grenadier/charm/scram", 0);
+		setprop("/fdm/jsbsim/systems/grenadier/charm/light-cmd", 0);
+		setprop("/fdm/jsbsim/systems/grenadier/charm/dec-online", 0);
+		setprop("/fdm/jsbsim/systems/grenadier/charm/bus-mw", 0.0);
+		setprop("/fdm/jsbsim/systems/grenadier/charm/go-bus", 0);
+		setprop("/fdm/jsbsim/systems/grenadier/charm/battery-online", 0);
+		setprop("/fdm/jsbsim/systems/grenadier/charm/ground-cart", 0);
+		setprop("/fdm/jsbsim/systems/grenadier/charm/cart-tied", 0);
+		setprop("/fdm/jsbsim/systems/grenadier/charm/startup-source", "BATTERY");
+		setprop("/fdm/jsbsim/systems/grenadier/charm/battery-kwh", 500.0);
+		setprop("/fdm/jsbsim/systems/grenadier/engine/throttle", 0.0);
+		setprop("/controls/engines/engine[0]/throttle", 0);
+		setprop("/controls/engines/engine[1]/throttle", 0);
+		setprop("/controls/engines/engine[2]/throttle", 0);
+		# No drag chute on this article
+		setprop("/controls/shuttle/parachute", 0);
+		setprop("/controls/shuttle/drag-chute-arm", 0);
+		setprop("/controls/shuttle/drag-chute-deploy", 0);
+		setprop("/controls/shuttle/drag-chute-deploy-timer", 0);
+		setprop("/controls/shuttle/drag-chute-jettison", 1);
+		setprop("/controls/shuttle/drag-chute-string", "removed");
+	};
+	var _force_level_park = func {
 		_park_structure_contacts();
+		var as = getprop("/velocities/airspeed-kt");
+		if (as == nil) { as = 0; }
+		if (as > 5.0) { return; }
 		setprop("/fdm/jsbsim/gear/gear-pos-norm", 1);
-		# Only kill rates — do NOT repeatedly force pitch=0 (fights soft springs → bounce).
+		setprop("/orientation/roll-deg", 0.0);
+		setprop("/orientation/pitch-deg", 0.0);
 		setprop("/velocities/uBody-fps", 0.0);
 		setprop("/velocities/vBody-fps", 0.0);
 		setprop("/velocities/wBody-fps", 0.0);
+		setprop("/velocities/speed-north-fps", 0.0);
+		setprop("/velocities/speed-east-fps", 0.0);
+		setprop("/velocities/speed-down-fps", 0.0);
 		setprop("/orientation/pitch-rate-degps", 0.0);
 		setprop("/orientation/roll-rate-degps", 0.0);
 		setprop("/orientation/yaw-rate-degps", 0.0);
 		setprop("/controls/flight/elevator", 0.0);
 		setprop("/controls/flight/aileron", 0.0);
 		setprop("/controls/flight/rudder", 0.0);
+		setprop("/controls/flight/elevator-trim", 0.0);
 		setprop("/controls/gear/brake-left", 1.0);
 		setprop("/controls/gear/brake-right", 1.0);
 		setprop("/controls/gear/brake-parking", 1);
 	};
-	var _settle_attitude_once = func {
-		_park_structure_contacts();
-		setprop("/orientation/roll-deg", 0.0);
-		setprop("/orientation/pitch-deg", 0.0);
-		setprop("/velocities/uBody-fps", 0.0);
-		setprop("/velocities/vBody-fps", 0.0);
-		setprop("/velocities/wBody-fps", 0.0);
+	var _level_on_gear = func {
+		_force_level_park();
+		_cold_powered_down();
 	};
 	# Gear down BEFORE first FDM settle so we never rest on body-flap contacts
 	setprop("/fdm/jsbsim/systems/landing/landing-gear-arm-cmd", 1);
@@ -3877,12 +3929,16 @@ if (getprop("/sim/presets/stage") == 7) # Grenadier: runway, gear down, no stack
 	setprop("/fdm/jsbsim/gear/gear-cmd-norm", 1);
 	setprop("/fdm/jsbsim/gear/gear-pos-norm", 1);
 	_park_structure_contacts();
+	_cold_powered_down();
+	_force_level_park();
 	settimer(set_speed, 0.5);
-	settimer(_settle_attitude_once, 1.0);
+	settimer(_force_level_park, 1.0);
 	settimer(_level_on_gear, 2.0);
-	settimer(_level_on_gear, 4.0);
-	settimer(_park_structure_contacts, 6.0);
+	settimer(_force_level_park, 3.0);
+	settimer(_level_on_gear, 5.0);
+	settimer(_force_level_park, 8.0);
 	settimer(_park_structure_contacts, 10.0);
+	settimer(func { setprop("/sim/model/grenadier/park-settle", 0); }, 15.0);
 	SRB_separate_silent();
 	external_tank_separate_silent();
 	setprop("/controls/shuttle/SRB-attach", 0);
@@ -3899,7 +3955,7 @@ if (getprop("/sim/presets/stage") == 7) # Grenadier: runway, gear down, no stack
 	setprop("/consumables/fuel/tank[2]/level-lbs",0.0);
 	setprop("/consumables/fuel/tank[3]/level-lbs",0.0);
 
-	hydraulics_on();
+	# Cold article: do not spin up APUs/hydraulics for park. Gear already down; parking brake set.
 	et_umbilical_door_close();
 
 	setprop("/fdm/jsbsim/systems/fcs/control-mode",29);
@@ -3917,13 +3973,10 @@ if (getprop("/sim/presets/stage") == 7) # Grenadier: runway, gear down, no stack
 	_zero_ssme_vfx("");
 	_zero_ssme_vfx("1");
 	_zero_ssme_vfx("2");
-	setprop("/controls/engines/engine[0]/throttle", 0);
-	setprop("/controls/engines/engine[1]/throttle", 0);
-	setprop("/controls/engines/engine[2]/throttle", 0);
 	setprop("/controls/engines/engine[0]/ignited-hud", " ");
 	setprop("/controls/engines/engine[1]/ignited-hud", " ");
 	setprop("/controls/engines/engine[2]/ignited-hud", " ");
-	print("Grenadier stage 7: runway start, gear down, ET/SRB removed, cold engines");
+	print("Grenadier stage 7: KEDW runway, level park, cold plant (battery available), no drag chute");
 	}
 
 if (getprop("/sim/presets/stage") == 6) # we're in high orbit

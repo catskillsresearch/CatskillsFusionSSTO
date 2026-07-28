@@ -41,7 +41,7 @@ var init_defaults = func {
     _set(C ~ "battery-min-kwh", 300.0);
     _set(C ~ "battery-online", 0);
     _set(C ~ "ground-cart", 0);
-    _set(C ~ "startup-source", "CART");
+    _set(C ~ "startup-source", "BATTERY");
     _set(C ~ "cart-tied", 0);
     _set(C ~ "cryo-enable", 0);
     _set(C ~ "cryo-kw", 0.0);

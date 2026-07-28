@@ -284,34 +284,34 @@ def build_nozzle():
 def build_scoop():
     """Forward scoop mouths on heritage OMS pods (pods + RCS stay in OMSPods.ac).
 
-    Do NOT replace the whole pod with boxes (that hid the RCS '4 dots' and made
-    planar white slices). Only the forward face becomes an intake; aft RCS remain.
+    B-21-like dark recessed intakes: soft lip, deep black cavity. Do NOT replace
+    the whole pod with boxes (that hid the RCS '4 dots' and made planar white slices).
     """
     b = ACBuilder()
-    mat_lip = b.add_mat("scoop-lip", (0.35, 0.38, 0.42), amb=0.4, spec=0.45, shi=50)
-    mat_dark = b.add_mat("scoop-cavity", (0.04, 0.04, 0.05), amb=0.2, spec=0.08, shi=10)
-    mat_door = b.add_mat("scoop-door", (0.55, 0.56, 0.58), amb=0.4, spec=0.35, shi=40)
-    mat_duct = b.add_mat("scoop-duct", (0.32, 0.34, 0.38), amb=0.35, spec=0.25, shi=28)
-    mat_hinge = b.add_mat("scoop-hinge", (0.22, 0.22, 0.24), amb=0.3, spec=0.3, shi=30)
+    mat_lip = b.add_mat("scoop-lip", (0.42, 0.44, 0.46), amb=0.4, spec=0.35, shi=40)
+    mat_dark = b.add_mat("scoop-cavity", (0.01, 0.01, 0.012), amb=0.08, spec=0.02, shi=5)
+    mat_door = b.add_mat("scoop-door", (0.08, 0.08, 0.09), amb=0.15, spec=0.1, shi=20)
+    mat_duct = b.add_mat("scoop-duct", (0.22, 0.23, 0.25), amb=0.3, spec=0.2, shi=25)
+    mat_hinge = b.add_mat("scoop-hinge", (0.18, 0.18, 0.19), amb=0.25, spec=0.25, shi=28)
 
-    # Left (+Z): mouth at forward OMS face (~x=11.9), clearly recessed
-    b.box("grenadier-scoop-L-lip", 11.35, 11.95, -0.85, 0.55, 1.35, 2.85, mat=mat_lip)
-    b.box("grenadier-scoop-L-cavity", 11.45, 12.55, -0.65, 0.35, 1.50, 2.70, mat=mat_dark)
-    # Re-entry doors (close when inlet-sealed) — two leaves
-    b.box("grenadier-scoop-L-door-A", 11.38, 11.55, -0.80, -0.05, 1.40, 2.80, mat=mat_door)
-    b.box("grenadier-scoop-L-door-B", 11.38, 11.55, 0.05, 0.80, 1.40, 2.80, mat=mat_door)
-    b.box("grenadier-scoop-L-hinge", 11.55, 11.70, -0.10, 0.10, 1.45, 2.75, mat=mat_hinge)
-    b.box("grenadier-scoop-L-duct", 12.20, 13.50, -0.95, -0.15, 0.40, 1.85, mat=mat_duct)
+    # Left (+Z): scalloped mouth — thin lip, deep black hole (B-21 read)
+    b.box("grenadier-scoop-L-lip", 11.40, 11.72, -0.70, 0.45, 1.40, 2.80, mat=mat_lip)
+    b.box("grenadier-scoop-L-cavity", 11.50, 13.10, -0.55, 0.30, 1.55, 2.65, mat=mat_dark)
+    # Inner doors sit deep in the shadow (barely readable; seals for σ3)
+    b.box("grenadier-scoop-L-door-A", 11.70, 11.95, -0.50, -0.02, 1.58, 2.62, mat=mat_door)
+    b.box("grenadier-scoop-L-door-B", 11.70, 11.95, 0.02, 0.50, 1.58, 2.62, mat=mat_door)
+    b.box("grenadier-scoop-L-hinge", 11.95, 12.10, -0.08, 0.08, 1.60, 2.60, mat=mat_hinge)
+    b.box("grenadier-scoop-L-duct", 12.40, 13.70, -0.85, -0.10, 0.45, 1.90, mat=mat_duct)
 
     # Right (−Z)
-    b.box("grenadier-scoop-R-lip", 11.35, 11.95, -0.85, 0.55, -2.85, -1.35, mat=mat_lip)
-    b.box("grenadier-scoop-R-cavity", 11.45, 12.55, -0.65, 0.35, -2.70, -1.50, mat=mat_dark)
-    b.box("grenadier-scoop-R-door-A", 11.38, 11.55, -0.80, -0.05, -2.80, -1.40, mat=mat_door)
-    b.box("grenadier-scoop-R-door-B", 11.38, 11.55, 0.05, 0.80, -2.80, -1.40, mat=mat_door)
-    b.box("grenadier-scoop-R-hinge", 11.55, 11.70, -0.10, 0.10, -2.75, -1.45, mat=mat_hinge)
-    b.box("grenadier-scoop-R-duct", 12.20, 13.50, -0.95, -0.15, -1.85, -0.40, mat=mat_duct)
+    b.box("grenadier-scoop-R-lip", 11.40, 11.72, -0.70, 0.45, -2.80, -1.40, mat=mat_lip)
+    b.box("grenadier-scoop-R-cavity", 11.50, 13.10, -0.55, 0.30, -2.65, -1.55, mat=mat_dark)
+    b.box("grenadier-scoop-R-door-A", 11.70, 11.95, -0.50, -0.02, -2.62, -1.58, mat=mat_door)
+    b.box("grenadier-scoop-R-door-B", 11.70, 11.95, 0.02, 0.50, -2.62, -1.58, mat=mat_door)
+    b.box("grenadier-scoop-R-hinge", 11.95, 12.10, -0.08, 0.08, -2.60, -1.60, mat=mat_hinge)
+    b.box("grenadier-scoop-R-duct", 12.40, 13.70, -0.85, -0.10, -1.90, -0.45, mat=mat_duct)
 
-    b.box("grenadier-scoop-plenum", 12.20, 13.60, -1.05, -0.05, -0.50, 0.50, mat=mat_duct)
+    b.box("grenadier-scoop-plenum", 12.40, 13.80, -0.95, 0.0, -0.45, 0.45, mat=mat_duct)
 
     b.write(OUT / "grenadier_scoop.ac")
 
