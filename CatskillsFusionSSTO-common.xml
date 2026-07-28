@@ -3299,7 +3299,8 @@ Note that devlopment is ongoing and not all features are documented.
      <PL-selection type="string">none</PL-selection>
      <PL-selection-flag type="int">0</PL-selection-flag>
      <PL-pallet-flag type="int">0</PL-pallet-flag>
-     <detailed-flightdeck type="int">0</detailed-flightdeck>
+     <!-- Grenadier: show CDR/PLT seat meshes (cockpit-detailed.ac). MS seats are not in the FG kit yet. -->
+     <detailed-flightdeck type="int">1</detailed-flightdeck>
      <srb-shake type="int">0</srb-shake>
      <loose-items type="int">0</loose-items>
      <cuecards>
